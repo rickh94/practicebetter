@@ -1,0 +1,24 @@
+{
+  "name": "musiclib",
+  "type": "module",
+  "scripts": {
+    "watch": "tailwindcss -i ./internal/static/input.css -o ./internal/static/css/main.css -w",
+    "clean": "rm ./internal/static/css/main.css ./interal/static/js/main.min.js",
+    "build": "tailwindcss -i ./internal/static/input.css -o ./internal/static/css/main.css -m && uglifyjs ./internal/static/main.js -o ./internal/static/js/main.min.js",
+    "uglify": "uglifyjs"
+  },
+  "devDependencies": {},
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/typography": "^0.5.10",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "prettier": "^3.1.0",
+    "prettier-plugin-tailwindcss": "^0.5.7",
+    "tailwindcss": "^3.3.5",
+    "uglify-js": "^3.17.4"
+  }
+}

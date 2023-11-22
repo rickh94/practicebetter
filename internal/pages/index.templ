@@ -1,0 +1,14 @@
+package pages
+
+import "musiclib/internal/components"
+
+templ Index() {
+	@components.Main() {
+		@components.Header() {
+			<h1 class="text-4xl font-bold">Music Library</h1>
+		}
+		<p class="text-left">
+		Little database for keeping inventory of my physical music library
+		</p>
+	}
+}
