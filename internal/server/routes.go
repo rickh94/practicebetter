@@ -14,6 +14,8 @@ import (
 	"github.com/mavolin/go-htmx"
 )
 
+// TODO: stick something on the session after a login redirect so the user gets a notification
+
 func (s *Server) RegisterRoutes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -23,7 +25,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(csrf.Protect([]byte(s.SecretKey), csrf.Secure(true)))
 	r.Use(middleware.Compress(5, "application/json", "text/html", "text/css", "application/javascript"))
 	// Just long enough for preload to matter
-	r.Use(middleware.SetHeader("Cache-Control", "max-age=300"))
+	// r.Use(middleware.SetHeader("Cache-Control", "max-age=300"))
 	r.Use(middleware.SetHeader("Vary", "HX-Request"))
 	r.Use(middleware.Timeout(10 * time.Second))
 	r.Use(s.SM.LoadAndSave)
@@ -31,7 +33,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	// staticfiles
 	sf := http.NewServeMux()
 	sf.Handle("/", http.StripPrefix("/static", hashfs.FileServer(static.HashStatic)))
-	r.Mount("/static", sf)
+	r.With(middleware.SetHeader("Cache-Control", "max-age=604800")).Mount("/static", sf)
 
 	r.Get("/", s.index)
 	r.Get("/about", s.about)
@@ -58,6 +60,16 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.With(s.LoginRequired).Get("/me/reset", s.getProfile)
 		r.With(s.LoginRequired).Post("/passkey/register", s.registerPasskey)
 		r.With(s.LoginRequired).Post("/passkey/delete", s.deletePasskeys)
+	})
+
+	r.With(s.LoginRequired).Route("/library", func(r chi.Router) {
+		r.Get("/", s.libraryDashboard)
+		/*
+			r.Get("/random-single", s.randomPractice)
+			r.Get("/random-sequence", s.sequencePractice)
+			r.Get("/repeat", s.repeatPractice)
+			r.Get("/starting-point", s.startingPointPractice)
+		*/
 	})
 
 	return r

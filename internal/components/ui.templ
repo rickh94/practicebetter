@@ -1,5 +1,23 @@
 package components
 
+import "pbgo/internal/heroicons"
+
+script ShowModal(id string) {
+	document.getElementById(id).showModal();
+}
+
+script CloseModal(id string) {
+	const modal = document.getElementById(id);
+	modal.classList.add('close'); // run animation here
+
+	requestAnimationFrame(function () {
+		requestAnimationFrame(function () {
+			modal.classList.remove('close');
+			modal.close(); // then run the default close method
+		});
+	});
+}
+
 templ ClearButton(buttonType string) {
 	<button
  		type={ buttonType }
@@ -66,4 +84,14 @@ templ BasicButtonLink(href, hxTarget, hxSwap  string) {
 
 templ PracticeToolNav(activePath string) {
 	<practice-tool-nav activePath={ activePath }></practice-tool-nav>
+}
+
+templ ReadMoreButton(id string) {
+	<button
+ 		class={ navClasses }
+ 		onclick={ ShowModal(id) }
+	>
+		Read More
+		@heroicons.IconInformationCircleSolid("-mr-1 h-5 w-5")
+	</button>
 }

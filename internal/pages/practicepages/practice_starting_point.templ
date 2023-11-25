@@ -3,8 +3,49 @@ package practicepages
 import "pbgo/internal/components"
 import "pbgo/internal/pages"
 
+const spAboutId = "starting-point-about"
+
+templ StartingPointReadMoreDialog() {
+	<dialog id={ spAboutId } aria-labelledby="repeat-practice-info-title" class="bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left flex flex-col gap-2 sm:max-w-xl px-4 py-4">
+		<header class="mt-2 text-center sm:text-left">
+			<h3 id="repeat-practice-info-title" class="text-2xl font-semibold leading-6 text-neutral-900">Random Starting Point</h3>
+		</header>
+		<div class="mt-2 text-left prose prose-sm prose-neutral">
+			<p>
+				Playing small random sections of your piece helps you:
+			</p>
+			<ul>
+				<li>
+					Understand the piece more deeply by getting a
+					different perspective compared to your usual spots
+				</li>
+				<li>
+					Quickly transition to different parts of the piece
+				</li>
+				<li>Reinforce your memory of different spots</li>
+				<li>
+					Recover from mistakes by being able to start from
+							anywhere
+				</li>
+			</ul>
+			<p>
+				It is essential that you start and stop exactly where it
+				says. The point is to challenge yourself to do something
+				much more difficult than starting from the beginning and
+				get to know your piece extremely well.
+			</p>
+		</div>
+		<button
+ 			onclick={ components.CloseModal(spAboutId) }
+ 			class="flex flex-grow gap-1 justify-center items-center py-2 px-4 mt-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+		>
+			Done Reading
+		</button>
+	</dialog>
+}
+
 templ StartingPointPractice(s pages.ServerUtil) {
-	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreButton(spAboutId))) {
 		@components.Header() {
 			@components.PracticeToolNav("/practice/starting-point")
 		}
@@ -14,5 +55,6 @@ templ StartingPointPractice(s pages.ServerUtil) {
 			</div>
 		</div>
 		<script type="module" src={ s.StaticUrl("dist/practice.js") }></script>
+		@StartingPointReadMoreDialog()
 	}
 }

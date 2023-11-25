@@ -24,11 +24,11 @@ templ BackHomeLink() {
 	}
 }
 
-templ ReadMoreLink() {
-	<button class={ navClasses } type="button">
-		Read More
-		@heroicons.IconHomeSolid("-mr-1 h-5 w-5")
-	</button>
+templ AccountLink() {
+	@HxLink(navClasses, "/auth/me", "#main-content") {
+		@heroicons.IconUserCircleSolid("-ml-1 h-5 w-5")
+		Account
+	}
 }
 
 templ LoginLink() {

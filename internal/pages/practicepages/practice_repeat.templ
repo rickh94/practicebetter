@@ -3,8 +3,42 @@ package practicepages
 import "pbgo/internal/components"
 import "pbgo/internal/pages"
 
+const rAboutId = "repeat-practice-info"
+
+templ RepeatReadMoreDialog() {
+	<dialog id={ rAboutId } aria-labelledby="repeat-practice-info-title" class="bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left flex flex-col gap-2 sm:max-w-xl px-4 py-4">
+		<header class="mt-2 text-center sm:text-left">
+			<h3 id="repeat-practice-info-title" class="text-2xl font-semibold leading-6 text-neutral-900">Repeat Practicing</h3>
+		</header>
+		<div class="mt-2 text-left prose prose-sm prose-neutral">
+			<p>
+				Repeat practicing can be helpful in solidifying a shaky
+				spot, with two caveats: First, it’s easy to play a{ " " }
+				<em class="italic">lot</em> of mistakes if your only
+				goal is a lot or repetitions. Second, playing
+				over-and-over without good focus (I call it robot
+				practicing) can lead you to a lot of wasted time.
+			</p>
+			<p>
+				To prevent this, we will set a goal of only five
+				repetitions, but they must be excellent. We will also
+				severely punish mistakes by resetting to zero. The
+				combination of a low number of repetitions and serve
+				punishment leads to more focused repetitions and fewer
+				mistakes.
+			</p>
+		</div>
+		<button
+ 			onclick={ components.CloseModal(rAboutId) }
+ 			class="flex flex-grow gap-1 justify-center items-center py-2 px-4 mt-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+		>
+			Done Reading
+		</button>
+	</dialog>
+}
+
 templ RepeatPractice(s pages.ServerUtil) {
-	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreButton(rAboutId))) {
 		@components.Header() {
 			@components.PracticeToolNav("/practice/repeat")
 		}
@@ -13,6 +47,28 @@ templ RepeatPractice(s pages.ServerUtil) {
 				<repeat-practice id="practice-island" class="hx-fade"></repeat-practice>
 			</div>
 		</div>
+		@RepeatReadMoreDialog()
 		<script type="module" src={ s.StaticUrl("dist/practice.js") }></script>
 	}
+}
+
+templ RepeatPracticeAbout(id string) {
+	/*
+	<div class="relative z-10" id={ id }>
+		<div
+ 			class="fixed inset-0 transition-opacity bg-neutral-800/30 backdrop-blur-sm modal-backdrop"
+			aria-labelledby="modal-title" role="dialog" aria-modal="true"
+ 			onclick={ remove(id) }
+		></div>
+		<div className="overflow-y-auto fixed inset-0 z-10 w-screen">
+			<div class="flex justify-center items-end p-4 min-h-full text-center sm:items-center sm:p-0">
+				<div class="relative transform overflow-hidden rounded-xl bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 pb-4 pt-5 text-left shadow-lg transition-all sm:my-8 sm:w-full sm:max-w-xl sm:p-6 modal-content">
+					<div>
+						<div className="text-center sm:mt-5"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	*/
 }

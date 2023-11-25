@@ -3,8 +3,50 @@ package practicepages
 import "pbgo/internal/components"
 import "pbgo/internal/pages"
 
+const rsAboutId = "random-single-about"
+
+templ RandomReadMoreDialog() {
+	<dialog id={ rsAboutId } aria-labelledby="repeat-practice-info-title" class="bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left flex flex-col gap-2 sm:max-w-xl px-4 py-4">
+		<header class="mt-2 text-center sm:text-left">
+			<h3 id="repeat-practice-info-title" class="text-2xl font-semibold leading-6 text-neutral-900">Random Practicing</h3>
+		</header>
+		<div class="mt-2 text-left prose prose-sm prose-neutral">
+			<p>
+				In order to maintain novelty for our distractable brains
+				and ensure even practicing amoung our different
+				sections, it’s very helpful to practice our spots in a
+				randomized order.
+			</p>
+			<p>
+				Start by adding your spots one at a time or generating several at one.
+				You’ll be shown the spots one-at-a-time until you click “Done” or have
+				marked all the spots as completed.
+			</p>
+			<p>
+				If you would rather have a list of spots, rather than
+				presenting them one-at-a-time, you should check out the{ " " }
+				@components.HxLink("underline", "/practice/random-sequence", "#main-content") {
+					Randomized Sequence
+				}
+				{ " " }tool.
+			</p>
+		</div>
+		<button
+ 			onclick={ components.CloseModal(rsAboutId) }
+ 			class="flex flex-grow gap-1 justify-center items-center py-2 px-4 mt-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+		>
+			Done Reading
+		</button>
+	</dialog>
+}
+
 templ RandomPractice(s pages.ServerUtil) {
-	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreLink())) {
+	@components.SingleColumnLayout(
+		components.TwoButtonBar(
+			components.BackHomeLink(),
+			components.ReadMoreButton(rsAboutId),
+		),
+	) {
 		@components.Header() {
 			@components.PracticeToolNav("/practice/random-single")
 		}
@@ -13,6 +55,7 @@ templ RandomPractice(s pages.ServerUtil) {
 				<random-spots id="practice-island" class="hx-fade"></random-spots>
 			</div>
 		</div>
+		@RandomReadMoreDialog()
 		<script type="module" src={ s.StaticUrl("dist/practice.js") }></script>
 	}
 }
