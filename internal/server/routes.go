@@ -1,9 +1,8 @@
 package server
 
 import (
-	"musiclib/internal/pages"
-	"musiclib/internal/static"
 	"net/http"
+	"pbgo/internal/static"
 	"time"
 
 	"github.com/a-h/templ"
@@ -35,17 +34,37 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Mount("/static", sf)
 
 	r.Get("/", s.index)
+	r.Get("/about", s.about)
+	r.Route("/practice", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			s.Redirect(w, r, "/practice/random-single")
+		})
+		r.Get("/random-single", s.randomPractice)
+		r.Get("/random-sequence", s.sequencePractice)
+		r.Get("/repeat", s.repeatPractice)
+		r.Get("/starting-point", s.startingPointPractice)
+	})
+
+	r.Route("/auth", func(r chi.Router) {
+		r.Get("/login", s.startLogin)
+		r.Post("/login", s.continueLogin)
+		r.Post("/code", s.completeCodeLogin)
+		r.Get("/code", s.forceCodeLogin)
+		r.Post("/passkey/login", s.completePasskeySignin)
+		r.Get("/logout", s.logoutUserRoute)
+		r.With(s.LoginRequired).Get("/me", s.me)
+		r.With(s.LoginRequired).Post("/me", s.updateProfile)
+		r.With(s.LoginRequired).Get("/me/edit", s.editProfile)
+		r.With(s.LoginRequired).Get("/me/reset", s.getProfile)
+		r.With(s.LoginRequired).Post("/passkey/register", s.registerPasskey)
+		r.With(s.LoginRequired).Post("/passkey/delete", s.deletePasskeys)
+	})
 
 	return r
 }
 
-func (s *Server) index(w http.ResponseWriter, r *http.Request) {
-	s.HxRender(w, r, pages.Index())
-}
-
 func (s *Server) HxRender(w http.ResponseWriter, r *http.Request, component templ.Component) {
 	hxRequest := htmx.Request(r)
-
 	if hxRequest == nil {
 		component = Page(s, component)
 	}
@@ -53,7 +72,7 @@ func (s *Server) HxRender(w http.ResponseWriter, r *http.Request, component temp
 	component.Render(r.Context(), w)
 }
 
-func Redirect(w http.ResponseWriter, r *http.Request, url string) {
+func (s *Server) Redirect(w http.ResponseWriter, r *http.Request, url string) {
 	if htmx.Request(r) != nil {
 		htmx.PushURL(r, url)
 		htmx.Redirect(r, url)
@@ -62,40 +81,6 @@ func Redirect(w http.ResponseWriter, r *http.Request, url string) {
 		http.Redirect(w, r, url, http.StatusSeeOther)
 	}
 }
-
-/*
-
-func LoginRequired(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		user, err := auth.GetUser(r.Context())
-		if err != nil {
-			location := r.URL.Path
-			location = url.QueryEscape(location)
-			Redirect(w, r, "/auth/login?next="+location)
-			return
-		}
-		ctx := context.WithValue(r.Context(), "user", user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func RedirectLoggedIn(w http.ResponseWriter, r *http.Request, url string) bool {
-	if _, err := auth.GetUser(r.Context()); err == nil {
-		Redirect(w, r, "/auth/me")
-		return true
-	}
-	return false
-}
-
-func RedirectNotLoggedIn(w http.ResponseWriter, r *http.Request, url string) bool {
-	if _, err := auth.GetUser(r.Context()); err != nil {
-		log.Println(err)
-		Redirect(w, r, "/auth/login")
-		return true
-	}
-	return false
-}
-*/
 
 type ShowAlertEvent struct {
 	Message  string `json:"message"`

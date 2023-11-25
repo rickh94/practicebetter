@@ -1,0 +1,247 @@
+package authpages
+
+import "github.com/go-webauthn/webauthn/protocol"
+import "pbgo/internal/db"
+import "pbgo/internal/components"
+import "pbgo/internal/heroicons"
+
+script startRegistration(creationOptions *protocol.CredentialCreation, csrf string) {
+  SimpleWebAuthnBrowser.startRegistration(creationOptions.publicKey).then(attResp => {
+    console.log(attResp);
+    fetch('/auth/passkey/register', {
+      method: 'POST',
+      headers: {
+	'Content-Type': 'application/json',
+	'X-CSRF-TOKEN': csrf
+      },
+      body: JSON.stringify(attResp),
+    }).then(res => {
+      console.log(res)
+      if (res.ok) {
+	      document.dispatchEvent(new CustomEvent("ShowAlert", {
+		  detail: {
+		    message: "Use your passkey to login in the future!",
+		    title: "Passkey Registered",
+		    variant: "success",
+		    duration: 3000,
+		  }
+	      }));
+	      document.getElementById("passkey-count").innerHTML = (parseInt(document.getElementById("passkey-count").innerHTML) + 1).toString();
+      } else {
+	      showAlert("Could not register your new passkey. Try again later", "Registration Failed!", "error", 3000);
+      }
+    }).catch(err => console.log(err));
+  }).catch(err => console.log(err));
+}
+
+script deletePasskeys() {
+	document.getElementById("passkey-count").innerHTML = "0";
+}
+
+// TODO: display reminder if user email is not verified
+
+templ UserInfo(user db.User, csrf string) {
+	<div class="flex flex-col p-4 rounded-xl bg-neutral-700/5" id="user-info">
+		<div class="px-4 pb-1 sm:px-0">
+			<h3 class="text-xl font-semibold leading-7 text-neutral-900">
+				Account Information
+			</h3>
+			<p class="max-w-2xl text-sm leading-6 text-neutral-500">
+				View your account information
+			</p>
+		</div>
+		<dl class="divide-y divide-neutral-700 border-y border-neutral-700">
+			<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+				<dt class="text-sm font-medium leading-6 text-neutral-900">
+					Full name
+				</dt>
+				<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
+					if user.Fullname != "" {
+						{ user.Fullname }
+					} else {
+						No Name
+					}
+				</dd>
+			</div>
+			<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+				<dt class="text-sm font-medium leading-6 text-neutral-900">
+					Email
+				</dt>
+				<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
+					{ user.Email }
+				</dd>
+			</div>
+		</dl>
+		<div class="flex pt-4 pb-0 w-full">
+			<button
+ 				hx-get="/auth/me/edit"
+ 				hx-headers={ components.HxCsrfHeader(csrf) }
+ 				hx-swap="outerHTML"
+ 				hx-target="#user-info"
+ 				class="flex flex-grow gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+			>
+				@heroicons.IconPencilSolid("-ml-1 w-5 h-5")
+				Edit
+			</button>
+		</div>
+	</div>
+}
+
+templ UserForm(user db.User, csrf string, errors map[string]string) {
+	<div class="flex flex-col p-4 rounded-xl bg-neutral-700/5" id="user-info">
+		<div class="px-4 pb-1 sm:px-0">
+			<h3 class="text-xl font-semibold leading-7 text-neutral-900">
+				Edit Information
+			</h3>
+			<p class="max-w-2xl text-sm leading-6 text-neutral-500">
+				Edit your account information
+			</p>
+		</div>
+		<form
+ 			class="flex flex-col flex-grow justify-between"
+ 			action="/auth/me"
+ 			method="POST"
+ 			hx-post="/auth/me"
+ 			hx-swap="outerHTML"
+ 			hx-target="#user-info"
+		>
+			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+			<div class="divide-y divide-neutral-700 border-y border-neutral-700">
+				<div class="py-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+					<div class="flex items-center w-full h-full">
+						<label
+ 							class="text-sm font-medium leading-6 text-neutral-900"
+ 							for="name"
+						>
+							Full name
+						</label>
+					</div>
+					<div class="text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
+						<input
+ 							value={ user.Fullname }
+ 							type="text"
+ 							id="name"
+ 							name="name"
+ 							autoComplete="name"
+ 							placeholder="Enter your Name"
+ 							class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-700 focusable focus:bg-neutral-700/20"
+						/>
+						if errors["name"] != "" {
+							<p class="mt-2 text-sm text-red-600">{ errors["name"] }</p>
+						}
+					</div>
+				</div>
+				<div class="py-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+					<div class="flex items-center w-full h-full">
+						<label
+ 							class="text-sm font-medium leading-6 text-neutral-900"
+ 							for="email"
+						>
+							Email
+						</label>
+					</div>
+					<div class="text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
+						<input
+ 							value={ user.Email }
+ 							type="email"
+ 							id="email"
+ 							name="email"
+ 							autoComplete="home email"
+ 							placeholder="test@example.com"
+ 							class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-700 focusable focus:bg-neutral-700/20"
+						/>
+						if errors["email"] != "" {
+							<p class="mt-2 text-sm text-red-600">{ errors["email"] }</p>
+						}
+					</div>
+				</div>
+			</div>
+			<div class="flex flex-row-reverse gap-4 pt-4 pb-0 w-full">
+				<button
+ 					type="submit"
+ 					class="flex flex-grow gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+				>
+					@heroicons.IconCheckSolid("-ml-1 w-5 h-5")
+					Save
+				</button>
+				<button
+ 					hx-get="/auth/me/reset"
+ 					hx-headers={ components.HxCsrfHeader(csrf) }
+ 					hx-swap="outerHTML"
+ 					hx-target="#user-info"
+ 					class="flex flex-grow gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+				>
+					@heroicons.IconXMarkSolid("-ml-1 w-5 h-5")
+					Cancel
+				</button>
+			</div>
+		</form>
+	</div>
+}
+
+// TODO: add ability to edit user profile
+
+templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf string, credentialCount string) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.LogoutLink())) {
+		@components.Header() {
+			<h1 class="text-4xl font-bold">User Info</h1>
+		}
+		@components.TwoColumnContainer() {
+			@UserInfo(user, csrf)
+			<div class="p-4 rounded-xl bg-neutral-700/5">
+				<div class="px-4 pb-1 sm:px-0">
+					<h3 class="text-xl font-semibold leading-7 text-neutral-900">
+						Passkey Information
+					</h3>
+					<p class="max-w-2xl text-sm leading-6 text-neutral-500">
+						Manage your passkeys
+					</p>
+				</div>
+				<dl class="border-t divide-y divide-neutral-700 border-neutral-700">
+					<div class="py-3 px-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+						<dt class="text-sm font-medium leading-6 text-neutral-900">
+							Number of Passkeys
+						</dt>
+						<dd class="mt-1 text-sm leading-6 sm:mt-0 text-neutral-700" id="passkey-count">
+							{ credentialCount }
+						</dd>
+					</div>
+					<div class="py-2 px-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+						<dt class="flex items-center text-sm font-medium leading-6 text-neutral-900">
+							<span>Register a Passkey</span>
+						</dt>
+						<dd class="mt-1 text-sm leading-6 sm:mt-0 text-neutral-700">
+							<button
+ 								type="button"
+ 								onclick={ startRegistration(creationOptions, csrf) }
+ 								class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+							>
+								@heroicons.IconFingerPrintSolid("-ml-1 h-5 w-5")
+								Register Passkey
+							</button>
+						</dd>
+					</div>
+					<div class="py-2 px-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+						<dt class="flex items-center text-sm font-medium leading-6 text-neutral-900">
+							<span>Delete Your Passkeys</span>
+						</dt>
+						<dd class="mt-1 text-sm leading-6 sm:mt-0 text-neutral-700">
+							<button
+ 								type="button"
+ 								hx-post="/auth/passkey/delete"
+ 								hx-headers={ components.HxCsrfHeader(csrf) }
+ 								hx-swap="none"
+ 								hx-confirm="Are you sure you want to delete all your passkeys?"
+ 								hx-on::after-request={ deletePasskeys() }
+ 								class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-red-800 rounded-xl transition duration-200 bg-red-700/10 hover:bg-red-700/20 focusable"
+							>
+								@heroicons.IconTrashSolid("-ml-1 w-5 h-5")
+								Delete Passkeys
+							</button>
+						</dd>
+					</div>
+				</dl>
+			</div>
+		}
+	}
+}

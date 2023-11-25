@@ -7,7 +7,8 @@ templ Main() {
 }
 
 templ Header() {
-	<header class="flex flex-col items-center p-4 mb-4 border-b border-white">
+	<header class="flex absolute top-0 left-1/2 z-50 justify-center mt-24 w-96 transform -translate-x-1/2 md:mt-8" id="page-title">
 		{ children... }
 	</header>
+	<div class="h-32 md:h-20"></div>
 }

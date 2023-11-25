@@ -6,11 +6,11 @@ cloud:
 sql:
   - engine: "sqlite"
     queries: "sql/queries"
-    schema: schema.sql
+    schema: sql/schema.sql
     gen:
       go:
         package: "db"
-        out: "db"
+        out: "internal/db"
 overrides:
   go: null
 plugins: []

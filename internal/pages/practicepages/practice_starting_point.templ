@@ -1,0 +1,18 @@
+package practicepages
+
+import "pbgo/internal/components"
+import "pbgo/internal/pages"
+
+templ StartingPointPractice(s pages.ServerUtil) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreLink())) {
+		@components.Header() {
+			@components.PracticeToolNav("/practice/starting-point")
+		}
+		<div class="flex flex-col gap-12 justify-center items-center py-8 px-4">
+			<div class="relative w-full sm:mx-auto sm:max-w-3xl">
+				<starting-point id="practice-island" class="hx-fade"></starting-point>
+			</div>
+		</div>
+		<script type="module" src={ s.StaticUrl("dist/practice.js") }></script>
+	}
+}

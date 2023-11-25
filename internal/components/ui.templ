@@ -1,0 +1,69 @@
+package components
+
+templ ClearButton(buttonType string) {
+	<button
+ 		type={ buttonType }
+ 		class="flex gap-1 justify-center items-center py-2 px-4 text-lg font-semibold text-white bg-transparent border border-white hover:bg-white/20"
+	>
+		{ children... }
+	</button>
+}
+
+templ ClearButtonLink(href, hxTarget, hxSwap  string) {
+	<a
+ 		href={ templ.URL(href) }
+ 		hx-get={ string(templ.URL(href)) }
+ 		hx-target={ hxTarget }
+ 		hx-push-url="true"
+ 		hx-swap={ hxSwap + " swap:400ms" }
+ 		class="flex gap-1 justify-center items-center py-2 px-4 text-lg font-semibold text-white bg-transparent border border-white hover:bg-white/20"
+	>
+		{ children... }
+	</a>
+}
+
+templ GreenButton(buttonType string, onClick templ.ComponentScript) {
+	<button
+ 		type={ buttonType }
+ 		onclick={ onClick }
+ 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+	>
+		{ children... }
+	</button>
+}
+
+templ RedButton(buttonType string, onClick templ.ComponentScript) {
+	<button
+ 		type={ buttonType }
+ 		onclick={ onClick }
+ 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-red-800 rounded-xl transition duration-200 bg-red-700/10 hover:bg-red-700/20 focusable"
+	>
+		{ children... }
+	</button>
+}
+
+templ BasicButton(class string, buttonType string) {
+	<button
+ 		type={ buttonType }
+ 		class={ "focusable flex items-center justify-center gap-1 rounded-xl px-4 py-2 font-semibold transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20", class }
+	>
+		{ children... }
+	</button>
+}
+
+templ BasicButtonLink(href, hxTarget, hxSwap  string) {
+	<a
+ 		href={ templ.URL(href) }
+ 		hx-get={ string(templ.URL(href)) }
+ 		hx-target={ hxTarget }
+ 		hx-push-url="true"
+ 		hx-swap={ hxSwap + " swap:305ms" }
+ 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+	>
+		{ children... }
+	</a>
+}
+
+templ PracticeToolNav(activePath string) {
+	<practice-tool-nav activePath={ activePath }></practice-tool-nav>
+}

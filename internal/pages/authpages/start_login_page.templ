@@ -1,0 +1,32 @@
+package authpages
+
+import "pbgo/internal/components"
+import "pbgo/internal/heroicons"
+
+templ StartLoginPage(csrf string, nextLoc string) {
+	@components.HeroLayout(components.LeftButtonBar(components.BackHomeLink())) {
+		<form
+ 			action=""
+ 			method="post"
+ 			hx-post=""
+ 			hx-swap="outerHTML swap:305ms"
+ 			hx-target="#main-content"
+ 			class="flex flex-col gap-4 w-full sm:w-72"
+		>
+			<div>
+				<h1 class="text-4xl font-bold text-neutral-700">Login</h1>
+				<p class="py-2 text-neutral-700">
+					Type your email to get started
+				</p>
+			</div>
+			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+			<input type="hidden" name="next" value={ nextLoc }/>
+			<label for="email" class="hidden">Email</label>
+			<input type="email" name="email" placeholder="name@example.com" required class="py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-700 focusable focus:bg-neutral-700/20" autofocus/>
+			@components.BasicButton("", "submit") {
+				Sign In
+				@heroicons.IconArrowRightCircleSolid("-mr-1 w-5 h-5")
+			}
+		</form>
+	}
+}

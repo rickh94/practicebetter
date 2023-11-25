@@ -1,3 +1,6 @@
 [sqlfluff]
 dialect = sqlite
 templater = placeholder
+
+[sqlfluff:templater:placeholder]
+param_style = question_mark

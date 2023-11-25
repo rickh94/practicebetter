@@ -1,7 +1,7 @@
 package main
 
 import (
-	"musiclib/internal/server"
+	"pbgo/internal/server"
 )
 
 func main() {

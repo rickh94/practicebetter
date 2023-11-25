@@ -2,23 +2,48 @@
   "name": "musiclib",
   "type": "module",
   "scripts": {
-    "watch": "tailwindcss -i ./internal/static/input.css -o ./internal/static/css/main.css -w",
-    "clean": "rm ./internal/static/css/main.css ./interal/static/js/main.min.js",
-    "build": "tailwindcss -i ./internal/static/input.css -o ./internal/static/css/main.css -m && uglifyjs ./internal/static/main.js -o ./internal/static/js/main.min.js",
+    "build": "vite build && tailwindcss -i ./internal/static/src/input.css -o ./internal/static/css/main.css -m",
     "uglify": "uglifyjs"
   },
-  "devDependencies": {},
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
+  "devDependencies": {
+    "@preact/preset-vite": "^2.5.0",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",
+    "@types/node": "^20.9.5",
+    "@types/preact-custom-element": "^4.0.4",
     "autoprefixer": "^10.4.16",
     "postcss": "^8.4.31",
     "prettier": "^3.1.0",
     "prettier-plugin-tailwindcss": "^0.5.7",
     "tailwindcss": "^3.3.5",
     "uglify-js": "^3.17.4"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@formkit/auto-animate": "^0.8.1",
+    "@headlessui/react": "^1.7.17",
+    "@heroicons/react": "^2.0.18",
+    "chart.js": "^4.4.0",
+    "clsx": "^2.0.0",
+    "framer-motion": "^10.16.5",
+    "htmx.org": "^1.9.9",
+    "preact": "^10.13.1",
+    "preact-custom-element": "^4.3.0",
+    "react": "npm:@preact/compat@latest",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "npm:@preact/compat@latest",
+    "tailwind-merge": "^2.0.0"
+  },
+  "overrides": {
+    "react": "npm:@preact/compat@latest",
+    "react-dom": "npm:@preact/compat@latest"
+  },
+  "pnpm": {
+    "overrides": {
+      "react": "npm:@preact/compat@latest",
+      "react-dom": "npm:@preact/compat@latest"
+    }
   }
 }

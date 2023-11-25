@@ -1,4 +1,4 @@
-module musiclib
+module pbgo
 
 go 1.21.0
 
@@ -26,6 +26,7 @@ require (
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/nrednav/cuid2 v1.0.0 // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.15.0 // indirect

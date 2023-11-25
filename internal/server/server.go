@@ -1,12 +1,15 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
-	"musiclib/internal/static"
 	"net/http"
+	"net/url"
 	"os"
+	"pbgo/internal/db"
+	"pbgo/internal/static"
 	"strconv"
 	"time"
 
@@ -155,4 +158,20 @@ func (s *Server) SendEmail(to, subject, body string) error {
 
 func (s *Server) StaticUrl(name string) string {
 	return s.StaticHostname + "/static/" + static.HashStatic.HashName(name)
+}
+
+func (s *Server) LoginRequired(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := s.GetEncFromSession(r.Context(), "userID")
+		queries := db.New(s.DB)
+		user, err := queries.GetUserByID(r.Context(), userID)
+		if err != nil {
+			location := r.URL.Path
+			location = url.QueryEscape(location)
+			s.Redirect(w, r, "/auth/login?next="+location)
+			return
+		}
+		ctx := context.WithValue(r.Context(), "user", user)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

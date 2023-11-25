@@ -7,6 +7,8 @@
     atlas
     sqlfluff
     sqlc
+    nodePackages.eslint
+    nodePackages.prettier
   ];
 
   # https://devenv.sh/scripts/
@@ -18,12 +20,12 @@
   };
 
   certificates = [
-    "musiclib.localhost"
+    "pbgo.localhost"
   ];
 
   services.caddy = {
     enable = true;
-    virtualHosts."musiclib.localhost".extraConfig = ''
+    virtualHosts."pbgo.localhost".extraConfig = ''
       reverse_proxy {
         to :8080
       }
@@ -32,7 +34,7 @@
 
   services.redis = {
     enable = true;
-    port = 6375;
+    port = 6372;
   };
 
   # See full reference at https://devenv.sh/reference/options/
@@ -42,8 +44,6 @@
   };
 
   scripts = {
-    tw.exec = "bun run watch";
-
     # install bun, templ, and staticfiles
     install.exec = "bun install && go install github.com/a-h/templ/cmd/templ@latest";
   };

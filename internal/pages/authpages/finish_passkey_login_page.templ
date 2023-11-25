@@ -1,0 +1,55 @@
+package authpages
+
+import "github.com/go-webauthn/webauthn/protocol"
+import "pbgo/internal/components"
+
+// TODO: maybe switch to using htmx for the ajax
+
+script startLogin(loginOptions *protocol.CredentialAssertion, csrf string, nextLoc string) {
+  SimpleWebAuthnBrowser.startAuthentication(loginOptions.publicKey).then(attResp => {
+    console.log(attResp);
+    fetch('/auth/passkey/login', {
+      method: 'POST',
+      headers: {
+	'Content-Type': 'application/json',
+	'X-CSRF-TOKEN': csrf,
+      },
+      body: JSON.stringify(attResp),
+    }).then(res => res.json()).then(res => {
+	if (res.status == "ok") {
+		window.location.href = nextLoc;
+	}
+    }).catch(err => console.log(err));
+  }).catch(err => console.log(err));
+}
+
+templ FinishPasskeyLoginPage(loginOptions *protocol.CredentialAssertion, csrf string, nextLoc string) {
+	@components.HeroLayout(components.LeftButtonBar(components.BackHomeLink())) {
+		<div class="flex flex-col gap-4 w-full sm:w-72">
+			<div>
+				<h1 class="text-4xl font-bold">Finish Login</h1>
+				<p class="py-2 text-sm sm:mx-auto sm:max-w-2xl text-neutral-700">
+					You should be prompted to sign in by your browser using a passkey. If there is an error you
+					you don’t have a passkey on this device, click below to sign in using your email addess
+				</p>
+			</div>
+			@components.BasicButtonLink("/auth/code", "#main-content", "outerHTML") {
+				Get Login Code
+			}
+			<button class="hidden" onclick={ startLogin(loginOptions, csrf, nextLoc) } id="passkey"></button>
+		</div>
+	}
+	<script>
+		let started = false
+		document.addEventListener("DOMContentLoaded", () => {
+			if (!started) {
+				document.getElementById("passkey").click();
+			}
+		});
+		document.addEventListener("htmx:afterSettle", () => {
+			if (!started) {
+				document.getElementById("passkey").click();
+			}
+		});
+	</script>
+}

@@ -1,0 +1,53 @@
+package components
+
+import "pbgo/internal/heroicons"
+
+const navClasses = "flex text-sm sm:text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable"
+
+templ HxLink(class string, href string, target string) {
+	<a
+ 		class={ class }
+ 		href={ templ.SafeURL(href) }
+ 		hx-get={ href }
+ 		hx-swap="outerHTML"
+ 		hx-target={ target }
+ 		hx-push-url="true"
+	>
+		{ children... }
+	</a>
+}
+
+templ BackHomeLink() {
+	@HxLink(navClasses, "/", "#main-content") {
+		@heroicons.IconHomeSolid("-ml-1 h-5 w-5")
+		Back Home
+	}
+}
+
+templ ReadMoreLink() {
+	<button class={ navClasses } type="button">
+		Read More
+		@heroicons.IconHomeSolid("-mr-1 h-5 w-5")
+	</button>
+}
+
+templ LoginLink() {
+	@HxLink(navClasses, "/auth/login", "#main-content") {
+		Login
+		@heroicons.IconUserPlusSolid("-mr-1 h-5 w-5")
+	}
+}
+
+templ LibraryLink() {
+	@HxLink(navClasses, "/library", "#main-content") {
+		@heroicons.IconBookOpenSolid("-ml-1 h-5 w-5")
+		Library
+	}
+}
+
+templ LogoutLink() {
+	@HxLink(navClasses, "/auth/logout", "#main-content") {
+		Logout
+		@heroicons.IconUserMinusSolid("-mr-1 h-5 w-5")
+	}
+}

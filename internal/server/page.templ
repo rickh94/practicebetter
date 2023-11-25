@@ -1,6 +1,7 @@
 package server
 
 templ Page(s *Server, contents templ.Component) {
+	<!DOCTYPE html>
 	@Head(s)
 	@Body() {
 		@contents
@@ -20,11 +21,11 @@ templ Head(s *Server) {
 	<head>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-		<title>Templ Todo</title>
+		<title>Practice Better</title>
 		<link rel="stylesheet" href={ s.StaticUrl("css/main.css") }/>
 		<script src={ s.StaticUrl("js/htmx.min.js") }></script>
 		<script src={ s.StaticUrl("js/webauthn-browser.min.js") } defer></script>
-		<script src={ s.StaticUrl("js/main.min.js") } defer></script>
+		<script type="module" src={ s.StaticUrl("dist/main.js") }></script>
 	</head>
 }
 
@@ -39,14 +40,15 @@ templ Head(s *Server) {
 */
 
 templ Body() {
-	<body class="flex flex-col h-full min-h-screen text-white bg-no-repeat bg-cover bg-gradient-to-br from-teal-800 bg-teal-950 to-teal-950" hx-boost="true">
+	<body class="flex flex-col min-h-screen text-black bg-gradient-to-br from-[#ffefce] to-white font-work-sans" hx-boost="true">
 		{ children... }
-		<footer class="pt-4 w-full text-white flex-0 max-w-screen">
+		<footer class="flex justify-end pt-4 w-full text-white flex-0 max-w-screen">
 			<div class="flex flex-col justify-between items-center px-4 sm:flex-row sm:mx-auto sm:max-w-4xl max-w-screen">
 				<div class="flex justify-center items-center py-4 px-4 sm:px-0">
 					<a
  						href="https://rickhenry.dev"
-:						title="Rick Henry Development"
+ 						:
+ 						title="Rick Henry Development"
  						target="_blank"
  						rel="noopener noreferrer"
 					>
@@ -75,10 +77,8 @@ templ Body() {
 			</div>
 		</footer>
 		<!-- toast container -->
-		<div aria-live="assertive" class="flex fixed inset-0 items-end py-6 px-4 pointer-events-none sm:items-start sm:p-6">
+		<div aria-live="assertive" class="flex fixed inset-0 z-50 items-end py-6 px-4 pointer-events-none sm:items-start sm:p-6">
 			<div class="flex flex-col items-center space-y-4 w-full sm:items-end" id="toast-container"></div>
 		</div>
 	</body>
 }
-
-

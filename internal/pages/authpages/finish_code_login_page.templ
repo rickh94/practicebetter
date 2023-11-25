@@ -1,0 +1,32 @@
+package authpages
+
+import "pbgo/internal/components"
+import "pbgo/internal/heroicons"
+
+templ FinishCodeLoginPage(csrf string, nextLoc string) {
+	@components.HeroLayout(components.LeftButtonBar(components.BackHomeLink())) {
+		<form
+ 			action="/auth/code"
+ 			method="post"
+ 			hx-post="/auth/code"
+ 			hx-swap="outerHTML swap:305ms"
+ 			hx-target="#main-content"
+ 			class="flex flex-col gap-4 w-full sm:w-72"
+		>
+			<div>
+				<h1 class="text-4xl font-bold text-neutral-700">Complete Login</h1>
+				<p class="py-2 text-neutral-700">
+					Check your email for a one-time sign-in code and enter it below.
+				</p>
+			</div>
+			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+			<input type="hidden" name="next" value={ nextLoc }/>
+			<label for="code" class="hidden">Sign-in Code</label>
+			<input type="text" name="code" placeholder="123456" required class="py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-700 focusable focus:bg-neutral-700/20" autofocus/>
+			@components.BasicButton("", "submit") {
+				Complete Sign In
+				@heroicons.IconArrowRightCircleSolid("-mr-1 w-6 h-6")
+			}
+		</form>
+	}
+}
