@@ -34,7 +34,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	sf := http.NewServeMux()
 	sf.Handle("/", http.StripPrefix("/static", hashfs.FileServer(static.HashStatic)))
 	r.With(middleware.SetHeader("Cache-Control", "max-age=604800")).Mount("/static", sf)
-	r.Mount("/static", sf)
+	// r.Mount("/static", sf)
 
 	r.Get("/", s.index)
 	r.Get("/about", s.about)
