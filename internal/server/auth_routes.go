@@ -31,6 +31,8 @@ func (s *Server) startLogin(w http.ResponseWriter, r *http.Request) {
 	s.HxRender(w, r, authpages.StartLoginPage(csrfToken, nextLoc))
 }
 
+// TODO: error message for code
+
 func (s *Server) continueLogin(w http.ResponseWriter, r *http.Request) {
 	/*
 		if RedirectLoggedIn(w, r, "/auth/me") {

@@ -46,7 +46,8 @@ func NewServer() *http.Server {
 
 	// SETUP DATABASE
 	dbPath := getEnvOrPanic("DB_PATH")
-	dbPath = fmt.Sprintf("file:./%s?_fk=1&_journal=WAL&_mode=rw&_txlock=immediate", dbPath)
+	dbPath = fmt.Sprintf("file:%s?_fk=1&_journal=WAL&_mode=rw", dbPath)
+	log.Printf("connecting to %s", dbPath)
 
 	pool, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
