@@ -22,6 +22,6 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	log.Default().Println(r.Form.Get("title"))
 	log.Default().Println(r.Form.Get("spots"))
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	w.Write([]byte("<div id=\"main-content\"></div>"))
 	// s.HxRender(w, r, librarypages.CreatePiecePage(s))
 }

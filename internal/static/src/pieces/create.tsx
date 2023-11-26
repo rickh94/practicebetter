@@ -21,7 +21,8 @@ export function CreatePieceForm({ csrf }: { csrf: string }) {
       },
     });
 
-  async function onSubmit(data: PieceFormData) {
+  async function onSubmit(data: PieceFormData, e: Event) {
+    e.preventDefault();
     await htmx.ajax("POST", "/library/pieces/create", {
       values: data,
       target: "#main-content",
@@ -33,7 +34,7 @@ export function CreatePieceForm({ csrf }: { csrf: string }) {
   }
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)}>
+    <form noValidate onSubmit={handleSubmit(onSubmit)} hx-boost="false">
       <PieceFormFields
         register={register}
         control={control}

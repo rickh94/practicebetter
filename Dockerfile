@@ -14,8 +14,8 @@ RUN curl -sSf https://atlasgo.sh | sh -s -- --yes
 COPY go.mod go.sum .
 RUN go mod download
 COPY . .
-RUN rm -rf internal/static/dist
-RUN mkdir -p internal/static/dist
+RUN rm -rf internal/static/out
+RUN mkdir -p internal/static/out
 COPY --from=bunbuilder /app/internal/static/css/main.css ./internal/static/css/main.css
 COPY --from=bunbuilder /app/internal/static/out/* ./internal/static/out
 RUN templ generate

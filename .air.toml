@@ -15,6 +15,7 @@ exclude_regex = [
   "\\.db/.*",
   ".*/static/js/main.*.js",
   ".*/static/dist/*",
+  ".*/static/out/*",
   "_test.go",
 ]
 exclude_unchanged = false
