@@ -95,3 +95,54 @@ templ ReadMoreButton(id string) {
 		@heroicons.IconInformationCircleSolid("-mr-1 h-5 w-5")
 	</button>
 }
+
+type BreadcrumbInfo struct {
+	Label  string
+	Href   string
+	Active bool
+}
+
+templ Breadcrumb(bc []BreadcrumbInfo) {
+	<nav aria-label="Breadcrumb" class="block">
+		<ul class="flex flex-grow-0 py-2 px-4 rounded-xl sm:text-xl bg-neutral-900/10">
+			for i, b := range bc {
+				<li
+ 					class={ "flex items-center", templ.KV("text-neutral-900", b.Active), templ.KV("text-neutral-900/50", !b.Active) }
+ 					if b.Active {
+						aria-current="true"
+					}
+				>
+					@HxLink("", b.Href, "#main-content") {
+						{ b.Label }
+					}
+					if i != len(bc) - 1 {
+						<span class="inline-block">
+							@heroicons.IconChevronRightSolid("w-8 h-8")
+						</span>
+					}
+				</li>
+			}
+		</ul>
+	</nav>
+}
+
+// TODO: make actual link
+
+templ PieceCard(piece string) {
+	<li>
+		@HxLink("focusable flex rounded-xl bg-neutral-700/10 px-6 py-4 text-neutral-700 hover:bg-neutral-700/20", "/library/pieces/single", "#main-content") {
+			<div class="flex flex-col flex-1 flex-grow gap-1">
+				<div>
+					<strong class="text-xl font-bold">{ piece }</strong> —{ " " }
+					COMPOSER
+				</div>
+				<div>Active Spots: ACTIVE SPOTS</div>
+				<div>Finished Spots: INACTIVE SPOTS</div>
+			</div>
+			<div class="flex flex-grow-0 items-center">
+				<div class="sr-only">Click to view</div>
+				@heroicons.IconDocumentMagnifyingGlassSolid("w-10 h-10 -mr-2")
+			</div>
+		}
+	</li>
+}

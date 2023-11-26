@@ -65,6 +65,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.With(s.LoginRequired).Route("/library", func(r chi.Router) {
 		r.Get("/", s.libraryDashboard)
+		r.Get("/pieces/create", s.createPieceForm)
+		r.Post("/pieces/create", s.createPiece)
 		/*
 			r.Get("/random-single", s.randomPractice)
 			r.Get("/random-sequence", s.sequencePractice)

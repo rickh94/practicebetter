@@ -79,6 +79,6 @@ templ Body(s *Server) {
 		</div>
 		<script src={ s.StaticUrl("js/htmx.min.js") }></script>
 		<script src={ s.StaticUrl("js/webauthn-browser.min.js") } defer></script>
-		<script type="module" src={ s.StaticUrl("dist/main.js") }></script>
+		<script type="module" src={ s.StaticUrl("out/main.js") }></script>
 	</body>
 }

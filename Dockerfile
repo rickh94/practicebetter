@@ -17,7 +17,7 @@ COPY . .
 RUN rm -rf internal/static/dist
 RUN mkdir -p internal/static/dist
 COPY --from=bunbuilder /app/internal/static/css/main.css ./internal/static/css/main.css
-COPY --from=bunbuilder /app/internal/static/dist/* ./internal/static/dist
+COPY --from=bunbuilder /app/internal/static/out/* ./internal/static/out
 RUN templ generate
 RUN CGO_ENABLED=1 GOOS=linux go build -o /practicebetter cmd/main.go
 

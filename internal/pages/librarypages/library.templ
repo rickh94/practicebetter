@@ -1,9 +1,48 @@
 package librarypages
 
 import "practicebetter/internal/components"
+import "practicebetter/internal/heroicons"
 
-templ Dashboard() {
-	@components.HeroLayout(components.TwoButtonBar(components.BackHomeLink() , components.AccountLink())) {
-		<div>Not Implemented Yet</div>
+templ Dashboard(pieces []string) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink() , components.AccountLink())) {
+		@components.Header() {
+			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
+				Library
+			</h1>
+		}
+		<div class="flex flex-col gap-2 py-8 px-4 w-full sm:flex-row sm:gap-4 sm:justify-start sm:items-center sm:mx-auto sm:max-w-5xl">
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: true },
+				})
+		</div>
+		<div class="grid grid-cols-1 gap-x-2 gap-y-4 w-full sm:grid-cols-2">
+			<div class="flex flex-col">
+				@LibraryPieceList(pieces)
+				<div class="flex flex-col gap-4 p-4 mt-4 w-full sm:flex-row">
+					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/pieces", "#main-content") {
+						@heroicons.IconViewColumnsSolid("-ml-1 h-6 w-6")
+						All Pieces
+					}
+					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-emerald-700 rounded-xl bg-emerald-700/10 hover:bg-emerald-700/20 focusable", "/library/pieces/create", "#main-content") {
+						@heroicons.IconDocumentPlusSolid("-ml-1 h-6 w-6")
+						New Piece
+					}
+				</div>
+			</div>
+			<div class="flex flex-col pt-2 border-t sm:pt-4 md:pt-0 md:border-t-0 md:border-l border-neutral-700/10">
+				<h2 class="py-1 text-2xl font-bold text-center">
+					Practice Sessions
+				</h2>
+			</div>
+		</div>
 	}
+}
+
+templ LibraryPieceList(pieces []string) {
+	<h2 class="py-1 text-2xl font-bold text-center">Recent Pieces</h2>
+	<ul class="flex flex-col gap-4 p-4">
+		for _, piece := range pieces {
+			@components.PieceCard(piece)
+		}
+	</ul>
 }

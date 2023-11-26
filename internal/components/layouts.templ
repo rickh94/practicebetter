@@ -8,8 +8,8 @@ templ SingleColumnLayout(nav templ.Component) {
 }
 
 templ TwoButtonBar(left templ.Component, right templ.Component) {
-	<div class="absolute top-0 left-0 p-4 w-full" id="topbar">
-		<div class="flex gap-2 justify-between mx-auto sm:container">
+	<div class="absolute top-0 left-0 w-full" id="topbar">
+		<div class="flex gap-2 justify-between p-4 mx-auto sm:max-w-5xl">
 			@left
 			@right
 		</div>
@@ -18,7 +18,7 @@ templ TwoButtonBar(left templ.Component, right templ.Component) {
 
 templ LeftButtonBar(left templ.Component) {
 	<div class="absolute top-0 left-0 p-4 w-full" id="topbar">
-		<div class="flex justify-start mx-auto sm:container">
+		<div class="flex justify-start mx-auto sm:max-w-5xl">
 			@left
 		</div>
 	</div>
