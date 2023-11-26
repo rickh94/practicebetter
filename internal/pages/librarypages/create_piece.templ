@@ -13,7 +13,7 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 		<div class="flex flex-col gap-2 py-8 px-4 w-full sm:flex-row sm:gap-4 sm:justify-start sm:items-center sm:mx-auto sm:max-w-5xl">
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
-					{ Label: "Library", Href: "/library/pieces", Active: false },
+					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: "New", Href: "/library/pieces/create", Active: true },
 				})
 		</div>

@@ -25,7 +25,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(csrf.Protect([]byte(s.SecretKey), csrf.Secure(true)))
 	r.Use(middleware.Compress(5, "application/json", "text/html", "text/css", "application/javascript"))
 	// Just long enough for preload to matter
-	// r.Use(middleware.SetHeader("Cache-Control", "max-age=300"))
+	r.Use(middleware.SetHeader("Cache-Control", "max-age=3600"))
 	r.Use(middleware.SetHeader("Vary", "HX-Request"))
 	r.Use(middleware.Timeout(10 * time.Second))
 	r.Use(s.SM.LoadAndSave)
@@ -33,8 +33,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	// staticfiles
 	sf := http.NewServeMux()
 	sf.Handle("/", http.StripPrefix("/static", hashfs.FileServer(static.HashStatic)))
-	// r.With(middleware.SetHeader("Cache-Control", "max-age=604800")).Mount("/static", sf)
-	r.Mount("/static", sf)
+	r.With(middleware.SetHeader("Cache-Control", "max-age=604800")).With(middleware.SetHeader("Access-Control-Allow-Origin", "*")).Mount("/static", sf)
+	// r.Mount("/static", sf)
 
 	r.Get("/", s.index)
 	r.Get("/about", s.about)
