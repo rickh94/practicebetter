@@ -2,7 +2,7 @@ package server
 
 import (
 	"net/http"
-	"pbgo/internal/static"
+	"practicebetter/internal/static"
 	"time"
 
 	"github.com/a-h/templ"

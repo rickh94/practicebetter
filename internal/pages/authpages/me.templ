@@ -1,9 +1,9 @@
 package authpages
 
 import "github.com/go-webauthn/webauthn/protocol"
-import "pbgo/internal/db"
-import "pbgo/internal/components"
-import "pbgo/internal/heroicons"
+import "practicebetter/internal/db"
+import "practicebetter/internal/components"
+import "practicebetter/internal/heroicons"
 
 script startRegistration(creationOptions *protocol.CredentialCreation, csrf string) {
   SimpleWebAuthnBrowser.startRegistration(creationOptions.publicKey).then(attResp => {

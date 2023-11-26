@@ -2,7 +2,7 @@ package server
 
 import (
 	"net/http"
-	"pbgo/internal/pages/librarypages"
+	"practicebetter/internal/pages/librarypages"
 )
 
 func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {

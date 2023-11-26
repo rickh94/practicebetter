@@ -2,7 +2,7 @@ package server
 
 import (
 	"net/http"
-	"pbgo/internal/pages/practicepages"
+	"practicebetter/internal/pages/practicepages"
 )
 
 func (s *Server) randomPractice(w http.ResponseWriter, r *http.Request) {

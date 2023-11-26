@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"pbgo/internal/auth"
-	"pbgo/internal/db"
+	"practicebetter/internal/auth"
+	"practicebetter/internal/db"
 
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"

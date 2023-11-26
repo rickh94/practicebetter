@@ -1,0 +1,9 @@
+devenv.lock
+devenv.nix
+prettier.config.mjs
+.db/*
+.envrc
+.devenv
+internal/static/css/main.css
+*_templ.go
+Dockerfile

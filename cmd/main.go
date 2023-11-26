@@ -1,7 +1,7 @@
 package main
 
 import (
-	"pbgo/internal/server"
+	"practicebetter/internal/server"
 )
 
 func main() {

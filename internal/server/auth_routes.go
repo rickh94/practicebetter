@@ -7,9 +7,9 @@ import (
 	"log"
 	"net/http"
 	"net/mail"
-	"pbgo/internal/auth"
-	"pbgo/internal/db"
-	"pbgo/internal/pages/authpages"
+	"practicebetter/internal/auth"
+	"practicebetter/internal/db"
+	"practicebetter/internal/pages/authpages"
 	"strings"
 
 	"github.com/gorilla/csrf"

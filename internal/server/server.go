@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"pbgo/internal/db"
-	"pbgo/internal/static"
+	"practicebetter/internal/db"
+	"practicebetter/internal/static"
 	"strconv"
 	"time"
 

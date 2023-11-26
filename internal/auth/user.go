@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
-	"pbgo/internal/db"
+	"practicebetter/internal/db"
 
 	"github.com/fxamacker/cbor/v2"
 	"github.com/go-webauthn/webauthn/protocol"

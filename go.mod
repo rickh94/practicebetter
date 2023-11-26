@@ -1,4 +1,4 @@
-module pbgo
+module practicebetter
 
 go 1.21.0
 

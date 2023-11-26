@@ -2,7 +2,7 @@ package server
 
 import (
 	"net/http"
-	"pbgo/internal/pages"
+	"practicebetter/internal/pages"
 )
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
