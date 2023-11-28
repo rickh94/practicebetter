@@ -28,3 +28,45 @@ CREATE TABLE credentials (
 -- Create index "credentials_credential_id" to table: "credentials"
 CREATE UNIQUE INDEX credentials_credential_id ON credentials (credential_id);
 
+CREATE TABLE pieces (
+    id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    composer TEXT,
+    measures INTEGER,
+    beats_per_measure INTEGER,
+    goal_tempo INTEGER,
+    user_id TEXT NOT NULL,
+    last_practiced INTEGER,
+    PRIMARY KEY (id),
+    CHECK (LENGTH(title) > 0),
+    CONSTRAINT user FOREIGN KEY (user_id) REFERENCES users (
+        id
+    ) ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+
+CREATE INDEX pieces_user_id ON pieces (user_id);
+CREATE INDEX pieces_user_id_title ON pieces (user_id, title);
+
+CREATE TABLE spots (
+    id TEXT NOT NULL,
+    piece_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    idx INTEGER NOT NULL,
+    stage TEXT NOT NULL DEFAULT 'repeat',
+    measures TEXT,
+    audio_prompt_url TEXT NOT NULL DEFAULT '',
+    image_prompt_url TEXT NOT NULL DEFAULT '',
+    notes_prompt TEXT NOT NULL DEFAULT '',
+    text_prompt TEXT NOT NULL DEFAULT '',
+    current_tempo INTEGER,
+    CHECK(stage IN ('repeat', 'random', 'interleave', 'interleave_days', 'complete')),
+    CHECK(LENGTH(name) > 0),
+    PRIMARY KEY (id),
+    CONSTRAINT piece FOREIGN KEY (piece_id) REFERENCES pieces (
+        id
+    ) ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE INDEX spots_piece_id ON spots (piece_id);

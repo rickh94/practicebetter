@@ -1,10 +1,20 @@
 import register from "preact-custom-element";
 import { PracticeToolNav } from "./ui/practice-tool-nav";
+import { ConfirmDialog } from "./ui/confirm";
+import { uniqueID } from "./common";
 
 try {
   register(PracticeToolNav, "practice-tool-nav", ["activepath"], {
     shadow: false,
   });
+  register(
+    ConfirmDialog,
+    "confirm-dialog",
+    ["question", "confirmevent", "cancelevent", "id"],
+    {
+      shadow: false,
+    },
+  );
 } catch (err) {
   console.log(err);
 }
@@ -217,3 +227,63 @@ function handleFocusInputEvent(evt: FocusInputEvent) {
 document.addEventListener("ShowAlert", handleAlertEvent);
 document.addEventListener("FocusInput", handleFocusInputEvent);
 document.addEventListener("CloseAlert", handleCloseAlertEvent);
+
+type HTMXConfirmEvent = Event & {
+  detail: {
+    question?: string;
+    issueRequest?: (response: boolean) => void;
+  };
+};
+
+function closeModal(id: string) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  modal.classList.add("close");
+
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      modal.classList.remove("close");
+      // @ts-ignore
+      modal.close();
+      setTimeout(() => modal.remove(), 1000);
+    });
+  });
+}
+
+document.addEventListener("htmx:confirm", function (e: HTMXConfirmEvent) {
+  const { question, issueRequest } = e.detail;
+  if (!question) {
+    return;
+  }
+  if (!issueRequest) {
+    return;
+  }
+  e.preventDefault();
+  const id = uniqueID();
+  const confirmevent = `${id}confirm`;
+  const cancelevent = `${id}cancel`;
+
+  function onConfirm() {
+    closeModal(id);
+    issueRequest(true);
+    document.removeEventListener(confirmevent, onConfirm);
+    document.removeEventListener(cancelevent, onCancel);
+  }
+  function onCancel() {
+    closeModal(id);
+    document.removeEventListener(confirmevent, onConfirm);
+    document.removeEventListener(cancelevent, onCancel);
+  }
+
+  document.addEventListener(confirmevent, onConfirm);
+  document.addEventListener(cancelevent, onCancel);
+
+  const dialog = document.createElement("confirm-dialog");
+  dialog.setAttribute("dialogid", id);
+  dialog.setAttribute("question", question);
+  dialog.setAttribute("confirmevent", confirmevent);
+  dialog.setAttribute("cancelevent", cancelevent);
+
+  document.getElementById("main-content").appendChild(dialog);
+  (document.getElementById(id) as HTMLDialogElement).showModal();
+});

@@ -9,7 +9,7 @@ import {
   UseFieldArrayUpdate,
 } from "react-hook-form";
 import { AngryButton } from "../ui/buttons";
-import { PieceFormData, UpdatePieceData } from "../vaidators";
+import { PieceFormData, UpdatePieceData } from "../validators";
 import {
   AddAudioPrompt,
   AddImagePrompt,
@@ -86,19 +86,19 @@ export function SpotsArray({
               <div className="flex w-1/2 flex-col">
                 <label
                   className="text-sm font-medium leading-6 text-neutral-900"
-                  htmlFor={`spots.${index}.order`}
+                  htmlFor={`spots.${index}.idx`}
                 >
-                  Spot Order
+                  Spot Index
                 </label>
                 <input
                   id={`spots.${index}.order`}
                   type="number"
-                  {...register(`spots.${index}.order`)}
+                  {...register(`spots.${index}.idx`)}
                   className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
                 />
-                {formState.errors.spots?.[index]?.order && (
+                {formState.errors.spots?.[index]?.idx && (
                   <p className="mt-2 text-sm text-red-600">
-                    {formState.errors.spots?.[index]?.order?.message}
+                    {formState.errors.spots?.[index]?.idx?.message}
                   </p>
                 )}
               </div>
@@ -189,7 +189,7 @@ export function SpotsArray({
             onClick={() =>
               append({
                 name: `Spot ${fields.length + 1}`,
-                order: fields.length + 1,
+                idx: fields.length + 1,
                 stage: "repeat",
                 measures: "mm 1-2",
                 audioPromptUrl: "",

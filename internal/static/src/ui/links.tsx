@@ -2,7 +2,6 @@ import { BookOpenIcon, HomeIcon } from "@heroicons/react/20/solid";
 import { UserIcon, UserMinusIcon } from "@heroicons/react/20/solid";
 import { ReactNode, useEffect, useRef } from "preact/compat";
 import { cn } from "../common";
-import htmx from "htmx.org";
 
 export const topNavClasses =
   "focusable flex h-14 items-center gap-2 rounded-xl bg-neutral-700/10 px-6 py-4 font-semibold text-neutral-700 transition-all duration-200 hover:bg-neutral-700/20";
@@ -26,7 +25,11 @@ export function Link({
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
   useEffect(() => {
-    htmx.process(ref.current);
+    // @ts-ignore
+    if (htmx) {
+      // @ts-ignore
+      htmx.process(ref.current);
+    }
   }, [href, external, target, swap, pushUrl, children]);
 
   return (

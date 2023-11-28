@@ -4,11 +4,13 @@ import {
   UseFormRegister,
   UseFormWatch,
 } from "react-hook-form";
-import { PieceFormData } from "../vaidators";
+import { PieceFormData } from "../validators";
 import { FolderPlusIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { HappyButton } from "../ui/buttons";
 import { WarningLink } from "../ui/links";
 import { SpotsArray } from "./spots-array";
+
+// TODO: fix grid layout
 
 export function PieceFormFields({
   control,
@@ -101,7 +103,7 @@ export function PieceFormFields({
             <input
               type="number"
               id="measures"
-              placeholder="100"
+              placeholder="mm"
               {...register("measures")}
               className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
             />
@@ -128,26 +130,6 @@ export function PieceFormFields({
             {formState.errors.beatsPerMeasure && (
               <p className="text-sm text-red-600">
                 {formState.errors.beatsPerMeasure.message}
-              </p>
-            )}
-          </div>
-          <div className="col-span-full flex w-full flex-col gap-1 sm:row-start-2 md:col-span-4 md:row-start-auto">
-            <label
-              className="text-sm font-medium leading-6 text-neutral-900"
-              htmlFor="recording-link"
-            >
-              Recording Link
-            </label>
-            <input
-              type="text"
-              id="recording-link"
-              placeholder="Reference Recording"
-              {...register("recordingLink")}
-              className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
-            />
-            {formState.errors.recordingLink && (
-              <p className="mt-2 text-sm text-red-600">
-                {formState.errors.recordingLink.message}
               </p>
             )}
           </div>

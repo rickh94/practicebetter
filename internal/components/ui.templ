@@ -1,6 +1,7 @@
 package components
 
 import "practicebetter/internal/heroicons"
+import "strconv"
 
 script ShowModal(id string) {
 	document.getElementById(id).showModal();
@@ -104,7 +105,7 @@ type BreadcrumbInfo struct {
 
 templ Breadcrumb(bc []BreadcrumbInfo) {
 	<nav aria-label="Breadcrumb" class="block">
-		<ul class="flex flex-grow-0 py-2 px-4 rounded-xl sm:text-xl bg-neutral-900/10">
+		<ul class="flex flex-grow-0 justify-around py-2 px-4 rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
 			for i, b := range bc {
 				<li
  					class={ "flex items-center", templ.KV("text-neutral-900", b.Active), templ.KV("text-neutral-900/50", !b.Active) }
@@ -115,12 +116,12 @@ templ Breadcrumb(bc []BreadcrumbInfo) {
 					@HxLink("", b.Href, "#main-content") {
 						{ b.Label }
 					}
-					if i != len(bc) - 1 {
-						<span class="inline-block">
-							@heroicons.IconChevronRightSolid("w-8 h-8")
-						</span>
-					}
 				</li>
+				if i != len(bc) - 1 {
+					<span class="inline-block text-neutral-900/50">
+						@heroicons.IconChevronRightSolid("w-8 h-8")
+					</span>
+				}
 			}
 		</ul>
 	</nav>
@@ -128,16 +129,16 @@ templ Breadcrumb(bc []BreadcrumbInfo) {
 
 // TODO: make actual link
 
-templ PieceCard(piece string) {
+templ PieceCard(pieceID string, title string, composer string, activeSpots int64, inactiveSpots int64) {
 	<li>
-		@HxLink("focusable flex rounded-xl bg-neutral-700/10 px-6 py-4 text-neutral-700 hover:bg-neutral-700/20", "/library/pieces/single", "#main-content") {
+		@HxLink("focusable flex rounded-xl bg-neutral-700/10 px-6 py-4 text-neutral-700 hover:bg-neutral-700/20", "/library/pieces/"+pieceID, "#main-content") {
 			<div class="flex flex-col flex-1 flex-grow gap-1">
 				<div>
-					<strong class="text-xl font-bold">{ piece }</strong> —{ " " }
-					COMPOSER
+					<strong class="text-xl font-bold">{ title }</strong> —{ " " }
+					{ composer }
 				</div>
-				<div>Active Spots: ACTIVE SPOTS</div>
-				<div>Finished Spots: INACTIVE SPOTS</div>
+				<div>Active Spots: { strconv.FormatInt(activeSpots, 10) }</div>
+				<div>Finished Spots: { strconv.FormatInt(inactiveSpots, 10) }</div>
 			</div>
 			<div class="flex flex-grow-0 items-center">
 				<div class="sr-only">Click to view</div>

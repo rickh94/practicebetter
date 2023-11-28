@@ -2,8 +2,10 @@ package librarypages
 
 import "practicebetter/internal/components"
 import "practicebetter/internal/heroicons"
+import "practicebetter/internal/db"
+import "database/sql"
 
-templ Dashboard(pieces []string) {
+templ Dashboard(pieces []db.ListRecentlyPracticedPiecesRow) {
 	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink() , components.AccountLink())) {
 		@components.Header() {
 			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
@@ -38,11 +40,18 @@ templ Dashboard(pieces []string) {
 	}
 }
 
-templ LibraryPieceList(pieces []string) {
+func composerOrDefault(composer sql.NullString) string {
+	if composer.Valid {
+		return composer.String
+	}
+	return "Unknown Composer"
+}
+
+templ LibraryPieceList(pieces []db.ListRecentlyPracticedPiecesRow) {
 	<h2 class="py-1 text-2xl font-bold text-center">Recent Pieces</h2>
 	<ul class="flex flex-col gap-4 p-4">
 		for _, piece := range pieces {
-			@components.PieceCard(piece)
+			@components.PieceCard(piece.ID, piece.Title, composerOrDefault(piece.Composer), piece.ActiveSpots, piece.CompletedSpots)
 		}
 	</ul>
 }

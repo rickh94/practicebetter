@@ -1,8 +1,8 @@
 import { useForm } from "react-hook-form";
-import { type PieceFormData, pieceFormData } from "../vaidators";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { type PieceFormData, pieceFormData } from "../validators";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { PieceFormFields } from "./piece-form";
-import htmx from "htmx.org";
+// import htmx from "htmx.org";
 
 // TODO: accept initial data as prop
 export function CreatePieceForm({ csrf }: { csrf: string }) {
@@ -10,12 +10,11 @@ export function CreatePieceForm({ csrf }: { csrf: string }) {
     useForm<PieceFormData>({
       mode: "onBlur",
       reValidateMode: "onChange",
-      resolver: zodResolver(pieceFormData),
+      resolver: yupResolver(pieceFormData),
       defaultValues: {
         title: "",
         description: "",
         composer: "",
-        recordingLink: "",
         practiceNotes: "",
         spots: [],
       },
@@ -23,6 +22,7 @@ export function CreatePieceForm({ csrf }: { csrf: string }) {
 
   async function onSubmit(data: PieceFormData, e: Event) {
     e.preventDefault();
+    // @ts-ignore
     await htmx.ajax("POST", "/library/pieces/create", {
       values: data,
       target: "#main-content",

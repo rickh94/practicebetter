@@ -3,27 +3,24 @@ package librarypages
 import "practicebetter/internal/pages"
 import "practicebetter/internal/components"
 
-templ CreatePiecePage(s pages.ServerUtil, csrf string) {
+templ EditPiecePage(s pages.ServerUtil, csrf string, title string, id string, pieceData string, spotsData string) {
 	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink() , components.AccountLink())) {
 		@components.Header() {
 			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
-				Create Piece
+				{ title }
 			</h1>
 		}
 		<div class="flex flex-col gap-2 py-8 px-4 w-full sm:flex-row sm:gap-4 sm:justify-start sm:items-center sm:mx-auto sm:max-w-5xl">
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
-					{ Label: "New", Href: "/library/pieces/create", Active: true },
+					{ Label: title, Href: "/library/pieces/"+id, Active: false },
+					{ Label: "Edit", Href: "/library/pieces/"+id+"/edit", Active: true },
 				})
 		</div>
 		<div class="px-4 w-full sm:mx-auto sm:max-w-5xl">
-			<p class="text-lg">
-				Create a new piece to practice below. You can always edit it later.
-				Add spots below (up to 40).
-			</p>
-			<create-piece-form csrf={ csrf }></create-piece-form>
+			<edit-piece-form csrf={ csrf } piece={ pieceData } spots={ spotsData } pieceid={ id }></edit-piece-form>
 		</div>
 	}
-	<script type="module" src={ s.StaticUrl("out/create-piece.js") }></script>
+	<script type="module" src={ s.StaticUrl("out/edit-piece.js") }></script>
 }

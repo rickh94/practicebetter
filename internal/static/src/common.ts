@@ -1,4 +1,3 @@
-import { twMerge } from "tailwind-merge";
 import { type ClassValue, clsx } from "clsx";
 
 export type BasicSpot = {
@@ -20,5 +19,5 @@ export function uniqueID() {
 }
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return clsx(inputs);
 }

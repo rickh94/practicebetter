@@ -140,6 +140,33 @@ export function WarningButton({
   );
 }
 
+export function SkyButton({
+  disabled,
+  children,
+  type = "button",
+  grow = false,
+  className = "",
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      disabled={disabled}
+      type={type}
+      className={cn(
+        "focusable flex items-center justify-center gap-1 rounded-xl px-4 py-2 font-semibold transition duration-200",
+        disabled
+          ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
+          : "bg-sky-700/10 text-sky-800 hover:bg-sky-700/20",
+        grow && "flex-grow",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
 // export function TopNavButton({
 //   children,
 //   className = "",
