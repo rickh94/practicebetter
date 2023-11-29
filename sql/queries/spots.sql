@@ -9,10 +9,11 @@ INSERT INTO spots (
     image_prompt_url,
     notes_prompt,
     text_prompt,
-    current_tempo
+    current_tempo,
+    measures
 ) VALUES (
     (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1),
-    ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 RETURNING *;
 
@@ -26,7 +27,8 @@ SELECT
     image_prompt_url,
     notes_prompt,
     text_prompt,
-    current_tempo
+    current_tempo,
+    measures
 FROM spots
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1);
 
@@ -48,7 +50,8 @@ SET
     image_prompt_url = ?,
     notes_prompt = ?,
     text_prompt = ?,
-    current_tempo = ?
+    current_tempo = ?,
+    measures = ?
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
 RETURNING *;
 

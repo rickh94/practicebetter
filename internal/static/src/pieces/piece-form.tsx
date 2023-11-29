@@ -2,6 +2,7 @@ import {
   Control,
   FormState,
   UseFormRegister,
+  UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";
 import { PieceFormData } from "../validators";
@@ -19,6 +20,8 @@ export function PieceFormFields({
   isUpdating = false,
   watch,
   backTo = "/library/pieces",
+  csrf,
+  setValue,
 }: {
   control: Control<PieceFormData>;
   register: UseFormRegister<PieceFormData>;
@@ -26,6 +29,8 @@ export function PieceFormFields({
   isUpdating?: boolean;
   backTo?: string;
   watch: UseFormWatch<PieceFormData>;
+  csrf: string;
+  setValue: UseFormSetValue<PieceFormData>;
 }) {
   return (
     <>
@@ -176,13 +181,15 @@ export function PieceFormFields({
         </div>
       </div>
       <SpotsArray
+        setValue={setValue}
+        csrf={csrf}
         control={control}
         register={register}
         formState={formState}
         watch={watch}
       />
       <div className="flex flex-row-reverse justify-start gap-4 py-4">
-        <HappyButton disabled={!formState.isValid} type="submit">
+        <HappyButton type="submit">
           <FolderPlusIcon className="-ml-1 inline h-6 w-6" />
           {isUpdating ? "Saving..." : "Save"}
         </HappyButton>

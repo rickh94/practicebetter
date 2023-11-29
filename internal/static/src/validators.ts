@@ -19,7 +19,7 @@ export const spotStage = yup
   ] as const);
 
 export const basicSpot = yup.object({
-  id: yup.string().optional(),
+  id: yup.string().nullable().optional(),
   name: yup.string().min(1, "Too Short"),
   idx: yup.number().nullable().optional(),
   stage: spotStage.default("repeat"),
@@ -34,7 +34,7 @@ export const basicSpot = yup.object({
 export const spotFormData = basicSpot;
 
 export const pieceWithSpots = yup.object({
-  id: yup.string().optional(),
+  id: yup.string().nullable().optional(),
   title: yup
     .string()
     .min(1, "Title must be at least one letter")

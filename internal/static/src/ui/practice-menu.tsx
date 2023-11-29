@@ -26,7 +26,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
       <Menu as="div" className="relative inline-block text-left">
         {/*
       // @ts-ignore */}
-        <Menu.Button className="focusable flex items-center justify-center gap-1 rounded-xl bg-green-700/10 px-4 py-2 font-semibold text-green-800  transition duration-200 hover:bg-green-700/20">
+        <Menu.Button className="focusable flex h-10 items-center justify-center gap-1 rounded-xl bg-green-700/10 px-4 py-2 font-semibold text-green-800  transition duration-200 hover:bg-green-700/20">
           <PlayIcon className="-ml-1 h-5 w-5" />
           Practice
         </Menu.Button>

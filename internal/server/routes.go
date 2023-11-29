@@ -33,8 +33,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 	// staticfiles
 	sf := http.NewServeMux()
 	sf.Handle("/", http.StripPrefix("/static", hashfs.FileServer(static.HashStatic)))
-	r.With(middleware.SetHeader("Cache-Control", "max-age=604800")).With(middleware.SetHeader("Access-Control-Allow-Origin", "*")).Mount("/static", sf)
+	r.With(middleware.SetHeader("Access-Control-Allow-Origin", "*")).Mount("/static", sf)
 	// r.Mount("/static", sf)
+
+	uf := http.NewServeMux()
+	uf.Handle("/", http.StripPrefix("/uploads", http.FileServer(http.Dir(s.UploadsPath))))
+	r.Mount("/uploads", uf)
+
+	// r.Handle("/uploads", http.StripPrefix("/uploads", http.FileServer(http.Dir(s.UploadsPath))))
 
 	r.Get("/", s.index)
 	r.Get("/about", s.about)
@@ -73,6 +79,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/pieces/{pieceID}", s.deletePiece)
 		r.Get("/pieces/{pieceID}/edit", s.editPiece)
 		r.Get("/pieces/{pieceID}/spots/{spotID}", s.singleSpot)
+		r.Get("/upload/audio", s.uploadAudioForm)
+		r.Post("/upload/audio", s.uploadAudio)
+		r.Get("/upload/images", s.uploadImageForm)
+		r.Post("/upload/images", s.uploadImage)
 		/*
 			r.Get("/random-single", s.randomPractice)
 			r.Get("/random-sequence", s.sequencePractice)

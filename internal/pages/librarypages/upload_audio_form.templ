@@ -1,0 +1,25 @@
+package librarypages
+
+import "practicebetter/internal/components"
+
+templ UploadAudioForm(csrf string) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink() , components.AccountLink())) {
+		@components.Header() {
+			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
+				Upload Audio
+			</h1>
+		}
+		<div class="px-4 pt-32 w-full sm:mx-auto sm:max-w-5xl">
+			<p class="text-lg">
+				Upload an audio file to practice below. You can always edit it later.
+			</p>
+			<form action="/library/upload/audio" method="POST" enctype="multipart/form-data">
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="file" name="file" accept="audio/mpeg" class="py-4"/>
+				@components.BasicButton("", "submit") {
+					Upload
+				}
+			</form>
+		</div>
+	}
+}

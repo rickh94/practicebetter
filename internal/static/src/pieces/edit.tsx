@@ -15,31 +15,37 @@ export function EditPieceForm({
   spots: string;
   pieceid: string;
 }) {
-  const initialPieceInfo = JSON.parse(piece);
-  const initialSpots: any[] = JSON.parse(spots);
-  const { register, control, handleSubmit, formState, watch } =
+  const { register, control, handleSubmit, formState, watch, setValue } =
     useForm<PieceFormData>({
       mode: "onBlur",
       reValidateMode: "onChange",
       resolver: yupResolver(pieceFormData),
-      defaultValues: {
-        title: initialPieceInfo.title ?? "",
-        description: initialPieceInfo.description ?? "",
-        composer: initialPieceInfo.composer ?? "",
-        practiceNotes: initialPieceInfo.practiceNotes ?? "",
-        measures: initialPieceInfo.measures ?? null,
-        spots: initialSpots.map((spot, idx) => ({
-          id: spot.id ?? "",
-          name: spot.name ?? "",
-          idx: spot.idx ?? idx,
-          stage: spot.stage ?? "repeat",
-          measures: spot.measures ?? "",
-          audioPromptUrl: spot.audioPromptUrl ?? "",
-          imagePromptUrl: spot.imagePromptUrl ?? "",
-          notesPrompt: spot.notesPrompt ?? "",
-          textPrompt: spot.textPrompt ?? "",
-          currentTempo: spot.currentTempo ?? null,
-        })),
+      defaultValues: async () => {
+        const initialPieceInfo = JSON.parse(piece);
+        const initialSpots: any[] = JSON.parse(spots) ?? [];
+        console.log("got default values");
+        return {
+          id: initialPieceInfo.id ?? "",
+          title: initialPieceInfo.title ?? "",
+          description: initialPieceInfo.description ?? "",
+          composer: initialPieceInfo.composer ?? "",
+          practiceNotes: initialPieceInfo.practiceNotes ?? "",
+          measures: initialPieceInfo.measures ?? null,
+          goalTempo: initialPieceInfo.goalTempo ?? null,
+          beatsPerMeasures: initialPieceInfo.beatsPerMeasures ?? null,
+          spots: initialSpots.map((spot, idx) => ({
+            id: spot.id ?? "",
+            name: spot.name ?? "",
+            idx: spot.idx ?? idx,
+            stage: spot.stage ?? "repeat",
+            measures: spot.measures ?? "",
+            audioPromptUrl: spot.audioPromptUrl ?? "",
+            imagePromptUrl: spot.imagePromptUrl ?? "",
+            notesPrompt: spot.notesPrompt ?? "",
+            textPrompt: spot.textPrompt ?? "",
+            currentTempo: spot.currentTempo ?? null,
+          })),
+        };
       },
     });
 
@@ -59,11 +65,13 @@ export function EditPieceForm({
   return (
     <form noValidate onSubmit={handleSubmit(onSubmit)} hx-boost="false">
       <PieceFormFields
+        csrf={csrf}
         register={register}
         control={control}
         formState={formState}
         watch={watch}
         backTo={`/library/pieces/${pieceid}`}
+        setValue={setValue}
       />
     </form>
   );

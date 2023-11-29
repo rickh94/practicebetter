@@ -1,15 +1,22 @@
 package server
 
 import (
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"math"
 	"net/http"
+	"os"
+	"path"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
 	"strconv"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
 	"github.com/mavolin/go-htmx"
@@ -22,8 +29,7 @@ func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 	pieces, err := queries.ListRecentlyPracticedPieces(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Could not get pieces"))
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 	s.HxRender(w, r, librarypages.Dashboard(pieces))
@@ -39,8 +45,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
 	tx, err := s.DB.Begin()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to connect to database"))
+		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
 		return
 	}
 	defer tx.Rollback()
@@ -78,8 +83,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to create piece"))
+		http.Error(w, "Failed to create piece", http.StatusBadRequest)
 		return
 	}
 	for _, s := range r.Form["spots"] {
@@ -93,8 +97,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 		spot.ID = cuid2.Generate()
 		_, err = qtx.CreateSpot(r.Context(), spot)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Failed to create spot"))
+			http.Error(w, "Failed to create spot", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -106,15 +109,14 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	if err != nil || len(piece) == 0 {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching piece"))
+		http.Error(w, "Could not find matching piece", http.StatusNotFound)
 		return
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to commit transaction"))
+		log.Default().Println(err)
+		http.Error(w, "Database operation failed", http.StatusInternalServerError)
 		return
 	}
 	token := csrf.Token(r)
@@ -167,7 +169,7 @@ func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 	totalPages := int(math.Ceil(float64(totalPieces) / float64(piecesPerPage)))
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -185,8 +187,7 @@ func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
 	if err != nil || len(piece) == 0 {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching piece"))
+		http.Error(w, "Could not find matching piece", http.StatusNotFound)
 		return
 	}
 	token := csrf.Token(r)
@@ -203,8 +204,7 @@ func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching piece"))
+		http.Error(w, "Could not delete piece", http.StatusBadRequest)
 		return
 	}
 
@@ -216,13 +216,13 @@ func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 	totalPieces, err := queries.CountUserPieces(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 	totalPages := int(math.Ceil(float64(totalPieces) / float64(piecesPerPage)))
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 	htmx.PushURL(r, "/library/pieces")
@@ -272,8 +272,7 @@ func (s *Server) editPiece(w http.ResponseWriter, r *http.Request) {
 	if err != nil || len(piece) == 0 {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching piece"))
+		http.Error(w, "Could not find matching piece", http.StatusNotFound)
 		return
 	}
 
@@ -306,13 +305,13 @@ func (s *Server) editPiece(w http.ResponseWriter, r *http.Request) {
 	pieceJson, err := json.Marshal(pieceFormData)
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 	spotsJson, err := json.Marshal(spotsFormData)
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 
@@ -358,8 +357,7 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
 	tx, err := s.DB.Begin()
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to connect to database"))
+		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
 		return
 	}
 	defer tx.Rollback()
@@ -397,8 +395,7 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to create piece"))
+		http.Error(w, "Could not update piece", http.StatusInternalServerError)
 		return
 	}
 	var keepSpotIDs []string
@@ -407,10 +404,15 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		err = json.Unmarshal([]byte(s), &spot)
 		if err != nil {
 			log.Default().Println(err)
+			continue
 		}
 		currentTempo := sql.NullInt64{Valid: false}
 		if spot.CurrentTempo != nil && *spot.CurrentTempo > 0 {
 			currentTempo = sql.NullInt64{Int64: *spot.CurrentTempo, Valid: true}
+		}
+		measures := sql.NullString{Valid: false}
+		if spot.Measures != nil {
+			measures = sql.NullString{String: *spot.Measures, Valid: true}
 		}
 		if spot.ID != nil {
 			keepSpotIDs = append(keepSpotIDs, *spot.ID)
@@ -426,11 +428,11 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 				SpotID:         *spot.ID,
 				UserID:         user.ID,
 				PieceID:        pieceID,
+				Measures:       measures,
 			})
 			if err != nil {
 				log.Default().Println(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("Failed to update spot"))
+				http.Error(w, "Failed to update spot", http.StatusInternalServerError)
 				return
 			}
 		} else {
@@ -447,11 +449,11 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 				NotesPrompt:    spot.NotesPrompt,
 				TextPrompt:     spot.TextPrompt,
 				CurrentTempo:   currentTempo,
+				Measures:       measures,
 			})
 			if err != nil {
 				log.Default().Println(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte("Failed to create spot"))
+				http.Error(w, "Failed to create spot", http.StatusInternalServerError)
 				return
 			}
 			keepSpotIDs = append(keepSpotIDs, newSpotID)
@@ -465,8 +467,7 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to delete spots"))
+		http.Error(w, "Failed to delete spots", http.StatusInternalServerError)
 		return
 	}
 
@@ -533,4 +534,174 @@ func (s *Server) singleSpot(w http.ResponseWriter, r *http.Request) {
 
 	token := csrf.Token(r)
 	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token))
+}
+
+const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MiB
+
+func (s *Server) uploadAudio(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(db.User)
+	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "The uploaded file is too big. Please choose an file that's less than 1MB in size", http.StatusBadRequest)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	defer file.Close()
+
+	buff := make([]byte, 512)
+	_, err = file.Read(buff)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	filetype := mimetype.Detect(buff)
+	if !filetype.Is("audio/mpeg") {
+		log.Default().Println(filetype)
+		http.Error(w, "The provided file format is not allowed. Please upload an audio file in MP3 format", http.StatusBadRequest)
+		return
+	}
+
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create the uploads folder if it doesn't
+	// already exist
+	h := sha256.New()
+	h.Write([]byte(user.ID))
+	userIDHash := hex.EncodeToString(h.Sum(nil))[:8]
+
+	userAudioPath := path.Join(s.UploadsPath, userIDHash, "audio")
+	err = os.MkdirAll(userAudioPath, os.ModePerm)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create a new file in the uploads directory
+	newFileName := fmt.Sprintf("%s-%s", cuid2.Generate()[:5], fileHeader.Filename)
+	newFilePath := path.Join(userAudioPath, newFileName)
+
+	dst, err := os.Create(newFilePath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer dst.Close()
+
+	// Copy the uploaded file to the filesystem
+	// at the specified destination
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	data := map[string]string{
+		"filename": newFileName,
+		"url":      fmt.Sprintf("/uploads/%s/audio/%s", userIDHash, newFileName),
+	}
+	json.NewEncoder(w).Encode(data)
+}
+
+func (s *Server) uploadAudioForm(w http.ResponseWriter, r *http.Request) {
+	token := csrf.Token(r)
+	s.HxRender(w, r, librarypages.UploadAudioForm(token))
+
+}
+
+func (s *Server) uploadImage(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(db.User)
+	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
+	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "The uploaded file is too big. Please choose an file that's less than 1MB in size", http.StatusBadRequest)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	defer file.Close()
+
+	buff := make([]byte, 512)
+	_, err = file.Read(buff)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	filetype := mimetype.Detect(buff)
+	if !mimetype.EqualsAny(filetype.String(), "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp") {
+		log.Default().Println(filetype)
+		http.Error(w, "The provided file format is not allowed. Please upload an image file.", http.StatusBadRequest)
+		return
+	}
+
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create the uploads folder if it doesn't
+	// already exist
+	h := sha256.New()
+	h.Write([]byte(user.ID))
+	userIDHash := hex.EncodeToString(h.Sum(nil))[:8]
+
+	userImagePath := path.Join(s.UploadsPath, userIDHash, "images")
+	err = os.MkdirAll(userImagePath, os.ModePerm)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Create a new file in the uploads directory
+	newFileName := fmt.Sprintf("%s-%s", cuid2.Generate()[:5], fileHeader.Filename)
+	newFilePath := path.Join(userImagePath, newFileName)
+
+	dst, err := os.Create(newFilePath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	defer dst.Close()
+
+	// Copy the uploaded file to the filesystem
+	// at the specified destination
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	data := map[string]string{
+		"filename": newFileName,
+		"url":      fmt.Sprintf("/uploads/%s/images/%s", userIDHash, newFileName),
+	}
+	json.NewEncoder(w).Encode(data)
+}
+
+func (s *Server) uploadImageForm(w http.ResponseWriter, r *http.Request) {
+	token := csrf.Token(r)
+	s.HxRender(w, r, librarypages.UploadImageForm(token))
+
 }

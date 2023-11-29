@@ -5,12 +5,19 @@ import {
   PhotoIcon,
   DocumentTextIcon,
   MusicalNoteIcon,
+  XMarkIcon,
 } from "@heroicons/react/20/solid";
 import { lazy, Suspense } from "preact/compat";
 import { useState, useCallback, useRef } from "preact/hooks";
 import { UseFormRegisterReturn } from "react-hook-form";
 import { cn } from "../common";
-import { ColorlessButton, HappyButton } from "../ui/buttons";
+import {
+  AngryButton,
+  ColorlessButton,
+  HappyButton,
+  WarningButton,
+} from "../ui/buttons";
+import { TrashIcon } from "@heroicons/react/24/solid";
 // import NotesDisplay from "../ui/notes-display";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
@@ -19,15 +26,16 @@ const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
 export function AddAudioPrompt({
   audioPromptUrl,
-  registerReturn,
+  csrf,
   save,
 }: {
   audioPromptUrl?: string | null;
-  registerReturn: UseFormRegisterReturn;
+  csrf: string;
   save: (url: string) => void;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const ref = useRef<HTMLDialogElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const open = useCallback(
     function () {
@@ -53,6 +61,40 @@ export function AddAudioPrompt({
       }
     },
     [ref],
+  );
+
+  const handleSubmit = useCallback(
+    async function () {
+      setIsUploading(true);
+      if (!formRef.current) {
+        return;
+      }
+      const formData = new FormData(formRef.current);
+      const res = await fetch("/library/upload/audio", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const { filename, url } = await res.json();
+        setIsUploading(false);
+        formRef.current.reset();
+
+        document.dispatchEvent(
+          new CustomEvent("ShowAlert", {
+            detail: {
+              message: `${filename} has been uploaded successfully!`,
+              title: "Upload Complete",
+              variant: "success",
+              duration: 3000,
+            },
+          }),
+        );
+
+        save(url);
+        close();
+      }
+    },
+    [formRef.current, setIsUploading, save, close],
   );
 
   return (
@@ -87,38 +129,73 @@ export function AddAudioPrompt({
             Add Audio Prompt
           </h3>
         </header>
-        <div className="prose prose-sm prose-neutral mt-2 text-left">
-          Upload an audio file (max 512KB) or paste in a public URL to audio
-          that will prompt you for this spot.
-        </div>
-        <div className="flex w-full flex-col">
-          <label
-            className="text-left text-sm font-medium leading-6 text-neutral-900"
-            htmlFor="url"
-          >
-            Url
-          </label>
-          <div className="flex items-center gap-0">
-            <input
-              id="url"
-              {...registerReturn}
-              className="focusable rounded-r-0 w-full rounded-l-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
-            />
-          </div>
-        </div>
-        <HappyButton
-          grow
-          disabled={isUploading}
-          onClick={close}
-          className="mt-4 w-full"
-        >
-          {isUploading ? (
-            <ArrowPathIcon className="h-6 w-6" />
-          ) : (
-            <CheckIcon className="h-6 w-6" />
-          )}
-          {isUploading ? "Please Wait..." : "Done"}
-        </HappyButton>
+        {audioPromptUrl ? (
+          <>
+            <div className="w-full text-left text-lg font-medium">
+              Current File is:{" "}
+              <strong className="font-bold">
+                {audioPromptUrl.split("/").pop()}
+              </strong>{" "}
+              <span className="text-base font-normal">
+                (may have been renamed)
+              </span>
+            </div>
+            <div className="w-full">
+              Remove this file first to upload a different one
+            </div>
+            <div class="mt-4 flex w-full gap-2">
+              <WarningButton grow type="button" onClick={close}>
+                <XMarkIcon className="h-6 w-6" />
+                Close
+              </WarningButton>
+              <AngryButton grow type="button" onClick={() => save("")}>
+                <TrashIcon className="h-6 w-6" />
+                Remove File
+              </AngryButton>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="prose prose-sm prose-neutral mt-2 text-left">
+              Upload an audio file (max 1MB) that will prompt you for this spot.
+            </div>
+            <form
+              className="flex w-full flex-col"
+              ref={formRef}
+              action="#"
+              enctype="multipart/form-data"
+              // @ts-ignore
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <input type="hidden" name="gorilla.csrf.Token" value={csrf} />
+              <input type="file" name="file" accept="audio/mpeg" class="py-4" />
+            </form>
+            <div class="mt-4 flex w-full gap-2">
+              <WarningButton
+                grow
+                disabled={isUploading}
+                type="button"
+                onClick={close}
+              >
+                <XMarkIcon className="h-6 w-6" />
+                Cancel
+              </WarningButton>
+              <HappyButton
+                grow
+                disabled={isUploading}
+                type="button"
+                onClick={handleSubmit}
+              >
+                {isUploading ? (
+                  <ArrowPathIcon className="h-6 w-6" />
+                ) : (
+                  <CheckIcon className="h-6 w-6" />
+                )}
+                {isUploading ? "Please Wait..." : "Save"}
+              </HappyButton>
+            </div>
+          </>
+        )}
       </dialog>
     </>
   );
@@ -126,15 +203,16 @@ export function AddAudioPrompt({
 
 export function AddImagePrompt({
   imagePromptUrl,
-  registerReturn,
   save,
+  csrf,
 }: {
+  csrf: string;
   imagePromptUrl?: string | null;
-  registerReturn: UseFormRegisterReturn;
   save: (url: string) => void;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const ref = useRef<HTMLDialogElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const open = useCallback(
     function () {
@@ -160,6 +238,40 @@ export function AddImagePrompt({
       }
     },
     [ref.current],
+  );
+
+  const handleSubmit = useCallback(
+    async function () {
+      setIsUploading(true);
+      if (!formRef.current) {
+        return;
+      }
+      const formData = new FormData(formRef.current);
+      const res = await fetch("/library/upload/images", {
+        method: "POST",
+        body: formData,
+      });
+      if (res.ok) {
+        const { filename, url } = await res.json();
+        setIsUploading(false);
+        formRef.current.reset();
+
+        document.dispatchEvent(
+          new CustomEvent("ShowAlert", {
+            detail: {
+              message: `${filename} has been uploaded successfully!`,
+              title: "Upload Complete",
+              variant: "success",
+              duration: 3000,
+            },
+          }),
+        );
+
+        save(url);
+        close();
+      }
+    },
+    [formRef.current, setIsUploading, save, close],
   );
 
   return (
@@ -195,38 +307,80 @@ export function AddImagePrompt({
             Add Image Prompt
           </h3>
         </header>
-        <div className="prose prose-sm prose-neutral mt-2 text-left">
-          Upload an image or screenshot (max 512KB) or enter a public URL for an
-          image to use as a prompt for this spot.
-        </div>
-        <div className="flex w-full flex-col">
-          <label
-            className="text-left text-sm font-medium leading-6 text-neutral-900"
-            htmlFor="url"
-          >
-            Url
-          </label>
-          <div className="flex items-center gap-0">
-            <input
-              {...registerReturn}
-              id="url"
-              className="focusable rounded-r-0 w-full rounded-l-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
-            />
-          </div>
-        </div>
-        <HappyButton
-          grow
-          disabled={isUploading}
-          onClick={close}
-          className="mt-4 w-full"
-        >
-          {isUploading ? (
-            <ArrowPathIcon className="h-6 w-6" />
-          ) : (
-            <CheckIcon className="h-6 w-6" />
-          )}
-          {isUploading ? "Please Wait..." : "Done"}
-        </HappyButton>
+        {imagePromptUrl ? (
+          <>
+            <div className="w-full text-left text-lg font-medium">
+              Current File is:{" "}
+              <strong className="font-bold">
+                {imagePromptUrl.split("/").pop()}
+              </strong>{" "}
+              <span className="text-base font-normal">
+                (may have been renamed)
+              </span>
+            </div>
+            <div className="w-full">
+              Remove this file first to upload a different one
+            </div>
+            <div class="mt-4 flex w-full gap-2">
+              <WarningButton grow type="button" onClick={close}>
+                <XMarkIcon className="h-6 w-6" />
+                Close
+              </WarningButton>
+              <AngryButton grow type="button" onClick={() => save("")}>
+                <TrashIcon className="h-6 w-6" />
+                Remove File
+              </AngryButton>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="prose prose-sm prose-neutral mt-2 text-left">
+              Upload an image file (max 1MB) that will prompt you for this spot.
+              You can take a screenshot or a picture of your music with your
+              phone.
+            </div>
+            <form
+              className="flex w-full flex-col"
+              ref={formRef}
+              action="#"
+              enctype="multipart/form-data"
+              // @ts-ignore
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <input type="hidden" name="gorilla.csrf.Token" value={csrf} />
+              <input
+                type="file"
+                name="file"
+                accept="image/png,image/jpg,image/jpeg,image/gif"
+                class="py-4"
+              />
+            </form>
+            <div class="mt-4 flex w-full gap-2">
+              <WarningButton
+                grow
+                disabled={isUploading}
+                type="button"
+                onClick={close}
+              >
+                <XMarkIcon className="h-6 w-6" />
+                Cancel
+              </WarningButton>
+              <HappyButton
+                grow
+                disabled={isUploading}
+                type="button"
+                onClick={handleSubmit}
+              >
+                {isUploading ? (
+                  <ArrowPathIcon className="h-6 w-6" />
+                ) : (
+                  <CheckIcon className="h-6 w-6" />
+                )}
+                {isUploading ? "Please Wait..." : "Save"}
+              </HappyButton>
+            </div>
+          </>
+        )}
       </dialog>
     </>
   );

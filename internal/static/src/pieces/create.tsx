@@ -6,7 +6,7 @@ import { PieceFormFields } from "./piece-form";
 
 // TODO: accept initial data as prop
 export function CreatePieceForm({ csrf }: { csrf: string }) {
-  const { register, control, handleSubmit, formState, watch } =
+  const { register, control, handleSubmit, formState, watch, setValue } =
     useForm<PieceFormData>({
       mode: "onBlur",
       reValidateMode: "onChange",
@@ -16,6 +16,9 @@ export function CreatePieceForm({ csrf }: { csrf: string }) {
         description: "",
         composer: "",
         practiceNotes: "",
+        measures: null,
+        goalTempo: null,
+        beatsPerMeasure: null,
         spots: [],
       },
     });
@@ -37,9 +40,11 @@ export function CreatePieceForm({ csrf }: { csrf: string }) {
     <form noValidate onSubmit={handleSubmit(onSubmit)} hx-boost="false">
       <PieceFormFields
         register={register}
+        csrf={csrf}
         control={control}
         formState={formState}
         watch={watch}
+        setValue={setValue}
       />
     </form>
   );

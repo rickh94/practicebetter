@@ -32,6 +32,7 @@ type Server struct {
 	EmailFrom      string
 	SecretKey      string
 	StaticHostname string
+	UploadsPath    string
 }
 
 func getEnvOrPanic(key string) string {
@@ -120,6 +121,7 @@ func NewServer() *http.Server {
 		EmailFrom:      getEnvOrPanic("EMAIL_FROM"),
 		SecretKey:      getEnvOrPanic("SECRET_KEY"),
 		StaticHostname: os.Getenv("STATIC_HOSTNAME"),
+		UploadsPath:    getEnvOrPanic("UPLOADS_PATH"),
 	}
 
 	// Declare Server config

@@ -22,10 +22,11 @@ INSERT INTO spots (
     image_prompt_url,
     notes_prompt,
     text_prompt,
-    current_tempo
+    current_tempo,
+    measures
 ) VALUES (
     (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1),
-    ?, ?, ?, ?, ?, ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
 RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo
 `
@@ -42,6 +43,7 @@ type CreateSpotParams struct {
 	NotesPrompt    string
 	TextPrompt     string
 	CurrentTempo   sql.NullInt64
+	Measures       sql.NullString
 }
 
 func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, error) {
@@ -57,6 +59,7 @@ func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, e
 		arg.NotesPrompt,
 		arg.TextPrompt,
 		arg.CurrentTempo,
+		arg.Measures,
 	)
 	var i Spot
 	err := row.Scan(
@@ -181,7 +184,8 @@ SELECT
     image_prompt_url,
     notes_prompt,
     text_prompt,
-    current_tempo
+    current_tempo,
+    measures
 FROM spots
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
 `
@@ -201,6 +205,7 @@ type ListPieceSpotsRow struct {
 	NotesPrompt    string
 	TextPrompt     string
 	CurrentTempo   sql.NullInt64
+	Measures       sql.NullString
 }
 
 func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) ([]ListPieceSpotsRow, error) {
@@ -222,6 +227,7 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 			&i.NotesPrompt,
 			&i.TextPrompt,
 			&i.CurrentTempo,
+			&i.Measures,
 		); err != nil {
 			return nil, err
 		}
@@ -246,7 +252,8 @@ SET
     image_prompt_url = ?,
     notes_prompt = ?,
     text_prompt = ?,
-    current_tempo = ?
+    current_tempo = ?,
+    measures = ?
 WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
 RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo
 `
@@ -260,6 +267,7 @@ type UpdateSpotParams struct {
 	NotesPrompt    string
 	TextPrompt     string
 	CurrentTempo   sql.NullInt64
+	Measures       sql.NullString
 	SpotID         string
 	UserID         string
 	PieceID        string
@@ -275,6 +283,7 @@ func (q *Queries) UpdateSpot(ctx context.Context, arg UpdateSpotParams) (Spot, e
 		arg.NotesPrompt,
 		arg.TextPrompt,
 		arg.CurrentTempo,
+		arg.Measures,
 		arg.SpotID,
 		arg.UserID,
 		arg.PieceID,

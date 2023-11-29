@@ -21,6 +21,11 @@ tmp/
 # IDE specific files
 .vscode
 .idea
+
+# local dev or generated files
 .db
 *_templ.go
 internal/static/out
+.audio
+.images
+.uploads
