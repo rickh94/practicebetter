@@ -122,20 +122,38 @@ func (q *Queries) DeleteSpotsExcept(ctx context.Context, arg DeleteSpotsExceptPa
 }
 
 const getSpot = `-- name: GetSpot :one
-SELECT spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo
+SELECT
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo,
+    pieces.title as piece_title
 FROM spots
-WHERE spots.id = ? AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
+INNER JOIN pieces ON pieces.id = spots.piece_id
+WHERE spots.id = ?1 AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
 `
 
 type GetSpotParams struct {
-	ID     string
-	UserID string
-	ID_2   string
+	SpotID  string
+	UserID  string
+	PieceID string
 }
 
-func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (Spot, error) {
-	row := q.db.QueryRowContext(ctx, getSpot, arg.ID, arg.UserID, arg.ID_2)
-	var i Spot
+type GetSpotRow struct {
+	ID             string
+	PieceID        string
+	Name           string
+	Idx            int64
+	Stage          string
+	Measures       sql.NullString
+	AudioPromptUrl string
+	ImagePromptUrl string
+	NotesPrompt    string
+	TextPrompt     string
+	CurrentTempo   sql.NullInt64
+	PieceTitle     string
+}
+
+func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (GetSpotRow, error) {
+	row := q.db.QueryRowContext(ctx, getSpot, arg.SpotID, arg.UserID, arg.PieceID)
+	var i GetSpotRow
 	err := row.Scan(
 		&i.ID,
 		&i.PieceID,
@@ -148,6 +166,7 @@ func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (Spot, error) 
 		&i.NotesPrompt,
 		&i.TextPrompt,
 		&i.CurrentTempo,
+		&i.PieceTitle,
 	)
 	return i, err
 }

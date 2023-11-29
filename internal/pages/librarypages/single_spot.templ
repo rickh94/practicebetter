@@ -1,5 +1,176 @@
 package librarypages
 
-templ SingleSpot() {
-	<div></div>
+import "practicebetter/internal/components"
+import "practicebetter/internal/db"
+import "practicebetter/internal/heroicons"
+import "strconv"
+import "practicebetter/internal/pages"
+
+const stageModalID = "stage-read-more-modal"
+
+templ StageReadMoreDialog() {
+	<dialog id={ stageModalID } aria-labelledby={ stageModalID + "-title" } class="bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left flex flex-col gap-2 sm:max-w-xl px-4 py-4">
+		<header class="mt-2 text-center sm:text-left">
+			<h3 id={ stageModalID + "-title" } class="text-2xl font-semibold leading-6 text-neutral-900">About Practice Stages</h3>
+		</header>
+		<div class="mt-2 text-left prose prose-sm prose-neutral">
+			<p class="text-base">
+				There are five practice stages that I’ve accounted for
+			</p>
+			<ul class="text-base">
+				<li>
+					<strong class="font-semibold">
+						Repeat Practice
+					</strong>{ " " }
+					is the default for all new spots. Once you complete
+					repeat practicing, the spot will be advanced to
+				</li>
+				<li>
+					<strong class="font-semibold">
+						Random Practice
+					</strong>{ " " }
+					is for solidifying a spot that you have corretly.
+					This can be practiced randomly with other spots from
+					the piece or even other pieces for much better
+					retention than massed practicing.
+				</li>
+				<li>
+					For{ " " }
+					<strong class="font-semibold">
+						Interleaved Practice
+					</strong>{ " " }
+					you should spread your repetitions out even more, 5+
+					minutes between repetitions. This challenges your
+					spots even more. Try to play them correctly the
+					first time and only once.
+				</li>
+				<li>
+					Once your spots are in excellent shape on their own,
+					you can start{ " " }
+					<strong class="font-semibold">
+						Interleaved Days Practicing
+					</strong>{ " " }
+					which is the same principle, but you don’t play the
+					spots every day.
+				</li>
+				<li>
+					Mark a spot as{ " " }
+					<strong class="font-semibold">
+						{ " " }
+						Completed
+					</strong>{ " " }
+					once it is in execellent shape and you basically
+					never play it wrong. At this point, you should start
+					combining it with the spots around it, either by
+					simply playing a few spots in order, or create some
+					new overlapping spots for better continuity.
+				</li>
+			</ul>
+		</div>
+		<button
+ 			onclick={ components.CloseModal(stageModalID) }
+ 			class="flex flex-grow gap-1 justify-center items-center py-2 px-4 mt-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+		>
+			Done Reading
+		</button>
+	</dialog>
+}
+
+templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
+		@components.Header() {
+			<h1 class="text-3xl font-extrabold tracking-tight text-neutral-800">
+				{ spot.Name } | { spot.PieceTitle }
+			</h1>
+		}
+		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full md:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Pieces", Href: "/library/pieces", Active: false },
+					{ Label: spot.PieceTitle, Href: "/library/pieces/"+spot.PieceID, Active: false },
+					{ Label: spot.Name, Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID, Active: true },
+				})
+			<div class="flex flex-grow gap-2 justify-end">
+				@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-green-700/10 px-4 py-2 font-semibold text-green-800  transition duration-200 hover:bg-green-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/practice/repeat", "#main-content") {
+					@heroicons.IconPlaySolid("-ml-1 h-5 w-5")
+					Practice
+				}
+				@components.HxLink( "focusable flex items-center justify-center gap-1 rounded-xl bg-amber-700/10 px-4 py-2 font-semibold  text-amber-800 transition duration-200 hover:bg-amber-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/edit", "#main-content") {
+					@heroicons.IconPencilSolid("-ml-1 h-5 w-5")
+					Edit
+				}
+				<button
+ 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-red-800 rounded-xl transition duration-200 bg-red-700/10 hover:bg-red-700/20 focusable"
+ 					hx-delete={ "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID }
+ 					hx-headers={ components.HxCsrfHeader(csrf) }
+ 					hx-confirm={ "Are you sure you want to delete spot " + spot.Name + "? This cannot be reversed" }
+ 					hx-target="#main-content"
+				>
+					@heroicons.IconTrashSolid("-ml-1 h-5 w-5")
+					Delete Spot
+				</button>
+			</div>
+		</div>
+		@components.NarrowContainer() {
+			<div class="grid grid-cols-1 gap-4 p-4 w-full rounded-xl border sm:grid-cols-3 border-neutral-500 bg-white/80 text-neutral-900">
+				<div class="flex col-span-full justify-center text-center">
+					<h2 class="px-4 text-2xl font-bold border-b-2 border-neutral-500">
+						{ spot.Name }
+					</h2>
+				</div>
+				<div>
+					<dl class="text-base divide-y divide-neutral-700 border-y border-neutral-700">
+						<div class="py-2 px-4 sm:flex sm:justify-between sm:px-0">
+							<dt class="font-medium leading-6 text-neutral-900">
+								Order
+							</dt>
+							<dd class="mt-1 leading-6 sm:mt-0 text-neutral-700">
+								{ strconv.FormatInt(spot.Idx, 10)  }
+							</dd>
+						</div>
+						<div class="py-2 px-4 sm:flex sm:justify-between sm:px-0">
+							<dt class="font-medium leading-6 text-neutral-900">
+								Measures
+							</dt>
+							<dd class="mt-1 leading-6 sm:mt-0 text-neutral-700">
+								if spot.Measures.Valid {
+									{ spot.Measures.String }
+								}
+							</dd>
+						</div>
+						<div class="py-2 px-4 sm:flex sm:justify-between sm:px-0">
+							<dt class="font-medium leading-6 text-neutral-900">
+								Current Tempo
+							</dt>
+							<dd class="mt-1 leading-6 sm:mt-0 text-neutral-700">
+								if spot.CurrentTempo.Valid {
+									{ strconv.FormatInt(spot.CurrentTempo.Int64, 10)  }
+								}
+							</dd>
+						</div>
+						<div class="py-2 px-4 sm:flex sm:justify-between sm:px-0">
+							<dt class="font-medium leading-6 text-neutral-900">
+								Stage
+							</dt>
+							<dd class="flex gap-1 items-center mt-1 leading-6 sm:mt-0 text-neutral-700">
+								<span class="font-medium">{ getStageDisplayName(spot.Stage) }</span>
+								<button class="text-neutral-400 hover:text-neutral-500" onClick={ components.ShowModal(stageModalID) }>
+									@heroicons.IconInformationCircleSolid("h-4 w-4")
+									<span class="sr-only">Read More</span>
+								</button>
+							</dd>
+						</div>
+					</dl>
+				</div>
+				<div class="flex flex-col gap-2 sm:col-span-2">
+					<audio-prompt-summary url={ spot.AudioPromptUrl }></audio-prompt-summary>
+					<notes-prompt-summary notes={ spot.NotesPrompt }></notes-prompt-summary>
+					<text-prompt-summary text={ spot.TextPrompt }></text-prompt-summary>
+					<image-prompt-summary url={ spot.ImagePromptUrl }></image-prompt-summary>
+				</div>
+			</div>
+		}
+		@StageReadMoreDialog()
+		<script type="module" src={ s.StaticUrl("out/prompts.js") }></script>
+	}
 }

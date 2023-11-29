@@ -169,3 +169,7 @@ dialog.close::backdrop {
     @apply translate-y-0 scale-100;
   }
 }
+
+details[open] summary > .summary-icon {
+  @apply rotate-90 transform;
+}

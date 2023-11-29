@@ -427,8 +427,8 @@ export function AddNotesPrompt({
                 maxSpacing: 0,
                 preferredMeasuresPerLine: 2,
               }}
-              notes={notesPrompt ?? ""}
               responsive="resize"
+              notes={notesPrompt ?? ""}
             />
           </Suspense>
         </div>

@@ -458,7 +458,6 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	log.Default().Println(keepSpotIDs)
 	err = qtx.DeleteSpotsExcept(r.Context(), db.DeleteSpotsExceptParams{
 		SpotIDs: keepSpotIDs,
 		UserID:  user.ID,
@@ -511,4 +510,27 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 	component := librarypages.SinglePiece(s, token, piece)
 	component.Render(r.Context(), w)
 	return
+}
+
+func (s *Server) singleSpot(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	user := r.Context().Value("user").(db.User)
+	queries := db.New(s.DB)
+
+	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+		SpotID:  spotID,
+		UserID:  user.ID,
+		PieceID: pieceID,
+	})
+	if err != nil {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Could not find matching spot"))
+		return
+	}
+
+	token := csrf.Token(r)
+	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token))
 }

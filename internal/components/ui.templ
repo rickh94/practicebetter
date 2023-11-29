@@ -83,10 +83,6 @@ templ BasicButtonLink(href, hxTarget, hxSwap  string) {
 	</a>
 }
 
-templ PracticeToolNav(activePath string) {
-	<practice-tool-nav activePath={ activePath }></practice-tool-nav>
-}
-
 templ ReadMoreButton(id string) {
 	<button
  		class={ navClasses }
@@ -104,27 +100,29 @@ type BreadcrumbInfo struct {
 }
 
 templ Breadcrumb(bc []BreadcrumbInfo) {
-	<nav aria-label="Breadcrumb" class="block">
-		<ul class="flex flex-grow-0 justify-around py-2 px-4 rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
-			for i, b := range bc {
-				<li
- 					class={ "flex items-center", templ.KV("text-neutral-900", b.Active), templ.KV("text-neutral-900/50", !b.Active) }
- 					if b.Active {
-						aria-current="true"
+	<div class="flex">
+		<nav aria-label="Breadcrumb" class="block">
+			<ul class="flex flex-grow-0 justify-around items-center py-2 px-4 rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
+				for i, b := range bc {
+					<li
+ 						class={ "flex items-center", templ.KV("text-neutral-900", b.Active), templ.KV("text-neutral-900/50", !b.Active) }
+ 						if b.Active {
+							aria-current="true"
+						}
+					>
+						@HxLink("", b.Href, "#main-content") {
+							{ b.Label }
+						}
+					</li>
+					if i != len(bc) - 1 {
+						<span class="flex items-center h-full text-neutral-900/50" aria-hidden="true">
+							@heroicons.IconChevronRightSolid("w-4 h-4 sm:w-6 sm:h-6")
+						</span>
 					}
-				>
-					@HxLink("", b.Href, "#main-content") {
-						{ b.Label }
-					}
-				</li>
-				if i != len(bc) - 1 {
-					<span class="inline-block text-neutral-900/50">
-						@heroicons.IconChevronRightSolid("w-8 h-8")
-					</span>
 				}
-			}
-		</ul>
-	</nav>
+			</ul>
+		</nav>
+	</div>
 }
 
 // TODO: make actual link

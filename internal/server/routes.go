@@ -72,6 +72,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/pieces/{pieceID}", s.updatePiece)
 		r.Delete("/pieces/{pieceID}", s.deletePiece)
 		r.Get("/pieces/{pieceID}/edit", s.editPiece)
+		r.Get("/pieces/{pieceID}/spots/{spotID}", s.singleSpot)
 		/*
 			r.Get("/random-single", s.randomPractice)
 			r.Get("/random-sequence", s.sequencePractice)

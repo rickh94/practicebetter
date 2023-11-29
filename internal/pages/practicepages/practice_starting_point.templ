@@ -47,7 +47,7 @@ templ StartingPointReadMoreDialog() {
 templ StartingPointPractice(s pages.ServerUtil) {
 	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreButton(spAboutId))) {
 		@components.Header() {
-			@components.PracticeToolNav("/practice/starting-point")
+			<practice-tool-nav activepath="/practice/starting-point"></practice-tool-nav>
 		}
 		<div class="flex flex-col gap-12 justify-center items-center py-8 px-4">
 			<div class="relative w-full sm:mx-auto sm:max-w-3xl">
