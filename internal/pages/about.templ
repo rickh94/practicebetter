@@ -3,6 +3,7 @@ package pages
 import "practicebetter/internal/components"
 
 templ AboutPage(s ServerUtil) {
+	<title>About | Practice Better</title>
 	@components.SingleColumnLayout(components.LeftButtonBar(components.BackHomeLink())) {
 		@components.Header() {
 			<h1 class="px-4 pt-4 pb-1 text-3xl font-bold text-neutral-800 sm:text5xl">

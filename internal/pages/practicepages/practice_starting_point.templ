@@ -45,6 +45,7 @@ templ StartingPointReadMoreDialog() {
 }
 
 templ StartingPointPractice(s pages.ServerUtil) {
+	<title>Random Starting Point | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreButton(spAboutId))) {
 		@components.Header() {
 			<practice-tool-nav activepath="/practice/starting-point"></practice-tool-nav>

@@ -6,6 +6,7 @@ import "practicebetter/internal/db"
 import "database/sql"
 
 templ Dashboard(pieces []db.ListRecentlyPracticedPiecesRow) {
+	<title>Library | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink() , components.AccountLink())) {
 		@components.Header() {
 			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">

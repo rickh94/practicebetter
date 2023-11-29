@@ -43,6 +43,7 @@ templ SequenceReadMoreDialog() {
 }
 
 templ SequencePractice(s pages.ServerUtil) {
+	<title>Sequenced Practice | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.ReadMoreButton(seqAboutId))) {
 		@components.Header() {
 			<practice-tool-nav activepath="/practice/random-sequence"></practice-tool-nav>

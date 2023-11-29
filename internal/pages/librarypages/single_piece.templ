@@ -8,6 +8,7 @@ import "strconv"
 import "database/sql"
 
 templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
+	<title>{ piece[0].Title } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
 		@components.Header() {
 			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">

@@ -4,7 +4,8 @@ import "practicebetter/internal/pages"
 import "practicebetter/internal/components"
 
 templ EditPiecePage(s pages.ServerUtil, csrf string, title string, id string, pieceData string, spotsData string) {
-	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink() , components.AccountLink())) {
+	<title>{ title } | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
 		@components.Header() {
 			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
 				{ title }

@@ -6,7 +6,8 @@ import "strconv"
 import "practicebetter/internal/heroicons"
 
 templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int) {
-	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink() , components.AccountLink())) {
+	<title>Pieces | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
 		@components.Header() {
 			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
 				Your Pieces
@@ -74,7 +75,7 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 					@heroicons.IconChevronRightSolid("-ml-1 h-5 w-5")
 				</a>
 			} else {
-				<span class="rounded-xl text-neutral-800 bg-neutral-800/5">No More Pages</span>
+				<span class="py-2 px-4 h-full text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No More Pages</span>
 			}
 		</div>
 	}

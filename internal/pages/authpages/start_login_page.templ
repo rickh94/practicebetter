@@ -4,6 +4,7 @@ import "practicebetter/internal/components"
 import "practicebetter/internal/heroicons"
 
 templ StartLoginPage(csrf string, nextLoc string) {
+	<title>Login | Practice Better</title>
 	@components.HeroLayout(components.LeftButtonBar(components.BackHomeLink())) {
 		<form
  			action=""
