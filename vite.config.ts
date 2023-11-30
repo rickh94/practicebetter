@@ -14,6 +14,8 @@ export default defineConfig({
         "notes-display": "internal/static/src/notes-display.ts",
         "practice-menu": "internal/static/src/practice-menu.ts",
         "edit-piece": "internal/static/src/edit-piece.ts",
+        "add-spot": "internal/static/src/add-spot.ts",
+        "edit-spot": "internal/static/src/edit-spot.ts",
         prompts: "internal/static/src/prompts.ts",
       },
       name: "musiclib",

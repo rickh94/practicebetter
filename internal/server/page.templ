@@ -24,6 +24,40 @@ templ Head(s *Server) {
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<title>Practice Better</title>
 		<link rel="stylesheet" href={ s.StaticUrl("css/main.css") }/>
+		<link
+ 			rel="apple-touch-icon"
+ 			sizes="180x180"
+ 			href={ s.StaticUrl("img/apple-touch-icon.png") }
+		/>
+		<link
+ 			rel="icon"
+ 			type="image/png"
+ 			sizes="32x32"
+ 			href={ s.StaticUrl("img/favicon-32x32.png") }
+		/>
+		<link
+ 			rel="icon"
+ 			type="image/png"
+ 			sizes="16x16"
+ 			href={ s.StaticUrl("img/favicon-16x16.png") }
+		/>
+		<link rel="icon" href={ s.StaticUrl("img/favicon.ico") }/>
+		<link rel="manifest" href={ s.StaticUrl("img/site.webmanifest") }/>
+		<meta property="og:title" content="Practice Better"/>
+		<meta property="og:description" content="Organize your music practicing to be more effective and prevent bad habits."/>
+		<meta property="og:url" content="https://practicebetter.rickhenry.dev"/>
+		<meta
+ 			property="og:image"
+ 			content="https://og.rickhenry.dev/practicebetter/opengraph-image"
+		/>
+		<meta property="og:type" content="website"/>
+		<meta name="twitter:card" content="summary_large_image"/>
+		<meta name="twitter:title" content="Practice Better"/>
+		<meta property="twitter:description" content="Organize your music practicing to be more effective and prevent bad habits."/>
+		<meta
+ 			name="twitter:image"
+ 			content="https://og.rickhenry.dev/practicebetter/opengraph-image"
+		/>
 	</head>
 }
 

@@ -71,14 +71,22 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.With(s.LoginRequired).Route("/library", func(r chi.Router) {
 		r.Get("/", s.libraryDashboard)
+
 		r.Get("/pieces", s.pieces)
+		r.Post("/pieces", s.createPiece)
 		r.Get("/pieces/create", s.createPieceForm)
-		r.Post("/pieces/create", s.createPiece)
 		r.Get("/pieces/{pieceID}", s.singlePiece)
+		r.Get("/pieces/{pieceID}/edit", s.editPiece)
 		r.Put("/pieces/{pieceID}", s.updatePiece)
 		r.Delete("/pieces/{pieceID}", s.deletePiece)
-		r.Get("/pieces/{pieceID}/edit", s.editPiece)
+
+		r.Post("/pieces/{pieceID}/spots", s.addSpot)
+		r.Get("/pieces/{pieceID}/spots", s.addSpotPage)
+		r.Get("/pieces/{pieceID}/spots/{spotID}/edit", s.editSpot)
 		r.Get("/pieces/{pieceID}/spots/{spotID}", s.singleSpot)
+		r.Put("/pieces/{pieceID}/spots/{spotID}", s.updateSpot)
+		r.Delete("/pieces/{pieceID}/spots/{spotID}", s.deleteSpot)
+
 		r.Get("/upload/audio", s.uploadAudioForm)
 		r.Post("/upload/audio", s.uploadAudio)
 		r.Get("/upload/images", s.uploadImageForm)

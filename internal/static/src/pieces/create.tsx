@@ -26,7 +26,7 @@ export function CreatePieceForm({ csrf }: { csrf: string }) {
   async function onSubmit(data: PieceFormData, e: Event) {
     e.preventDefault();
     // @ts-ignore
-    await htmx.ajax("POST", "/library/pieces/create", {
+    await htmx.ajax("POST", "/library/pieces", {
       values: data,
       target: "#main-content",
       swap: "outerHTML",

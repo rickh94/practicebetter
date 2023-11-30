@@ -1,5 +1,47 @@
 package librarypages
 
-templ AddSpotPage() {
-	<div></div>
+import "practicebetter/internal/db"
+import "practicebetter/internal/components"
+import "practicebetter/internal/pages"
+
+templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, spots []db.ListPieceSpotsRow) {
+	<title>{ spots[0].PieceTitle } | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
+		@components.Header() {
+			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
+				Add Spot - { spots[0].PieceTitle }
+			</h1>
+		}
+		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Pieces", Href: "/library/pieces", Active: false },
+					{ Label: spots[0].PieceTitle, Href: "/library/pieces/" + spots[0].PieceID, Active: false },
+					{ Label: "Add Spot", Href: "/library/pieces/" + spots[0].PieceID + "/spots/add", Active: true },
+				})
+		</div>
+		@components.FiveColumnContainer() {
+			<div class="flex flex-col col-span-2 gap-2 p-4 rounded-xl border border-neutral-500 bg-white/80 text-neutral-900">
+				<div class="flex justify-center">
+					<h2 class="text-2xl font-bold">Add Spot</h2>
+				</div>
+				<add-spot-form pieceid={ pieceID } csrf={ csrf }></add-spot-form>
+			</div>
+			@AddSpotsSpotList(spots)
+		}
+		<script type="module" src={ s.StaticUrl("out/add-spot.js") }></script>
+	}
+}
+
+templ AddSpotsSpotList(spots []db.ListPieceSpotsRow) {
+	<div class="col-span-3 p-4 rounded-xl bg-neutral-700/5" id="spot-section">
+		<div class="flex flex-col">
+			<h2 class="py-1 text-2xl font-bold text-center">Spots</h2>
+		</div>
+		<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2" id="spot-list">
+			for _, spot := range spots {
+				@components.SmallSpotCard(spot.PieceID, spot.ID, spot.Name, SpotMeasuresOrEmpty(spot.Measures), spot.Stage)
+			}
+		</ul>
+	</div>
 }

@@ -1,0 +1,34 @@
+package librarypages
+
+import "practicebetter/internal/components"
+import "practicebetter/internal/pages"
+import "practicebetter/internal/db"
+
+templ EditSpot(s pages.ServerUtil, spot db.GetSpotRow, spotData string, csrf string) {
+	<title>{ spot.Name } | { spot.PieceTitle } | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
+		@components.Header() {
+			<h1 class="text-3xl font-extrabold tracking-tight text-neutral-800">
+				{ spot.Name } | { spot.PieceTitle }
+			</h1>
+		}
+		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full md:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Pieces", Href: "/library/pieces", Active: false },
+					{ Label: spot.PieceTitle, Href: "/library/pieces/"+spot.PieceID, Active: false },
+					{ Label: spot.Name, Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID, Active: false },
+					{ Label: "Edit", Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID+"/edit", Active: true },
+				})
+		</div>
+		@components.NarrowContainer() {
+			<div class="flex flex-col col-span-2 gap-2 p-4 rounded-xl border border-neutral-500 bg-white/80 text-neutral-900">
+				<div class="flex justify-center">
+					<h2 class="text-2xl font-bold">Edit Spot</h2>
+				</div>
+				<edit-spot-form pieceid={ spot.PieceID } csrf={ csrf } spotData={ spotData } spotid={ spot.ID }></edit-spot-form>
+			</div>
+		}
+		<script type="module" src={ s.StaticUrl("out/edit-spot.js") }></script>
+	}
+}

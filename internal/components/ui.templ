@@ -145,3 +145,21 @@ templ PieceCard(pieceID string, title string, composer string, activeSpots int64
 		}
 	</li>
 }
+
+templ SmallSpotCard(pieceID, spotID, name, measures,  stage string) {
+	<li id={ "spot-" + spotID }>
+		@HxLink("focusable flex justify-between rounded-xl border border-neutral-500 bg-white/80 px-4 py-2 text-neutral-700 hover:bg-white hover:text-black", "/library/pieces/"+pieceID+"/spots/"+spotID, "#main-content") {
+			<div class="flex flex-col flex-grow">
+				<h3 class="text-lg font-bold">{ name }</h3>
+				<div class="inline text-sm">
+					Measures: <em class="italic">{ measures }</em>
+				</div>
+				<div class="inline text-sm">
+					Stage: <em class="italic">{ getStageDisplayName(stage) }</em>
+				</div>
+			</div>
+			@heroicons.IconArrowTopRightOnSquareSolid("mt-4 h-6 w-6")
+			<span class="sr-only">Click to view spot</span>
+		}
+	</li>
+}

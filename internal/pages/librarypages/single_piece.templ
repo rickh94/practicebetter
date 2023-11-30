@@ -5,7 +5,6 @@ import "practicebetter/internal/components"
 import "practicebetter/internal/heroicons"
 import "practicebetter/internal/pages"
 import "strconv"
-import "database/sql"
 
 templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 	<title>{ piece[0].Title } | Practice Better</title>
@@ -104,11 +103,11 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 				<ul class="grid grid-cols-1 gap-4 list-none sm:grid-cols-2">
 					for _, row := range piece {
 						if row.SpotID.Valid {
-							@PieceSpotCard(row.ID, row.SpotID.String, row.SpotName.String, spotMeasuresOrEmpty(row.SpotMeasures), row.SpotStage.String)
+							@components.SmallSpotCard(row.ID, row.SpotID.String, row.SpotName.String, SpotMeasuresOrEmpty(row.SpotMeasures), row.SpotStage.String)
 						}
 					}
 					<li>
-						@components.HxLink("focusable flex h-full items-center justify-between rounded-xl border border-dashed border-neutral-500 bg-white/50 px-4 py-6 text-neutral-700 hover:bg-white/90 hover:text-black", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
+						@components.HxLink("focusable flex h-full items-center justify-between rounded-xl border border-dashed border-neutral-500 bg-white/50 px-4 py-6 text-neutral-700 hover:bg-white/90 hover:text-black", "/library/pieces/"+piece[0].ID+"/spots", "#main-content") {
 							<div class="flex flex-col flex-grow justify-center items-center h-full">
 								<h3 class="text-lg font-bold">Add Spot</h3>
 							</div>
@@ -121,29 +120,4 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 		}
 		<script type="module" src={ s.StaticUrl("out/practice-menu.js") }></script>
 	}
-}
-
-func spotMeasuresOrEmpty(measures sql.NullString) string {
-	if measures.Valid {
-		return measures.String
-	}
-	return ""
-}
-
-templ PieceSpotCard(pieceID, spotID, name, measures,  stage string) {
-	<li>
-		@components.HxLink("focusable flex justify-between rounded-xl border border-neutral-500 bg-white/80 px-4 py-2 text-neutral-700 hover:bg-white hover:text-black", "/library/pieces/"+pieceID+"/spots/"+spotID, "#main-content") {
-			<div class="flex flex-col flex-grow">
-				<h3 class="text-lg font-bold">{ name }</h3>
-				<div class="inline text-sm">
-					Measures: <em class="italic">{ measures }</em>
-				</div>
-				<div class="inline text-sm">
-					Stage: <em class="italic">{ getStageDisplayName(stage) }</em>
-				</div>
-			</div>
-			@heroicons.IconArrowTopRightOnSquareSolid("mt-4 h-6 w-6")
-			<span class="sr-only">Click to view spot</span>
-		}
-	</li>
 }

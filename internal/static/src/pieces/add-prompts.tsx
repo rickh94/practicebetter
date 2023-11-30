@@ -17,7 +17,7 @@ import {
   HappyButton,
   WarningButton,
 } from "../ui/buttons";
-import { TrashIcon } from "@heroicons/react/24/solid";
+import { CloudArrowUpIcon, TrashIcon } from "@heroicons/react/24/solid";
 // import NotesDisplay from "../ui/notes-display";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
@@ -64,7 +64,8 @@ export function AddAudioPrompt({
   );
 
   const handleSubmit = useCallback(
-    async function () {
+    async function (e: Event) {
+      e.preventDefault();
       setIsUploading(true);
       if (!formRef.current) {
         return;
@@ -92,6 +93,18 @@ export function AddAudioPrompt({
 
         save(url);
         close();
+      } else {
+        setIsUploading(false);
+        document.dispatchEvent(
+          new CustomEvent("ShowAlert", {
+            detail: {
+              message: "Upload failed!",
+              title: "Upload Failed",
+              variant: "error",
+              duration: 3000,
+            },
+          }),
+        );
       }
     },
     [formRef.current, setIsUploading, save, close],
@@ -168,7 +181,13 @@ export function AddAudioPrompt({
               onSubmit={(e) => e.preventDefault()}
             >
               <input type="hidden" name="gorilla.csrf.Token" value={csrf} />
-              <input type="file" name="file" accept="audio/mpeg" class="py-4" />
+              <input
+                type="file"
+                name="file"
+                accept="audio/mpeg"
+                class="py-4"
+                required
+              />
             </form>
             <div class="mt-4 flex w-full gap-2">
               <WarningButton
@@ -178,7 +197,7 @@ export function AddAudioPrompt({
                 onClick={close}
               >
                 <XMarkIcon className="h-6 w-6" />
-                Cancel
+                Close
               </WarningButton>
               <HappyButton
                 grow
@@ -189,9 +208,9 @@ export function AddAudioPrompt({
                 {isUploading ? (
                   <ArrowPathIcon className="h-6 w-6" />
                 ) : (
-                  <CheckIcon className="h-6 w-6" />
+                  <CloudArrowUpIcon className="h-6 w-6" />
                 )}
-                {isUploading ? "Please Wait..." : "Save"}
+                {isUploading ? "Please Wait..." : "Upload"}
               </HappyButton>
             </div>
           </>
@@ -241,7 +260,8 @@ export function AddImagePrompt({
   );
 
   const handleSubmit = useCallback(
-    async function () {
+    async function (e: Event) {
+      e.preventDefault();
       setIsUploading(true);
       if (!formRef.current) {
         return;
@@ -269,6 +289,18 @@ export function AddImagePrompt({
 
         save(url);
         close();
+      } else {
+        setIsUploading(false);
+        document.dispatchEvent(
+          new CustomEvent("ShowAlert", {
+            detail: {
+              message: "Failed to upload image",
+              title: "Upload Failed",
+              variant: "error",
+              duration: 3000,
+            },
+          }),
+        );
       }
     },
     [formRef.current, setIsUploading, save, close],
@@ -363,7 +395,7 @@ export function AddImagePrompt({
                 onClick={close}
               >
                 <XMarkIcon className="h-6 w-6" />
-                Cancel
+                Close
               </WarningButton>
               <HappyButton
                 grow
@@ -374,9 +406,9 @@ export function AddImagePrompt({
                 {isUploading ? (
                   <ArrowPathIcon className="h-6 w-6" />
                 ) : (
-                  <CheckIcon className="h-6 w-6" />
+                  <CloudArrowUpIcon className="h-6 w-6" />
                 )}
-                {isUploading ? "Please Wait..." : "Save"}
+                {isUploading ? "Please Wait..." : "Upload"}
               </HappyButton>
             </div>
           </>

@@ -5,6 +5,8 @@ import "practicebetter/internal/components"
 import "strconv"
 import "practicebetter/internal/heroicons"
 
+// TODO: add create piece link
+
 templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int) {
 	<title>Pieces | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {

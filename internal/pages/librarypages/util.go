@@ -1,5 +1,7 @@
 package librarypages
 
+import "database/sql"
+
 func getStageDisplayName(stage string) string {
 	switch stage {
 	case "repeat":
@@ -15,4 +17,11 @@ func getStageDisplayName(stage string) string {
 	default:
 		return "Unknown"
 	}
+}
+
+func SpotMeasuresOrEmpty(measures sql.NullString) string {
+	if measures.Valid {
+		return measures.String
+	}
+	return ""
 }

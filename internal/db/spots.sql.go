@@ -80,17 +80,17 @@ func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, e
 
 const deleteSpot = `-- name: DeleteSpot :exec
 DELETE FROM spots
-WHERE spots.id = ? AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
+WHERE spots.id = ?1 AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
 `
 
 type DeleteSpotParams struct {
-	ID     string
-	UserID string
-	ID_2   string
+	SpotID  string
+	UserID  string
+	PieceID string
 }
 
 func (q *Queries) DeleteSpot(ctx context.Context, arg DeleteSpotParams) error {
-	_, err := q.db.ExecContext(ctx, deleteSpot, arg.ID, arg.UserID, arg.ID_2)
+	_, err := q.db.ExecContext(ctx, deleteSpot, arg.SpotID, arg.UserID, arg.PieceID)
 	return err
 }
 
@@ -127,7 +127,7 @@ func (q *Queries) DeleteSpotsExcept(ctx context.Context, arg DeleteSpotsExceptPa
 const getSpot = `-- name: GetSpot :one
 SELECT
     spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo,
-    pieces.title as piece_title
+    pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE spots.id = ?1 AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
@@ -176,40 +176,36 @@ func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (GetSpotRow, e
 
 const listPieceSpots = `-- name: ListPieceSpots :many
 SELECT
-    id,
-    name,
-    idx,
-    stage,
-    audio_prompt_url,
-    image_prompt_url,
-    notes_prompt,
-    text_prompt,
-    current_tempo,
-    measures
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo,
+    pieces.title AS piece_title
 FROM spots
-WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
+INNER JOIN pieces ON pieces.id = spots.piece_id
+WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?1 AND pieces.id = ?2 LIMIT 1)
+ORDER BY spots.idx
 `
 
 type ListPieceSpotsParams struct {
-	UserID string
-	ID     string
+	UserID  string
+	PieceID string
 }
 
 type ListPieceSpotsRow struct {
 	ID             string
+	PieceID        string
 	Name           string
 	Idx            int64
 	Stage          string
+	Measures       sql.NullString
 	AudioPromptUrl string
 	ImagePromptUrl string
 	NotesPrompt    string
 	TextPrompt     string
 	CurrentTempo   sql.NullInt64
-	Measures       sql.NullString
+	PieceTitle     string
 }
 
 func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) ([]ListPieceSpotsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listPieceSpots, arg.UserID, arg.ID)
+	rows, err := q.db.QueryContext(ctx, listPieceSpots, arg.UserID, arg.PieceID)
 	if err != nil {
 		return nil, err
 	}
@@ -219,15 +215,17 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 		var i ListPieceSpotsRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.PieceID,
 			&i.Name,
 			&i.Idx,
 			&i.Stage,
+			&i.Measures,
 			&i.AudioPromptUrl,
 			&i.ImagePromptUrl,
 			&i.NotesPrompt,
 			&i.TextPrompt,
 			&i.CurrentTempo,
-			&i.Measures,
+			&i.PieceTitle,
 		); err != nil {
 			return nil, err
 		}
@@ -242,7 +240,7 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 	return items, nil
 }
 
-const updateSpot = `-- name: UpdateSpot :one
+const updateSpot = `-- name: UpdateSpot :exec
 UPDATE spots
 SET
     name = ?,
@@ -255,7 +253,6 @@ SET
     current_tempo = ?,
     measures = ?
 WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
-RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo
 `
 
 type UpdateSpotParams struct {
@@ -273,8 +270,8 @@ type UpdateSpotParams struct {
 	PieceID        string
 }
 
-func (q *Queries) UpdateSpot(ctx context.Context, arg UpdateSpotParams) (Spot, error) {
-	row := q.db.QueryRowContext(ctx, updateSpot,
+func (q *Queries) UpdateSpot(ctx context.Context, arg UpdateSpotParams) error {
+	_, err := q.db.ExecContext(ctx, updateSpot,
 		arg.Name,
 		arg.Idx,
 		arg.Stage,
@@ -288,19 +285,5 @@ func (q *Queries) UpdateSpot(ctx context.Context, arg UpdateSpotParams) (Spot, e
 		arg.UserID,
 		arg.PieceID,
 	)
-	var i Spot
-	err := row.Scan(
-		&i.ID,
-		&i.PieceID,
-		&i.Name,
-		&i.Idx,
-		&i.Stage,
-		&i.Measures,
-		&i.AudioPromptUrl,
-		&i.ImagePromptUrl,
-		&i.NotesPrompt,
-		&i.TextPrompt,
-		&i.CurrentTempo,
-	)
-	return i, err
+	return err
 }

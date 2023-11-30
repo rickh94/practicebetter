@@ -8,15 +8,14 @@ const optionalPosInt = yup
   .nullable()
   .transform((_, val) => (val === Number(val) ? val : null));
 
-export const spotStage = yup
-  .string()
-  .oneOf([
-    "repeat",
-    "random",
-    "interleave",
-    "interleave_days",
-    "completed",
-  ] as const);
+export const spotStages = [
+  "repeat",
+  "random",
+  "interleave",
+  "interleave_days",
+  "completed",
+] as const;
+export const spotStage = yup.string().oneOf(spotStages);
 
 export const basicSpot = yup.object({
   id: yup.string().nullable().optional(),
