@@ -7,21 +7,36 @@ templ SingleColumnLayout(nav templ.Component) {
 	</main>
 }
 
-templ TwoButtonBar(left templ.Component, right templ.Component) {
+templ HeadingText(text string) {
+	<h1
+ 		class={ "font-extrabold tracking-tight text-neutral-800", templ.KV("text-lg truncate", len(text) >= 32), templ.KV("text-xl", len(text) < 32 && len(text) >= 24), templ.KV("text-3xl", len(text) < 24 && len(text) >= 12), templ.KV("text-5xl", len(text) < 12) }
+	>
+		{ text }
+	</h1>
+}
+
+templ TwoButtonBar(left templ.Component, header templ.Component, right templ.Component) {
 	<div class="absolute top-0 left-0 w-full" id="topbar">
 		<div class="flex gap-2 justify-between p-4 mx-auto sm:max-w-5xl">
 			@left
+			<header class="hidden flex-grow justify-center items-center md:flex" id="page-title">
+				@header
+			</header>
 			@right
 		</div>
 	</div>
+	<div class="h-20"></div>
+	<header class="flex justify-center items-center md:hidden" id="page-title">
+		@header
+	</header>
 }
 
-templ LeftButtonBar(left templ.Component) {
-	<div class="absolute top-0 left-0 p-4 w-full" id="topbar">
-		<div class="flex justify-start mx-auto sm:max-w-5xl">
-			@left
-		</div>
-	</div>
+templ Empty() {
+	<div class="w-32"></div>
+}
+
+templ LeftButtonBar(left templ.Component, header templ.Component) {
+	@TwoButtonBar(left, header, Empty())
 }
 
 templ HeroLayout(nav templ.Component) {

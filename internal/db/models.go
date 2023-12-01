@@ -30,6 +30,24 @@ type Piece struct {
 	LastPracticed   sql.NullInt64
 }
 
+type PracticePiece struct {
+	PracticeSessionID string
+	PieceID           string
+	Measures          string
+}
+
+type PracticeSession struct {
+	ID              string
+	DurationMinutes int64
+	Date            int64
+	UserID          string
+}
+
+type PracticeSpot struct {
+	PracticeSessionID string
+	SpotID            string
+}
+
 type Spot struct {
 	ID             string
 	PieceID        string

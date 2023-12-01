@@ -75,7 +75,7 @@ export default function SpotFormFields({
               className="focusable block h-full w-full rounded-xl border-0 bg-neutral-700/10 py-2 pl-4 pr-12 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
               style={{
                 appearance: "none",
-                backgroundImage: `url(/static/images/chevron-down.svg)`,
+                backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23262626"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd" /></svg>')`,
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "right 0.7rem top 50%",
                 backgroundSize: "1rem auto",
@@ -108,8 +108,8 @@ export default function SpotFormFields({
           </label>
           <input
             type="number"
-            id="order"
-            {...register("idx")}
+            id="idx"
+            {...register("idx", { valueAsNumber: true })}
             className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
           />
           {formState.errors.idx && (
@@ -144,7 +144,7 @@ export default function SpotFormFields({
             Current Tempo
           </label>
           <input
-            {...register("currentTempo")}
+            {...register("currentTempo", { valueAsNumber: true })}
             type="number"
             placeholder="BPM"
             id="current-tempo"

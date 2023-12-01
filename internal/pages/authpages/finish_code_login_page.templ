@@ -5,7 +5,7 @@ import "practicebetter/internal/heroicons"
 
 templ FinishCodeLoginPage(csrf string, nextLoc string) {
 	<title>Login | Practice Better</title>
-	@components.HeroLayout(components.LeftButtonBar(components.BackHomeLink())) {
+	@components.HeroLayout(components.LeftButtonBar(components.BackHomeLink(), components.Empty())) {
 		<form
  			action="/auth/code"
  			method="post"

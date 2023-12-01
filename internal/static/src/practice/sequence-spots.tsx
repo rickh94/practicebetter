@@ -1,6 +1,6 @@
 import { BasicSpot, PracticeSummaryItem, RandomMode } from "../common";
 import { AnimatePresence, motion } from "framer-motion";
-import { StateUpdater, useCallback, useState } from "preact/hooks";
+import { StateUpdater, useCallback, useEffect, useState } from "preact/hooks";
 import {
   GiantBasicButton,
   BasicButton,
@@ -14,12 +14,31 @@ import { RadioBox } from "../ui/form";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/20/solid";
 import { CheckCircleIcon as CheckCircleOutline } from "@heroicons/react/24/outline";
 
-export function SequenceSpots() {
+export function SequenceSpots({
+  initialspots,
+  pieceid,
+  csrf,
+}: {
+  initialspots?: string;
+  pieceid?: string;
+  csrf?: string;
+}) {
   const [spots, setSpots] = useState<BasicSpot[]>([]);
   const [summary, setSummary] = useState<PracticeSummaryItem[]>([]);
   const [mode, setMode] = useState<RandomMode>("setup");
   const [fullyRandom, setFullyRandom] = useState(false);
   const [randomizedSpots, setRandomizedSpots] = useState<BasicSpot[]>([]);
+  const [startTime, setStartTime] = useState<Date | null>(null);
+
+  useEffect(
+    function () {
+      if (initialspots) {
+        const spots: BasicSpot[] = JSON.parse(initialspots);
+        setSpots(spots);
+      }
+    },
+    [initialspots],
+  );
 
   const submit = useCallback(
     function () {
@@ -39,8 +58,9 @@ export function SequenceSpots() {
         setRandomizedSpots(tmpSpots);
       }
       setMode("practice");
+      setStartTime(new Date());
     },
-    [fullyRandom, spots, setMode, setRandomizedSpots],
+    [fullyRandom, spots, setMode, setRandomizedSpots, setStartTime],
   );
 
   const moreSpots = useCallback(
@@ -65,9 +85,30 @@ export function SequenceSpots() {
     function (finalSummary: PracticeSummaryItem[]) {
       setSummary(finalSummary);
       setMode("summary");
-      // onCompleted?.(finalSummary.map((s) => s.id));
+
+      if (pieceid && csrf && startTime) {
+        const initialSpots: BasicSpot[] = JSON.parse(initialspots);
+        const initialSpotIds = initialSpots.map((spot) => spot.id);
+        const spotIDs = finalSummary
+          .filter((item) => item.reps > 0)
+          .map((item) => item.id)
+          .filter((id) => initialSpotIds.includes(id));
+        const durationMinutes = Math.ceil(
+          (new Date().getTime() - startTime.getTime()) / 1000 / 60,
+        );
+        document.dispatchEvent(
+          new CustomEvent("FinishedSpotPracticing", {
+            detail: {
+              spotIDs,
+              durationMinutes,
+              pieceid,
+              csrf,
+            },
+          }),
+        );
+      }
     },
-    [setMode, setSummary],
+    [setMode, setSummary, startTime, pieceid, initialspots, csrf],
   );
 
   return (
@@ -98,7 +139,7 @@ export function SequenceSpots() {
                 summary={summary}
                 setup={() => setMode("setup")}
                 practice={() => setMode("practice")}
-                // pieceHref={pieceHref}
+                pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
               />
             ),
           }[mode]

@@ -62,6 +62,7 @@ export function EditSpotForm({
         backTo={`/library/pieces/${pieceid}/spots/${spotid}`}
         register={register}
         watch={watch}
+        showStage
       />
     </form>
   );

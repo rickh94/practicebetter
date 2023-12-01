@@ -45,12 +45,10 @@ templ RandomPractice(s pages.ServerUtil) {
 	@components.SingleColumnLayout(
 		components.TwoButtonBar(
 			components.BackHomeLink(),
+			components.PracticeToolNav("/practice/random-single"),
 			components.ReadMoreButton(rsAboutId),
 		),
 	) {
-		@components.Header() {
-			<practice-tool-nav activepath="/practice/random-single"></practice-tool-nav>
-		}
 		<div class="flex flex-col gap-12 justify-center items-center py-8 px-4">
 			<div class="relative w-full sm:mx-auto sm:max-w-3xl">
 				<random-spots id="practice-island" class="hx-fade"></random-spots>

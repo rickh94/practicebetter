@@ -5,12 +5,7 @@ import "practicebetter/internal/components"
 
 templ EditPiecePage(s pages.ServerUtil, csrf string, title string, id string, pieceData string, spotsData string) {
 	<title>{ title } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
-		@components.Header() {
-			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
-				{ title }
-			</h1>
-		}
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.HeadingText(title), components.AccountLink())) {
 		<div class="flex flex-col gap-2 py-8 px-4 w-full sm:flex-row sm:gap-4 sm:justify-start sm:items-center sm:mx-auto sm:max-w-5xl">
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

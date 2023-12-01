@@ -6,8 +6,12 @@ import { Link } from "./links";
 export function PracticeMenu({ pieceid }: { pieceid: string }) {
   const links = [
     {
-      href: `/library/pieces/${pieceid}/practice/random-spots`,
+      href: `/library/pieces/${pieceid}/practice/random-single`,
       label: "Random Spots",
+    },
+    {
+      href: `/library/pieces/${pieceid}/practice/random-sequence`,
+      label: "Random Sequence",
     },
     {
       href: `/library/pieces/${pieceid}/practice/repeat`,

@@ -180,6 +180,125 @@ func (q *Queries) GetPieceByID(ctx context.Context, arg GetPieceByIDParams) ([]G
 	return items, nil
 }
 
+const getPieceWithRandomSpots = `-- name: GetPieceWithRandomSpots :many
+SELECT
+    pieces.id,
+    pieces.title,
+    pieces.description,
+    pieces.composer,
+    pieces.measures,
+    pieces.beats_per_measure,
+    pieces.goal_tempo,
+    pieces.last_practiced,
+    spots.id AS spot_id,
+    spots.name AS spot_name,
+    spots.idx AS spot_idx,
+    spots.stage AS spot_stage,
+    spots.audio_prompt_url AS spot_audio_prompt_url,
+    spots.image_prompt_url AS spot_image_prompt_url,
+    spots.notes_prompt AS spot_notes_prompt,
+    spots.text_prompt AS spot_text_prompt,
+    spots.current_tempo AS spot_current_tempo,
+    spots.measures AS spot_measures
+FROM pieces
+INNER JOIN spots ON pieces.id = spots.piece_id AND spots.stage != 'repeat' AND spots.stage != 'completed'
+WHERE pieces.id = ?1 AND pieces.user_id = ?2
+`
+
+type GetPieceWithRandomSpotsParams struct {
+	PieceID string
+	UserID  string
+}
+
+type GetPieceWithRandomSpotsRow struct {
+	ID                 string
+	Title              string
+	Description        sql.NullString
+	Composer           sql.NullString
+	Measures           sql.NullInt64
+	BeatsPerMeasure    sql.NullInt64
+	GoalTempo          sql.NullInt64
+	LastPracticed      sql.NullInt64
+	SpotID             string
+	SpotName           string
+	SpotIdx            int64
+	SpotStage          string
+	SpotAudioPromptUrl string
+	SpotImagePromptUrl string
+	SpotNotesPrompt    string
+	SpotTextPrompt     string
+	SpotCurrentTempo   sql.NullInt64
+	SpotMeasures       sql.NullString
+}
+
+func (q *Queries) GetPieceWithRandomSpots(ctx context.Context, arg GetPieceWithRandomSpotsParams) ([]GetPieceWithRandomSpotsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPieceWithRandomSpots, arg.PieceID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPieceWithRandomSpotsRow
+	for rows.Next() {
+		var i GetPieceWithRandomSpotsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Composer,
+			&i.Measures,
+			&i.BeatsPerMeasure,
+			&i.GoalTempo,
+			&i.LastPracticed,
+			&i.SpotID,
+			&i.SpotName,
+			&i.SpotIdx,
+			&i.SpotStage,
+			&i.SpotAudioPromptUrl,
+			&i.SpotImagePromptUrl,
+			&i.SpotNotesPrompt,
+			&i.SpotTextPrompt,
+			&i.SpotCurrentTempo,
+			&i.SpotMeasures,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPieceWithoutSpots = `-- name: GetPieceWithoutSpots :one
+SELECT id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced FROM pieces WHERE id = ? AND user_id = ?
+`
+
+type GetPieceWithoutSpotsParams struct {
+	ID     string
+	UserID string
+}
+
+func (q *Queries) GetPieceWithoutSpots(ctx context.Context, arg GetPieceWithoutSpotsParams) (Piece, error) {
+	row := q.db.QueryRowContext(ctx, getPieceWithoutSpots, arg.ID, arg.UserID)
+	var i Piece
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Composer,
+		&i.Measures,
+		&i.BeatsPerMeasure,
+		&i.GoalTempo,
+		&i.UserID,
+		&i.LastPracticed,
+	)
+	return i, err
+}
+
 const listAllUserPieces = `-- name: ListAllUserPieces :many
 SELECT
     id,

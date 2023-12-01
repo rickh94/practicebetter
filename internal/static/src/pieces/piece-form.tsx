@@ -87,7 +87,7 @@ export function PieceFormFields({
               type="number"
               id="goal-tempo"
               placeholder="BPM"
-              {...register("goalTempo")}
+              {...register("goalTempo", { valueAsNumber: true })}
               className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
             />
             {formState.errors.goalTempo && (
@@ -109,7 +109,7 @@ export function PieceFormFields({
               type="number"
               id="measures"
               placeholder="mm"
-              {...register("measures")}
+              {...register("measures", { valueAsNumber: true })}
               className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
             />
             {formState.errors.measures && (
@@ -129,7 +129,7 @@ export function PieceFormFields({
               type="number"
               id="beats"
               placeholder="Beats"
-              {...register("beatsPerMeasure")}
+              {...register("beatsPerMeasure", { valueAsNumber: true })}
               className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
             />
             {formState.errors.beatsPerMeasure && (

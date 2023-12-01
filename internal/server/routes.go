@@ -87,6 +87,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/pieces/{pieceID}/spots/{spotID}", s.updateSpot)
 		r.Delete("/pieces/{pieceID}/spots/{spotID}", s.deleteSpot)
 
+		r.Get("/pieces/{pieceID}/practice/random-single", s.piecePracticeRandomSpotsPage)
+		r.Post("/pieces/{pieceID}/practice/random-single", s.piecePracticeRandomPracticeFinished)
+		r.Get("/pieces/{pieceID}/practice/random-sequence", s.piecePracticeRandomSequencePage)
+		r.Post("/pieces/{pieceID}/practice/random-sequence", s.piecePracticeRandomPracticeFinished)
+
+		r.Get("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointPage)
+		r.Post("/pieces/{pieceID}/practice/random-sequence", s.piecePracticeStartingPointFinished)
+
 		r.Get("/upload/audio", s.uploadAudioForm)
 		r.Post("/upload/audio", s.uploadAudio)
 		r.Get("/upload/images", s.uploadImageForm)

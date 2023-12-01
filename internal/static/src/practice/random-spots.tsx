@@ -1,4 +1,4 @@
-import { StateUpdater, useCallback, useState } from "preact/hooks";
+import { StateUpdater, useCallback, useEffect, useState } from "preact/hooks";
 import { BasicSpot, PracticeSummaryItem, RandomMode } from "../common";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { CreateSpots } from "./create-spots";
@@ -12,18 +12,59 @@ import {
 import { ArrowRightIcon, CheckIcon } from "@heroicons/react/20/solid";
 import Summary from "./summary";
 
-export function RandomSpots() {
+export function RandomSpots({
+  initialspots,
+  pieceid,
+  csrf,
+}: {
+  initialspots?: string;
+  pieceid?: string;
+  csrf?: string;
+}) {
   const [spots, setSpots] = useState<BasicSpot[]>([]);
   const [skipSpotIds, setSkipSpotIds] = useState<string[]>([]);
   const [summary, setSummary] = useState<PracticeSummaryItem[]>([]);
   const [mode, setMode] = useState<RandomMode>("setup");
+  const [startTime, setStartTime] = useState<Date | null>(null);
 
   const finish = useCallback(
     function (finalSummary: PracticeSummaryItem[]) {
       setSummary(finalSummary);
       setMode("summary");
+
+      if (pieceid && csrf && startTime) {
+        const initialSpots: BasicSpot[] = JSON.parse(initialspots);
+        const initialSpotIds = initialSpots.map((spot) => spot.id);
+        const spotIDs = finalSummary
+          .filter((item) => item.reps > 0)
+          .map((item) => item.id)
+          .filter((id) => initialSpotIds.includes(id));
+        const durationMinutes = Math.ceil(
+          (new Date().getTime() - startTime.getTime()) / 1000 / 60,
+        );
+        document.dispatchEvent(
+          new CustomEvent("FinishedSpotPracticing", {
+            detail: {
+              spotIDs,
+              durationMinutes,
+              pieceid,
+              csrf,
+            },
+          }),
+        );
+      }
     },
-    [setMode, setSummary],
+    [setMode, setSummary, startTime, pieceid, initialspots, csrf],
+  );
+
+  useEffect(
+    function () {
+      if (initialspots) {
+        const spots: BasicSpot[] = JSON.parse(initialspots);
+        setSpots(spots);
+      }
+    },
+    [initialspots],
   );
 
   return (
@@ -35,7 +76,10 @@ export function RandomSpots() {
               <SingleSetupForm
                 setSpots={setSpots}
                 spots={spots}
-                submit={() => setMode("practice")}
+                submit={() => {
+                  setMode("practice");
+                  setStartTime(new Date());
+                }}
               />
             ),
             practice: (
@@ -52,6 +96,7 @@ export function RandomSpots() {
                 summary={summary}
                 setup={() => setMode("setup")}
                 practice={() => setMode("practice")}
+                pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
               />
             ),
           }[mode]

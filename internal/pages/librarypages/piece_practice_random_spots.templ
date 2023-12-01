@@ -1,0 +1,62 @@
+package librarypages
+
+import "practicebetter/internal/pages"
+import "practicebetter/internal/db"
+import "practicebetter/internal/components"
+import "practicebetter/internal/heroicons"
+
+templ PiecePracticeRandomSpotsPage(s pages.ServerUtil, csrf string, piece []db.GetPieceWithRandomSpotsRow, spotsData string) {
+	<title>{ piece[0].Title } | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(piece[0].Title) , components.AccountLink())) {
+		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Pieces", Href: "/library/pieces", Active: false },
+					{ Label: piece[0].Title, Href: "/library/pieces/" + piece[0].ID, Active: false },
+					{ Label: "Random Spots", Href: "/library/pieces/" + piece[0].ID+"/practice/random-single", Active: true },
+				})
+		</div>
+		<div class="flex flex-col gap-12 justify-center items-center py-8 px-4">
+			<div class="relative w-full sm:mx-auto sm:max-w-3xl">
+				<random-spots initialspots={ spotsData } pieceid={ piece[0].ID } csrf={ csrf }></random-spots>
+			</div>
+		</div>
+		<script type="module" src={ s.StaticUrl("out/practice.js") }></script>
+	}
+}
+
+templ PiecePracticeNoSpotsPage(pieceTitle string, pieceID string) {
+	<title>{ pieceTitle } | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(pieceTitle) , components.AccountLink())) {
+		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Pieces", Href: "/library/pieces", Active: false },
+					{ Label: pieceTitle, Href: "/library/pieces/" + pieceID, Active: false },
+					{ Label: "Random Spots", Href: "/library/pieces/" + pieceID+"/practice/random-single", Active: true },
+				})
+		</div>
+		@components.NarrowContainer() {
+			<div class="flex flex-col gap-4">
+				<h1 class="text-3xl font-bold tracking-tight text-neutral-800">
+					No Spots for Random Practicing
+				</h1>
+				<p>
+					Random practicing is best for spots that you can play well, but
+					aren’t comfortable yet. Spots that are completed or haven’t been
+					repeat practiced yet won’t show up here.
+				</p>
+				<div class="flex gap-2 py-4">
+					@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-sky-700/10 px-8 py-3 text-xl font-semibold text-sky-800  transition duration-200 hover:bg-sky-700/20", "/library/pieces/"+pieceID, "#main-content") {
+						@heroicons.IconArrowLeftSolid("-ml-1 h-6 w-6")
+						Back To Piece
+					}
+					@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-amber-700/10 px-8 py-3 text-xl font-semibold text-amber-800  transition duration-200 hover:bg-amber-700/20", "/library/pieces/"+pieceID+"/spots", "#main-content") {
+						@heroicons.IconPlusSolid("-ml-1 h-6 w-6")
+						Add Spots
+					}
+				</div>
+			</div>
+		}
+	}
+}

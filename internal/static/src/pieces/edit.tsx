@@ -23,16 +23,15 @@ export function EditPieceForm({
       defaultValues: async () => {
         const initialPieceInfo = JSON.parse(piece);
         const initialSpots: any[] = JSON.parse(spots) ?? [];
-        console.log("got default values");
         return {
           id: initialPieceInfo.id ?? "",
           title: initialPieceInfo.title ?? "",
           description: initialPieceInfo.description ?? "",
           composer: initialPieceInfo.composer ?? "",
           practiceNotes: initialPieceInfo.practiceNotes ?? "",
-          measures: initialPieceInfo.measures ?? null,
-          goalTempo: initialPieceInfo.goalTempo ?? null,
-          beatsPerMeasures: initialPieceInfo.beatsPerMeasures ?? null,
+          measures: initialPieceInfo.measures ?? undefined,
+          goalTempo: initialPieceInfo.goalTempo ?? undefined,
+          beatsPerMeasure: initialPieceInfo.beatsPerMeasure ?? undefined,
           spots: initialSpots.map((spot, idx) => ({
             id: spot.id ?? "",
             name: spot.name ?? "",
@@ -43,7 +42,7 @@ export function EditPieceForm({
             imagePromptUrl: spot.imagePromptUrl ?? "",
             notesPrompt: spot.notesPrompt ?? "",
             textPrompt: spot.textPrompt ?? "",
-            currentTempo: spot.currentTempo ?? null,
+            currentTempo: spot.currentTempo ?? undefined,
           })),
         };
       },
@@ -51,6 +50,7 @@ export function EditPieceForm({
 
   async function onSubmit(data: PieceFormData, e: Event) {
     e.preventDefault();
+    console.log(data);
     // @ts-ignore
     await htmx.ajax("PUT", `/library/pieces/${pieceid}`, {
       values: data,

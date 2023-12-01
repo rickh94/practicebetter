@@ -6,12 +6,7 @@ import "practicebetter/internal/pages"
 
 templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, spots []db.ListPieceSpotsRow) {
 	<title>{ spots[0].PieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
-		@components.Header() {
-			<h1 class="text-5xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem]">
-				Add Spot - { spots[0].PieceTitle }
-			</h1>
-		}
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText("Add Spot - " + spots[0].PieceTitle) , components.AccountLink())) {
 		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

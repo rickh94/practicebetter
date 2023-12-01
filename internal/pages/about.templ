@@ -4,12 +4,7 @@ import "practicebetter/internal/components"
 
 templ AboutPage(s ServerUtil) {
 	<title>About | Practice Better</title>
-	@components.SingleColumnLayout(components.LeftButtonBar(components.BackHomeLink())) {
-		@components.Header() {
-			<h1 class="px-4 pt-4 pb-1 text-3xl font-bold text-neutral-800 sm:text5xl">
-				Better Practicing
-			</h1>
-		}
+	@components.SingleColumnLayout(components.LeftButtonBar(components.BackHomeLink(), components.HeadingText("Practice Better"))) {
 		<div class="px-4 w-full sm:mx-auto sm:max-w-4xl prose prose-neutral">
 			<section class="flex flex-col gap-1">
 				<h2 class="text-2xl font-bold">The Problem: From the Top</h2>

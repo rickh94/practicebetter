@@ -16,9 +16,6 @@ export function CreatePieceForm({ csrf }: { csrf: string }) {
         description: "",
         composer: "",
         practiceNotes: "",
-        measures: null,
-        goalTempo: null,
-        beatsPerMeasure: null,
         spots: [],
       },
     });

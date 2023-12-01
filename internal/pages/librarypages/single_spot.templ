@@ -78,12 +78,7 @@ templ StageReadMoreDialog() {
 
 templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 	<title>{ spot.Name } | { spot.PieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.AccountLink())) {
-		@components.Header() {
-			<h1 class="text-3xl font-extrabold tracking-tight text-neutral-800">
-				{ spot.Name } | { spot.PieceTitle }
-			</h1>
-		}
+	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(spot.Name + " - " + spot.PieceTitle) , components.AccountLink())) {
 		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full md:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

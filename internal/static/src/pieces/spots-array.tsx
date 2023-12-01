@@ -6,7 +6,6 @@ import {
   UseFormRegister,
   Control,
   useFieldArray,
-  UseFieldArrayUpdate,
   UseFormSetValue,
 } from "react-hook-form";
 import { AngryButton } from "../ui/buttons";
@@ -82,9 +81,9 @@ export function SpotsArray({
                   Spot Order
                 </label>
                 <input
-                  id={`spots.${index}.order`}
+                  id={`spots.${index}.idx`}
                   type="number"
-                  {...register(`spots.${index}.idx`)}
+                  {...register(`spots.${index}.idx`, { valueAsNumber: true })}
                   className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
                 />
                 {formState.errors.spots?.[index]?.idx && (
@@ -122,7 +121,9 @@ export function SpotsArray({
                   type="number"
                   placeholder="BPM"
                   id={`spots.${index}.currentTempo`}
-                  {...register(`spots.${index}.currentTempo`)}
+                  {...register(`spots.${index}.currentTempo`, {
+                    valueAsNumber: true,
+                  })}
                   className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
                 />
                 {formState.errors.spots?.[index]?.currentTempo && (

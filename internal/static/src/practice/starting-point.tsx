@@ -63,26 +63,27 @@ function calculateMeasuresPracticed(summary: Section[]) {
 // TODO: add option for time signature changes
 // TODO: add option to focus on smaller section
 export function StartingPoint({
-  pieceMeasures = 100,
-  pieceBeats = 4,
+  initialmeasures = "100",
+  initialbeats = "4",
   preconfigured = false,
-  pieceHref,
-  onCompleted,
+  pieceid,
+  csrf,
 }: {
-  pieceMeasures?: number;
-  pieceBeats?: number;
+  initialmeasures?: string;
+  initialbeats?: string;
   preconfigured?: boolean;
-  pieceHref?: string;
-  onCompleted?: (measures: [number, number][]) => void;
+  pieceid?: string;
+  csrf?: string;
 }) {
-  const [measures, setMeasures] = useState<number>(pieceMeasures);
-  const [beats, setBeats] = useState<number>(pieceBeats);
+  const [measures, setMeasures] = useState<number>(parseInt(initialmeasures));
+  const [beats, setBeats] = useState<number>(parseInt(initialbeats));
   const [mode, setMode] = useState<StartingPointMode>("setup");
   const [maxLength, setMaxLength] = useState<number>(5);
   const [summary, setSummary] = useState<Section[]>([]);
   const [measuresPracticed, setMeasuresPracticed] = useState<
     [number, number][]
   >([]);
+  const [startTime, setStartTime] = useState<Date | null>(null);
 
   const [lowerBound, setLowerBound] = useState<number | null>(null);
   const [upperBound, setUpperBound] = useState<number | null>(null);
@@ -91,6 +92,7 @@ export function StartingPoint({
     function () {
       setSummary([]);
       setMode("practice");
+      setStartTime(new Date());
     },
     [setMode],
   );
@@ -108,10 +110,23 @@ export function StartingPoint({
       setMode("summary");
       setSummary(finalSummary);
       const mpracticed = calculateMeasuresPracticed(finalSummary);
-      onCompleted?.(mpracticed);
       setMeasuresPracticed(mpracticed);
+
+      if (pieceid && csrf && startTime) {
+        const durationMinutes = Math.ceil(
+          (new Date().getTime() - startTime.getTime()) / 1000 / 60,
+        );
+        document.dispatchEvent(
+          new CustomEvent("FinishedStartingPointPracticing", {
+            detail: {
+              measuresPracticed: mpracticed,
+              durationMinutes,
+            },
+          }),
+        );
+      }
     },
-    [setSummary, setMode, onCompleted, setMeasuresPracticed],
+    [setSummary, setMode, pieceid, setMeasuresPracticed, startTime],
   );
 
   // TODO: consider switch to react-hook-form for setup to reduce annoying prop complexity
