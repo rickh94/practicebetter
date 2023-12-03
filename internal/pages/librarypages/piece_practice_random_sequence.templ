@@ -15,11 +15,9 @@ templ PiecePracticeRandomSequencePage(s pages.ServerUtil, csrf string, piece []d
 					{ Label: "Random Sequence", Href: "/library/pieces/" + piece[0].ID+"/practice/random-sequence", Active: true },
 				})
 		</div>
-		<div class="flex flex-col gap-12 justify-center items-center py-8 px-4">
-			<div class="relative w-full sm:mx-auto sm:max-w-3xl">
-				<sequence-spots initialspots={ spotsData } pieceid={ piece[0].ID } csrf={ csrf }></sequence-spots>
-			</div>
-		</div>
+		@components.NormalContainer() {
+			<sequence-spots class="w-full" initialspots={ spotsData } pieceid={ piece[0].ID } csrf={ csrf }></sequence-spots>
+		}
 		<script type="module" src={ s.StaticUrl("out/practice.js") }></script>
 	}
 }

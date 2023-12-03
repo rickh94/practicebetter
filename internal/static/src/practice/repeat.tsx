@@ -4,7 +4,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { RepeatPrepareText } from "./repeat-prepare-text";
 import {
@@ -14,15 +14,40 @@ import {
   HappyButton,
   WarningButton,
 } from "../ui/buttons";
-import { BasicSpot } from "../common";
+import { BasicSpot } from "../validators";
 import { BackToPieceLink, HappyLink, WarningLink } from "../ui/links";
-// import { BackToPieceLink, HappyLink, WarningLink } from "../ui/links";
+import {
+  AudioPromptSummary,
+  TextPromptSummary,
+  NotesPromptSummary,
+  ImagePromptSummary,
+} from "../ui/prompts";
+import { ListBulletIcon, MusicalNoteIcon } from "@heroicons/react/24/solid";
 
 type RepeatMode = "prepare" | "practice" | "break_success" | "break_fail";
 
-export function Repeat() {
+// TODO: add route handler for repeat practice single spot cuz of csrf silliness
+export function Repeat({
+  initialspot,
+  pieceid,
+  csrf,
+}: {
+  initialspot?: string;
+  pieceid?: string;
+  csrf?: string;
+}) {
   const [mode, setMode] = useState<RepeatMode>("prepare");
   const [startTime, setStartTime] = useState<number>(0);
+  const [spot, setSpot] = useState<BasicSpot | null>(null);
+
+  useEffect(
+    function () {
+      if (initialspot) {
+        setSpot(JSON.parse(initialspot));
+      }
+    },
+    [initialspot],
+  );
 
   const startPracticing = useCallback(
     function () {
@@ -41,15 +66,44 @@ export function Repeat() {
 
   const setModeBreakSuccess = useCallback(
     function () {
-      // onCompleted?.(true);
       setMode("break_success");
+
+      if (pieceid && csrf && startTime && spot?.id) {
+        const durationMinutes = Math.ceil(
+          (new Date().getTime() - startTime) / 1000 / 60,
+        );
+        document.dispatchEvent(
+          new CustomEvent("FinishedRepeatPracticing", {
+            detail: {
+              success: true,
+              durationMinutes,
+              csrf,
+              endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
+            },
+          }),
+        );
+      }
     },
-    [setMode],
+    [setMode, pieceid, csrf, startTime, spot, spot?.id],
   );
 
   const setModeBreakFail = useCallback(
     function () {
-      // onCompleted?.(true);
+      if (pieceid && csrf && startTime && spot?.id) {
+        const durationMinutes = Math.ceil(
+          (new Date().getTime() - startTime) / 1000 / 60,
+        );
+        document.dispatchEvent(
+          new CustomEvent("FinishedRepeatPracticing", {
+            detail: {
+              success: true,
+              durationMinutes,
+              csrf,
+              endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
+            },
+          }),
+        );
+      }
       setMode("break_fail");
     },
     [setMode],
@@ -66,19 +120,19 @@ export function Repeat() {
                 startTime={startTime}
                 onSuccess={setModeBreakSuccess}
                 onFail={setModeBreakFail}
-                // spot={spot}
+                spot={spot}
               />
             ),
             break_success: (
               <RepeatBreakSuccess
                 restart={setModePrepare}
-                // pieceHref={pieceHref}
+                pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
               />
             ),
             break_fail: (
               <RepeatBreakFail
                 restart={setModePrepare}
-                // pieceHref={pieceHref}
+                pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
               />
             ),
           }[mode]
@@ -181,14 +235,14 @@ function RepeatPractice({
           </div>
         </div>
       </div>
-      {/*spot && (
+      {spot && (
         <div className="flex flex-col gap-2 sm:mx-auto sm:max-w-xl">
-          <AudioPromptReveal audioPromptUrl={spot.audioPromptUrl} />
-          <TextPromptReveal textPrompt={spot.textPrompt} />
-          <NotesPromptReveal notesPrompt={spot.notesPrompt} />
-          <ImagePromptReveal imagePromptUrl={spot.imagePromptUrl} />
+          <AudioPromptSummary url={spot.audioPromptUrl} />
+          <TextPromptSummary text={spot.textPrompt} />
+          <NotesPromptSummary notes={spot.notesPrompt} />
+          <ImagePromptSummary url={spot.imagePromptUrl} />
         </div>
-      )*/}
+      )}
 
       <div className="flex w-full flex-col py-24 sm:mx-auto sm:max-w-3xl">
         <div className="mx-auto flex w-full max-w-lg flex-wrap items-center justify-center">
@@ -270,15 +324,27 @@ function RepeatBreakSuccess({
       </p>
       <div className="my-8 flex w-full flex-col justify-center gap-4 sm:flex-row sm:gap-6">
         {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
-        <WarningLink href="/practice/random-single">
-          Try Random Practicing
-        </WarningLink>
+        {pieceHref ? (
+          <WarningLink href={`${pieceHref}/practice/random-single`}>
+            <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+            Try Random Practicing
+          </WarningLink>
+        ) : (
+          <WarningLink href="/practice/random-single">
+            <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+            Try Random Practicing
+          </WarningLink>
+        )}
         {pieceHref ? (
           <HappyLink href={`${pieceHref}/practice/repeat`}>
+            <ListBulletIcon className="-ml-1 h-5 w-5" />
             Practice Another Spot
           </HappyLink>
         ) : (
-          <HappyButton onClick={restart}>Practice Another Spot</HappyButton>
+          <HappyButton onClick={restart}>
+            <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+            Practice Another Spot
+          </HappyButton>
         )}
       </div>
       <div className="prose prose-neutral mt-8">

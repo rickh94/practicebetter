@@ -48,6 +48,11 @@ SET
     measures = ?
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
+-- name: RepeatPracticeSpot :exec
+UPDATE spots
+SET stage = CASE WHEN stage = 'repeat' THEN 'random' ELSE stage END
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
+
 -- name: DeleteSpot :exec
 DELETE FROM spots
 WHERE spots.id = :spot_id AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);

@@ -1,5 +1,4 @@
 import { ScaleCrossFadeContent } from "../ui/transitions";
-import { XMarkIcon } from "@heroicons/react/20/solid";
 import {
   BasicButton,
   GiantBasicButton,
@@ -10,6 +9,11 @@ import {
 import { BackToPieceLink } from "../ui/links";
 import { StateUpdater, useCallback, useState } from "preact/hooks";
 import { cn, uniqueID } from "../common";
+import {
+  Cog6ToothIcon,
+  MusicalNoteIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 
 type Section = {
   startingPoint: {
@@ -65,13 +69,11 @@ function calculateMeasuresPracticed(summary: Section[]) {
 export function StartingPoint({
   initialmeasures = "100",
   initialbeats = "4",
-  preconfigured = false,
   pieceid,
   csrf,
 }: {
   initialmeasures?: string;
   initialbeats?: string;
-  preconfigured?: boolean;
   pieceid?: string;
   csrf?: string;
 }) {
@@ -94,7 +96,7 @@ export function StartingPoint({
       setMode("practice");
       setStartTime(new Date());
     },
-    [setMode],
+    [setMode, setSummary, setStartTime],
   );
 
   const setModeSetup = useCallback(
@@ -102,7 +104,7 @@ export function StartingPoint({
       setSummary([]);
       setMode("setup");
     },
-    [setMode],
+    [setMode, setSummary],
   );
 
   const finishPracticing = useCallback(
@@ -116,17 +118,25 @@ export function StartingPoint({
         const durationMinutes = Math.ceil(
           (new Date().getTime() - startTime.getTime()) / 1000 / 60,
         );
+
+        const mp = mpracticed
+          .map(([start, end]) =>
+            start === end ? `${start}` : `${start}-${end}`,
+          )
+          .join(", ");
         document.dispatchEvent(
           new CustomEvent("FinishedStartingPointPracticing", {
             detail: {
-              measuresPracticed: mpracticed,
+              measuresPracticed: mp,
               durationMinutes,
+              pieceid,
+              csrf,
             },
           }),
         );
       }
     },
-    [setSummary, setMode, pieceid, setMeasuresPracticed, startTime],
+    [setSummary, setMode, pieceid, setMeasuresPracticed, startTime, csrf],
   );
 
   // TODO: consider switch to react-hook-form for setup to reduce annoying prop complexity
@@ -137,7 +147,7 @@ export function StartingPoint({
           {
             setup: (
               <StartingPointSetupForm
-                preconfigured={preconfigured}
+                preconfigured={!!pieceid}
                 beats={beats}
                 measures={measures}
                 maxLength={maxLength}
@@ -168,7 +178,7 @@ export function StartingPoint({
                 measuresPracticed={measuresPracticed}
                 setup={setModeSetup}
                 practice={setModePractice}
-                pieceHref={pieceHref}
+                pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
               />
             ),
           }[mode]
@@ -253,8 +263,10 @@ export function StartingPointSetupForm({
           <input
             id="measures"
             className={cn(
-              "focusable w-24 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20",
-              preconfigured && "bg-black/30 text-neutral-500",
+              "focusable w-24 rounded-xl px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20",
+              preconfigured
+                ? "bg-black/30 text-neutral-500"
+                : "bg-neutral-700/10",
             )}
             type="number"
             min="2"
@@ -289,8 +301,10 @@ export function StartingPointSetupForm({
           <input
             id="beats"
             className={cn(
-              "focusable w-24 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20",
-              preconfigured && "bg-black/30 text-neutral-500",
+              "focusable w-24 rounded-xl px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20",
+              preconfigured
+                ? "bg-black/30 text-neutral-500"
+                : "bg-neutral-700/10",
             )}
             type="number"
             min="1"
@@ -556,8 +570,14 @@ export function Summary({
     <>
       <div className="flex w-full flex-col justify-center gap-4 pb-8 pt-12 sm:flex-row  sm:gap-6">
         {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
-        <WarningButton onClick={setup}>Back to Setup</WarningButton>
-        <HappyButton onClick={practice}>Practice More</HappyButton>
+        <WarningButton onClick={setup}>
+          <Cog6ToothIcon className="-ml-1 h-5 w-5" />
+          Back to Setup
+        </WarningButton>
+        <HappyButton onClick={practice}>
+          <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+          Practice More
+        </HappyButton>
       </div>
       <div className="flex w-full flex-col items-center justify-center gap-2">
         <div className="flex w-full  justify-center py-4">

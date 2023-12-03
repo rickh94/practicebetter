@@ -1,5 +1,6 @@
 import { StateUpdater, useCallback, useEffect, useState } from "preact/hooks";
-import { BasicSpot, PracticeSummaryItem, RandomMode } from "../common";
+import { PracticeSummaryItem, RandomMode, cn } from "../common";
+import { BasicSpot } from "../validators";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { CreateSpots } from "./create-spots";
 import {
@@ -11,6 +12,12 @@ import {
 } from "../ui/buttons";
 import { ArrowRightIcon, CheckIcon } from "@heroicons/react/20/solid";
 import Summary from "./summary";
+import {
+  AudioPromptSummary,
+  TextPromptSummary,
+  NotesPromptSummary,
+  ImagePromptSummary,
+} from "../ui/prompts";
 
 export function RandomSpots({
   initialspots,
@@ -47,8 +54,8 @@ export function RandomSpots({
             detail: {
               spotIDs,
               durationMinutes,
-              pieceid,
               csrf,
+              endpoint: `/library/pieces/${pieceid}/practice/random-single`,
             },
           }),
         );
@@ -285,24 +292,27 @@ function SinglePractice({
     </div>
   );
 }
+
+// TODO: fix done button
 // TODO: add icons to these buttons
-//
+// TODO: maybe should cover whole screen
 function SpotDisplay({ spot }: { spot?: BasicSpot }) {
   if (!spot) {
     return <>Missing Spot data</>;
   }
-  /*
   const hasPrompts =
     !!spot.audioPromptUrl ||
     !!spot.textPrompt ||
     !!spot.imagePromptUrl ||
     !!spot.notesPrompt;
-  className={cn(
-        hasPrompts ? "grid grid-cols-6 gap-2" : "flex flex-col items-center",
-      )}
-  */
   return (
-    <div className="">
+    <div
+      className={cn(
+        hasPrompts
+          ? "grid grid-cols-6 gap-2"
+          : "flex flex-col items-center justify-center",
+      )}
+    >
       <div className="col-span-2 flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 text-center text-3xl font-bold shadow-lg sm:px-8 sm:text-5xl">
         {spot.name ?? "Something went wrong"}
         {spot.measures && (
@@ -311,17 +321,15 @@ function SpotDisplay({ spot }: { spot?: BasicSpot }) {
           </span>
         )}
       </div>
-      {/*
       {hasPrompts && (
         <div className="col-span-4 flex flex-col gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 text-center font-bold shadow-lg sm:px-8">
           <h2 className="text-lg font-semibold underline">Prompts</h2>
-          <AudioPromptReveal audioPromptUrl={spot.audioPromptUrl} />
-          <TextPromptReveal textPrompt={spot.textPrompt} />
-          <NotesPromptReveal notesPrompt={spot.notesPrompt} />
-          <ImagePromptReveal imagePromptUrl={spot.imagePromptUrl} />
+          <AudioPromptSummary url={spot.audioPromptUrl} />
+          <TextPromptSummary text={spot.textPrompt} />
+          <NotesPromptSummary notes={spot.notesPrompt} />
+          <ImagePromptSummary url={spot.imagePromptUrl} />
         </div>
       )}
-      */}
     </div>
   );
 }

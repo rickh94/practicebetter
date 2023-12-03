@@ -17,11 +17,9 @@ templ PiecePracticeStartingPointPage(s pages.ServerUtil, csrf string, piece db.P
 					{ Label: "Starting Point", Href: "/library/pieces/" + piece.ID+"/practice/starting-point", Active: true },
 				})
 		</div>
-		<div class="flex flex-col gap-12 justify-center items-center py-8 px-4">
-			<div class="relative w-full sm:mx-auto sm:max-w-3xl">
-				<starting-point pieceid={ piece.ID } csrf={ csrf } initialmeasures={ strconv.FormatInt(piece.Measures.Int64, 10) } initialbeats={ strconv.FormatInt(piece.BeatsPerMeasure.Int64, 10) }></starting-point>
-			</div>
-		</div>
+		@components.NormalContainer() {
+			<starting-point class="w-full" pieceid={ piece.ID } csrf={ csrf } initialmeasures={ strconv.FormatInt(piece.Measures.Int64, 10) } initialbeats={ strconv.FormatInt(piece.BeatsPerMeasure.Int64, 10) }></starting-point>
+		}
 		<script type="module" src={ s.StaticUrl("out/practice.js") }></script>
 	}
 }

@@ -103,6 +103,7 @@ export function SequenceSpots({
               durationMinutes,
               pieceid,
               csrf,
+              endpoint: `/library/pieces/${pieceid}/practice/random-sequence`,
             },
           }),
         );

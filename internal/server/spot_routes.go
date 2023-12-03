@@ -9,6 +9,7 @@ import (
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
@@ -294,4 +295,121 @@ func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
 	}
 	token := csrf.Token(r)
 	librarypages.SinglePiece(s, token, piece).Render(r.Context(), w)
+}
+
+func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {
+	log.Default().Println("get repeat practice spot")
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	user := r.Context().Value("user").(db.User)
+	queries := db.New(s.DB)
+
+	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+		SpotID:  spotID,
+		UserID:  user.ID,
+		PieceID: pieceID,
+	})
+	if err != nil {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Could not find matching spot"))
+		return
+	}
+	var measures *string
+	if spot.Measures.Valid {
+		measures = &spot.Measures.String
+	}
+	var currentTempo *int64
+	if spot.CurrentTempo.Valid {
+		currentTempo = &spot.CurrentTempo.Int64
+	}
+	spotData := SpotFormData{
+		ID:             &spot.ID,
+		Name:           spot.Name,
+		Idx:            &spot.Idx,
+		Stage:          spot.Stage,
+		AudioPromptUrl: spot.AudioPromptUrl,
+		ImagePromptUrl: spot.ImagePromptUrl,
+		NotesPrompt:    spot.NotesPrompt,
+		TextPrompt:     spot.TextPrompt,
+		CurrentTempo:   currentTempo,
+		Measures:       measures,
+	}
+
+	spotJson, err := json.Marshal(spotData)
+
+	token := csrf.Token(r)
+	s.HxRender(w, r, librarypages.SpotPracticeRepeatPage(s, spot, token, string(spotJson)))
+}
+
+type RepeatPracticeInfo struct {
+	DurationMinutes int64
+	Success         bool
+}
+
+func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	user := r.Context().Value("user").(db.User)
+
+	queries := db.New(s.DB)
+	tx, err := s.DB.Begin()
+	if err != nil {
+		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+
+	qtx := queries.WithTx(tx)
+
+	if err := qtx.RepeatPracticeSpot(r.Context(), db.RepeatPracticeSpotParams{
+		SpotID:  spotID,
+		UserID:  user.ID,
+		PieceID: pieceID,
+	}); err != nil {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Could not find matching spot"))
+		return
+	}
+
+	var info RepeatPracticeInfo
+	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	practiceSessionID := cuid2.Generate()
+	if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
+		ID:              practiceSessionID,
+		UserID:          user.ID,
+		DurationMinutes: info.DurationMinutes,
+		Date:            time.Now().Unix(),
+	}); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not create practice session", http.StatusInternalServerError)
+		return
+	}
+
+	if err := qtx.PracticeSpot(r.Context(), db.PracticeSpotParams{
+		UserID:            user.ID,
+		PieceID:           pieceID,
+		SpotID:            spotID,
+		PracticeSessionID: practiceSessionID,
+	}); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not practice spot", http.StatusInternalServerError)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not commit practice session", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }

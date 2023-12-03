@@ -2,14 +2,8 @@ package pages
 
 import "practicebetter/internal/components"
 
-templ LeftButton() {
-	<div class="mt-4">
-		<practice-tool-nav activepath="/"></practice-tool-nav>
-	</div>
-}
-
 templ IndexNav() {
-	@components.TwoButtonBar(LeftButton(), components.Empty(), components.LibraryLink())
+	@components.TwoButtonBar(components.PracticeToolNav("/"), components.Empty(), components.LibraryLink())
 }
 
 templ IndexPage() {

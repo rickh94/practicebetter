@@ -1,9 +1,10 @@
 import { useAutoAnimate } from "@formkit/auto-animate/preact";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/react/20/solid";
-import { uniqueID, type BasicSpot } from "../common";
+import { uniqueID } from "../common";
 import { AngryButton, BasicButton } from "../ui/buttons";
 import { useCallback, useRef } from "preact/compat";
 import { StateUpdater } from "preact/hooks";
+import { BasicSpot } from "../validators";
 
 export function CreateSpots({
   setSpots,

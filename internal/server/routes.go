@@ -86,14 +86,18 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/pieces/{pieceID}/spots/{spotID}", s.singleSpot)
 		r.Put("/pieces/{pieceID}/spots/{spotID}", s.updateSpot)
 		r.Delete("/pieces/{pieceID}/spots/{spotID}", s.deleteSpot)
+		r.Get("/pieces/{pieceID}/spots/{spotID}/practice/repeat", s.repeatPracticeSpot)
+		r.Post("/pieces/{pieceID}/spots/{spotID}/practice/repeat", s.repeatPracticeSpotFinished)
 
 		r.Get("/pieces/{pieceID}/practice/random-single", s.piecePracticeRandomSpotsPage)
-		r.Post("/pieces/{pieceID}/practice/random-single", s.piecePracticeRandomPracticeFinished)
+		r.Post("/pieces/{pieceID}/practice/random-single", s.createSpotsPracticeSession)
 		r.Get("/pieces/{pieceID}/practice/random-sequence", s.piecePracticeRandomSequencePage)
-		r.Post("/pieces/{pieceID}/practice/random-sequence", s.piecePracticeRandomPracticeFinished)
+		r.Post("/pieces/{pieceID}/practice/random-sequence", s.createSpotsPracticeSession)
 
 		r.Get("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointPage)
-		r.Post("/pieces/{pieceID}/practice/random-sequence", s.piecePracticeStartingPointFinished)
+		r.Post("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointFinished)
+
+		r.Get("/pieces/{pieceID}/practice/repeat", s.piecePracticeRepeatPage)
 
 		r.Get("/upload/audio", s.uploadAudioForm)
 		r.Post("/upload/audio", s.uploadAudio)

@@ -1,11 +1,13 @@
 package librarypages
 
-import "practicebetter/internal/pages"
 import "practicebetter/internal/db"
 import "practicebetter/internal/components"
 import "practicebetter/internal/heroicons"
 
-templ PiecePracticeRandomSpotsPage(s pages.ServerUtil, csrf string, piece []db.GetPieceWithRandomSpotsRow, spotsData string) {
+// TODO: add back to piece and other useful links to practicing pages
+// TODO: add button to hide other spots
+
+templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 	<title>{ piece[0].Title } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(piece[0].Title) , components.AccountLink())) {
 		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
@@ -13,17 +15,27 @@ templ PiecePracticeRandomSpotsPage(s pages.ServerUtil, csrf string, piece []db.G
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: piece[0].Title, Href: "/library/pieces/" + piece[0].ID, Active: false },
-					{ Label: "Random Spots", Href: "/library/pieces/" + piece[0].ID+"/practice/random-single", Active: true },
+					{ Label: "Repeat Practice", Href: "/library/pieces/" + piece[0].ID+"/practice/repeat", Active: true },
 				})
 		</div>
-		@components.NormalContainer() {
-			<random-spots initialspots={ spotsData } pieceid={ piece[0].ID } csrf={ csrf } class="w-full"></random-spots>
+		@components.NarrowContainer() {
+			<div class="p-4 w-full rounded-xl bg-neutral-700/5">
+				<div class="flex justify-between pb-4">
+					<h2 class="py-1 text-2xl font-bold text-center">
+						Choose a spot to Repeat Practice
+					</h2>
+				</div>
+				<ul class="grid grid-cols-1 gap-4 list-none sm:grid-cols-2 md:grid-cols-3">
+					for _, spot := range piece {
+						@components.PracticeSpotCard(piece[0].ID, spot.SpotID, spot.SpotName, SpotMeasuresOrEmpty(spot.SpotMeasures), spot.SpotStage)
+					}
+				</ul>
+			</div>
 		}
-		<script type="module" src={ s.StaticUrl("out/practice.js") }></script>
 	}
 }
 
-templ PiecePracticeNoSpotsPage(pieceTitle string, pieceID string) {
+templ PieceRepeatPracticeNoSpotsPage(pieceTitle string, pieceID string) {
 	<title>{ pieceTitle } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(pieceTitle) , components.AccountLink())) {
 		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
@@ -31,7 +43,7 @@ templ PiecePracticeNoSpotsPage(pieceTitle string, pieceID string) {
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: pieceTitle, Href: "/library/pieces/" + pieceID, Active: false },
-					{ Label: "Random Spots", Href: "/library/pieces/" + pieceID+"/practice/random-single", Active: true },
+					{ Label: "Repeat Practice", Href: "/library/pieces/" + pieceID+"/practice/repeat", Active: true },
 				})
 		</div>
 		@components.NormalContainer() {

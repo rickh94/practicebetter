@@ -17,7 +17,7 @@ export function PracticeToolNav({ activepath }: { activepath: string }) {
     <>
       {/*
       // @ts-ignore */}
-      <Menu as="div" className="relative -mt-4 inline-block text-left">
+      <Menu as="div" className="relative inline-block text-left">
         {/*
         // @ts-ignore */}
         <Menu.Button className="focusable inline-flex h-14 w-full items-center justify-center gap-x-1.5 rounded-xl bg-neutral-700/10 px-6 py-4 shadow-sm hover:bg-neutral-700/20">

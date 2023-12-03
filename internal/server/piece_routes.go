@@ -145,7 +145,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-const piecesPerPage = 10
+const piecesPerPage = 20
 
 func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
@@ -512,25 +512,25 @@ func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Req
 		})
 	}
 
-	spotData, err := json.Marshal(spots)
+	spotsData, err := json.Marshal(spots)
 	if err != nil {
 		log.Default().Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.PiecePracticeRandomSpotsPage(s, token, piece, string(spotData)))
+	s.HxRender(w, r, librarypages.PiecePracticeRandomSpotsPage(s, token, piece, string(spotsData)))
 }
 
-type PieceRandomPracticeInfo struct {
+type PieceSpotsPracticeInfo struct {
 	DurationMinutes int64    `json:"durationMinutes"`
 	SpotIDs         []string `json:"spotIDs"`
 }
 
-func (s *Server) piecePracticeRandomPracticeFinished(w http.ResponseWriter, r *http.Request) {
+func (s *Server) createSpotsPracticeSession(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	user := r.Context().Value("user").(db.User)
-	var info PieceRandomPracticeInfo
+	var info PieceSpotsPracticeInfo
 	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
 		log.Default().Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -664,10 +664,15 @@ func (s *Server) piecePracticeStartingPointPage(w http.ResponseWriter, r *http.R
 	s.HxRender(w, r, librarypages.PiecePracticeStartingPointPage(s, token, piece))
 }
 
+type PiecePracticeInfo struct {
+	DurationMinutes   int64  `json:"durationMinutes"`
+	MeasuresPracticed string `json:"measuresPracticed"`
+}
+
 func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	user := r.Context().Value("user").(db.User)
-	var info PieceRandomPracticeInfo
+	var info PiecePracticeInfo
 	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
 		log.Default().Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -695,19 +700,17 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 		http.Error(w, "Could not create practice session", http.StatusInternalServerError)
 		return
 	}
-
-	for _, spotID := range info.SpotIDs {
-		if err := qtx.PracticeSpot(r.Context(), db.PracticeSpotParams{
-			UserID:            user.ID,
-			PieceID:           pieceID,
-			SpotID:            spotID,
-			PracticeSessionID: practiceSessionID,
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not practice spot", http.StatusInternalServerError)
-			return
-		}
+	if err := qtx.PracticePiece(r.Context(), db.PracticePieceParams{
+		UserID:            user.ID,
+		PieceID:           pieceID,
+		PracticeSessionID: practiceSessionID,
+		Measures:          info.MeasuresPracticed,
+	}); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not practice piece", http.StatusInternalServerError)
+		return
 	}
+
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Could not commit practice session", http.StatusInternalServerError)
@@ -715,4 +718,22 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
+}
+
+func (s *Server) piecePracticeRepeatPage(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	user := r.Context().Value("user").(db.User)
+	queries := db.New(s.DB)
+	piece, err := queries.GetPieceWithIncompleteSpots(r.Context(), db.GetPieceWithIncompleteSpotsParams{
+		PieceID: pieceID,
+		UserID:  user.ID,
+	})
+	if err != nil {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		http.Error(w, "Could not find matching piece", http.StatusNotFound)
+		return
+	}
+
+	s.HxRender(w, r, librarypages.PiecePracticeRepeatPage(piece))
 }

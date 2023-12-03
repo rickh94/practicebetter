@@ -240,6 +240,23 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 	return items, nil
 }
 
+const repeatPracticeSpot = `-- name: RepeatPracticeSpot :exec
+UPDATE spots
+SET stage = CASE WHEN stage = 'repeat' THEN 'random' ELSE stage END
+WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
+`
+
+type RepeatPracticeSpotParams struct {
+	SpotID  string
+	UserID  string
+	PieceID string
+}
+
+func (q *Queries) RepeatPracticeSpot(ctx context.Context, arg RepeatPracticeSpotParams) error {
+	_, err := q.db.ExecContext(ctx, repeatPracticeSpot, arg.SpotID, arg.UserID, arg.PieceID)
+	return err
+}
+
 const updateSpot = `-- name: UpdateSpot :exec
 UPDATE spots
 SET
