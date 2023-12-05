@@ -3,6 +3,7 @@ package librarypages
 import "practicebetter/internal/db"
 import "practicebetter/internal/components"
 import "practicebetter/internal/pages"
+import "strconv"
 
 templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, spots []db.ListPieceSpotsRow) {
 	<title>{ spots[0].PieceTitle } | Practice Better</title>
@@ -16,11 +17,13 @@ templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, spots []db.Li
 				})
 		</div>
 		@components.FiveColumnContainer() {
-			<div class="flex flex-col col-span-2 gap-2 p-4 rounded-xl border border-neutral-500 bg-white/80 text-neutral-900">
-				<div class="flex justify-center">
-					<h2 class="text-2xl font-bold">Add Spot</h2>
+			<div class="flex col-span-2 justify-center items-start w-full">
+				<div class="flex flex-col flex-grow-0 gap-2 p-4 rounded-xl border border-neutral-500 bg-white/80 text-neutral-900">
+					<div class="flex justify-center">
+						<h2 class="text-2xl font-bold">Add Spot</h2>
+					</div>
+					<add-spot-form pieceid={ pieceID } csrf={ csrf } initialspotcount={ strconv.Itoa(len(spots)) }></add-spot-form>
 				</div>
-				<add-spot-form pieceid={ pieceID } csrf={ csrf }></add-spot-form>
 			</div>
 			@AddSpotsSpotList(spots)
 		}
@@ -30,8 +33,13 @@ templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, spots []db.Li
 
 templ AddSpotsSpotList(spots []db.ListPieceSpotsRow) {
 	<div class="col-span-3 p-4 rounded-xl bg-neutral-700/5" id="spot-section">
-		<div class="flex flex-col">
-			<h2 class="py-1 text-2xl font-bold text-center">Spots</h2>
+		<div class="flex flex-col pb-2">
+			<h2 class="text-2xl font-bold text-center" id="spots-list-title">
+				Spots
+				<span id="spot-count">
+					({ strconv.Itoa(len(spots)) })
+				</span>
+			</h2>
 		</div>
 		<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2" id="spot-list">
 			for _, spot := range spots {

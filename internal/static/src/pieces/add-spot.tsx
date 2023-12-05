@@ -7,11 +7,14 @@ import { useState } from "preact/hooks";
 export function AddSpotForm({
   pieceid,
   csrf,
+  initialspotcount,
 }: {
   pieceid: string;
   csrf: string;
+  initialspotcount: string;
 }) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [numSpots, setNumSpots] = useState(parseInt(initialspotcount) || 0);
   const { handleSubmit, formState, setValue, reset, register, watch } =
     useForm<SpotFormData>({
       mode: "onBlur",
@@ -19,7 +22,7 @@ export function AddSpotForm({
       resolver: yupResolver(spotFormData),
       defaultValues: {
         name: "",
-        idx: 1,
+        idx: numSpots + 1,
         measures: "",
         audioPromptUrl: "",
         textPrompt: "",
@@ -43,6 +46,9 @@ export function AddSpotForm({
     });
     reset();
     setIsUpdating(false);
+    document.getElementById("spot-count").textContent = `(${numSpots + 1})`;
+    setNumSpots(numSpots + 1);
+    setValue("idx", numSpots + 1);
   }
 
   return (

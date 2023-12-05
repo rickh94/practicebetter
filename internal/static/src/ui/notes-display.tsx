@@ -35,7 +35,5 @@ export default function NotesDisplay({
     });
   }, [ref, notes, wrap, staffwidth, responsive]);
 
-  return (
-    <div className="notes -pl-2 h-[100px] overflow-x-scroll" ref={ref}></div>
-  );
+  return <div className="notes -pl-2 overflow-x-scroll" ref={ref}></div>;
 }

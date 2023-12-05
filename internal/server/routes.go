@@ -25,7 +25,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(csrf.Protect([]byte(s.SecretKey), csrf.Secure(true)))
 	r.Use(middleware.Compress(5, "application/json", "text/html", "text/css", "application/javascript"))
 	// Just long enough for preload to matter
-	r.Use(middleware.SetHeader("Cache-Control", "max-age=3600"))
+	// r.Use(middleware.SetHeader("Cache-Control", "max-age=60"))
 	r.Use(middleware.SetHeader("Vary", "HX-Request"))
 	r.Use(middleware.Timeout(10 * time.Second))
 	r.Use(s.SM.LoadAndSave)
@@ -36,11 +36,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.With(middleware.SetHeader("Access-Control-Allow-Origin", "*")).Mount("/static", sf)
 	// r.Mount("/static", sf)
 
+	// uploaded files
 	uf := http.NewServeMux()
 	uf.Handle("/", http.StripPrefix("/uploads", http.FileServer(http.Dir(s.UploadsPath))))
-	r.Mount("/uploads", uf)
-
-	// r.Handle("/uploads", http.StripPrefix("/uploads", http.FileServer(http.Dir(s.UploadsPath))))
+	r.With(middleware.SetHeader("Cache-Control", "max-age=31536000")).Mount("/uploads", uf)
 
 	r.Get("/", s.index)
 	r.Get("/about", s.about)
@@ -81,7 +80,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/pieces/{pieceID}", s.deletePiece)
 
 		r.Post("/pieces/{pieceID}/spots", s.addSpot)
-		r.Get("/pieces/{pieceID}/spots", s.addSpotPage)
+		r.Get("/pieces/{pieceID}/spots/add", s.addSpotPage)
 		r.Get("/pieces/{pieceID}/spots/{spotID}/edit", s.editSpot)
 		r.Get("/pieces/{pieceID}/spots/{spotID}", s.singleSpot)
 		r.Put("/pieces/{pieceID}/spots/{spotID}", s.updateSpot)

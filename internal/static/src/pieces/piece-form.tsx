@@ -123,7 +123,7 @@ export function PieceFormFields({
               className="text-sm font-medium leading-6 text-neutral-900"
               htmlFor="beats"
             >
-              Beats
+              Beats Per Measure
             </label>
             <input
               type="number"

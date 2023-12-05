@@ -169,6 +169,7 @@ function SinglePractice({
   // This counter ensures that the animation runs, even if the same spot is generated twice in a row.
   const [counter, setCounter] = useState(0);
   const [skipSpotIds, setSkipSpotIds] = useState<string[]>([]);
+  const [lastTwoSpots, setLastTwoSpots] = useState<string[]>([]);
 
   const addSpotRep = useCallback(
     function (id: string | undefined) {
@@ -205,19 +206,33 @@ function SinglePractice({
       setCounter((curr) => curr + 1);
       addSpotRep(spots[currentSpotIdx]?.id);
       if (skipSpotIds.length >= spots.length) {
-        // toast.success("You practiced every spot!");
+        document.dispatchEvent(
+          new CustomEvent("ShowAlert", {
+            detail: {
+              message: "You practiced every spot!",
+              title: "Practicing Complete",
+              variant: "success",
+              duration: 3000,
+            },
+          }),
+        );
         handleDone();
         return;
       }
       let nextSpotIdx = Math.floor(Math.random() * spots.length);
       let nextSpotId = spots[nextSpotIdx]?.id;
-      while (!nextSpotId || (nextSpotId && skipSpotIds.includes(nextSpotId))) {
+      while (
+        !nextSpotId ||
+        (nextSpotId && skipSpotIds.includes(nextSpotId)) ||
+        (nextSpotId && lastTwoSpots.includes(nextSpotId))
+      ) {
         nextSpotIdx = Math.floor(Math.random() * spots.length);
         nextSpotId = spots[nextSpotIdx]?.id;
       }
       setCurrentSpotIdx(nextSpotIdx);
+      setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
     },
-    [addSpotRep, currentSpotIdx, handleDone, skipSpotIds, spots],
+    [addSpotRep, currentSpotIdx, handleDone, skipSpotIds, spots, lastTwoSpots],
   );
 
   const evictSpot = useCallback(
@@ -230,7 +245,16 @@ function SinglePractice({
       }
 
       if (newSkipSpotIds.length >= spots.length) {
-        // toast.success("You practiced every spot!");
+        document.dispatchEvent(
+          new CustomEvent("ShowAlert", {
+            detail: {
+              message: "You practiced every spot!",
+              title: "Practicing Complete",
+              variant: "success",
+              duration: 3000,
+            },
+          }),
+        );
         handleDone();
         return;
       }

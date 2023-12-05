@@ -600,11 +600,12 @@ export function AddNotesPrompt({
           <textarea
             {...registerReturn}
             id="notes"
+            rows={4}
             className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
             placeholder="Enter Notes using ABC notation"
           />
         </div>
-        <div className="h-[6rem] w-full">
+        <div className="w-full">
           <Suspense fallback={<div>Loading notes...</div>}>
             <NotesDisplay
               staffwidth={500}

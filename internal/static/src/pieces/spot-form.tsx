@@ -123,7 +123,7 @@ export default function SpotFormFields({
             className="text-sm font-medium leading-6 text-neutral-900"
             htmlFor="measures"
           >
-            Spot Measures
+            Measures
           </label>
           <input
             id="measures"
@@ -141,7 +141,7 @@ export default function SpotFormFields({
             className="text-sm font-medium leading-6 text-neutral-900"
             htmlFor="current-tempo"
           >
-            Current Tempo
+            Curr Tempo
           </label>
           <input
             {...register("currentTempo", { valueAsNumber: true })}

@@ -177,7 +177,7 @@ export function SpotsArray({
                 name: `Spot ${fields.length + 1}`,
                 idx: fields.length + 1,
                 stage: "repeat",
-                measures: "mm 1-2",
+                measures: "",
                 audioPromptUrl: "",
                 textPrompt: "",
                 notesPrompt: "",
