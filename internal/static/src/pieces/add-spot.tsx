@@ -14,7 +14,9 @@ export function AddSpotForm({
   initialspotcount: string;
 }) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [numSpots, setNumSpots] = useState(parseInt(initialspotcount) || 0);
+  const [nextSpotIdx, setNextSpotIdx] = useState(
+    parseInt(initialspotcount) + 1 || 1,
+  );
   const { handleSubmit, formState, setValue, reset, register, watch } =
     useForm<SpotFormData>({
       mode: "onBlur",
@@ -22,7 +24,7 @@ export function AddSpotForm({
       resolver: yupResolver(spotFormData),
       defaultValues: {
         name: "",
-        idx: numSpots + 1,
+        idx: nextSpotIdx + 1,
         measures: "",
         audioPromptUrl: "",
         textPrompt: "",
@@ -46,13 +48,19 @@ export function AddSpotForm({
     });
     reset();
     setIsUpdating(false);
-    document.getElementById("spot-count").textContent = `(${numSpots + 1})`;
-    setNumSpots(numSpots + 1);
-    setValue("idx", numSpots + 1);
+    document.getElementById("spot-count").textContent = `(${nextSpotIdx + 1})`;
+    setNextSpotIdx(nextSpotIdx + 1);
+    setValue("idx", nextSpotIdx + 1);
+    setTimeout(() => {}, 100);
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate hx-boost="false">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      hx-boost="false"
+      id="add-spot-form"
+    >
       <SpotFormFields
         csrf={csrf}
         isUpdating={isUpdating}

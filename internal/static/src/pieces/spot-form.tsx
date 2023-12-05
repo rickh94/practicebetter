@@ -187,7 +187,10 @@ export default function SpotFormFields({
           />
         </div>
       </div>
-      <div className="flex flex-row-reverse justify-start gap-4 pt-4">
+      <div
+        className="flex flex-row-reverse justify-start gap-4 pt-4"
+        id="spot-form-button-row"
+      >
         <HappyButton disabled={!formState.isValid} type="submit">
           <FolderPlusIcon className="-ml-1 h-6 w-6" />
           {isUpdating ? "Saving..." : "Save"}

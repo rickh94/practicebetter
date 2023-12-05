@@ -270,6 +270,9 @@ func makeSpotFormDataFromSpot(row db.GetSpotRow) SpotFormData {
 	if row.CurrentTempo.Valid && row.CurrentTempo.Int64 > 0 {
 		spot.CurrentTempo = &row.CurrentTempo.Int64
 	}
+	if row.Measures.Valid {
+		spot.Measures = &row.Measures.String
+	}
 	return spot
 }
 
