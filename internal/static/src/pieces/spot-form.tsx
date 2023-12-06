@@ -36,7 +36,7 @@ export default function SpotFormFields({
   csrf: string;
 }) {
   return (
-    <>
+    <div>
       <div className="grid grid-cols-2 gap-2">
         <div
           className={cn(
@@ -54,6 +54,7 @@ export default function SpotFormFields({
             {...register("name")}
             id="name"
             className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
+            autoComplete="off"
           />
           {formState.errors.name && (
             <p className="text-xs text-red-400">
@@ -102,7 +103,7 @@ export default function SpotFormFields({
         <div className="flex w-1/2 flex-col">
           <label
             className="text-sm font-medium leading-6 text-neutral-900"
-            htmlFor="order"
+            htmlFor="idx"
           >
             Spot Order
           </label>
@@ -197,6 +198,6 @@ export default function SpotFormFields({
         </HappyButton>
         <WarningLink href={backTo}>← Go Back</WarningLink>
       </div>
-    </>
+    </div>
   );
 }

@@ -148,7 +148,7 @@ templ PieceCard(pieceID string, title string, composer string, activeSpots int64
 
 templ BaseSpotCard(spotID, name, measures, stage, href string) {
 	<li id={ "spot-" + spotID } data-spot-stage={ stage } class="spot-card">
-		@HxLink("focusable flex justify-between rounded-xl border border-neutral-500 bg-white/80 px-4 py-2 text-neutral-700 hover:bg-white hover:text-black", href, "#main-content") {
+		@HxLink("focusable flex justify-between rounded-xl border border-neutral-800 px-4 py-2 text-neutral-800 hover:text-black "+ getStageColor(stage), href, "#main-content") {
 			<div class="flex flex-col flex-grow">
 				<h3 class="text-lg font-bold">{ name }</h3>
 				<div class="inline text-sm">

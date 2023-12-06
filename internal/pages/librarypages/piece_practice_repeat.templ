@@ -10,14 +10,14 @@ import "practicebetter/internal/heroicons"
 templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 	<title>{ piece[0].Title } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(piece[0].Title) , components.AccountLink())) {
-		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: piece[0].Title, Href: "/library/pieces/" + piece[0].ID, Active: false },
 					{ Label: "Repeat Practice", Href: "/library/pieces/" + piece[0].ID+"/practice/repeat", Active: true },
 				})
-		</div>
+		}
 		@components.NarrowContainer() {
 			<div class="p-4 w-full rounded-xl bg-neutral-700/5">
 				<div class="flex justify-between pb-4">
@@ -38,14 +38,14 @@ templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 templ PieceRepeatPracticeNoSpotsPage(pieceTitle string, pieceID string) {
 	<title>{ pieceTitle } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(pieceTitle) , components.AccountLink())) {
-		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: pieceTitle, Href: "/library/pieces/" + pieceID, Active: false },
 					{ Label: "Repeat Practice", Href: "/library/pieces/" + pieceID+"/practice/repeat", Active: true },
 				})
-		</div>
+		}
 		@components.NormalContainer() {
 			<div class="flex flex-col gap-4">
 				<h1 class="text-3xl font-bold tracking-tight text-neutral-800">

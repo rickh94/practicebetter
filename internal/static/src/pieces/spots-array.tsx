@@ -168,9 +168,9 @@ export function SpotsArray({
             </AngryButton>
           </li>
         ))}
-        <li className="flex min-h-[21rem] flex-col gap-2 rounded-xl border border-dashed border-neutral-500 bg-white/50 px-4 py-2 text-neutral-700 hover:bg-white/90 hover:text-black">
+        <li className="">
           <button
-            className="flex h-full w-full items-center justify-center gap-1 text-2xl font-bold"
+            className="focusable flex h-full min-h-[21rem] w-full items-center justify-center gap-1 rounded-xl border border-dashed border-neutral-500 bg-white/50 px-4 py-2 text-2xl font-bold text-neutral-700 hover:bg-white/90 hover:text-black"
             type="button"
             onClick={() =>
               append({

@@ -9,7 +9,7 @@ import "strconv"
 templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 	<title>{ piece[0].Title } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(piece[0].Title) , components.AccountLink())) {
-		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
@@ -32,7 +32,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 					Delete Piece
 				</button>
 			</div>
-		</div>
+		}
 		@components.TwoColumnContainer() {
 			<div class="flex flex-col">
 				<div class="p-4 rounded-xl bg-neutral-700/5">
@@ -104,7 +104,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 				</div>
 			</div>
 			<div class="p-4 rounded-xl bg-neutral-700/5">
-				<div class="flex justify-between px-2 pb-2">
+				<div class="flex justify-between px-0.5 pb-2">
 					<h2 class="py-1 text-2xl font-bold text-center">
 						Spots
 						<span id="spot-count">

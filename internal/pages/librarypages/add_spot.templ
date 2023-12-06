@@ -8,21 +8,21 @@ import "strconv"
 templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, spots []db.ListPieceSpotsRow) {
 	<title>{ spots[0].PieceTitle } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText("Add Spot - " + spots[0].PieceTitle) , components.AccountLink())) {
-		<div class="flex flex-col flex-wrap gap-2 py-8 px-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: spots[0].PieceTitle, Href: "/library/pieces/" + spots[0].PieceID, Active: false },
 					{ Label: "Add Spot", Href: "/library/pieces/" + spots[0].PieceID + "/spots/add", Active: true },
-				})
-		</div>
+					})
+		}
 		@components.FiveColumnContainer() {
-			<div class="flex col-span-2 justify-center items-start w-full">
+			<div class="flex col-span-2 justify-center items-start mx-auto max-w-lg lg:mx-0 lg:max-w-none" id="add-spot-section">
 				<div class="flex flex-col flex-grow-0 gap-2 p-4 rounded-xl border border-neutral-500 bg-white/80 text-neutral-900">
 					<div class="flex justify-center">
 						<h2 class="text-2xl font-bold">Add Spot</h2>
 					</div>
-					<add-spot-form pieceid={ pieceID } csrf={ csrf } initialspotcount={ strconv.Itoa(len(spots)) }></add-spot-form>
+					<add-spot-form id="add-spot-form" pieceid={ pieceID } csrf={ csrf } initialspotcount={ strconv.Itoa(len(spots)) }></add-spot-form>
 				</div>
 			</div>
 			@AddSpotsSpotList(spots)

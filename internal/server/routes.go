@@ -25,7 +25,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(csrf.Protect([]byte(s.SecretKey), csrf.Secure(true)))
 	r.Use(middleware.Compress(5, "application/json", "text/html", "text/css", "application/javascript"))
 	// Just long enough for preload to matter
-	// r.Use(middleware.SetHeader("Cache-Control", "max-age=60"))
+	r.Use(middleware.SetHeader("Cache-Control", "max-age=5"))
 	r.Use(middleware.SetHeader("Vary", "HX-Request"))
 	r.Use(middleware.Timeout(10 * time.Second))
 	r.Use(s.SM.LoadAndSave)
@@ -115,7 +115,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 func (s *Server) HxRender(w http.ResponseWriter, r *http.Request, component templ.Component) {
 	hxRequest := htmx.Request(r)
-	if hxRequest == nil {
+	if hxRequest == nil || hxRequest.Boosted {
 		component = Page(s, component)
 	}
 	w.Header().Set("Content-Type", "text/html")

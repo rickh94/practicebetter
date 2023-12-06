@@ -49,25 +49,31 @@ templ HeroLayout(nav templ.Component) {
 }
 
 templ TwoColumnContainer() {
-	<div class="grid relative grid-cols-1 gap-x-2 gap-y-4 px-4 pt-16 w-full sm:pt-12 sm:mx-auto sm:max-w-5xl md:grid-cols-2" id="main-content">
+	<div class="grid relative grid-cols-1 gap-x-2 gap-y-4 p-4 w-full sm:mx-auto sm:max-w-5xl md:grid-cols-2" id="main-content">
 		{ children... }
 	</div>
 }
 
 templ NarrowContainer() {
-	<div class="flex justify-center p-4 px-4 pt-16 w-full sm:pt-12 sm:mx-auto sm:max-w-4xl">
+	<div class="flex justify-center p-4 w-full sm:mx-auto sm:max-w-4xl">
 		{ children... }
 	</div>
 }
 
 templ NormalContainer() {
-	<div class="flex justify-center p-4 px-4 pt-16 w-full sm:pt-12 sm:mx-auto sm:max-w-5xl">
+	<div class="flex justify-center p-4 w-full sm:mx-auto sm:max-w-5xl">
 		{ children... }
 	</div>
 }
 
 templ FiveColumnContainer() {
-	<div class="grid relative grid-cols-1 gap-x-2 gap-y-4 px-4 w-full sm:mx-auto sm:max-w-5xl lg:grid-cols-5">
+	<div class="grid relative grid-cols-1 gap-x-2 gap-y-4 p-4 w-full sm:mx-auto sm:max-w-5xl lg:grid-cols-5">
+		{ children... }
+	</div>
+}
+
+templ BreadcrumbContainer() {
+	<div class="flex flex-col flex-wrap gap-2 p-4 w-full sm:flex-row md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
 		{ children... }
 	</div>
 }

@@ -497,7 +497,7 @@ export function AddTextPrompt({
           </label>
           <textarea
             {...registerReturn}
-            id="text"
+            id="textPrompt"
             className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
           />
         </div>

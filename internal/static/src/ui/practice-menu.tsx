@@ -45,7 +45,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
         >
           <Menu.Items
             // @ts-ignore
-            className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-green-50/90 shadow-lg  ring-1 ring-black ring-opacity-5 backdrop-blur focus:outline-none"
+            className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-white shadow-lg  ring-1 ring-black ring-opacity-5 backdrop-blur focus:outline-none"
             as="nav"
           >
             <ul className="flex flex-col gap-0">
@@ -54,7 +54,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
                   key={link.href}
                   as="li"
                   // @ts-ignore
-                  className="w-full text-lg font-semibold text-green-900 first:rounded-t-lg last:rounded-b-lg hover:bg-neutral-800/10"
+                  className="w-full text-lg font-semibold text-green-950 first:rounded-t-lg last:rounded-b-lg hover:bg-green-500/20"
                 >
                   <Link
                     href={link.href}

@@ -224,7 +224,13 @@ function SinglePractice({
       while (
         !nextSpotId ||
         (nextSpotId && skipSpotIds.includes(nextSpotId)) ||
-        (nextSpotId && lastTwoSpots.includes(nextSpotId))
+        // check if the last two spots are the same and also the same as the next spot
+        // but only if the skip spots is more than one smaller than the spots, otherwise
+        // there is only one spot left and it will infinitely loop
+        (nextSpotId &&
+          spots.length - 1 > skipSpotIds.length &&
+          lastTwoSpots[0] === lastTwoSpots[1] &&
+          lastTwoSpots[1] === nextSpotId)
       ) {
         nextSpotIdx = Math.floor(Math.random() * spots.length);
         nextSpotId = spots[nextSpotIdx]?.id;
@@ -266,14 +272,23 @@ function SinglePractice({
       let nextSpotId = spots[nextSpotIdx]?.id;
       while (
         !nextSpotId ||
-        (nextSpotId && newSkipSpotIds.includes(nextSpotId))
+        (nextSpotId && newSkipSpotIds.includes(nextSpotId)) ||
+        // check if the last two spots are the same and also the same as the next spot
+        // but only if the skip spots is more than one smaller than the spots, otherwise
+        // there is only one spot left and it will infinitely loop
+        (nextSpotId &&
+          spots.length - 1 > newSkipSpotIds.length &&
+          lastTwoSpots[0] === lastTwoSpots[1] &&
+          lastTwoSpots[1] === nextSpotId)
       ) {
         nextSpotIdx = Math.floor(Math.random() * spots.length);
         nextSpotId = spots[nextSpotIdx]?.id;
       }
 
       setSkipSpotIds(newSkipSpotIds);
+
       setCurrentSpotIdx(nextSpotIdx);
+      setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
     },
     [spots, currentSpotIdx, skipSpotIds, addSpotRep, handleDone],
   );

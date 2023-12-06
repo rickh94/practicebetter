@@ -24,7 +24,7 @@ export function AddSpotForm({
       resolver: yupResolver(spotFormData),
       defaultValues: {
         name: "",
-        idx: nextSpotIdx + 1,
+        idx: nextSpotIdx,
         measures: "",
         audioPromptUrl: "",
         textPrompt: "",
@@ -48,10 +48,9 @@ export function AddSpotForm({
     });
     reset();
     setIsUpdating(false);
-    document.getElementById("spot-count").textContent = `(${nextSpotIdx + 1})`;
+    document.getElementById("spot-count").textContent = `(${nextSpotIdx})`;
     setNextSpotIdx(nextSpotIdx + 1);
     setValue("idx", nextSpotIdx + 1);
-    setTimeout(() => {}, 100);
   }
 
   return (

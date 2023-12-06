@@ -6,14 +6,14 @@ import "practicebetter/internal/components"
 templ EditPiecePage(s pages.ServerUtil, csrf string, title string, id string, pieceData string, spotsData string) {
 	<title>{ title } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.HeadingText(title), components.AccountLink())) {
-		<div class="flex flex-col gap-2 py-8 px-4 w-full sm:flex-row sm:gap-4 sm:justify-start sm:items-center sm:mx-auto sm:max-w-5xl">
+		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: title, Href: "/library/pieces/"+id, Active: false },
 					{ Label: "Edit", Href: "/library/pieces/"+id+"/edit", Active: true },
 				})
-		</div>
+		}
 		<div class="px-4 w-full sm:mx-auto sm:max-w-5xl">
 			<edit-piece-form csrf={ csrf } piece={ pieceData } spots={ spotsData } pieceid={ id }></edit-piece-form>
 		</div>

@@ -3,6 +3,7 @@ export default {
   content: [
     "./internal/**/*.templ",
     "./internal/static/**/*.js",
+    "./internal/components/**/*.go",
     "./internal/static/src/**/*.{ts,tsx,html,css}",
     "./internal/static/src/*.{ts,tsx,html,css}",
   ],

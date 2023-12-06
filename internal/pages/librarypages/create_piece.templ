@@ -6,17 +6,17 @@ import "practicebetter/internal/components"
 templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 	<title>Create Piece | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText("Create Piece") , components.AccountLink())) {
-		<div class="flex flex-col gap-2 py-8 px-4 w-full sm:flex-row sm:gap-4 sm:justify-start sm:items-center sm:mx-auto sm:max-w-5xl">
+		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: "New", Href: "/library/pieces/create", Active: true },
 				})
-		</div>
+		}
 		<div class="px-4 w-full sm:mx-auto sm:max-w-5xl">
 			<p class="text-lg">
 				Create a new piece to practice below. You can always edit it later.
-				Add spots below (up to 40).
+				Add spots below.
 			</p>
 			<create-piece-form csrf={ csrf }></create-piece-form>
 		</div>

@@ -61,7 +61,7 @@ CREATE TABLE spots (
     notes_prompt TEXT NOT NULL DEFAULT '',
     text_prompt TEXT NOT NULL DEFAULT '',
     current_tempo INTEGER,
-    CHECK(stage IN ('repeat', 'random', 'interleave', 'interleave_days', 'complete')),
+    CHECK(stage IN ('repeat', 'random', 'interleave', 'interleave_days', 'completed')),
     CHECK(LENGTH(name) > 0),
     PRIMARY KEY (id),
     CONSTRAINT piece FOREIGN KEY (piece_id) REFERENCES pieces (

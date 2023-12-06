@@ -10,7 +10,7 @@ import "practicebetter/internal/heroicons"
 templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int) {
 	<title>Pieces | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText("Your Pieces") , components.AccountLink())) {
-		<div class="flex flex-col gap-2 py-8 px-4 w-full sm:flex-row sm:gap-4 sm:justify-start sm:items-center sm:mx-auto sm:max-w-5xl">
+		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: true },
@@ -21,7 +21,7 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 					New Piece
 				}
 			</div>
-		</div>
+		}
 		<ul class="grid flex-grow grid-cols-1 gap-x-2 gap-y-4 px-4 w-full list-none sm:grid-cols-2 sm:mx-auto sm:max-w-5xl">
 			for _, piece := range pieces {
 				@components.PieceCard(piece.ID, piece.Title, composerOrDefault(piece.Composer), piece.ActiveSpots, piece.CompletedSpots)
@@ -69,7 +69,7 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 				<a
  					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
  					href={ templ.SafeURL("/library/pieces?page=" + strconv.Itoa(page-1)) }
- 					hx-get={ "/library/pieces?page=" + strconv.Itoa(page-1) }
+ 					hx-get={ "/library/pieces?page=" + strconv.Itoa(page+1) }
  					hx-swap="outerHTML"
  					hx-target="#main-content"
  					hx-push-url="true"

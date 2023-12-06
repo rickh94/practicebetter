@@ -35,8 +35,8 @@ export function PieceFormFields({
   return (
     <>
       <div className="flex w-full flex-col">
-        <div className="grid-cols-1 gap-x-0 py-2 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-5 md:gap-x-4">
-          <div className="flex flex-col gap-1 sm:col-span-2">
+        <div className="grid-cols-1 gap-x-0 py-2 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-2 md:gap-x-4">
+          <div className="flex flex-col gap-1">
             <label
               className="text-sm font-medium leading-6 text-neutral-900"
               htmlFor="title"
@@ -56,7 +56,7 @@ export function PieceFormFields({
               </p>
             )}
           </div>
-          <div className="flex flex-col gap-1 sm:col-span-2">
+          <div className="flex flex-col gap-1">
             <label
               className="text-sm font-medium leading-6 text-neutral-900"
               htmlFor="composer"
@@ -76,6 +76,8 @@ export function PieceFormFields({
               </p>
             )}
           </div>
+        </div>
+        <div className="grid-cols-1 py-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-3">
           <div className="flex flex-col gap-1">
             <label
               className="text-sm font-medium leading-6 text-neutral-900"
@@ -96,8 +98,6 @@ export function PieceFormFields({
               </p>
             )}
           </div>
-        </div>
-        <div className="grid-cols-1 py-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-6">
           <div className="flex flex-col gap-1">
             <label
               className="text-sm font-medium leading-6 text-neutral-900"
