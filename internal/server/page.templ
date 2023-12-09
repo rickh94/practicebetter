@@ -1,8 +1,8 @@
 package server
 
-templ Page(s *Server, contents templ.Component) {
+templ Page(s *Server, contents templ.Component, title string) {
 	<!DOCTYPE html>
-	@Head(s)
+	@Head(s, title)
 	@Body(s) {
 		@contents
 	}
@@ -18,11 +18,15 @@ templ Page(s *Server, contents templ.Component) {
 */
 // TODO: add favicon and opengraph
 
-templ Head(s *Server) {
+templ Head(s *Server, title string) {
 	<head>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-		<title>Practice Better</title>
+		if title == "" {
+			<title>Practice Better</title>
+		} else {
+			<title>{ title } | Practice Better</title>
+		}
 		<link rel="stylesheet" href={ s.StaticUrl("css/main.css") }/>
 		<link
  			rel="apple-touch-icon"

@@ -26,6 +26,15 @@ INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
 ORDER BY spots.idx;
 
+-- name: ListHighPrioritySpots :many
+SELECT
+    spots.*,
+    pieces.title AS piece_title
+FROM spots
+INNER JOIN pieces ON pieces.id = spots.piece_id
+WHERE pieces.user_id = :user_id AND spots.priority < 0
+ORDER BY spots.priority;
+
 -- name: GetSpot :one
 SELECT
     spots.*,
@@ -48,9 +57,29 @@ SET
     measures = ?
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
--- name: RepeatPracticeSpot :exec
+-- name: UpdateSpotPriority :exec
 UPDATE spots
-SET stage = CASE WHEN stage = 'repeat' THEN 'random' ELSE stage END
+SET
+    priority = :priority
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
+
+-- name: PromoteToRandom :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'repeat' OR stage = 'more_repeat' THEN 'random' ELSE stage END,
+    last_practiced = unixepoch('now')
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
+
+-- name: PromoteToMoreRepeat :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'repeat' THEN 'more_repeat' ELSE stage END,
+    last_practiced = unixepoch('now')
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
+
+-- name: UpdateSpotPracticed :exec
+UPDATE spots
+SET last_practiced = unixepoch('now')
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
 -- name: DeleteSpot :exec

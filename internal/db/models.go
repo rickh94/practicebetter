@@ -60,6 +60,8 @@ type Spot struct {
 	NotesPrompt    string
 	TextPrompt     string
 	CurrentTempo   sql.NullInt64
+	LastPracticed  sql.NullInt64
+	Priority       int64
 }
 
 type User struct {

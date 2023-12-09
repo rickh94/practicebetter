@@ -137,6 +137,11 @@ SET
 WHERE id = ? AND user_id = ?
 RETURNING *;
 
+-- name: UpdatePiecePracticed :exec
+UPDATE pieces
+SET last_practiced = unixepoch('now')
+WHERE pieces.id = :piece_id AND user_id = :user_id;
+
 -- name: DeletePiece :exec
 DELETE FROM pieces
 WHERE id = ? AND user_id = ?

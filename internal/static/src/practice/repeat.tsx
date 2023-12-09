@@ -1,10 +1,10 @@
 import {
+  ArrowPathIcon,
   ArrowUpRightIcon,
   CheckIcon,
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useCallback, useEffect } from "react";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { RepeatPrepareText } from "./repeat-prepare-text";
 import {
@@ -12,6 +12,7 @@ import {
   BigHappyButton,
   GiantBasicButton,
   HappyButton,
+  SkyButton,
   WarningButton,
 } from "../ui/buttons";
 import { BasicSpot } from "../validators";
@@ -23,6 +24,7 @@ import {
   ImagePromptSummary,
 } from "../ui/prompts";
 import { ListBulletIcon, MusicalNoteIcon } from "@heroicons/react/24/solid";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 type RepeatMode = "prepare" | "practice" | "break_success" | "break_fail";
 
@@ -67,7 +69,35 @@ export function Repeat({
   const setModeBreakSuccess = useCallback(
     function () {
       setMode("break_success");
+      if (
+        spot?.stage !== "repeat" &&
+        spot?.stage !== "more_repeat" &&
+        pieceid &&
+        csrf &&
+        startTime &&
+        spot?.id
+      ) {
+        const durationMinutes = Math.ceil(
+          (new Date().getTime() - startTime) / 1000 / 60,
+        );
+        document.dispatchEvent(
+          new CustomEvent("FinishedRepeatPracticing", {
+            detail: {
+              success: true,
+              durationMinutes,
+              csrf,
+              toStage: "",
+              endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
+            },
+          }),
+        );
+      }
+    },
+    [setMode, pieceid, csrf, startTime, spot, spot?.id],
+  );
 
+  const promoteSpot = useCallback(
+    function (toStage: string) {
       if (pieceid && csrf && startTime && spot?.id) {
         const durationMinutes = Math.ceil(
           (new Date().getTime() - startTime) / 1000 / 60,
@@ -78,13 +108,14 @@ export function Repeat({
               success: true,
               durationMinutes,
               csrf,
+              toStage,
               endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
             },
           }),
         );
       }
     },
-    [setMode, pieceid, csrf, startTime, spot, spot?.id],
+    [pieceid, csrf, startTime, spot, spot?.id],
   );
 
   const setModeBreakFail = useCallback(
@@ -96,9 +127,10 @@ export function Repeat({
         document.dispatchEvent(
           new CustomEvent("FinishedRepeatPracticing", {
             detail: {
-              success: true,
+              success: false,
               durationMinutes,
               csrf,
+              toStage: "",
               endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
             },
           }),
@@ -127,6 +159,10 @@ export function Repeat({
               <RepeatBreakSuccess
                 restart={setModePrepare}
                 pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
+                canPromote={
+                  spot?.stage === "repeat" || spot?.stage === "more_repeat"
+                }
+                promoteSpot={promoteSpot}
               />
             ),
             break_fail: (
@@ -312,59 +348,137 @@ function PracticeListItem({
 function RepeatBreakSuccess({
   restart,
   pieceHref,
+  canPromote,
+  promoteSpot,
 }: {
   restart: () => void;
   pieceHref?: string;
+  canPromote: boolean;
+  promoteSpot: (toStage: string) => void;
 }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const close = useCallback(
+    function () {
+      if (dialogRef.current) {
+        dialogRef.current.classList.add("close");
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (dialogRef.current) {
+              dialogRef.current.classList.remove("close");
+              dialogRef.current.close();
+            }
+          });
+        });
+      }
+    },
+    [dialogRef],
+  );
+
+  const handleRandom = useCallback(
+    function () {
+      promoteSpot("random");
+      close();
+    },
+    [close, promoteSpot],
+  );
+  const handleMoreRepeat = useCallback(
+    function () {
+      promoteSpot("more_repeat");
+      close();
+    },
+    [close, promoteSpot],
+  );
+
+  useEffect(() => {
+    if (dialogRef.current) {
+      if (canPromote) {
+        dialogRef.current.showModal();
+      }
+    }
+  }, [canPromote, dialogRef.current]);
+
   return (
-    <div className="flex w-full flex-col items-center sm:mx-auto sm:max-w-3xl">
-      <h1 className="py-1 text-center text-2xl font-bold">You did it!</h1>
-      <p className="text-center text-base">
-        Great job completing your five times in a row!
-      </p>
-      <div className="my-8 flex w-full flex-col justify-center gap-4 sm:flex-row sm:gap-6">
-        {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
-        {pieceHref ? (
-          <WarningLink href={`${pieceHref}/practice/random-single`}>
-            <MusicalNoteIcon className="-ml-1 h-5 w-5" />
-            Try Random Practicing
-          </WarningLink>
-        ) : (
-          <WarningLink href="/practice/random-single">
-            <MusicalNoteIcon className="-ml-1 h-5 w-5" />
-            Try Random Practicing
-          </WarningLink>
-        )}
-        {pieceHref ? (
-          <HappyLink href={`${pieceHref}/practice/repeat`}>
-            <ListBulletIcon className="-ml-1 h-5 w-5" />
-            Practice Another Spot
-          </HappyLink>
-        ) : (
-          <HappyButton onClick={restart}>
-            <MusicalNoteIcon className="-ml-1 h-5 w-5" />
-            Practice Another Spot
+    <>
+      <dialog
+        ref={dialogRef}
+        aria-labelledby="add-text-prompt-title"
+        className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
+      >
+        <header className="mt-2 text-center sm:text-left">
+          <h3
+            id="add-text-prompt-title"
+            className="text-2xl font-semibold leading-6 text-neutral-900"
+          >
+            Promote Spot
+          </h3>
+        </header>
+        <div className="prose prose-sm prose-neutral mt-2 text-left">
+          Now that you’ve repeat practiced your spot, it’s time to promote it to
+          the next stage. Choose below whether you feel ready to move on to
+          random practicing with this spot, or you feel it needs more repeat
+          practicing.
+        </div>
+        <div className="flex w-full flex-col gap-2 sm:flex-row">
+          <SkyButton grow onClick={handleMoreRepeat} className="mt-4 w-full">
+            <ArrowPathIcon className="h-6 w-6" />
+            More Repeat
+          </SkyButton>
+          <HappyButton grow onClick={handleRandom} className="mt-4 w-full">
+            <CheckIcon className="h-6 w-6" />
+            Random
           </HappyButton>
-        )}
+        </div>
+      </dialog>
+      <div className="flex w-full flex-col items-center sm:mx-auto sm:max-w-3xl">
+        <h1 className="py-1 text-center text-2xl font-bold">You did it!</h1>
+        <p className="text-center text-base">
+          Great job completing your five times in a row!
+        </p>
+        <div className="my-8 flex w-full flex-col justify-center gap-4 sm:flex-row sm:gap-6">
+          {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
+          {pieceHref ? (
+            <WarningLink href={`${pieceHref}/practice/random-single`}>
+              <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+              Try Random Practicing
+            </WarningLink>
+          ) : (
+            <WarningLink href="/practice/random-single">
+              <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+              Try Random Practicing
+            </WarningLink>
+          )}
+          {pieceHref ? (
+            <HappyLink href={`${pieceHref}/practice/repeat`}>
+              <ListBulletIcon className="-ml-1 h-5 w-5" />
+              Practice Another Spot
+            </HappyLink>
+          ) : (
+            <HappyButton onClick={restart}>
+              <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+              Practice Another Spot
+            </HappyButton>
+          )}
+        </div>
+        <div className="prose prose-neutral mt-8">
+          <h3 className="text-left text-lg">What to do now?</h3>
+          <p className="text-sm">Here are a few options for what to do next.</p>
+          <ul>
+            <li>
+              Take a moment to reflect on what allowed you to do this
+              successfully so you can recreate it in the future.
+            </li>
+            <li>Take a break to let your brain recover</li>
+            <li>
+              Play this spot again in a few minutes with the goal of playing it
+              correctly on the first try.
+            </li>
+            <li>Add this spot to your random practicing.</li>
+            <li>Repeat practice another spot.</li>
+          </ul>
+        </div>
       </div>
-      <div className="prose prose-neutral mt-8">
-        <h3 className="text-left text-lg">What to do now?</h3>
-        <p className="text-sm">Here are a few options for what to do next.</p>
-        <ul>
-          <li>
-            Take a moment to reflect on what allowed you to do this successfully
-            so you can recreate it in the future.
-          </li>
-          <li>Take a break to let your brain recover</li>
-          <li>
-            Play this spot again in a few minutes with the goal of playing it
-            correctly on the first try.
-          </li>
-          <li>Add this spot to your random practicing.</li>
-          <li>Repeat practice another spot.</li>
-        </ul>
-      </div>
-    </div>
+    </>
   );
 }
 

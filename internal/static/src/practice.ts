@@ -129,8 +129,8 @@ document.addEventListener(
 );
 
 async function handleFinishedRepeatPracticingEvent(e: CustomEvent) {
-  const { durationMinutes, csrf, endpoint, success } = e.detail;
-  if (!durationMinutes || !csrf || !endpoint) {
+  const { durationMinutes, csrf, endpoint, success, toStage } = e.detail;
+  if (!durationMinutes || !csrf || !endpoint || !toStage) {
     console.error("event missing data");
     return;
   }
@@ -140,7 +140,7 @@ async function handleFinishedRepeatPracticingEvent(e: CustomEvent) {
       "X-CSRF-Token": csrf,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ durationMinutes, success }),
+    body: JSON.stringify({ durationMinutes, success, toStage }),
   });
   if (res.ok) {
     if (success) {

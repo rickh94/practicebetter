@@ -10,6 +10,7 @@ const optionalPosInt = yup
 
 export const spotStages = [
   "repeat",
+  "more_repeat",
   "random",
   "interleave",
   "interleave_days",

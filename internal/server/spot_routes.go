@@ -37,7 +37,7 @@ func (s *Server) singleSpot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token))
+	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token), spot.Name+" - "+spot.PieceTitle)
 }
 
 func (s *Server) addSpotPage(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +54,23 @@ func (s *Server) addSpotPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
-	s.HxRender(w, r, librarypages.AddSpotPage(s, token, pieceID, spots))
+	var pieceTitle string
+	if len(spots) > 0 {
+		pieceTitle = spots[0].PieceTitle
+	} else {
+		piece, err := queries.GetPieceWithoutSpots(r.Context(), db.GetPieceWithoutSpotsParams{
+			ID:     pieceID,
+			UserID: user.ID,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not find matching piece", http.StatusNotFound)
+			return
+		}
+		pieceTitle = piece.Title
+	}
+
+	s.HxRender(w, r, librarypages.AddSpotPage(s, token, pieceID, pieceTitle, spots), pieceTitle)
 }
 
 func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
@@ -162,7 +178,7 @@ func (s *Server) editSpot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.EditSpot(s, spot, string(spotJson), token))
+	s.HxRender(w, r, librarypages.EditSpot(s, spot, string(spotJson), token), spot.PieceTitle)
 }
 
 func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
@@ -252,7 +268,7 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 		Duration: 3000,
 	})
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token))
+	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token), spot.Name+" - "+spot.PieceTitle)
 }
 
 func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
@@ -340,12 +356,13 @@ func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {
 	spotJson, err := json.Marshal(spotData)
 
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.SpotPracticeRepeatPage(s, spot, token, string(spotJson)))
+	s.HxRender(w, r, librarypages.SpotPracticeRepeatPage(s, spot, token, string(spotJson)), spot.Name+" - "+spot.PieceTitle)
 }
 
 type RepeatPracticeInfo struct {
 	DurationMinutes int64
 	Success         bool
+	ToStage         string
 }
 
 func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Request) {
@@ -362,18 +379,6 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 	defer tx.Rollback()
 
 	qtx := queries.WithTx(tx)
-
-	if err := qtx.RepeatPracticeSpot(r.Context(), db.RepeatPracticeSpotParams{
-		SpotID:  spotID,
-		UserID:  user.ID,
-		PieceID: pieceID,
-	}); err != nil {
-		// TODO: create a pretty 404 handler
-		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching spot"))
-		return
-	}
 
 	var info RepeatPracticeInfo
 	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
@@ -405,6 +410,31 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if info.Success {
+		switch info.ToStage {
+		case "random":
+			if err := qtx.PromoteToRandom(r.Context(), db.PromoteToRandomParams{
+				UserID:  user.ID,
+				PieceID: pieceID,
+				SpotID:  spotID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not promote to random", http.StatusInternalServerError)
+				return
+			}
+		case "more_repeat":
+			if err := qtx.PromoteToMoreRepeat(r.Context(), db.PromoteToMoreRepeatParams{
+				UserID:  user.ID,
+				PieceID: pieceID,
+				SpotID:  spotID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not promote to more repeat", http.StatusInternalServerError)
+				return
+			}
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Could not commit practice session", http.StatusInternalServerError)
@@ -413,3 +443,62 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 }
+
+/*
+func (s *Server) updateSpotPriority(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	user := r.Context().Value("user").(db.User)
+	queries := db.New(s.DB)
+	r.ParseForm()
+	priority, err := strconv.Atoi(r.FormValue("priority"))
+	if err != nil || priority <= -3 || priority >= 3 {
+		log.Default().Println(err)
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid priority",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, "Invalid priority", http.StatusBadRequest)
+		return
+	}
+	err = queries.UpdateSpotPriority(r.Context(), db.UpdateSpotPriorityParams{
+		UserID:   user.ID,
+		PieceID:  pieceID,
+		SpotID:   spotID,
+		Priority: int64(priority),
+	})
+	if err != nil {
+		log.Default().Println(err)
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not update spot: " + err.Error(),
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+		SpotID:  spotID,
+		UserID:  user.ID,
+		PieceID: pieceID,
+	})
+	if err != nil {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	htmx.PushURL(r, "/library/pieces/"+pieceID+"/spots/"+spotID)
+	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		Message:  "This spot has been updated with your new values",
+		Title:    "Spot Updated!",
+		Variant:  "success",
+		Duration: 3000,
+	})
+	token := csrf.Token(r)
+	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token), spot.Name+" - "+spot.PieceTitle)
+}
+*/

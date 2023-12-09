@@ -113,10 +113,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	return r
 }
 
-func (s *Server) HxRender(w http.ResponseWriter, r *http.Request, component templ.Component) {
+func (s *Server) HxRender(w http.ResponseWriter, r *http.Request, component templ.Component, title string) {
 	hxRequest := htmx.Request(r)
 	if hxRequest == nil || hxRequest.Boosted {
-		component = Page(s, component)
+		component = Page(s, component, title)
 	}
 	w.Header().Set("Content-Type", "text/html")
 	component.Render(r.Context(), w)

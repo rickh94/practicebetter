@@ -28,7 +28,31 @@ func (s *Server) startLogin(w http.ResponseWriter, r *http.Request) {
 	if nextLoc == "" {
 		nextLoc = "/auth/me"
 	}
-	s.HxRender(w, r, authpages.StartLoginPage(csrfToken, nextLoc))
+	cookie, err := r.Cookie("rememberEmail")
+	if err != nil {
+		s.HxRender(w, r, authpages.StartLoginPage(csrfToken, nextLoc), "Login")
+		return
+	}
+	queries := db.New(s.DB)
+	user, err := queries.GetUserForLogin(r.Context(), cookie.Value)
+	if err != nil {
+		http.SetCookie(w, &http.Cookie{
+			Name:   "rememberEmail",
+			Value:  "",
+			MaxAge: -1,
+		})
+		s.HxRender(w, r, authpages.StartLoginPage(csrfToken, nextLoc), "Login")
+		return
+	}
+
+	s.SM.Put(r.Context(), "rememberMe", true)
+	if user.CredentialCount == 0 || !user.EmailVerified.Bool {
+		s.continueOtpSignIn(w, r, user.Email, nextLoc)
+		return
+	} else {
+		s.continuePasskeySignIn(w, r, user, nextLoc)
+		return
+	}
 }
 
 // TODO: error message for code
@@ -48,6 +72,10 @@ func (s *Server) continueLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userEmail = strings.ToLower(userEmail)
+	remember := r.Form.Get("remember")
+	if remember == "on" {
+		s.SM.Put(r.Context(), "rememberMe", true)
+	}
 
 	nextLoc := r.Form.Get("next")
 	if nextLoc == "" {
@@ -85,7 +113,7 @@ func (s *Server) continueOtpSignIn(w http.ResponseWriter, r *http.Request, userE
 		Variant:  "success",
 		Duration: 3000,
 	})
-	s.HxRender(w, r, authpages.FinishCodeLoginPage(token, nextLoc))
+	s.HxRender(w, r, authpages.FinishCodeLoginPage(token, nextLoc), "Login")
 
 	return
 }
@@ -98,7 +126,7 @@ func (s *Server) continuePasskeySignIn(w http.ResponseWriter, r *http.Request, u
 		s.continueOtpSignIn(w, r, user.Email, nextLoc)
 		return
 	}
-	s.HxRender(w, r, authpages.FinishPasskeyLoginPage(options, token, nextLoc))
+	s.HxRender(w, r, authpages.FinishPasskeyLoginPage(options, token, nextLoc), "Login")
 	return
 }
 
@@ -132,6 +160,18 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 			// TODO: re-render the form with an error
 			return
 		}
+		if s.SM.Get(r.Context(), "rememberMe").(bool) {
+			cookie := http.Cookie{
+				Name:     "rememberEmail",
+				Value:    user.Email,
+				Path:     "/",
+				MaxAge:   60 * 60 * 24 * 7,
+				HttpOnly: true,
+				Secure:   true,
+				SameSite: http.SameSiteStrictMode,
+			}
+			http.SetCookie(w, &cookie)
+		}
 		s.LoginUser(r.Context(), user.ID)
 		s.Redirect(w, r, nextLoc)
 		return
@@ -159,8 +199,19 @@ func (s *Server) completePasskeySignin(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "error", "message": "Failed to log in"})
 		return
 	} else {
+		if s.SM.Get(r.Context(), "rememberMe").(bool) {
+			cookie := http.Cookie{
+				Name:     "rememberEmail",
+				Value:    user.Email,
+				Path:     "/",
+				MaxAge:   60 * 60 * 24 * 7,
+				HttpOnly: true,
+				Secure:   true,
+				SameSite: http.SameSiteStrictMode,
+			}
+			http.SetCookie(w, &cookie)
+		}
 		s.LoginUser(r.Context(), user.ID)
-		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok", "redirect": "/auth/me"})
 		return
@@ -168,6 +219,15 @@ func (s *Server) completePasskeySignin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) logoutUserRoute(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "rememberEmail",
+		Value:    "",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		Path:     "/",
+		MaxAge:   -1,
+	})
 	s.LogoutUser(r.Context())
 	s.Redirect(w, r, "/")
 }
@@ -190,7 +250,7 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 
 	token := csrf.Token(r)
 	component := authpages.MePage(user, registrationOptions, token, fmt.Sprintf("%d", credentialCount))
-	s.HxRender(w, r, component)
+	s.HxRender(w, r, component, "Account")
 }
 
 func (s *Server) editProfile(w http.ResponseWriter, r *http.Request) {

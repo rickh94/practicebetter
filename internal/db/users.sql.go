@@ -111,11 +111,11 @@ func (q *Queries) DeleteUserCredentials(ctx context.Context, userID string) erro
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, fullname, email, email_verified
 FROM users
-WHERE email = LOWER(?)
+WHERE email = LOWER(?1)
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, lower string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByEmail, lower)
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -190,7 +190,7 @@ SELECT
     COUNT(credentials.credential_id) AS credential_count
 FROM users
 LEFT JOIN credentials ON users.id = credentials.user_id
-WHERE users.email = LOWER(?)
+WHERE users.email = LOWER(?1)
 `
 
 type GetUserForLoginRow struct {
@@ -201,8 +201,8 @@ type GetUserForLoginRow struct {
 	CredentialCount int64
 }
 
-func (q *Queries) GetUserForLogin(ctx context.Context, lower string) (GetUserForLoginRow, error) {
-	row := q.db.QueryRowContext(ctx, getUserForLogin, lower)
+func (q *Queries) GetUserForLogin(ctx context.Context, email string) (GetUserForLoginRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserForLogin, email)
 	var i GetUserForLoginRow
 	err := row.Scan(
 		&i.ID,

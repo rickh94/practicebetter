@@ -98,6 +98,79 @@ func (q *Queries) GetPracticeSession(ctx context.Context, arg GetPracticeSession
 	return i, err
 }
 
+const getRecentPracticeSessions = `-- name: GetRecentPracticeSessions :many
+SELECT practice_sessions.id, practice_sessions.duration_minutes, practice_sessions.date, practice_sessions.user_id,
+    practice_piece.measures AS practice_piece_measures,
+    pieces.title AS piece_title,
+    pieces.id AS piece_id,
+    pieces.composer AS piece_composer,
+    spots.name AS spot_name,
+    spots.id AS spot_id,
+    spots.measures AS spot_measures,
+    spots.piece_id AS spot_piece_id,
+    (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id) AS spot_piece_title
+FROM practice_sessions
+LEFT JOIN practice_piece ON practice_sessions.id = practice_piece.practice_session_id
+LEFT JOIN pieces ON practice_piece.piece_id = pieces.id
+LEFT JOIN practice_spot ON practice_sessions.id = practice_spot.practice_session_id
+LEFT JOIN spots ON practice_spot.spot_id = spots.id
+WHERE practice_sessions.user_id = ?1 AND practice_sessions.date <= (unixepoch('now') - 7 * 24 * 60 * 60)
+ORDER BY date DESC
+`
+
+type GetRecentPracticeSessionsRow struct {
+	ID                    string
+	DurationMinutes       int64
+	Date                  int64
+	UserID                string
+	PracticePieceMeasures sql.NullString
+	PieceTitle            sql.NullString
+	PieceID               sql.NullString
+	PieceComposer         sql.NullString
+	SpotName              sql.NullString
+	SpotID                sql.NullString
+	SpotMeasures          sql.NullString
+	SpotPieceID           sql.NullString
+	SpotPieceTitle        sql.NullString
+}
+
+func (q *Queries) GetRecentPracticeSessions(ctx context.Context, userID string) ([]GetRecentPracticeSessionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getRecentPracticeSessions, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRecentPracticeSessionsRow
+	for rows.Next() {
+		var i GetRecentPracticeSessionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DurationMinutes,
+			&i.Date,
+			&i.UserID,
+			&i.PracticePieceMeasures,
+			&i.PieceTitle,
+			&i.PieceID,
+			&i.PieceComposer,
+			&i.SpotName,
+			&i.SpotID,
+			&i.SpotMeasures,
+			&i.SpotPieceID,
+			&i.SpotPieceTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const practicePiece = `-- name: PracticePiece :exec
 INSERT INTO practice_piece (
     piece_id,

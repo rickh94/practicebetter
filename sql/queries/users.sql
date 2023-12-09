@@ -5,7 +5,7 @@ RETURNING *;
 -- name: GetUserByEmail :one
 SELECT *
 FROM users
-WHERE email = LOWER(?);
+WHERE email = LOWER(:email);
 
 -- name: GetUserByID :one
 SELECT *
@@ -21,7 +21,7 @@ SELECT
     COUNT(credentials.credential_id) AS credential_count
 FROM users
 LEFT JOIN credentials ON users.id = credentials.user_id
-WHERE users.email = LOWER(?);
+WHERE users.email = LOWER(:email);
 
 -- name: UpdateUser :one
 UPDATE users

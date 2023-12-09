@@ -22,12 +22,21 @@ func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(s.DB)
 	user := r.Context().Value("user").(db.User)
 	pieces, err := queries.ListRecentlyPracticedPieces(r.Context(), user.ID)
+	practiceSessions, err := queries.GetRecentPracticeSessions(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
-	s.HxRender(w, r, librarypages.Dashboard(pieces))
+	for _, row := range practiceSessions {
+		log.Default().Println(row)
+	}
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	s.HxRender(w, r, librarypages.Dashboard(pieces), "Library")
 }
 
 type PieceFormData struct {
@@ -169,7 +178,7 @@ func (s *Server) uploadAudio(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) uploadAudioForm(w http.ResponseWriter, r *http.Request) {
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.UploadAudioForm(token))
+	s.HxRender(w, r, librarypages.UploadAudioForm(token), "Upload Audio")
 
 }
 
@@ -253,7 +262,7 @@ func (s *Server) uploadImage(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) uploadImageForm(w http.ResponseWriter, r *http.Request) {
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.UploadImageForm(token))
+	s.HxRender(w, r, librarypages.UploadImageForm(token), "Upload Image")
 
 }
 

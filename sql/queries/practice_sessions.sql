@@ -45,3 +45,22 @@ INSERT INTO practice_spot (
     ?
 );
 
+
+-- name: GetRecentPracticeSessions :many
+SELECT practice_sessions.*,
+    practice_piece.measures AS practice_piece_measures,
+    pieces.title AS piece_title,
+    pieces.id AS piece_id,
+    pieces.composer AS piece_composer,
+    spots.name AS spot_name,
+    spots.id AS spot_id,
+    spots.measures AS spot_measures,
+    spots.piece_id AS spot_piece_id,
+    (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id) AS spot_piece_title
+FROM practice_sessions
+LEFT JOIN practice_piece ON practice_sessions.id = practice_piece.practice_session_id
+LEFT JOIN pieces ON practice_piece.piece_id = pieces.id
+LEFT JOIN practice_spot ON practice_sessions.id = practice_spot.practice_session_id
+LEFT JOIN spots ON practice_spot.spot_id = spots.id
+WHERE practice_sessions.user_id = :user_id AND practice_sessions.date <= (unixepoch('now') - 7 * 24 * 60 * 60)
+ORDER BY date DESC;

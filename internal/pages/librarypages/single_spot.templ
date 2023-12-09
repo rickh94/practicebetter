@@ -77,7 +77,7 @@ templ StageReadMoreDialog() {
 }
 
 templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
-	<title>{ spot.Name } | { spot.PieceTitle } | Practice Better</title>
+	<title>{ spot.Name } - { spot.PieceTitle } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(spot.Name + " - " + spot.PieceTitle) , components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{

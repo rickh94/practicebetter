@@ -26,6 +26,8 @@ export function getStageDisplayName(stage: string) {
   switch (stage) {
     case "repeat":
       return "Repeat Practice";
+    case "more_repeat":
+      return "Extra Repeat Practice";
     case "random":
       return "Random Practice";
     case "interleave":

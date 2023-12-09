@@ -51,6 +51,26 @@ templ GreenButton(buttonType string, onClick templ.ComponentScript) {
 	</button>
 }
 
+templ SkyButton(buttonType string, onClick templ.ComponentScript) {
+	<button
+ 		type={ buttonType }
+ 		onclick={ onClick }
+ 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 text-sky-800 bg-sky-700/10 hover:bg-sky-700/20 focusable"
+	>
+		{ children... }
+	</button>
+}
+
+templ YellowButton(buttonType string, onClick templ.ComponentScript) {
+	<button
+ 		type={ buttonType }
+ 		onclick={ onClick }
+ 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+	>
+		{ children... }
+	</button>
+}
+
 templ RedButton(buttonType string, onClick templ.ComponentScript) {
 	<button
  		type={ buttonType }

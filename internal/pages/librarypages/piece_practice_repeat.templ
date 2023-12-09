@@ -5,7 +5,27 @@ import "practicebetter/internal/components"
 import "practicebetter/internal/heroicons"
 
 // TODO: add back to piece and other useful links to practicing pages
-// TODO: add button to hide other spots
+// TODO: add button to hide/show other spots
+
+script showAllSpots() {
+	const spots = document.querySelectorAll('.spot-card');
+	for (const spot of spots) {
+		spot.classList.remove('hidden');
+	}
+	document.getElementById('show-all-spots-button').classList.add('hidden');
+	document.getElementById('hide-other-spots-button').classList.remove('hidden');
+}
+
+script hideOtherSpots() {
+	const spots = document.querySelectorAll('.spot-card');
+	for (const spot of spots) {
+		if (!(spot.dataset.spotStage === 'repeat' || spot.dataset.spotStage === 'more_repeat')) {
+			spot.classList.add('hidden');
+		}
+	}
+	document.getElementById('show-all-spots-button').classList.remove('hidden');
+	document.getElementById('hide-other-spots-button').classList.add('hidden');
+}
 
 templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 	<title>{ piece[0].Title } | Practice Better</title>
@@ -24,6 +44,22 @@ templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 					<h2 class="py-1 text-2xl font-bold text-center">
 						Choose a spot to Repeat Practice
 					</h2>
+					<button
+ 						type="button"
+ 						onclick={ hideOtherSpots() }
+ 						class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+ 						id="hide-other-spots-button"
+					>
+						Hide Other Spots
+					</button>
+					<button
+ 						type="button"
+ 						onclick={ showAllSpots() }
+ 						class="hidden gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+ 						id="show-all-spots-button"
+					>
+						Show All Spots
+					</button>
 				</div>
 				<ul class="grid grid-cols-1 gap-4 list-none sm:grid-cols-2 md:grid-cols-3">
 					for _, spot := range piece {

@@ -16,7 +16,7 @@ export function RepeatPrepareText() {
                 start and stop?
               </li>
               <li>What makes it difficult?</li>
-              <li>What will you think about prefore you play?</li>
+              <li>What will you think about before you play?</li>
               <li>What will you think about while you are playing?</li>
             </ul>
           </div>

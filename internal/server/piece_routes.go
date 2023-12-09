@@ -19,7 +19,7 @@ import (
 
 func (s *Server) createPieceForm(w http.ResponseWriter, r *http.Request) {
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.CreatePiecePage(s, token))
+	s.HxRender(w, r, librarypages.CreatePiecePage(s, token), "Create Piece")
 }
 
 func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
@@ -176,7 +176,7 @@ func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	s.HxRender(w, r, librarypages.PieceList(pieces, pageNum, totalPages))
+	s.HxRender(w, r, librarypages.PieceList(pieces, pageNum, totalPages), "Pieces")
 }
 
 func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
@@ -194,7 +194,7 @@ func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.SinglePiece(s, token, piece))
+	s.HxRender(w, r, librarypages.SinglePiece(s, token, piece), piece[0].Title)
 }
 
 func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
@@ -236,7 +236,7 @@ func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 		Duration: 3000,
 	})
 	w.WriteHeader(http.StatusOK)
-	s.HxRender(w, r, librarypages.PieceList(pieces, 1, totalPages))
+	s.HxRender(w, r, librarypages.PieceList(pieces, 1, totalPages), "Pieces")
 }
 
 func (s *Server) editPiece(w http.ResponseWriter, r *http.Request) {
@@ -295,7 +295,7 @@ func (s *Server) editPiece(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.EditPiecePage(s, token, pieceFormData.Title, pieceID, string(pieceJson), string(spotsJson)))
+	s.HxRender(w, r, librarypages.EditPiecePage(s, token, pieceFormData.Title, pieceID, string(pieceJson), string(spotsJson)), pieceFormData.Title)
 }
 
 func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
@@ -480,7 +480,7 @@ func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Req
 			http.Error(w, "Could not find matching piece", http.StatusNotFound)
 			return
 		}
-		s.HxRender(w, r, librarypages.PiecePracticeNoSpotsPage(piece[0].Title, piece[0].ID))
+		s.HxRender(w, r, librarypages.PiecePracticeNoSpotsPage(piece[0].Title, piece[0].ID), piece[0].Title)
 
 		return
 	}
@@ -519,7 +519,7 @@ func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Req
 		return
 	}
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.PiecePracticeRandomSpotsPage(s, token, piece, string(spotsData)))
+	s.HxRender(w, r, librarypages.PiecePracticeRandomSpotsPage(s, token, piece, string(spotsData)), piece[0].Title)
 }
 
 type PieceSpotsPracticeInfo struct {
@@ -570,6 +570,16 @@ func (s *Server) createSpotsPracticeSession(w http.ResponseWriter, r *http.Reque
 			http.Error(w, "Could not practice spot", http.StatusInternalServerError)
 			return
 		}
+
+		if err := qtx.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
+			SpotID:  spotID,
+			UserID:  user.ID,
+			PieceID: pieceID,
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not update spot", http.StatusInternalServerError)
+			return
+		}
 	}
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
@@ -599,7 +609,7 @@ func (s *Server) piecePracticeRandomSequencePage(w http.ResponseWriter, r *http.
 			http.Error(w, "Could not find matching piece", http.StatusNotFound)
 			return
 		}
-		s.HxRender(w, r, librarypages.PiecePracticeNoSpotsPage(piece[0].Title, piece[0].ID))
+		s.HxRender(w, r, librarypages.PiecePracticeNoSpotsPage(piece[0].Title, piece[0].ID), piece[0].Title)
 
 		return
 	}
@@ -638,7 +648,7 @@ func (s *Server) piecePracticeRandomSequencePage(w http.ResponseWriter, r *http.
 		return
 	}
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.PiecePracticeRandomSequencePage(s, token, piece, string(spotData)))
+	s.HxRender(w, r, librarypages.PiecePracticeRandomSequencePage(s, token, piece, string(spotData)), piece[0].Title)
 }
 
 func (s *Server) piecePracticeStartingPointPage(w http.ResponseWriter, r *http.Request) {
@@ -656,12 +666,12 @@ func (s *Server) piecePracticeStartingPointPage(w http.ResponseWriter, r *http.R
 		return
 	}
 	if !piece.Measures.Valid || !piece.BeatsPerMeasure.Valid {
-		s.HxRender(w, r, librarypages.PiecePracticeMissingMeasureInfoPage(piece.Title, piece.ID))
+		s.HxRender(w, r, librarypages.PiecePracticeMissingMeasureInfoPage(piece.Title, piece.ID), piece.Title)
 		return
 	}
 
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.PiecePracticeStartingPointPage(s, token, piece))
+	s.HxRender(w, r, librarypages.PiecePracticeStartingPointPage(s, token, piece), piece.Title)
 }
 
 type PiecePracticeInfo struct {
@@ -710,6 +720,14 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 		http.Error(w, "Could not practice piece", http.StatusInternalServerError)
 		return
 	}
+	if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+		UserID:  user.ID,
+		PieceID: pieceID,
+	}); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not practice piece", http.StatusInternalServerError)
+		return
+	}
 
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
@@ -735,5 +753,5 @@ func (s *Server) piecePracticeRepeatPage(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	s.HxRender(w, r, librarypages.PiecePracticeRepeatPage(piece))
+	s.HxRender(w, r, librarypages.PiecePracticeRepeatPage(piece), piece[0].Title)
 }

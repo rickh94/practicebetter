@@ -598,3 +598,19 @@ func (q *Queries) UpdatePiece(ctx context.Context, arg UpdatePieceParams) (Piece
 	)
 	return i, err
 }
+
+const updatePiecePracticed = `-- name: UpdatePiecePracticed :exec
+UPDATE pieces
+SET last_practiced = unixepoch('now')
+WHERE pieces.id = ?1 AND user_id = ?2
+`
+
+type UpdatePiecePracticedParams struct {
+	PieceID string
+	UserID  string
+}
+
+func (q *Queries) UpdatePiecePracticed(ctx context.Context, arg UpdatePiecePracticedParams) error {
+	_, err := q.db.ExecContext(ctx, updatePiecePracticed, arg.PieceID, arg.UserID)
+	return err
+}

@@ -28,7 +28,7 @@ INSERT INTO spots (
     (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1),
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 )
-RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo
+RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, priority
 `
 
 type CreateSpotParams struct {
@@ -74,6 +74,8 @@ func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, e
 		&i.NotesPrompt,
 		&i.TextPrompt,
 		&i.CurrentTempo,
+		&i.LastPracticed,
+		&i.Priority,
 	)
 	return i, err
 }
@@ -126,7 +128,7 @@ func (q *Queries) DeleteSpotsExcept(ctx context.Context, arg DeleteSpotsExceptPa
 
 const getSpot = `-- name: GetSpot :one
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo,
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -151,6 +153,8 @@ type GetSpotRow struct {
 	NotesPrompt    string
 	TextPrompt     string
 	CurrentTempo   sql.NullInt64
+	LastPracticed  sql.NullInt64
+	Priority       int64
 	PieceTitle     string
 }
 
@@ -169,14 +173,81 @@ func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (GetSpotRow, e
 		&i.NotesPrompt,
 		&i.TextPrompt,
 		&i.CurrentTempo,
+		&i.LastPracticed,
+		&i.Priority,
 		&i.PieceTitle,
 	)
 	return i, err
 }
 
+const listHighPrioritySpots = `-- name: ListHighPrioritySpots :many
+SELECT
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.priority,
+    pieces.title AS piece_title
+FROM spots
+INNER JOIN pieces ON pieces.id = spots.piece_id
+WHERE pieces.user_id = ?1 AND spots.priority < 0
+ORDER BY spots.priority
+`
+
+type ListHighPrioritySpotsRow struct {
+	ID             string
+	PieceID        string
+	Name           string
+	Idx            int64
+	Stage          string
+	Measures       sql.NullString
+	AudioPromptUrl string
+	ImagePromptUrl string
+	NotesPrompt    string
+	TextPrompt     string
+	CurrentTempo   sql.NullInt64
+	LastPracticed  sql.NullInt64
+	Priority       int64
+	PieceTitle     string
+}
+
+func (q *Queries) ListHighPrioritySpots(ctx context.Context, userID string) ([]ListHighPrioritySpotsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listHighPrioritySpots, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListHighPrioritySpotsRow
+	for rows.Next() {
+		var i ListHighPrioritySpotsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PieceID,
+			&i.Name,
+			&i.Idx,
+			&i.Stage,
+			&i.Measures,
+			&i.AudioPromptUrl,
+			&i.ImagePromptUrl,
+			&i.NotesPrompt,
+			&i.TextPrompt,
+			&i.CurrentTempo,
+			&i.LastPracticed,
+			&i.Priority,
+			&i.PieceTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listPieceSpots = `-- name: ListPieceSpots :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo,
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -201,6 +272,8 @@ type ListPieceSpotsRow struct {
 	NotesPrompt    string
 	TextPrompt     string
 	CurrentTempo   sql.NullInt64
+	LastPracticed  sql.NullInt64
+	Priority       int64
 	PieceTitle     string
 }
 
@@ -225,6 +298,8 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 			&i.NotesPrompt,
 			&i.TextPrompt,
 			&i.CurrentTempo,
+			&i.LastPracticed,
+			&i.Priority,
 			&i.PieceTitle,
 		); err != nil {
 			return nil, err
@@ -240,20 +315,41 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 	return items, nil
 }
 
-const repeatPracticeSpot = `-- name: RepeatPracticeSpot :exec
+const promoteToMoreRepeat = `-- name: PromoteToMoreRepeat :exec
 UPDATE spots
-SET stage = CASE WHEN stage = 'repeat' THEN 'random' ELSE stage END
+SET
+    stage = CASE WHEN stage = 'repeat' THEN 'more_repeat' ELSE stage END,
+    last_practiced = unixepoch('now')
 WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
 `
 
-type RepeatPracticeSpotParams struct {
+type PromoteToMoreRepeatParams struct {
 	SpotID  string
 	UserID  string
 	PieceID string
 }
 
-func (q *Queries) RepeatPracticeSpot(ctx context.Context, arg RepeatPracticeSpotParams) error {
-	_, err := q.db.ExecContext(ctx, repeatPracticeSpot, arg.SpotID, arg.UserID, arg.PieceID)
+func (q *Queries) PromoteToMoreRepeat(ctx context.Context, arg PromoteToMoreRepeatParams) error {
+	_, err := q.db.ExecContext(ctx, promoteToMoreRepeat, arg.SpotID, arg.UserID, arg.PieceID)
+	return err
+}
+
+const promoteToRandom = `-- name: PromoteToRandom :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'repeat' OR stage = 'more_repeat' THEN 'random' ELSE stage END,
+    last_practiced = unixepoch('now')
+WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
+`
+
+type PromoteToRandomParams struct {
+	SpotID  string
+	UserID  string
+	PieceID string
+}
+
+func (q *Queries) PromoteToRandom(ctx context.Context, arg PromoteToRandomParams) error {
+	_, err := q.db.ExecContext(ctx, promoteToRandom, arg.SpotID, arg.UserID, arg.PieceID)
 	return err
 }
 
@@ -298,6 +394,47 @@ func (q *Queries) UpdateSpot(ctx context.Context, arg UpdateSpotParams) error {
 		arg.TextPrompt,
 		arg.CurrentTempo,
 		arg.Measures,
+		arg.SpotID,
+		arg.UserID,
+		arg.PieceID,
+	)
+	return err
+}
+
+const updateSpotPracticed = `-- name: UpdateSpotPracticed :exec
+UPDATE spots
+SET last_practiced = unixepoch('now')
+WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
+`
+
+type UpdateSpotPracticedParams struct {
+	SpotID  string
+	UserID  string
+	PieceID string
+}
+
+func (q *Queries) UpdateSpotPracticed(ctx context.Context, arg UpdateSpotPracticedParams) error {
+	_, err := q.db.ExecContext(ctx, updateSpotPracticed, arg.SpotID, arg.UserID, arg.PieceID)
+	return err
+}
+
+const updateSpotPriority = `-- name: UpdateSpotPriority :exec
+UPDATE spots
+SET
+    priority = ?1
+WHERE spots.id = ?2 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?3 AND pieces.id = ?4 LIMIT 1)
+`
+
+type UpdateSpotPriorityParams struct {
+	Priority int64
+	SpotID   string
+	UserID   string
+	PieceID  string
+}
+
+func (q *Queries) UpdateSpotPriority(ctx context.Context, arg UpdateSpotPriorityParams) error {
+	_, err := q.db.ExecContext(ctx, updateSpotPriority,
+		arg.Priority,
 		arg.SpotID,
 		arg.UserID,
 		arg.PieceID,
