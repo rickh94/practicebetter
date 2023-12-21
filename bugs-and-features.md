@@ -27,13 +27,18 @@
 - you don't have any pieces message and links on create practice plan page
 - better way of displaying multiple practice sessions per day (TIMEZONES)
 
-# Before next
-
-- practice plans list page
-
 # upcoming features
 
+- remove add spots from piece creation page, redirect to add spots page after piece
+  creation. give a notification and some recommendations
+- allow user to hide certain screens and tips, esp repeat practice (maybe have an
+  abbreviated version)
+- sign in with a different account button
+- fix stop remembering on logout
 - interleave spot evaluation on complete, track quality, promote
+- language about being thoughtful about your spots
+- create new spots link on practice plan if there are no new spots (or few)
+- ability to manually complete or trash practice plan
 - spots page categorizing by stage
 - change random practice to 'excellent', 'fine', 'mistake' buttons and evict spots based on
   response, evict excellent after a few times, also evict after a few bad.
@@ -52,3 +57,5 @@
 - warm ups, scales, and exercises
 - piece quotas
 - better name for interleave days spots
+- better display of practice session data or remove display entirely and use data in a
+  different way

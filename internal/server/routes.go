@@ -61,6 +61,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/code", s.forceCodeLogin)
 		r.Post("/passkey/login", s.completePasskeySignin)
 		r.Get("/logout", s.logoutUserRoute)
+		r.Get("/forget", s.forgetUser)
 		r.With(s.LoginRequired).Get("/me", s.me)
 		r.With(s.LoginRequired).Post("/me", s.updateProfile)
 		r.With(s.LoginRequired).Get("/me/edit", s.editProfile)

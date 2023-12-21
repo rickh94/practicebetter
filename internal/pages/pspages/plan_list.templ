@@ -27,7 +27,7 @@ templ PlanList(plans []db.ListPaginatedPracticePlansRow, page int, totalPages in
 				@components.PracticePlanCard(plan.ID, plan.Date, plan.NewSpotsCount, plan.RepeatSpotsCount, plan.InterleaveSpotsCount, plan.InterleaveDaysSpotsCount, plan.PiecesCount)
 			}
 		</ul>
-		<div class="flex flex-grow-0 justify-between items-center py-4 px-4 w-full sm:max-w-5xl sm:max-auto">
+		<div class="flex flex-grow-0 justify-between items-center py-4 px-4 w-full sm:mx-auto sm:max-w-5xl">
 			if page > 1 {
 				@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  "/library/plans?page=" + strconv.Itoa(page-1), "#main-content") {
 					@heroicons.IconChevronLeftSolid("-ml-1 size-5")

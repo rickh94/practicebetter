@@ -38,9 +38,12 @@ func (s *Server) startLogin(w http.ResponseWriter, r *http.Request) {
 	user, err := queries.GetUserForLogin(r.Context(), cookie.Value)
 	if err != nil {
 		http.SetCookie(w, &http.Cookie{
-			Name:   "rememberEmail",
-			Value:  "",
-			MaxAge: -1,
+			Name:     "rememberEmail",
+			Value:    "",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteLaxMode,
+			Path:     "/",
 		})
 		s.HxRender(w, r, authpages.StartLoginPage(csrfToken, nextLoc), "Login")
 		return
@@ -76,6 +79,8 @@ func (s *Server) continueLogin(w http.ResponseWriter, r *http.Request) {
 	remember := r.Form.Get("remember")
 	if remember == "on" {
 		s.SM.Put(r.Context(), "rememberMe", true)
+	} else {
+		s.SM.Put(r.Context(), "rememberMe", false)
 	}
 
 	nextLoc := r.Form.Get("next")
@@ -161,7 +166,7 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 			// TODO: re-render the form with an error
 			return
 		}
-		if s.SM.Get(r.Context(), "rememberMe").(bool) {
+		if val, ok := s.SM.Get(r.Context(), "rememberMe").(bool); val && ok {
 			cookie := http.Cookie{
 				Name:     "rememberEmail",
 				Value:    user.Email,
@@ -199,7 +204,7 @@ func (s *Server) completePasskeySignin(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{"status": "error", "message": "Failed to log in"})
 		return
 	} else {
-		if s.SM.Get(r.Context(), "rememberMe").(bool) {
+		if val, ok := s.SM.Get(r.Context(), "rememberMe").(bool); val && ok {
 			cookie := http.Cookie{
 				Name:     "rememberEmail",
 				Value:    user.Email,
@@ -224,9 +229,8 @@ func (s *Server) logoutUserRoute(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
-		MaxAge:   -1,
 	})
 	s.LogoutUser(r.Context())
 	s.Redirect(w, r, "/")
@@ -390,4 +394,16 @@ func (s *Server) forceCodeLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	s.continueOtpSignIn(w, r, userEmail, nextLoc)
 	return
+}
+
+func (s *Server) forgetUser(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "rememberEmail",
+		Value:    "",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+	})
+	s.Redirect(w, r, "/auth/login")
 }
