@@ -2,14 +2,14 @@ package components
 
 import "practicebetter/internal/heroicons"
 
-const navClasses = "flex text-sm sm:text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable"
+const navClasses = "flex text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable"
 
 templ HxLink(class string, href string, target string) {
 	<a
  		class={ class }
  		href={ templ.SafeURL(href) }
  		hx-get={ href }
- 		hx-swap="outerHTML"
+ 		hx-swap="outerHTML transition:true"
  		hx-target={ target }
  		hx-push-url="true"
 	>
@@ -19,7 +19,7 @@ templ HxLink(class string, href string, target string) {
 
 templ BackHomeLink() {
 	@HxLink(navClasses, "/", "#main-content") {
-		@heroicons.IconHomeSolid("-ml-1 h-5 w-5")
+		@heroicons.IconHomeSolid("-ml-1 size-5")
 		Back Home
 	}
 }
@@ -27,27 +27,39 @@ templ BackHomeLink() {
 templ AccountLink() {
 	@HxLink(navClasses, "/auth/me", "#main-content") {
 		Account
-		@heroicons.IconUserCircleSolid("-mr-1 h-5 w-5")
+		@heroicons.IconUserCircleSolid("-mr-1 size-5")
 	}
 }
 
 templ LoginLink() {
 	@HxLink(navClasses, "/auth/login", "#main-content") {
 		Login
-		@heroicons.IconUserPlusSolid("-mr-1 h-5 w-5")
+		@heroicons.IconUserPlusSolid("-mr-1 size-5")
 	}
+}
+
+func getActivePracticePlan(ctx context.Context) string {
+	return ctx.Value("practicePlanID").(string)
 }
 
 templ LibraryLink() {
 	@HxLink(navClasses, "/library", "#main-content") {
-		@heroicons.IconBookOpenSolid("-ml-1 h-5 w-5")
+		@heroicons.IconBookOpenSolid("-ml-1 size-5")
 		Library
 	}
+}
+
+func getCurrentPath(ctx context.Context) string {
+	return ctx.Value("currentPath").(string)
+}
+
+templ InternalNav() {
+	<internal-nav activeplanid={ getActivePracticePlan(ctx) } activepath={ getCurrentPath(ctx) }></internal-nav>
 }
 
 templ LogoutLink() {
 	@HxLink(navClasses, "/auth/logout", "#main-content") {
 		Logout
-		@heroicons.IconUserMinusSolid("-mr-1 h-5 w-5")
+		@heroicons.IconUserMinusSolid("-mr-1 size-5")
 	}
 }

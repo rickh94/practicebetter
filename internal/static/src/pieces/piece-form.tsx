@@ -5,11 +5,12 @@ import {
   UseFormSetValue,
   UseFormWatch,
 } from "react-hook-form";
-import { PieceFormData } from "../validators";
+import { PieceFormData, pieceStages } from "../validators";
 import { FolderPlusIcon, XMarkIcon } from "@heroicons/react/20/solid";
 import { HappyButton } from "../ui/buttons";
 import { WarningLink } from "../ui/links";
 import { SpotsArray } from "./spots-array";
+import { cn, getPieceStageDisplayName } from "../common";
 
 // TODO: fix grid layout
 
@@ -22,6 +23,7 @@ export function PieceFormFields({
   backTo = "/library/pieces",
   csrf,
   setValue,
+  showStage = false,
 }: {
   control: Control<PieceFormData>;
   register: UseFormRegister<PieceFormData>;
@@ -31,6 +33,7 @@ export function PieceFormFields({
   watch: UseFormWatch<PieceFormData>;
   csrf: string;
   setValue: UseFormSetValue<PieceFormData>;
+  showStage?: boolean;
 }) {
   return (
     <>
@@ -77,8 +80,20 @@ export function PieceFormFields({
             )}
           </div>
         </div>
-        <div className="grid-cols-1 py-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-3">
-          <div className="flex flex-col gap-1">
+        <div
+          className={cn(
+            "grid grid-cols-1 py-2",
+            showStage
+              ? "sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-4"
+              : "sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-3",
+          )}
+        >
+          <div
+            className={cn(
+              "flex flex-col gap-1 md:col-span-1",
+              showStage ? "sm:col-span-1" : "sm:col-span-2",
+            )}
+          >
             <label
               className="text-sm font-medium leading-6 text-neutral-900"
               htmlFor="goal-tempo"
@@ -98,6 +113,42 @@ export function PieceFormFields({
               </p>
             )}
           </div>
+          {showStage && (
+            <div className={"flex flex-col gap-1 sm:col-span-1"}>
+              <label
+                className="text-sm font-medium leading-6 text-neutral-900"
+                htmlFor="stage"
+              >
+                Stage
+              </label>
+              <select
+                {...register("stage")}
+                id="stage"
+                className="focusable block h-full w-full rounded-xl border-0 bg-neutral-700/10 py-2 pl-4 pr-12 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
+                style={{
+                  appearance: "none",
+                  backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23262626"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd" /></svg>')`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 0.7rem top 50%",
+                  backgroundSize: "1rem auto",
+                  WebkitAppearance: "none",
+                  textIndent: 1,
+                  textOverflow: "",
+                }}
+              >
+                {pieceStages.map((stage) => (
+                  <option key={stage} value={stage}>
+                    {getPieceStageDisplayName(stage)}
+                  </option>
+                ))}
+              </select>
+              {formState.errors.stage && (
+                <p className="text-xs text-red-400">
+                  {formState.errors.stage.message}
+                </p>
+              )}
+            </div>
+          )}
           <div className="flex flex-col gap-1">
             <label
               className="text-sm font-medium leading-6 text-neutral-900"
@@ -164,7 +215,8 @@ export function PieceFormFields({
               className="text-sm font-medium leading-6 text-neutral-900"
               htmlFor="practice-notes"
             >
-              Practice Notes
+              {" "}
+              Practice Notes{" "}
             </label>
             <textarea
               id="practice-notes"
@@ -174,7 +226,8 @@ export function PieceFormFields({
             />
             {formState.errors.practiceNotes && (
               <p className="mt-2 text-sm text-red-600">
-                {formState.errors.practiceNotes.message}
+                {" "}
+                {formState.errors.practiceNotes.message}{" "}
               </p>
             )}
           </div>
@@ -190,11 +243,11 @@ export function PieceFormFields({
       />
       <div className="flex flex-row-reverse justify-start gap-4 py-4">
         <HappyButton type="submit">
-          <FolderPlusIcon className="-ml-1 inline h-6 w-6" />
+          <FolderPlusIcon className="-ml-1 inline size-5" />
           {isUpdating ? "Saving..." : "Save"}
         </HappyButton>
         <WarningLink href={backTo}>
-          <XMarkIcon className="-ml-1 inline h-6 w-6" />
+          <XMarkIcon className="-ml-1 inline size-5" />
           Cancel
         </WarningLink>
       </div>

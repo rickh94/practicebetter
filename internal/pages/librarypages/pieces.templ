@@ -9,7 +9,7 @@ import "practicebetter/internal/heroicons"
 
 templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int) {
 	<title>Pieces | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText("Your Pieces") , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Your Pieces") , components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
@@ -17,7 +17,7 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 				})
 			<div class="flex flex-grow gap-2 justify-end items-center">
 				@components.HxLink("flex gap-2 justify-center items-center py-3 px-6 font-medium text-center text-emerald-700 rounded-xl bg-emerald-700/10 hover:bg-emerald-700/20 focusable", "/library/pieces/create", "#main-content") {
-					@heroicons.IconDocumentPlusSolid("-ml-1 h-6 w-6")
+					@heroicons.IconDocumentPlusSolid("-ml-1 size-6")
 					New Piece
 				}
 			</div>
@@ -29,17 +29,10 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 		</ul>
 		<div class="flex flex-grow-0 justify-between items-center py-4 px-4 w-full sm:max-w-5xl sm:max-auto">
 			if page > 1 {
-				<a
- 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
- 					href={ templ.SafeURL("/library/pieces?page=" + strconv.Itoa(page-1)) }
- 					hx-get={ "/library/pieces?page=" + strconv.Itoa(page-1) }
- 					hx-swap="outerHTML"
- 					hx-target="#main-content"
- 					hx-push-url="true"
-				>
-					@heroicons.IconChevronLeftSolid("-ml-1 h-5 w-5")
+				@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  "/library/pieces?page=" + strconv.Itoa(page-1), "#main-content") {
+					@heroicons.IconChevronLeftSolid("-ml-1 size-5")
 					Previous
-				</a>
+				}
 			} else {
 				<span class="py-2 px-4 text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No Previous Pages</span>
 			}
@@ -56,7 +49,7 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
  							class={ "flex gap-1 justify-center items-center py-2 px-4 font-medium transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", templ.KV("rounded-l-xl", i == 1), templ.KV("rounded-r-xl", i == totalPages) }
  							href={ templ.SafeURL("/library/pieces?page=" + strconv.Itoa(i)) }
  							hx-get={ "/library/pieces?page=" + strconv.Itoa(i) }
- 							hx-swap="outerHTML"
+ 							hx-swap="outerHTML transition:true"
  							hx-target="#main-content"
  							hx-push-url="true"
 						>
@@ -66,17 +59,10 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 				}
 			</div>
 			if page < totalPages {
-				<a
- 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
- 					href={ templ.SafeURL("/library/pieces?page=" + strconv.Itoa(page-1)) }
- 					hx-get={ "/library/pieces?page=" + strconv.Itoa(page+1) }
- 					hx-swap="outerHTML"
- 					hx-target="#main-content"
- 					hx-push-url="true"
-				>
+				@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  "/library/pieces?page=" + strconv.Itoa(page+1), "#main-content") {
 					Next Page
-					@heroicons.IconChevronRightSolid("-ml-1 h-5 w-5")
-				</a>
+					@heroicons.IconChevronRightSolid("-ml-1 size-5")
+				}
 			} else {
 				<span class="py-2 px-4 h-full text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No More Pages</span>
 			}

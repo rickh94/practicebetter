@@ -194,6 +194,32 @@ func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := csrf.Token(r)
+	sessions1, err := queries.ListRecentPracticeSessionsForPiece(r.Context(), db.ListRecentPracticeSessionsForPieceParams{
+		UserID:  user.ID,
+		PieceID: piece[0].ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	sessions2, err := queries.ListRecentPracticeSessionsForPieceSpots(r.Context(), db.ListRecentPracticeSessionsForPieceSpotsParams{
+		UserID:  user.ID,
+		PieceID: piece[0].ID,
+	})
+
+	for _, s := range sessions1 {
+		log.Default().Println(s)
+	}
+	for _, s := range sessions2 {
+		log.Default().Println(s)
+	}
+
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
 	s.HxRender(w, r, librarypages.SinglePiece(s, token, piece), piece[0].Title)
 }
 
@@ -340,6 +366,7 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		BeatsPerMeasure: beatsPerMeasure,
 		GoalTempo:       goalTempo,
 		UserID:          user.ID,
+		Stage:           r.Form.Get("stage"),
 	})
 	if err != nil {
 		log.Default().Println(err)
@@ -527,9 +554,9 @@ type PieceSpotsPracticeInfo struct {
 	SpotIDs         []string `json:"spotIDs"`
 }
 
-func (s *Server) createSpotsPracticeSession(w http.ResponseWriter, r *http.Request) {
-	pieceID := chi.URLParam(r, "pieceID")
+func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
+	pieceID := chi.URLParam(r, "pieceID")
 	var info PieceSpotsPracticeInfo
 	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
 		log.Default().Println(err)
@@ -547,22 +574,72 @@ func (s *Server) createSpotsPracticeSession(w http.ResponseWriter, r *http.Reque
 
 	qtx := queries.WithTx(tx)
 
-	practiceSessionID := cuid2.Generate()
-	if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-		ID:              practiceSessionID,
-		UserID:          user.ID,
-		DurationMinutes: info.DurationMinutes,
-		Date:            time.Now().Unix(),
-	}); err != nil {
+	var practiceSessionID string
+	activePracticePlanID, err := s.GetActivePracticePlanID(r.Context())
+	if err != nil {
 		log.Default().Println(err)
-		http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-		return
+		practiceSessionID = cuid2.Generate()
+		if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
+			ID:              practiceSessionID,
+			UserID:          user.ID,
+			DurationMinutes: info.DurationMinutes,
+			Date:            time.Now().Unix(),
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not create practice session", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		activePracticePlan, err := qtx.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
+			ID:     activePracticePlanID,
+			UserID: user.ID,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not get active practice plan", http.StatusInternalServerError)
+			return
+		}
+		if !activePracticePlan.PracticeSessionID.Valid {
+			practiceSessionID = cuid2.Generate()
+			if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
+				ID:              practiceSessionID,
+				UserID:          user.ID,
+				DurationMinutes: info.DurationMinutes,
+				Date:            time.Now().Unix(),
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not create practice session", http.StatusInternalServerError)
+				return
+			}
+		}
+		practiceSessionID = activePracticePlan.PracticeSessionID.String
+		if err := qtx.ExtendPracticeSessionToNow(r.Context(), db.ExtendPracticeSessionToNowParams{
+			ID:     practiceSessionID,
+			UserID: user.ID,
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not extend practice session", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if activePracticePlanID != "" {
+		if err := qtx.CompletePracticePlanPiece(r.Context(), db.CompletePracticePlanPieceParams{
+			UserID:       user.ID,
+			PlanID:       activePracticePlanID,
+			PieceID:      pieceID,
+			PracticeType: "random_spots",
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not complete practice plan piece", http.StatusInternalServerError)
+			return
+		}
+
 	}
 
 	for _, spotID := range info.SpotIDs {
 		if err := qtx.PracticeSpot(r.Context(), db.PracticeSpotParams{
 			UserID:            user.ID,
-			PieceID:           pieceID,
 			SpotID:            spotID,
 			PracticeSessionID: practiceSessionID,
 		}); err != nil {
@@ -572,14 +649,14 @@ func (s *Server) createSpotsPracticeSession(w http.ResponseWriter, r *http.Reque
 		}
 
 		if err := qtx.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
-			SpotID:  spotID,
-			UserID:  user.ID,
-			PieceID: pieceID,
+			SpotID: spotID,
+			UserID: user.ID,
 		}); err != nil {
 			log.Default().Println(err)
 			http.Error(w, "Could not update spot", http.StatusInternalServerError)
 			return
 		}
+
 	}
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)

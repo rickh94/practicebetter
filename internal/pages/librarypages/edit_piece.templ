@@ -5,7 +5,7 @@ import "practicebetter/internal/components"
 
 templ EditPiecePage(s pages.ServerUtil, csrf string, title string, id string, pieceData string, spotsData string) {
 	<title>{ title } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink() , components.HeadingText(title), components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav() , components.HeadingText(title), components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

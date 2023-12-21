@@ -12,7 +12,7 @@ export function Link({
   href,
   external = false,
   target = "#main-content",
-  swap = "outerHTML",
+  swap = "outerHTML transition:true",
   pushUrl = true,
   children,
 }: {
@@ -62,51 +62,13 @@ export function TopNavLink({
   );
 }
 
-export function BackToHome() {
-  return (
-    <TopNavLink href="/">
-      <HomeIcon className="-ml-1 h-6 w-6" /> Back Home
-    </TopNavLink>
-  );
-}
-
-export function LibraryLink() {
-  return (
-    <TopNavLink href="/library">
-      <BookOpenIcon className="-ml-1 inline h-6 w-6" />
-      Library
-    </TopNavLink>
-  );
-}
-export function AccountLink() {
-  return (
-    <TopNavLink href="/account">
-      <UserIcon className="-ml-1 inline h-6 w-6" />
-      <span>Account</span>
-    </TopNavLink>
-  );
-}
-
-export function LoginLink() {
-  return <TopNavLink href="/signin">Login →</TopNavLink>;
-}
-
-export function LogoutLink() {
-  return (
-    <TopNavLink href="/api/auth/signout">
-      Logout
-      <UserMinusIcon className="-mr-1 inline h-6 w-6" />
-    </TopNavLink>
-  );
-}
-
 export function BackToPieceLink({ pieceHref }: { pieceHref: string }) {
   return (
     <Link
       href={pieceHref}
       className="focusable flex items-center justify-center gap-1 rounded-xl bg-sky-700/10 px-4 py-2 font-semibold text-sky-800 transition duration-200 hover:bg-sky-700/20"
     >
-      <ArrowLeftIcon className="-ml-1 h-5 w-5" />
+      <ArrowLeftIcon className="-ml-1 size-5" />
       Back to Piece
     </Link>
   );

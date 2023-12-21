@@ -122,10 +122,10 @@ export function AddAudioPrompt({
         {audioPromptUrl ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckIcon className="h-4 w-4" />
+            <CheckIcon className="-ml-1 size-4" />
           </>
         ) : (
-          <SpeakerWaveIcon className="h-4 w-4" />
+          <SpeakerWaveIcon className="-ml-1 size-4" />
         )}
         Audio
       </ColorlessButton>
@@ -158,11 +158,11 @@ export function AddAudioPrompt({
             </div>
             <div class="mt-4 flex w-full gap-2">
               <WarningButton grow type="button" onClick={close}>
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="-ml-1 size-6" />
                 Close
               </WarningButton>
               <AngryButton grow type="button" onClick={() => save("")}>
-                <TrashIcon className="h-6 w-6" />
+                <TrashIcon className="-ml-1 size-6" />
                 Remove File
               </AngryButton>
             </div>
@@ -196,7 +196,7 @@ export function AddAudioPrompt({
                 type="button"
                 onClick={close}
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="-ml-1 size-6" />
                 Close
               </WarningButton>
               <HappyButton
@@ -206,9 +206,9 @@ export function AddAudioPrompt({
                 onClick={handleSubmit}
               >
                 {isUploading ? (
-                  <ArrowPathIcon className="h-6 w-6" />
+                  <ArrowPathIcon className="-ml-1 size-6" />
                 ) : (
-                  <CloudArrowUpIcon className="h-6 w-6" />
+                  <CloudArrowUpIcon className="-ml-1 size-6" />
                 )}
                 {isUploading ? "Please Wait..." : "Upload"}
               </HappyButton>
@@ -318,10 +318,10 @@ export function AddImagePrompt({
         {imagePromptUrl ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckIcon className="h-4 w-4" />
+            <CheckIcon className="-ml-1 size-4" />
           </>
         ) : (
-          <PhotoIcon className="h-4 w-4" />
+          <PhotoIcon className="-ml-1 size-4" />
         )}
         Image
       </ColorlessButton>
@@ -355,11 +355,11 @@ export function AddImagePrompt({
             </div>
             <div class="mt-4 flex w-full gap-2">
               <WarningButton grow type="button" onClick={close}>
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="-ml-1 size-6" />
                 Close
               </WarningButton>
               <AngryButton grow type="button" onClick={() => save("")}>
-                <TrashIcon className="h-6 w-6" />
+                <TrashIcon className="-ml-1 size-6" />
                 Remove File
               </AngryButton>
             </div>
@@ -394,7 +394,7 @@ export function AddImagePrompt({
                 type="button"
                 onClick={close}
               >
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="-ml-1 size-6" />
                 Close
               </WarningButton>
               <HappyButton
@@ -404,9 +404,9 @@ export function AddImagePrompt({
                 onClick={handleSubmit}
               >
                 {isUploading ? (
-                  <ArrowPathIcon className="h-6 w-6" />
+                  <ArrowPathIcon className="-ml-1 size-6" />
                 ) : (
-                  <CloudArrowUpIcon className="h-6 w-6" />
+                  <CloudArrowUpIcon className="-ml-1 size-6" />
                 )}
                 {isUploading ? "Please Wait..." : "Upload"}
               </HappyButton>
@@ -465,10 +465,10 @@ export function AddTextPrompt({
         {!!textPrompt ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckIcon className="h-4 w-4" />
+            <CheckIcon className="-ml-1 size-4" />
           </>
         ) : (
-          <DocumentTextIcon className="h-4 w-4" />
+          <DocumentTextIcon className="-ml-1 size-4" />
         )}
         Text
       </ColorlessButton>
@@ -502,7 +502,7 @@ export function AddTextPrompt({
           />
         </div>
         <HappyButton grow onClick={close} className="mt-4 w-full">
-          <CheckIcon className="h-6 w-6" />
+          <CheckIcon className="-ml-1 size-6" />
           Done
         </HappyButton>
       </dialog>
@@ -558,10 +558,10 @@ export function AddNotesPrompt({
         {notesPrompt ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckIcon className="h-4 w-4" />
+            <CheckIcon className="-ml-1 size-4" />
           </>
         ) : (
-          <MusicalNoteIcon className="h-4 w-4" />
+          <MusicalNoteIcon className="-ml-1 size-4" />
         )}
         Notes
       </ColorlessButton>
@@ -620,7 +620,7 @@ export function AddNotesPrompt({
           </Suspense>
         </div>
         <HappyButton grow onClick={close} className="mt-4 w-full">
-          <CheckIcon className="h-6 w-6" />
+          <CheckIcon className="-ml-1 size-6" />
           Done
         </HappyButton>
       </dialog>

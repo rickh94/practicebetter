@@ -1,0 +1,157 @@
+package pspages
+
+import "practicebetter/internal/db"
+import "practicebetter/internal/components"
+import "practicebetter/internal/pages"
+import "practicebetter/internal/heroicons"
+
+script changeSelectedIntensity(value string) {
+	for (const el of document.querySelectorAll('#intensities .radio-option')) {
+		if (el.id === `intensity-${value}-label`) {
+			el.classList.add('checked');
+		} else {
+			el.classList.remove('checked');
+		}
+	}
+}
+
+script togglePieceChecked(value string) {
+	document.getElementById(`piece-${value}-label`).classList.toggle('checked');
+}
+
+script toggleChecked(id string) {
+	document.getElementById(id).classList.toggle('checked');
+}
+
+// TODO: improve language and formatting
+// TODO: add read about practice types/video
+
+templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListActiveUserPiecesRow) {
+	<title>Create Practice Agenda | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Practice Plan") , components.AccountLink())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Practice Plans", Href: "/library/plans", Active: false },
+					{ Label: "New", Href: "/library/plans/create", Active: true },
+				})
+		}
+		@components.NormalContainer() {
+			<form class="grid grid-cols-1 gap-4 w-full md:grid-cols-3" action="/library/plans" method="post" hx-post="/library/plans" hx-target="#main-content">
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<p class="col-span-full text-lg text-neutral-800 text-medium">Customize the options below or just click create to use the defaults.</p>
+				<div class="flex flex-col col-span-1 gap-4">
+					<fieldset id="intensities" class="flex flex-col gap-2">
+						<legend class="pb-2 text-lg font-semibold leading-6 text-neutral-800">Select practice plan intensity. This affects how many items will be in your practice plan.</legend>
+						@planIntensityRadio("Light", "light", false)
+						@planIntensityRadio("Medium", "medium", true)
+						@planIntensityRadio("Heavy", "heavy", false)
+					</fieldset>
+					<fieldset id="practicing-types" class="flex flex-col gap-2">
+						<legend class="pb-2 text-lg font-semibold leading-6 text-neutral-800">Select the types of practicing you would like to do.</legend>
+						@practiceCheckbox("New Spots", "practice_new", true)
+						@practiceCheckbox("Random Spots", "practice_random_single", true)
+						@practiceCheckbox("Interleave Spots", "practice_interleave", true)
+						@practiceCheckbox("Random Starting Point", "practice_starting_point", false)
+					</fieldset>
+				</div>
+				<fieldset id="pieces" class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:col-span-2 h-min">
+					<legend class="pb-2 text-lg font-semibold leading-6 text-neutral-800">Select the pieces you’d like to practice today.</legend>
+					for i, piece := range pieces {
+						@pieceCheckbox(piece.Title, piece.ID, i < 3)
+					}
+				</fieldset>
+				<div class="flex flex-row-reverse col-span-full gap-4 justify-start py-4">
+					<button
+ 						type="submit"
+ 						class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+					>
+						@heroicons.IconDocumentCheckSolid("-ml-1 size-5")
+						Create
+					</button>
+					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable", "/library", "#main-content") {
+						@heroicons.IconChevronLeftSolid("-ml-1 size-5")
+						Go Back
+					}
+				</div>
+			</form>
+		}
+	}
+}
+
+templ planIntensityRadio(text string, value string, checked bool) {
+	<label
+ 		for={ "intensity-" + value }
+ 		class={ "flex relative items-center py-3 pr-2 pl-4 rounded-xl cursor-pointer radio-option focusable", templ.KV("checked", checked) }
+ 		id={ "intensity-" + value + "-label" }
+	>
+		<input
+ 			type="radio"
+ 			name="intensity"
+ 			id={ "intensity-" + value }
+ 			value={ value }
+ 			onchange={ changeSelectedIntensity(value) }
+ 			class="sr-only"
+ 			aria-labelledby={ "intensity-" + value + "-label" }
+ 			checked?={ checked }
+		/>
+		<span class="flex flex-1">
+			<span class="flex-col">
+				{ text }
+			</span>
+		</span>
+		@heroicons.IconCheckCircleSolid("ml-3 size-5 text-neutral-800 icon")
+		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+	</label>
+}
+
+templ pieceCheckbox(text string, value string,  checked bool) {
+	<label
+ 		for={ "piece-" + value }
+ 		class={ "flex relative items-center py-3 pr-2 pl-4 rounded-xl cursor-pointer radio-option focusable", templ.KV("checked", checked) }
+ 		id={ "piece-" + value + "-label" }
+	>
+		<input
+ 			type="checkbox"
+ 			name="pieces"
+ 			id={ "piece-" + value }
+ 			value={ value }
+ 			onchange={ togglePieceChecked(value) }
+ 			class="sr-only"
+ 			aria-labelledby={ "piece-" + value + "-label" }
+ 			checked?={ checked }
+		/>
+		<span class="flex flex-1">
+			<span class="flex-col">
+				{ text }
+			</span>
+		</span>
+		@heroicons.IconCheckCircleSolid("ml-3 size-5 text-neutral-800 icon")
+		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+	</label>
+}
+
+templ practiceCheckbox(text string, value string,  checked bool) {
+	<label
+ 		for={ value }
+ 		class={ "flex relative items-center py-3 pr-2 pl-4 rounded-xl cursor-pointer radio-option focusable", templ.KV("checked", checked) }
+ 		id={ value + "-label" }
+	>
+		<input
+ 			type="checkbox"
+ 			name={ value }
+ 			id={ value }
+ 			onchange={ toggleChecked(value + "-label") }
+ 			class="sr-only"
+ 			aria-labelledby={ value + "-label" }
+ 			checked?={ checked }
+		/>
+		<span class="flex flex-1">
+			<span class="flex-col">
+				{ text }
+			</span>
+		</span>
+		@heroicons.IconCheckCircleSolid("ml-3 size-5 text-neutral-800 icon")
+		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+	</label>
+}

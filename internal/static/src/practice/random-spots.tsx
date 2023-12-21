@@ -123,6 +123,22 @@ function SingleSetupForm({
   submit: () => void;
   spots: BasicSpot[];
 }) {
+  const handleSubmit = useCallback(() => {
+    if (spots.length === 0) {
+      document.dispatchEvent(
+        new CustomEvent("ShowAlert", {
+          detail: {
+            variant: "error",
+            message: "Please enter at least one spot",
+            title: "Missing Info",
+            duration: 5000,
+          },
+        }),
+      );
+      return;
+    }
+    submit();
+  }, [submit]);
   return (
     <>
       <div className="flex w-full flex-col py-4">
@@ -140,7 +156,7 @@ function SingleSetupForm({
       <div className="flex w-full flex-col gap-y-4">
         <CreateSpots setSpots={setSpots} spots={spots} />
         <div className="col-span-full my-16 flex w-full items-center justify-center">
-          <GiantBasicButton disabled={spots.length === 0} onClick={submit}>
+          <GiantBasicButton onClick={handleSubmit}>
             Start Practicing
           </GiantBasicButton>
         </div>
@@ -312,11 +328,11 @@ function SinglePractice({
         <div className="flex flex-col items-center justify-center gap-4 pt-12">
           <div className="flex justify-center gap-2">
             <BigHappyButton type="button" onClick={evictSpot}>
-              <CheckIcon className="-ml-1 h-6 w-6" />
+              <CheckIcon className="-ml-1 size-6" />
               Finish Spot
             </BigHappyButton>
             <BigSkyButton type="button" onClick={nextSpot}>
-              Next Spot <ArrowRightIcon className="-mr-1 h-6 w-6" />
+              Next Spot <ArrowRightIcon className="-mr-1 size-6" />
             </BigSkyButton>
           </div>
           <p className="mx-auto max-w-2xl text-sm text-neutral-800">

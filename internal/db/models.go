@@ -9,64 +9,88 @@ import (
 )
 
 type Credential struct {
-	CredentialID    []byte
-	PublicKey       []byte
-	Transport       []byte
-	AttestationType string
-	Flags           []byte
-	Authenticator   []byte
-	UserID          string
+	CredentialID    []byte `json:"credentialId"`
+	PublicKey       []byte `json:"publicKey"`
+	Transport       []byte `json:"transport"`
+	AttestationType string `json:"attestationType"`
+	Flags           []byte `json:"flags"`
+	Authenticator   []byte `json:"authenticator"`
+	UserID          string `json:"userId"`
 }
 
 type Piece struct {
-	ID              string
-	Title           string
-	Description     sql.NullString
-	Composer        sql.NullString
-	Measures        sql.NullInt64
-	BeatsPerMeasure sql.NullInt64
-	GoalTempo       sql.NullInt64
-	UserID          string
-	LastPracticed   sql.NullInt64
+	ID              string         `json:"id"`
+	Title           string         `json:"title"`
+	Description     sql.NullString `json:"description"`
+	Composer        sql.NullString `json:"composer"`
+	Measures        sql.NullInt64  `json:"measures"`
+	BeatsPerMeasure sql.NullInt64  `json:"beatsPerMeasure"`
+	GoalTempo       sql.NullInt64  `json:"goalTempo"`
+	UserID          string         `json:"userId"`
+	LastPracticed   sql.NullInt64  `json:"lastPracticed"`
+	Stage           string         `json:"stage"`
 }
 
 type PracticePiece struct {
-	PracticeSessionID string
-	PieceID           string
-	Measures          string
+	PracticeSessionID string `json:"practiceSessionId"`
+	PieceID           string `json:"pieceId"`
+	Measures          string `json:"measures"`
+}
+
+type PracticePlan struct {
+	ID                string         `json:"id"`
+	UserID            string         `json:"userId"`
+	Intensity         string         `json:"intensity"`
+	Date              int64          `json:"date"`
+	Completed         bool           `json:"completed"`
+	PracticeSessionID sql.NullString `json:"practiceSessionId"`
+}
+
+type PracticePlanPiece struct {
+	PracticePlanID string `json:"practicePlanId"`
+	PieceID        string `json:"pieceId"`
+	PracticeType   string `json:"practiceType"`
+	Completed      bool   `json:"completed"`
+}
+
+type PracticePlanSpot struct {
+	PracticePlanID string `json:"practicePlanId"`
+	SpotID         string `json:"spotId"`
+	PracticeType   string `json:"practiceType"`
+	Completed      bool   `json:"completed"`
 }
 
 type PracticeSession struct {
-	ID              string
-	DurationMinutes int64
-	Date            int64
-	UserID          string
+	ID              string `json:"id"`
+	DurationMinutes int64  `json:"durationMinutes"`
+	Date            int64  `json:"date"`
+	UserID          string `json:"userId"`
 }
 
 type PracticeSpot struct {
-	PracticeSessionID string
-	SpotID            string
+	PracticeSessionID string `json:"practiceSessionId"`
+	SpotID            string `json:"spotId"`
 }
 
 type Spot struct {
-	ID             string
-	PieceID        string
-	Name           string
-	Idx            int64
-	Stage          string
-	Measures       sql.NullString
-	AudioPromptUrl string
-	ImagePromptUrl string
-	NotesPrompt    string
-	TextPrompt     string
-	CurrentTempo   sql.NullInt64
-	LastPracticed  sql.NullInt64
-	Priority       int64
+	ID             string         `json:"id"`
+	PieceID        string         `json:"pieceId"`
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	Measures       sql.NullString `json:"measures"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	Priority       int64          `json:"priority"`
 }
 
 type User struct {
-	ID            string
-	Fullname      string
-	Email         string
-	EmailVerified sql.NullBool
+	ID            string       `json:"id"`
+	Fullname      string       `json:"fullname"`
+	Email         string       `json:"email"`
+	EmailVerified sql.NullBool `json:"emailVerified"`
 }

@@ -32,18 +32,18 @@ RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prom
 `
 
 type CreateSpotParams struct {
-	UserID         string
-	PieceID        string
-	ID             string
-	Name           string
-	Idx            int64
-	Stage          string
-	AudioPromptUrl string
-	ImagePromptUrl string
-	NotesPrompt    string
-	TextPrompt     string
-	CurrentTempo   sql.NullInt64
-	Measures       sql.NullString
+	UserID         string         `json:"userId"`
+	PieceID        string         `json:"pieceId"`
+	ID             string         `json:"id"`
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	Measures       sql.NullString `json:"measures"`
 }
 
 func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, error) {
@@ -86,9 +86,9 @@ WHERE spots.id = ?1 AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pie
 `
 
 type DeleteSpotParams struct {
-	SpotID  string
-	UserID  string
-	PieceID string
+	SpotID  string `json:"spotId"`
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
 }
 
 func (q *Queries) DeleteSpot(ctx context.Context, arg DeleteSpotParams) error {
@@ -104,9 +104,9 @@ AND spots.id NOT IN (/*SLICE:spotIDs*/?)
 `
 
 type DeleteSpotsExceptParams struct {
-	UserID  string
-	PieceID string
-	SpotIDs []string
+	UserID  string   `json:"userId"`
+	PieceID string   `json:"pieceId"`
+	SpotIDs []string `json:"spotIDs"`
 }
 
 func (q *Queries) DeleteSpotsExcept(ctx context.Context, arg DeleteSpotsExceptParams) error {
@@ -136,26 +136,26 @@ WHERE spots.id = ?1 AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pie
 `
 
 type GetSpotParams struct {
-	SpotID  string
-	UserID  string
-	PieceID string
+	SpotID  string `json:"spotId"`
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
 }
 
 type GetSpotRow struct {
-	ID             string
-	PieceID        string
-	Name           string
-	Idx            int64
-	Stage          string
-	Measures       sql.NullString
-	AudioPromptUrl string
-	ImagePromptUrl string
-	NotesPrompt    string
-	TextPrompt     string
-	CurrentTempo   sql.NullInt64
-	LastPracticed  sql.NullInt64
-	Priority       int64
-	PieceTitle     string
+	ID             string         `json:"id"`
+	PieceID        string         `json:"pieceId"`
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	Measures       sql.NullString `json:"measures"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	Priority       int64          `json:"priority"`
+	PieceTitle     string         `json:"pieceTitle"`
 }
 
 func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (GetSpotRow, error) {
@@ -191,20 +191,20 @@ ORDER BY spots.priority
 `
 
 type ListHighPrioritySpotsRow struct {
-	ID             string
-	PieceID        string
-	Name           string
-	Idx            int64
-	Stage          string
-	Measures       sql.NullString
-	AudioPromptUrl string
-	ImagePromptUrl string
-	NotesPrompt    string
-	TextPrompt     string
-	CurrentTempo   sql.NullInt64
-	LastPracticed  sql.NullInt64
-	Priority       int64
-	PieceTitle     string
+	ID             string         `json:"id"`
+	PieceID        string         `json:"pieceId"`
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	Measures       sql.NullString `json:"measures"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	Priority       int64          `json:"priority"`
+	PieceTitle     string         `json:"pieceTitle"`
 }
 
 func (q *Queries) ListHighPrioritySpots(ctx context.Context, userID string) ([]ListHighPrioritySpotsRow, error) {
@@ -256,25 +256,25 @@ ORDER BY spots.idx
 `
 
 type ListPieceSpotsParams struct {
-	UserID  string
-	PieceID string
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
 }
 
 type ListPieceSpotsRow struct {
-	ID             string
-	PieceID        string
-	Name           string
-	Idx            int64
-	Stage          string
-	Measures       sql.NullString
-	AudioPromptUrl string
-	ImagePromptUrl string
-	NotesPrompt    string
-	TextPrompt     string
-	CurrentTempo   sql.NullInt64
-	LastPracticed  sql.NullInt64
-	Priority       int64
-	PieceTitle     string
+	ID             string         `json:"id"`
+	PieceID        string         `json:"pieceId"`
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	Measures       sql.NullString `json:"measures"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	Priority       int64          `json:"priority"`
+	PieceTitle     string         `json:"pieceTitle"`
 }
 
 func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) ([]ListPieceSpotsRow, error) {
@@ -318,15 +318,15 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 const promoteToMoreRepeat = `-- name: PromoteToMoreRepeat :exec
 UPDATE spots
 SET
-    stage = CASE WHEN stage = 'repeat' THEN 'more_repeat' ELSE stage END,
+    stage = CASE WHEN stage = 'repeat' THEN 'extra_repeat' ELSE stage END,
     last_practiced = unixepoch('now')
 WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
 `
 
 type PromoteToMoreRepeatParams struct {
-	SpotID  string
-	UserID  string
-	PieceID string
+	SpotID  string `json:"spotId"`
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
 }
 
 func (q *Queries) PromoteToMoreRepeat(ctx context.Context, arg PromoteToMoreRepeatParams) error {
@@ -337,15 +337,15 @@ func (q *Queries) PromoteToMoreRepeat(ctx context.Context, arg PromoteToMoreRepe
 const promoteToRandom = `-- name: PromoteToRandom :exec
 UPDATE spots
 SET
-    stage = CASE WHEN stage = 'repeat' OR stage = 'more_repeat' THEN 'random' ELSE stage END,
+    stage = CASE WHEN stage = 'repeat' OR stage = 'extra_repeat' THEN 'random' ELSE stage END,
     last_practiced = unixepoch('now')
 WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
 `
 
 type PromoteToRandomParams struct {
-	SpotID  string
-	UserID  string
-	PieceID string
+	SpotID  string `json:"spotId"`
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
 }
 
 func (q *Queries) PromoteToRandom(ctx context.Context, arg PromoteToRandomParams) error {
@@ -369,18 +369,18 @@ WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.use
 `
 
 type UpdateSpotParams struct {
-	Name           string
-	Idx            int64
-	Stage          string
-	AudioPromptUrl string
-	ImagePromptUrl string
-	NotesPrompt    string
-	TextPrompt     string
-	CurrentTempo   sql.NullInt64
-	Measures       sql.NullString
-	SpotID         string
-	UserID         string
-	PieceID        string
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	Measures       sql.NullString `json:"measures"`
+	SpotID         string         `json:"spotId"`
+	UserID         string         `json:"userId"`
+	PieceID        string         `json:"pieceId"`
 }
 
 func (q *Queries) UpdateSpot(ctx context.Context, arg UpdateSpotParams) error {
@@ -404,17 +404,16 @@ func (q *Queries) UpdateSpot(ctx context.Context, arg UpdateSpotParams) error {
 const updateSpotPracticed = `-- name: UpdateSpotPracticed :exec
 UPDATE spots
 SET last_practiced = unixepoch('now')
-WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2 AND pieces.id = ?3 LIMIT 1)
+WHERE spots.id = ?1 AND spots.piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
 `
 
 type UpdateSpotPracticedParams struct {
-	SpotID  string
-	UserID  string
-	PieceID string
+	SpotID string `json:"spotId"`
+	UserID string `json:"userId"`
 }
 
 func (q *Queries) UpdateSpotPracticed(ctx context.Context, arg UpdateSpotPracticedParams) error {
-	_, err := q.db.ExecContext(ctx, updateSpotPracticed, arg.SpotID, arg.UserID, arg.PieceID)
+	_, err := q.db.ExecContext(ctx, updateSpotPracticed, arg.SpotID, arg.UserID)
 	return err
 }
 
@@ -426,10 +425,10 @@ WHERE spots.id = ?2 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.us
 `
 
 type UpdateSpotPriorityParams struct {
-	Priority int64
-	SpotID   string
-	UserID   string
-	PieceID  string
+	Priority int64  `json:"priority"`
+	SpotID   string `json:"spotId"`
+	UserID   string `json:"userId"`
+	PieceID  string `json:"pieceId"`
 }
 
 func (q *Queries) UpdateSpotPriority(ctx context.Context, arg UpdateSpotPriorityParams) error {

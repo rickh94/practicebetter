@@ -22,11 +22,11 @@ export default function Summary({
       <div className="flex w-full flex-col justify-center gap-x-8 gap-y-2 px-4 pt-12 sm:flex-row sm:gap-x-6 sm:px-0">
         {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
         <WarningButton onClick={setup}>
-          <Cog6ToothIcon className="-ml-1 h-5 w-5" />
+          <Cog6ToothIcon className="-ml-1 size-5" />
           Back to Setup
         </WarningButton>
         <HappyButton onClick={practice}>
-          <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+          <MusicalNoteIcon className="-ml-1 size-5" />
           Practice More
         </HappyButton>
       </div>

@@ -183,7 +183,7 @@ export function SkyButton({
 //   return (
 //     <TopNavButton className={className} {...props}>
 //       <span>Read More</span>
-//       <InformationCircleIcon className="-mr-1 h-6 w-6" />
+//       <InformationCircleIcon className="-mr-1 size-6" />
 //     </TopNavButton>
 //   );
 // }

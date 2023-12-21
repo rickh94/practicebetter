@@ -2,7 +2,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { SpotFormData, spotFormData } from "../validators";
 import SpotFormFields from "./spot-form";
-import { useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 
 export function AddSpotForm({
   pieceid,
@@ -17,22 +17,29 @@ export function AddSpotForm({
   const [nextSpotIdx, setNextSpotIdx] = useState(
     parseInt(initialspotcount) + 1 || 1,
   );
-  const { handleSubmit, formState, setValue, reset, register, watch } =
-    useForm<SpotFormData>({
-      mode: "onBlur",
-      reValidateMode: "onBlur",
-      resolver: yupResolver(spotFormData),
-      defaultValues: {
-        name: "",
-        idx: nextSpotIdx,
-        measures: "",
-        audioPromptUrl: "",
-        textPrompt: "",
-        notesPrompt: "",
-        imagePromptUrl: "",
-        stage: "repeat",
-      },
-    });
+  const {
+    handleSubmit,
+    formState,
+    formState: { isDirty, dirtyFields },
+    setValue,
+    reset,
+    register,
+    watch,
+  } = useForm<SpotFormData>({
+    mode: "onChange",
+    reValidateMode: "onBlur",
+    resolver: yupResolver(spotFormData),
+    defaultValues: {
+      name: "",
+      idx: nextSpotIdx,
+      measures: "",
+      audioPromptUrl: "",
+      textPrompt: "",
+      notesPrompt: "",
+      imagePromptUrl: "",
+      stage: "repeat",
+    },
+  });
 
   async function onSubmit(data: SpotFormData, e: Event) {
     e.preventDefault();
@@ -46,12 +53,61 @@ export function AddSpotForm({
         "X-CSRF-Token": csrf,
       },
     });
-    reset();
+    reset(
+      {
+        name: "",
+        idx: nextSpotIdx + 1,
+        measures: "",
+        audioPromptUrl: "",
+        textPrompt: "",
+        notesPrompt: "",
+        imagePromptUrl: "",
+        stage: "repeat",
+      },
+      { keepDirty: false },
+    );
     setIsUpdating(false);
     document.getElementById("spot-count").textContent = `(${nextSpotIdx})`;
     setNextSpotIdx(nextSpotIdx + 1);
-    setValue("idx", nextSpotIdx + 1);
   }
+
+  const onBeforeUnload = useCallback(function (e: BeforeUnloadEvent) {
+    e.preventDefault();
+    e.returnValue = true;
+  }, []);
+
+  const onBeforeHtmxRequest = useCallback(function (e: CustomEvent) {
+    if (
+      e.detail.requestConfig.verb === "post" &&
+      e.detail.requestConfig.path === `/library/pieces/${pieceid}/spots`
+    ) {
+      return;
+    }
+    if (confirm("You have unsaved changes. Are you sure you want to leave?")) {
+      return;
+    }
+    e.preventDefault();
+  }, []);
+
+  useEffect(
+    function () {
+      if (isDirty && Object.keys(dirtyFields).length > 0) {
+        window.addEventListener("beforeunload", onBeforeUnload);
+        document.addEventListener("htmx:beforeRequest", onBeforeHtmxRequest);
+        return function () {
+          window.removeEventListener("beforeunload", onBeforeUnload);
+          document.removeEventListener(
+            "htmx:beforeRequest",
+            onBeforeHtmxRequest,
+          );
+        };
+      } else {
+        window.removeEventListener("beforeunload", onBeforeUnload);
+        document.removeEventListener("htmx:beforeRequest", onBeforeHtmxRequest);
+      }
+    },
+    [isDirty, Object.keys(dirtyFields)],
+  );
 
   return (
     <form

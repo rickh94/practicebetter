@@ -22,21 +22,42 @@ func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(s.DB)
 	user := r.Context().Value("user").(db.User)
 	pieces, err := queries.ListRecentlyPracticedPieces(r.Context(), user.ID)
-	practiceSessions, err := queries.GetRecentPracticeSessions(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		http.Error(w, "Could not get pieces", http.StatusInternalServerError)
 		return
 	}
-	for _, row := range practiceSessions {
-		log.Default().Println(row)
-	}
+	practiceSessionRows, err := queries.ListRecentPracticeSessions(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		http.Error(w, "Could not get practice sessions", http.StatusInternalServerError)
 		return
 	}
-	s.HxRender(w, r, librarypages.Dashboard(pieces), "Library")
+	activePracticePlanID := r.Context().Value("practicePlanID").(string)
+	var plan db.GetPracticePlanWithTodoRow
+	hasPlan := false
+	if activePracticePlanID != "" {
+		plan, err = queries.GetPracticePlanWithTodo(r.Context(), db.GetPracticePlanWithTodoParams{
+			ID:     activePracticePlanID,
+			UserID: user.ID,
+		})
+		if err == nil {
+			hasPlan = true
+		} else {
+			log.Default().Println(err)
+		}
+	}
+	recentPracticePlans, err := queries.ListRecentPracticePlans(r.Context(), db.ListRecentPracticePlansParams{
+		ID:     activePracticePlanID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not get practice plans", http.StatusInternalServerError)
+		return
+	}
+	data, err := json.Marshal(practiceSessionRows)
+	s.HxRender(w, r, librarypages.Dashboard(s, pieces, string(data), hasPlan, &plan, recentPracticePlans), "Library")
 }
 
 type PieceFormData struct {

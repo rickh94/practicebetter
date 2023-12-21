@@ -178,3 +178,23 @@ func (s *Server) LoginRequired(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func (s *Server) MaybePracticePlan(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		practicePlanID, err := s.GetActivePracticePlanID(r.Context())
+		var ctx context.Context
+		if err != nil {
+			ctx = context.WithValue(r.Context(), "practicePlanID", "")
+		} else {
+			ctx = context.WithValue(r.Context(), "practicePlanID", practicePlanID)
+		}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (s *Server) ContextPath(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "currentPath", r.URL.Path)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}

@@ -34,7 +34,7 @@ templ ClearButtonLink(href, hxTarget, hxSwap  string) {
  		hx-get={ string(templ.URL(href)) }
  		hx-target={ hxTarget }
  		hx-push-url="true"
- 		hx-swap={ hxSwap + " swap:400ms" }
+ 		hx-swap={ hxSwap + " transition:true" }
  		class="flex gap-1 justify-center items-center py-2 px-4 text-lg font-semibold text-white bg-transparent border border-white hover:bg-white/20"
 	>
 		{ children... }
@@ -96,7 +96,7 @@ templ BasicButtonLink(href, hxTarget, hxSwap  string) {
  		hx-get={ string(templ.URL(href)) }
  		hx-target={ hxTarget }
  		hx-push-url="true"
- 		hx-swap={ hxSwap + " swap:305ms" }
+ 		hx-swap={ hxSwap + " transition:true" }
  		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
 	>
 		{ children... }
@@ -109,7 +109,7 @@ templ ReadMoreButton(id string) {
  		onclick={ ShowModal(id) }
 	>
 		Read More
-		@heroicons.IconInformationCircleSolid("-mr-1 h-5 w-5")
+		@heroicons.IconInformationCircleSolid("-mr-1 size-5")
 	</button>
 }
 
@@ -119,44 +119,81 @@ type BreadcrumbInfo struct {
 	Active bool
 }
 
-templ Breadcrumb(bc []BreadcrumbInfo) {
+// TODO: fix too much top padding repeat practice page
+// TODO: fix overflowing breadcrumb on very small screens
+
+templ BreadcrumbWrapper() {
 	<div class="flex">
 		<nav aria-label="Breadcrumb" class="block">
 			<ul class="flex flex-grow-0 justify-around items-center py-2 px-4 rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
-				for i, b := range bc {
-					<li
- 						class={ "flex items-center", templ.KV("text-neutral-900", b.Active), templ.KV("text-neutral-900/50", !b.Active) }
- 						if b.Active {
-							aria-current="true"
-						}
-					>
-						@HxLink("", b.Href, "#main-content") {
-							{ b.Label }
-						}
-					</li>
-					if i != len(bc) - 1 {
-						<span class="flex items-center h-full text-neutral-900/50" aria-hidden="true">
-							@heroicons.IconChevronRightSolid("w-4 h-4 sm:w-6 sm:h-6")
-						</span>
-					}
-				}
+				{ children... }
 			</ul>
 		</nav>
 	</div>
 }
 
+templ Breadcrumb(bc []BreadcrumbInfo) {
+	@BreadcrumbWrapper() {
+		for i, b := range bc {
+			@BreadcrumbItem(b.Label, b.Href, b.Active, i == len(bc) - 1, false)
+		}
+	}
+}
+
+type BreadcrumbWithDatesInfo struct {
+	Label  string
+	Href   string
+	Active bool
+	IsDate bool
+}
+
+templ BreadcrumbWithDates(bc []BreadcrumbWithDatesInfo) {
+	@BreadcrumbWrapper() {
+		for i, b := range bc {
+			@BreadcrumbItem(b.Label, b.Href, b.Active, i == len(bc) - 1, b.IsDate)
+		}
+	}
+}
+
+templ BreadcrumbItem(label string, href string, active bool, isLast bool, isDate bool) {
+	<li
+ 		class={ "flex items-center", templ.KV("text-neutral-900", active), templ.KV("text-neutral-900/50", !active) }
+ 		aria-current?={ active }
+	>
+		@HxLink("", href, "#main-content") {
+			if isDate {
+				<number-date epoch={ label }></number-date>
+			} else {
+				{ label }
+			}
+		}
+	</li>
+	if !isLast {
+		<span class="flex items-center h-full text-neutral-900/50" aria-hidden="true">
+			@heroicons.IconChevronRightSolid("w-4 h-4 sm:w-6 sm:h-6")
+		</span>
+	}
+}
+
 // TODO: make actual link
 
-templ PieceCard(pieceID string, title string, composer string, activeSpots int64, inactiveSpots int64) {
+templ PieceCard(pieceID string, title string, composer string, activeSpots int64, completedSpots int64) {
 	<li>
 		@HxLink("focusable flex rounded-xl bg-neutral-700/10 px-6 py-4 text-neutral-700 hover:bg-neutral-700/20", "/library/pieces/"+pieceID, "#main-content") {
 			<div class="flex flex-col flex-1 flex-grow gap-1">
 				<div>
-					<strong class="text-xl font-bold">{ title }</strong> —{ " " }
-					{ composer }
+					<strong class="text-xl font-bold">{ title }</strong>
+					<span class="whitespace-nowrap">
+						—{ " " }
+						if composer != "" {
+							{ composer }
+						} else {
+							Unknown
+						}
+					</span>
 				</div>
 				<div>Active Spots: { strconv.FormatInt(activeSpots, 10) }</div>
-				<div>Finished Spots: { strconv.FormatInt(inactiveSpots, 10) }</div>
+				<div>Finished Spots: { strconv.FormatInt(completedSpots, 10) }</div>
 			</div>
 			<div class="flex flex-grow-0 items-center">
 				<div class="sr-only">Click to view</div>
@@ -166,32 +203,160 @@ templ PieceCard(pieceID string, title string, composer string, activeSpots int64
 	</li>
 }
 
-templ BaseSpotCard(spotID, name, measures, stage, href string) {
-	<li id={ "spot-" + spotID } data-spot-stage={ stage } class="spot-card">
-		@HxLink("focusable flex justify-between rounded-xl border border-neutral-800 px-4 py-2 text-neutral-800 hover:text-black "+ getStageColor(stage), href, "#main-content") {
-			<div class="flex flex-col flex-grow">
-				<h3 class="text-lg font-bold">{ name }</h3>
-				<div class="inline text-sm">
-					Measures: <em class="italic">{ measures }</em>
+func getPracticeUrl(pieceID, practiceType string) string {
+	if practiceType == "random_single" {
+		return "/library/pieces/" + pieceID + "/practice/random-single"
+	} else if practiceType == "starting_point" {
+		return "/library/pieces/" + pieceID + "/practice/starting-point"
+	}
+	return "/library/pieces/" + pieceID
+}
+
+const pieceCardClass = "focusable flex rounded-xl px-6 py-4 text-neutral-700"
+
+func getPracticePlanPieceCardClass(completed bool) string {
+	if completed {
+		return pieceCardClass + " bg-green-500/50"
+	} else {
+		return pieceCardClass + " bg-neutral-700/10  hover:bg-neutral-700/20"
+	}
+}
+
+templ PracticePlanPieceCard(pieceID string, title string, composer string, activeSpots int64, completedSpots int64, completed bool, practiceType string) {
+	<li>
+		@HxLink(getPracticePlanPieceCardClass(completed), getPracticeUrl(pieceID, practiceType), "#main-content") {
+			<div class="flex flex-col flex-1 flex-grow gap-1">
+				<div>
+					<strong class="text-xl font-bold">{ title }</strong>
+					<span class="whitespace-nowrap">
+						—{ " " }{ composer }
+					</span>
 				</div>
-				<div class="inline text-sm">
-					Stage: <em class="italic">{ getStageDisplayName(stage) }</em>
+				<div>Active Spots: { strconv.FormatInt(activeSpots, 10) }</div>
+				if completed {
+					<div class="font-bold">Completed</div>
+				} else {
+					<div class="font-medium">Click to Practice</div>
+				}
+			</div>
+			<div class="flex flex-grow-0 items-center">
+				if completed {
+					@heroicons.IconCheckCircleSolid("size-10 -mr-2 text-green-900")
+					<span class="sr-only">Completed</span>
+				} else {
+					<div class="sr-only">Click to view</div>
+					@heroicons.IconDocumentMagnifyingGlassSolid("size-10 -mr-2")
+				}
+			</div>
+		}
+	</li>
+}
+
+const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-neutral-800 hover:text-black"
+
+func getSpotCardClass(completed bool, stage string) string {
+	if completed {
+		return baseSpotCardClass + " bg-green-500/50 border-green-800"
+	} else {
+
+		return baseSpotCardClass + " " + getStageColor(stage) + " border-neutral-800"
+	}
+}
+
+templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, showTitle bool, pieceTitle string, hidden bool) {
+	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block spot-card", templ.KV("hidden", hidden) }>
+		@HxLink(getSpotCardClass(practiced, stage), href, "#main-content") {
+			<div class="flex flex-col flex-grow">
+				<h3 class="text-lg font-bold">
+					{ name }
+					if showTitle {
+						<span class="text-neutral-700">
+							- { pieceTitle }
+						</span>
+					}
+				</h3>
+				if practiced {
+					<div class="text-sm font-bold">
+						Completed
+					</div>
+				}
+				<div class="text-sm">
+					<h4 class="text-sm">
+						Measures
+					</h4>
+					<p class="font-semibold">
+						if measures == "" {
+							No Measures
+						} else {
+							{ measures }
+						}
+					</p>
+				</div>
+				<div class="text-sm whitespace-break-spaces">
+					<h4 class="text-sm">
+						Stage
+					</h4>
+					<p>
+						<spot-stage class="font-semibold" stage={ stage }></spot-stage>
+					</p>
 				</div>
 			</div>
-			@heroicons.IconArrowTopRightOnSquareSolid("mt-4 h-6 w-6")
+			if practiced {
+				<div class="mr-3 w-8 h-8"></div>
+				@heroicons.IconCheckCircleSolid("size-8 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-green-900")
+				<span class="sr-only">Completed</span>
+			}
 			<span class="sr-only">Click to view spot</span>
 		}
 	</li>
 }
 
-templ SmallSpotCard(pieceID, spotID, name, measures,  stage string) {
-	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID)
+templ SmallSpotCard(pieceID, spotID, name, measures, stage string) {
+	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID, false, false, "", false)
 }
 
-templ PracticeSpotCard(pieceID, spotID, name, measures,  stage string) {
-	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat")
+templ PracticeSpotCard(pieceID, spotID, name, measures, stage string, hidden bool) {
+	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", false, false, "", hidden)
+}
+
+templ PracticePlanSpotCard(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool) {
+	if stage == "extra_repeat" || stage == "repeat" {
+		@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", practiced, true, pieceTitle, false)
+	} else {
+		@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID, practiced, true, pieceTitle, false)
+	}
 }
 
 templ PracticeToolNav(activepath string) {
 	<practice-tool-nav activepath={ activepath }></practice-tool-nav>
+}
+
+templ PracticePlanCard(planID string, date int64, newSpots int64, repeatSpots int64, interleaveSpots int64, interleaveDaysSpots int64, pieces int64) {
+	@HxLink("flex flex-col gap-4 p-4 text-black bg-white rounded-lg shadow shadow-black/20 focusable hover:bg-violet-200/80", "/library/plans/"+planID, "#main-content") {
+		<h3 class="pb-1 text-xl font-bold text-center text-black border-b-2 border-black">
+			<pretty-date class="text-black" epoch={ strconv.FormatInt(date, 10) }></pretty-date>
+		</h3>
+		<dl class="text-sm md:text-base columns-2">
+			<div class="flex gap-1">
+				<dt class="font-medium">New Spots:{ " " }</dt>
+				<dd>{ strconv.FormatInt(newSpots, 10) }</dd>
+			</div>
+			<div class="flex gap-1">
+				<dt class="font-medium">Extra Repeat Spots:{ " " }</dt>
+				<dd>{ strconv.FormatInt(repeatSpots, 10) }</dd>
+			</div>
+			<div class="flex gap-1">
+				<dt class="font-medium">Interleave Spots:{ " " }</dt>
+				<dd>{ strconv.FormatInt(interleaveSpots, 10) }</dd>
+			</div>
+			<div class="flex gap-1">
+				<dt class="font-medium">Interleave Days Spots:{ " " }</dt>
+				<dd>{ strconv.FormatInt(interleaveDaysSpots, 10) }</dd>
+			</div>
+			<div class="flex gap-1">
+				<dt class="font-medium">Pieces:{ " " }</dt>
+				<dd>{ strconv.FormatInt(pieces, 10) }</dd>
+			</div>
+		</dl>
+	}
 }

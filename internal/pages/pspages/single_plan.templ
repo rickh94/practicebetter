@@ -1,0 +1,181 @@
+package pspages
+
+import "practicebetter/internal/components"
+import "strconv"
+import "practicebetter/internal/heroicons"
+
+type PracticePlanSpot struct {
+	ID         string
+	Name       string
+	Measures   string
+	PieceTitle string
+	PieceID    string
+	Completed  bool
+}
+
+type PracticePlanPiece struct {
+	ID             string
+	Title          string
+	Completed      bool
+	Composer       string
+	ActiveSpots    int64
+	CompletedSpots int64
+}
+
+type PracticePlanData struct {
+	ID                           string
+	IsActive                     bool
+	Date                         int64
+	InterleaveDaysSpots          []PracticePlanSpot
+	InterleaveDaysSpotsCompleted bool
+	ExtraRepeatSpots             []PracticePlanSpot
+	InterleaveSpots              []PracticePlanSpot
+	InterleaveSpotsCompleted     bool
+	RandomSpotsPieces            []PracticePlanPiece
+	RandomStartPieces            []PracticePlanPiece
+	NewSpots                     []PracticePlanSpot
+	Completed                    bool
+}
+
+// TODO: create interleave/interleave days practice page for a spot
+// TODO: create variants of all the cards that swap the link icon for a check and disable or change color
+// TODO: add piece title to spot card
+
+templ PracticePlanPage(planData PracticePlanData, csrf string) {
+	<title>Practice Plan | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Practice Plan") , components.AccountLink())) {
+		@components.BreadcrumbContainer() {
+			@components.BreadcrumbWithDates([]components.BreadcrumbWithDatesInfo{
+					{ Label: "Library", Href: "/library", Active: false, IsDate: false },
+					{ Label: "Practice Plans", Href: "/library/plans", Active: false, IsDate: false },
+					{ Label: strconv.FormatInt(planData.Date, 10), Href: "/library/plans/"+planData.ID, Active: true, IsDate: true },
+				})
+		}
+		@components.NormalContainer() {
+			<div class="grid flex-grow grid-cols-1 gap-4 p-4 w-full min-h-full text-black bg-white rounded shadow sm:grid-cols-2 lg:grid-cols-3 shadow-black/20">
+				<header class="flex flex-col col-span-full justify-center items-center pb-4 w-full">
+					<div class="py-2 px-4 text-center border-b-2 border-black sm:px-8">
+						<h2 class="text-xl font-bold text-center sm:text-3xl">
+							<pretty-date class="text-black" epoch={ strconv.FormatInt(planData.Date, 10) }></pretty-date>
+							if planData.IsActive {
+								<span class="text-violet-700">- Active</span>
+							}
+						</h2>
+					</div>
+					if planData.IsActive {
+						<p class="text-base">Click the items below start practicing.</p>
+						<p class="italic">You can return to this page at any time using the menu in the top left.</p>
+					}
+				</header>
+				@PracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted)
+				<section id="extra-repeat-spots" class="flex flex-col gap-2">
+					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Extra Repeat Practice Spots</h3>
+					<p class="w-full text-sm">Repeat Practice these spots today</p>
+					<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+						for _, spot := range planData.ExtraRepeatSpots {
+							@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "extra_repeat", spot.PieceTitle, spot.Completed)
+						}
+					</ul>
+				</section>
+				@PracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted)
+				<section id="random-spots-pieces" class="flex flex-col gap-2">
+					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Practice Pieces</h3>
+					<p class="w-full text-sm">Random Practice the spots from these pieces.</p>
+					<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+						for _, piece := range planData.RandomSpotsPieces {
+							@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.ActiveSpots, piece.CompletedSpots, piece.Completed, "random_single")
+						}
+					</ul>
+				</section>
+				<section id="starting-point-pieces" class="flex flex-col gap-2">
+					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Starting Point Pieces</h3>
+					<p class="w-full text-sm">Practice these pieces using the random starting points.</p>
+					<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+						for _, piece := range planData.RandomStartPieces {
+							@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.ActiveSpots, piece.CompletedSpots, piece.Completed, "starting_point")
+						}
+					</ul>
+				</section>
+				<section id="new-spots" class="flex flex-col gap-2">
+					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">New Spots</h3>
+					<p class="w-full text-sm">Get started on some new spots. Don’t feel like you need to get to all of them</p>
+					<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+						for _, spot := range planData.NewSpots {
+							@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "repeat", spot.PieceTitle, spot.Completed)
+						}
+					</ul>
+				</section>
+			</div>
+		}
+	}
+}
+
+templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool) {
+	<section id="interleave-days-spots" class="flex flex-col gap-2">
+		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Days Spots</h3>
+		<p class="w-full text-sm">Play these spots at least once today</p>
+		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+			for _, spot := range interleaveDaysSpots {
+				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, spot.Completed)
+			}
+		</ul>
+		if len(interleaveDaysSpots) > 0 {
+			if allCompleted {
+				<div
+ 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"
+				>
+					@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+					Completed
+				</div>
+			} else {
+				<button
+ 					hx-post={ "/library/plans/" + planID + "/interleave-days-spots/complete-all" }
+ 					hx-headers={ components.HxCsrfHeader(csrf) }
+ 					hx-target="#interleave-days-spots"
+ 					hx-swap="outerHTML transition:true"
+ 					type="button"
+ 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+				>
+					@heroicons.IconCheckCircleOutline("-ml-1 size-5")
+					Complete
+				</button>
+			}
+		}
+	</section>
+}
+
+templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool) {
+	<section id="interleave-spots" class="flex flex-col gap-2">
+		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
+		<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
+		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+			for _, spot := range interleaveSpots {
+				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
+			}
+		</ul>
+		if len(interleaveSpots) > 0 {
+			if allCompleted {
+				<div
+ 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"
+				>
+					@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+					Completed
+				</div>
+			} else {
+				<button
+ 					hx-post={ "/library/plans/" + planID + "/interleave-spots/complete-all" }
+ 					hx-headers={ components.HxCsrfHeader(csrf) }
+ 					hx-target="#interleave-spots"
+ 					hx-swap="outerHTML transition:true"
+ 					type="button"
+ 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+				>
+					@heroicons.IconCheckCircleOutline("-ml-1 size-5")
+					Complete
+				</button>
+			}
+		}
+	</section>
+}
+
+// TODO: show associated practice session information

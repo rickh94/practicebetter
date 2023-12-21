@@ -80,6 +80,10 @@
       url("/static/fonts/work-sans-v19-latin-900.ttf") format("truetype"); /* Chrome 4+, Firefox 3.5+, IE 9+, Safari 3.1+, iOS 4.2+, Android Browser 2.2+ */
 }
 
+details summary::-webkit-details-marker {
+  display: none;
+}
+
 body {
   overscroll-behavior: none;
 }
@@ -88,7 +92,7 @@ body {
   font-family: "Work Sans", sans-serif;
 }
 
-.focusable:focus {
+.focusable:focus-visible {
   --tw-ring-color: rgba(38, 38, 38, 0.8);
   --tw-ring-offset-width: 2px;
   --tw-ring-offset-color: #ffefce;
@@ -128,8 +132,8 @@ dialog {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: calc(100vw - 2rem);
-  margin-bottom: 1rem;
+  width: calc(100vw - 1rem);
+  margin-bottom: 3.5rem;
   @apply translate-y-4 rounded-xl;
 }
 
@@ -172,4 +176,56 @@ dialog.close::backdrop {
 
 details[open] summary > .summary-icon {
   @apply rotate-90 transform;
+}
+
+.radio-option.checked {
+  @apply bg-neutral-700/20 shadow;
+}
+
+.radio-option.checked > .icon {
+  @apply visible;
+}
+
+.radio-option.checked > .radio-border {
+  @apply border-neutral-800;
+}
+
+.radio-option > .radio-border {
+  @apply border-transparent;
+}
+
+.radio-option > .icon {
+  @apply invisible;
+}
+
+.radio-option {
+  @apply bg-neutral-700/10;
+}
+
+.check-option.checked {
+  @apply bg-neutral-700/20 shadow;
+}
+
+.check-option.checked > .icon {
+  @apply visible;
+}
+
+.check-option.checked > .radio-border {
+  @apply border-neutral-800;
+}
+
+.check-option > .radio-border {
+  @apply border-transparent;
+}
+
+.check-option > .icon {
+  @apply invisible;
+}
+
+.check-option {
+  @apply bg-neutral-700/10;
+}
+
+.action-button {
+  @apply flex h-12 items-center justify-center gap-1 rounded-xl px-5 text-lg font-medium transition duration-200;
 }

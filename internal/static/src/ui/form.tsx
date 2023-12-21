@@ -43,7 +43,7 @@ export function RadioBox({
         </span>
       </span>
       <CheckCircleIcon
-        className={`ml-1 h-5 w-5 text-neutral-800 ${
+        className={`ml-1 size-5 text-neutral-800 ${
           selected ? "" : " invisible"
         }`}
         aria-hidden="true"

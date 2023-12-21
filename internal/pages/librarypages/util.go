@@ -6,7 +6,7 @@ func getStageDisplayName(stage string) string {
 	switch stage {
 	case "repeat":
 		return "Repeat Practice"
-	case "more_repeat":
+	case "extra_repeat":
 		return "Extra Repeat Practice"
 	case "random":
 		return "Random Practice"

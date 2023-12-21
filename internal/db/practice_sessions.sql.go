@@ -21,10 +21,10 @@ RETURNING id, duration_minutes, date, user_id
 `
 
 type CreatePracticeSessionParams struct {
-	ID              string
-	DurationMinutes int64
-	Date            int64
-	UserID          string
+	ID              string `json:"id"`
+	DurationMinutes int64  `json:"durationMinutes"`
+	Date            int64  `json:"date"`
+	UserID          string `json:"userId"`
 }
 
 func (q *Queries) CreatePracticeSession(ctx context.Context, arg CreatePracticeSessionParams) error {
@@ -34,6 +34,22 @@ func (q *Queries) CreatePracticeSession(ctx context.Context, arg CreatePracticeS
 		arg.Date,
 		arg.UserID,
 	)
+	return err
+}
+
+const extendPracticeSessionToNow = `-- name: ExtendPracticeSessionToNow :exec
+UPDATE practice_sessions
+SET duration_minutes = (unixepoch('now') - practice_sessions.date) / 60
+WHERE id = ? AND user_id = ?
+`
+
+type ExtendPracticeSessionToNowParams struct {
+	ID     string `json:"id"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) ExtendPracticeSessionToNow(ctx context.Context, arg ExtendPracticeSessionToNowParams) error {
+	_, err := q.db.ExecContext(ctx, extendPracticeSessionToNow, arg.ID, arg.UserID)
 	return err
 }
 
@@ -57,24 +73,24 @@ WHERE practice_sessions.id = ?1 AND practice_sessions.user_id = ?2
 `
 
 type GetPracticeSessionParams struct {
-	PracticeSessionID string
-	UserID            string
+	PracticeSessionID string `json:"practiceSessionId"`
+	UserID            string `json:"userId"`
 }
 
 type GetPracticeSessionRow struct {
-	ID                    string
-	DurationMinutes       int64
-	Date                  int64
-	UserID                string
-	PracticePieceMeasures sql.NullString
-	PieceTitle            sql.NullString
-	PieceID               sql.NullString
-	PieceComposer         sql.NullString
-	SpotName              sql.NullString
-	SpotID                sql.NullString
-	SpotMeasures          sql.NullString
-	SpotPieceID           sql.NullString
-	SpotPieceTitle        sql.NullString
+	ID                    string         `json:"id"`
+	DurationMinutes       int64          `json:"durationMinutes"`
+	Date                  int64          `json:"date"`
+	UserID                string         `json:"userId"`
+	PracticePieceMeasures sql.NullString `json:"practicePieceMeasures"`
+	PieceTitle            sql.NullString `json:"pieceTitle"`
+	PieceID               sql.NullString `json:"pieceId"`
+	PieceComposer         sql.NullString `json:"pieceComposer"`
+	SpotName              sql.NullString `json:"spotName"`
+	SpotID                sql.NullString `json:"spotId"`
+	SpotMeasures          sql.NullString `json:"spotMeasures"`
+	SpotPieceID           sql.NullString `json:"spotPieceId"`
+	SpotPieceTitle        sql.NullString `json:"spotPieceTitle"`
 }
 
 func (q *Queries) GetPracticeSession(ctx context.Context, arg GetPracticeSessionParams) (GetPracticeSessionRow, error) {
@@ -98,7 +114,27 @@ func (q *Queries) GetPracticeSession(ctx context.Context, arg GetPracticeSession
 	return i, err
 }
 
-const getRecentPracticeSessions = `-- name: GetRecentPracticeSessions :many
+const hasMorePracticeSessions = `-- name: HasMorePracticeSessions :one
+SELECT COUNT(id) > 0
+FROM practice_sessions
+WHERE practice_sessions.user_id = ?1 AND practice_sessions.date >= (unixepoch('now') - (?2 + 1) * 14 * 24 * 60 * 60)
+AND practice_sessions.date < (unixepoch('now') - ?2 * 14 * 24 * 60 * 60)
+ORDER BY date DESC
+`
+
+type HasMorePracticeSessionsParams struct {
+	UserID string      `json:"userId"`
+	Page   interface{} `json:"page"`
+}
+
+func (q *Queries) HasMorePracticeSessions(ctx context.Context, arg HasMorePracticeSessionsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasMorePracticeSessions, arg.UserID, arg.Page)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const listPracticeSessions = `-- name: ListPracticeSessions :many
 SELECT practice_sessions.id, practice_sessions.duration_minutes, practice_sessions.date, practice_sessions.user_id,
     practice_piece.measures AS practice_piece_measures,
     pieces.title AS piece_title,
@@ -114,35 +150,42 @@ LEFT JOIN practice_piece ON practice_sessions.id = practice_piece.practice_sessi
 LEFT JOIN pieces ON practice_piece.piece_id = pieces.id
 LEFT JOIN practice_spot ON practice_sessions.id = practice_spot.practice_session_id
 LEFT JOIN spots ON practice_spot.spot_id = spots.id
-WHERE practice_sessions.user_id = ?1 AND practice_sessions.date <= (unixepoch('now') - 7 * 24 * 60 * 60)
+WHERE practice_sessions.user_id = ?1 AND practice_sessions.date >= (unixepoch('now') - ?2 * 14 * 24 * 60 * 60)
+AND practice_sessions.date < (unixepoch('now') - (?2 - 1) * 14 * 24 * 60 * 60)
+AND practice_sessions.duration_minutes > 0
 ORDER BY date DESC
 `
 
-type GetRecentPracticeSessionsRow struct {
-	ID                    string
-	DurationMinutes       int64
-	Date                  int64
-	UserID                string
-	PracticePieceMeasures sql.NullString
-	PieceTitle            sql.NullString
-	PieceID               sql.NullString
-	PieceComposer         sql.NullString
-	SpotName              sql.NullString
-	SpotID                sql.NullString
-	SpotMeasures          sql.NullString
-	SpotPieceID           sql.NullString
-	SpotPieceTitle        sql.NullString
+type ListPracticeSessionsParams struct {
+	UserID string      `json:"userId"`
+	Page   interface{} `json:"page"`
 }
 
-func (q *Queries) GetRecentPracticeSessions(ctx context.Context, userID string) ([]GetRecentPracticeSessionsRow, error) {
-	rows, err := q.db.QueryContext(ctx, getRecentPracticeSessions, userID)
+type ListPracticeSessionsRow struct {
+	ID                    string         `json:"id"`
+	DurationMinutes       int64          `json:"durationMinutes"`
+	Date                  int64          `json:"date"`
+	UserID                string         `json:"userId"`
+	PracticePieceMeasures sql.NullString `json:"practicePieceMeasures"`
+	PieceTitle            sql.NullString `json:"pieceTitle"`
+	PieceID               sql.NullString `json:"pieceId"`
+	PieceComposer         sql.NullString `json:"pieceComposer"`
+	SpotName              sql.NullString `json:"spotName"`
+	SpotID                sql.NullString `json:"spotId"`
+	SpotMeasures          sql.NullString `json:"spotMeasures"`
+	SpotPieceID           sql.NullString `json:"spotPieceId"`
+	SpotPieceTitle        sql.NullString `json:"spotPieceTitle"`
+}
+
+func (q *Queries) ListPracticeSessions(ctx context.Context, arg ListPracticeSessionsParams) ([]ListPracticeSessionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPracticeSessions, arg.UserID, arg.Page)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetRecentPracticeSessionsRow
+	var items []ListPracticeSessionsRow
 	for rows.Next() {
-		var i GetRecentPracticeSessionsRow
+		var i ListPracticeSessionsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.DurationMinutes,
@@ -171,6 +214,192 @@ func (q *Queries) GetRecentPracticeSessions(ctx context.Context, userID string) 
 	return items, nil
 }
 
+const listRecentPracticeSessions = `-- name: ListRecentPracticeSessions :many
+SELECT practice_sessions.id, practice_sessions.duration_minutes, practice_sessions.date, practice_sessions.user_id,
+    practice_piece.measures AS practice_piece_measures,
+    pieces.title AS piece_title,
+    pieces.id AS piece_id,
+    pieces.composer AS piece_composer,
+    spots.name AS spot_name,
+    spots.id AS spot_id,
+    spots.measures AS spot_measures,
+    spots.piece_id AS spot_piece_id,
+    (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id) AS spot_piece_title
+FROM practice_sessions
+LEFT JOIN practice_piece ON practice_sessions.id = practice_piece.practice_session_id
+LEFT JOIN pieces ON practice_piece.piece_id = pieces.id
+LEFT JOIN practice_spot ON practice_sessions.id = practice_spot.practice_session_id
+LEFT JOIN spots ON practice_spot.spot_id = spots.id
+WHERE practice_sessions.user_id = ?1
+AND practice_sessions.date >= (unixepoch('now') - 4 * 24 * 60 * 60)
+AND practice_sessions.duration_minutes > 0
+ORDER BY date DESC
+`
+
+type ListRecentPracticeSessionsRow struct {
+	ID                    string         `json:"id"`
+	DurationMinutes       int64          `json:"durationMinutes"`
+	Date                  int64          `json:"date"`
+	UserID                string         `json:"userId"`
+	PracticePieceMeasures sql.NullString `json:"practicePieceMeasures"`
+	PieceTitle            sql.NullString `json:"pieceTitle"`
+	PieceID               sql.NullString `json:"pieceId"`
+	PieceComposer         sql.NullString `json:"pieceComposer"`
+	SpotName              sql.NullString `json:"spotName"`
+	SpotID                sql.NullString `json:"spotId"`
+	SpotMeasures          sql.NullString `json:"spotMeasures"`
+	SpotPieceID           sql.NullString `json:"spotPieceId"`
+	SpotPieceTitle        sql.NullString `json:"spotPieceTitle"`
+}
+
+func (q *Queries) ListRecentPracticeSessions(ctx context.Context, userID string) ([]ListRecentPracticeSessionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listRecentPracticeSessions, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRecentPracticeSessionsRow
+	for rows.Next() {
+		var i ListRecentPracticeSessionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DurationMinutes,
+			&i.Date,
+			&i.UserID,
+			&i.PracticePieceMeasures,
+			&i.PieceTitle,
+			&i.PieceID,
+			&i.PieceComposer,
+			&i.SpotName,
+			&i.SpotID,
+			&i.SpotMeasures,
+			&i.SpotPieceID,
+			&i.SpotPieceTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRecentPracticeSessionsForPiece = `-- name: ListRecentPracticeSessionsForPiece :many
+SELECT practice_sessions.id, practice_sessions.duration_minutes, practice_sessions.date, practice_sessions.user_id,
+    practice_piece.measures AS practice_piece_measures
+FROM practice_sessions
+LEFT JOIN practice_piece ON practice_sessions.id = practice_piece.practice_session_id
+LEFT JOIN pieces ON practice_piece.piece_id = pieces.id
+WHERE practice_sessions.user_id = ?1 AND practice_piece.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?1 AND pieces.id = ?2 LIMIT 1)
+AND practice_sessions.duration_minutes > 0
+ORDER BY date DESC
+LIMIT 10
+`
+
+type ListRecentPracticeSessionsForPieceParams struct {
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
+}
+
+type ListRecentPracticeSessionsForPieceRow struct {
+	ID                    string         `json:"id"`
+	DurationMinutes       int64          `json:"durationMinutes"`
+	Date                  int64          `json:"date"`
+	UserID                string         `json:"userId"`
+	PracticePieceMeasures sql.NullString `json:"practicePieceMeasures"`
+}
+
+func (q *Queries) ListRecentPracticeSessionsForPiece(ctx context.Context, arg ListRecentPracticeSessionsForPieceParams) ([]ListRecentPracticeSessionsForPieceRow, error) {
+	rows, err := q.db.QueryContext(ctx, listRecentPracticeSessionsForPiece, arg.UserID, arg.PieceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRecentPracticeSessionsForPieceRow
+	for rows.Next() {
+		var i ListRecentPracticeSessionsForPieceRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DurationMinutes,
+			&i.Date,
+			&i.UserID,
+			&i.PracticePieceMeasures,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRecentPracticeSessionsForPieceSpots = `-- name: ListRecentPracticeSessionsForPieceSpots :many
+SELECT practice_sessions.id, practice_sessions.duration_minutes, practice_sessions.date, practice_sessions.user_id,
+    spots.name as spot_name,
+    spots.id as spot_id
+FROM practice_sessions
+LEFT JOIN practice_spot ON practice_sessions.id = practice_spot.practice_session_id
+LEFT JOIN spots ON practice_spot.spot_id = spots.id
+WHERE practice_sessions.user_id = ?1 AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?1 AND pieces.id = ?2 LIMIT 1)
+AND practice_sessions.duration_minutes > 0
+ORDER BY date DESC
+LIMIT 10
+`
+
+type ListRecentPracticeSessionsForPieceSpotsParams struct {
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
+}
+
+type ListRecentPracticeSessionsForPieceSpotsRow struct {
+	ID              string         `json:"id"`
+	DurationMinutes int64          `json:"durationMinutes"`
+	Date            int64          `json:"date"`
+	UserID          string         `json:"userId"`
+	SpotName        sql.NullString `json:"spotName"`
+	SpotID          sql.NullString `json:"spotId"`
+}
+
+func (q *Queries) ListRecentPracticeSessionsForPieceSpots(ctx context.Context, arg ListRecentPracticeSessionsForPieceSpotsParams) ([]ListRecentPracticeSessionsForPieceSpotsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listRecentPracticeSessionsForPieceSpots, arg.UserID, arg.PieceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRecentPracticeSessionsForPieceSpotsRow
+	for rows.Next() {
+		var i ListRecentPracticeSessionsForPieceSpotsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DurationMinutes,
+			&i.Date,
+			&i.UserID,
+			&i.SpotName,
+			&i.SpotID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const practicePiece = `-- name: PracticePiece :exec
 INSERT INTO practice_piece (
     piece_id,
@@ -183,10 +412,10 @@ INSERT INTO practice_piece (
 `
 
 type PracticePieceParams struct {
-	UserID            string
-	PieceID           string
-	PracticeSessionID string
-	Measures          string
+	UserID            string `json:"userId"`
+	PieceID           string `json:"pieceId"`
+	PracticeSessionID string `json:"practiceSessionId"`
+	Measures          string `json:"measures"`
 }
 
 func (q *Queries) PracticePiece(ctx context.Context, arg PracticePieceParams) error {
@@ -204,24 +433,18 @@ INSERT INTO practice_spot (
     spot_id,
     practice_session_id
 ) VALUES (
-    (SELECT spots.id FROM spots WHERE spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1) AND spots.id = ?),
+    (SELECT spots.id FROM spots WHERE spots.piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?) AND spots.id = ?),
     ?
 )
 `
 
 type PracticeSpotParams struct {
-	UserID            string
-	PieceID           string
-	SpotID            string
-	PracticeSessionID string
+	UserID            string `json:"userId"`
+	SpotID            string `json:"spotId"`
+	PracticeSessionID string `json:"practiceSessionId"`
 }
 
 func (q *Queries) PracticeSpot(ctx context.Context, arg PracticeSpotParams) error {
-	_, err := q.db.ExecContext(ctx, practiceSpot,
-		arg.UserID,
-		arg.PieceID,
-		arg.SpotID,
-		arg.PracticeSessionID,
-	)
+	_, err := q.db.ExecContext(ctx, practiceSpot, arg.UserID, arg.SpotID, arg.PracticeSessionID)
 	return err
 }

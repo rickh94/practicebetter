@@ -26,7 +26,7 @@ export function getStageDisplayName(stage: string) {
   switch (stage) {
     case "repeat":
       return "Repeat Practice";
-    case "more_repeat":
+    case "extra_repeat":
       return "Extra Repeat Practice";
     case "random":
       return "Random Practice";
@@ -40,3 +40,22 @@ export function getStageDisplayName(stage: string) {
       return "Unknown";
   }
 }
+
+export function getPieceStageDisplayName(stage: string) {
+  switch (stage) {
+    case "active":
+      return "Active";
+    case "future":
+      return "Not Started";
+    case "completed":
+      return "Completed";
+    default:
+      return "Unknown";
+  }
+}
+export type NavItem = {
+  label: string;
+  href: string;
+  icon: preact.JSX.Element;
+  highlight?: boolean;
+};

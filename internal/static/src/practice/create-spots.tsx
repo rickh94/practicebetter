@@ -69,7 +69,7 @@ export function CreateSpots({
               <AngryButton onClick={() => clearSpots()}>
                 <div>Delete All</div>
                 <span className="sr-only">Delete All Spots</span>
-                <TrashIcon className="h-4 w-4" />
+                <TrashIcon className="-ml-1 size-4" />
               </AngryButton>
             )}
           </div>
@@ -89,7 +89,7 @@ export function CreateSpots({
               className="rounded-r-xl border-red-800 bg-red-700/10 py-2.5 pl-2 pr-3 text-red-800 hover:bg-red-500/10 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-800 focus:ring-offset-1 focus:ring-offset-neutral-100"
             >
               <span className="sr-only">Delete {spot.name}</span>
-              <TrashIcon className="h-5 w-5" />
+              <TrashIcon className="-mr-1 size-5" />
             </button>
           </li>
         ))}
@@ -117,7 +117,7 @@ export function CreateSpots({
             }}
           />
           <BasicButton onClick={onAddSpot}>
-            <PlusCircleIcon className="-ml-1 h-4 w-4" />
+            <PlusCircleIcon className="-ml-1 size-4" />
             Add Spot
           </BasicButton>
         </div>
@@ -146,7 +146,7 @@ export function CreateSpots({
             }}
           />
           <BasicButton onClick={generateSomeSpots}>
-            <PlusCircleIcon className="-ml-1 h-4 w-4" />
+            <PlusCircleIcon className="-ml-1 size-4" />
             Add Spots
           </BasicButton>
         </div>

@@ -32,18 +32,18 @@ INSERT INTO pieces (
     goal_tempo,
     user_id
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced
+RETURNING id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage
 `
 
 type CreatePieceParams struct {
-	ID              string
-	Title           string
-	Description     sql.NullString
-	Composer        sql.NullString
-	Measures        sql.NullInt64
-	BeatsPerMeasure sql.NullInt64
-	GoalTempo       sql.NullInt64
-	UserID          string
+	ID              string         `json:"id"`
+	Title           string         `json:"title"`
+	Description     sql.NullString `json:"description"`
+	Composer        sql.NullString `json:"composer"`
+	Measures        sql.NullInt64  `json:"measures"`
+	BeatsPerMeasure sql.NullInt64  `json:"beatsPerMeasure"`
+	GoalTempo       sql.NullInt64  `json:"goalTempo"`
+	UserID          string         `json:"userId"`
 }
 
 func (q *Queries) CreatePiece(ctx context.Context, arg CreatePieceParams) (Piece, error) {
@@ -68,6 +68,7 @@ func (q *Queries) CreatePiece(ctx context.Context, arg CreatePieceParams) (Piece
 		&i.GoalTempo,
 		&i.UserID,
 		&i.LastPracticed,
+		&i.Stage,
 	)
 	return i, err
 }
@@ -78,8 +79,8 @@ WHERE id = ? AND user_id = ?
 `
 
 type DeletePieceParams struct {
-	ID     string
-	UserID string
+	ID     string `json:"id"`
+	UserID string `json:"userId"`
 }
 
 func (q *Queries) DeletePiece(ctx context.Context, arg DeletePieceParams) error {
@@ -97,6 +98,7 @@ SELECT
     pieces.beats_per_measure,
     pieces.goal_tempo,
     pieces.last_practiced,
+    pieces.stage,
     spots.id AS spot_id,
     spots.name AS spot_name,
     spots.idx AS spot_idx,
@@ -113,29 +115,30 @@ WHERE pieces.id = ?1 AND pieces.user_id = ?2
 `
 
 type GetPieceByIDParams struct {
-	PieceID string
-	UserID  string
+	PieceID string `json:"pieceId"`
+	UserID  string `json:"userId"`
 }
 
 type GetPieceByIDRow struct {
-	ID                 string
-	Title              string
-	Description        sql.NullString
-	Composer           sql.NullString
-	Measures           sql.NullInt64
-	BeatsPerMeasure    sql.NullInt64
-	GoalTempo          sql.NullInt64
-	LastPracticed      sql.NullInt64
-	SpotID             sql.NullString
-	SpotName           sql.NullString
-	SpotIdx            sql.NullInt64
-	SpotStage          sql.NullString
-	SpotAudioPromptUrl sql.NullString
-	SpotImagePromptUrl sql.NullString
-	SpotNotesPrompt    sql.NullString
-	SpotTextPrompt     sql.NullString
-	SpotCurrentTempo   sql.NullInt64
-	SpotMeasures       sql.NullString
+	ID                 string         `json:"id"`
+	Title              string         `json:"title"`
+	Description        sql.NullString `json:"description"`
+	Composer           sql.NullString `json:"composer"`
+	Measures           sql.NullInt64  `json:"measures"`
+	BeatsPerMeasure    sql.NullInt64  `json:"beatsPerMeasure"`
+	GoalTempo          sql.NullInt64  `json:"goalTempo"`
+	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
+	Stage              string         `json:"stage"`
+	SpotID             sql.NullString `json:"spotId"`
+	SpotName           sql.NullString `json:"spotName"`
+	SpotIdx            sql.NullInt64  `json:"spotIdx"`
+	SpotStage          sql.NullString `json:"spotStage"`
+	SpotAudioPromptUrl sql.NullString `json:"spotAudioPromptUrl"`
+	SpotImagePromptUrl sql.NullString `json:"spotImagePromptUrl"`
+	SpotNotesPrompt    sql.NullString `json:"spotNotesPrompt"`
+	SpotTextPrompt     sql.NullString `json:"spotTextPrompt"`
+	SpotCurrentTempo   sql.NullInt64  `json:"spotCurrentTempo"`
+	SpotMeasures       sql.NullString `json:"spotMeasures"`
 }
 
 func (q *Queries) GetPieceByID(ctx context.Context, arg GetPieceByIDParams) ([]GetPieceByIDRow, error) {
@@ -156,6 +159,7 @@ func (q *Queries) GetPieceByID(ctx context.Context, arg GetPieceByIDParams) ([]G
 			&i.BeatsPerMeasure,
 			&i.GoalTempo,
 			&i.LastPracticed,
+			&i.Stage,
 			&i.SpotID,
 			&i.SpotName,
 			&i.SpotIdx,
@@ -166,6 +170,84 @@ func (q *Queries) GetPieceByID(ctx context.Context, arg GetPieceByIDParams) ([]G
 			&i.SpotTextPrompt,
 			&i.SpotCurrentTempo,
 			&i.SpotMeasures,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPieceForPlan = `-- name: GetPieceForPlan :many
+SELECT
+    pieces.id,
+    pieces.title,
+    pieces.description,
+    pieces.composer,
+    pieces.measures,
+    pieces.beats_per_measure,
+    pieces.goal_tempo,
+    pieces.last_practiced,
+    spots.id AS spot_id,
+    spots.name AS spot_name,
+    spots.idx AS spot_idx,
+    spots.stage AS spot_stage,
+    spots.last_practiced AS spot_last_practiced
+FROM pieces
+LEFT JOIN spots ON pieces.id = spots.piece_id
+WHERE pieces.id = ?1 AND pieces.user_id = ?2
+`
+
+type GetPieceForPlanParams struct {
+	PieceID string `json:"pieceId"`
+	UserID  string `json:"userId"`
+}
+
+type GetPieceForPlanRow struct {
+	ID                string         `json:"id"`
+	Title             string         `json:"title"`
+	Description       sql.NullString `json:"description"`
+	Composer          sql.NullString `json:"composer"`
+	Measures          sql.NullInt64  `json:"measures"`
+	BeatsPerMeasure   sql.NullInt64  `json:"beatsPerMeasure"`
+	GoalTempo         sql.NullInt64  `json:"goalTempo"`
+	LastPracticed     sql.NullInt64  `json:"lastPracticed"`
+	SpotID            sql.NullString `json:"spotId"`
+	SpotName          sql.NullString `json:"spotName"`
+	SpotIdx           sql.NullInt64  `json:"spotIdx"`
+	SpotStage         sql.NullString `json:"spotStage"`
+	SpotLastPracticed sql.NullInt64  `json:"spotLastPracticed"`
+}
+
+func (q *Queries) GetPieceForPlan(ctx context.Context, arg GetPieceForPlanParams) ([]GetPieceForPlanRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPieceForPlan, arg.PieceID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPieceForPlanRow
+	for rows.Next() {
+		var i GetPieceForPlanRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Composer,
+			&i.Measures,
+			&i.BeatsPerMeasure,
+			&i.GoalTempo,
+			&i.LastPracticed,
+			&i.SpotID,
+			&i.SpotName,
+			&i.SpotIdx,
+			&i.SpotStage,
+			&i.SpotLastPracticed,
 		); err != nil {
 			return nil, err
 		}
@@ -206,29 +288,29 @@ WHERE pieces.id = ?1 AND pieces.user_id = ?2
 `
 
 type GetPieceWithIncompleteSpotsParams struct {
-	PieceID string
-	UserID  string
+	PieceID string `json:"pieceId"`
+	UserID  string `json:"userId"`
 }
 
 type GetPieceWithIncompleteSpotsRow struct {
-	ID                 string
-	Title              string
-	Description        sql.NullString
-	Composer           sql.NullString
-	Measures           sql.NullInt64
-	BeatsPerMeasure    sql.NullInt64
-	GoalTempo          sql.NullInt64
-	LastPracticed      sql.NullInt64
-	SpotID             string
-	SpotName           string
-	SpotIdx            int64
-	SpotStage          string
-	SpotAudioPromptUrl string
-	SpotImagePromptUrl string
-	SpotNotesPrompt    string
-	SpotTextPrompt     string
-	SpotCurrentTempo   sql.NullInt64
-	SpotMeasures       sql.NullString
+	ID                 string         `json:"id"`
+	Title              string         `json:"title"`
+	Description        sql.NullString `json:"description"`
+	Composer           sql.NullString `json:"composer"`
+	Measures           sql.NullInt64  `json:"measures"`
+	BeatsPerMeasure    sql.NullInt64  `json:"beatsPerMeasure"`
+	GoalTempo          sql.NullInt64  `json:"goalTempo"`
+	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
+	SpotID             string         `json:"spotId"`
+	SpotName           string         `json:"spotName"`
+	SpotIdx            int64          `json:"spotIdx"`
+	SpotStage          string         `json:"spotStage"`
+	SpotAudioPromptUrl string         `json:"spotAudioPromptUrl"`
+	SpotImagePromptUrl string         `json:"spotImagePromptUrl"`
+	SpotNotesPrompt    string         `json:"spotNotesPrompt"`
+	SpotTextPrompt     string         `json:"spotTextPrompt"`
+	SpotCurrentTempo   sql.NullInt64  `json:"spotCurrentTempo"`
+	SpotMeasures       sql.NullString `json:"spotMeasures"`
 }
 
 func (q *Queries) GetPieceWithIncompleteSpots(ctx context.Context, arg GetPieceWithIncompleteSpotsParams) ([]GetPieceWithIncompleteSpotsRow, error) {
@@ -299,29 +381,29 @@ WHERE pieces.id = ?1 AND pieces.user_id = ?2
 `
 
 type GetPieceWithRandomSpotsParams struct {
-	PieceID string
-	UserID  string
+	PieceID string `json:"pieceId"`
+	UserID  string `json:"userId"`
 }
 
 type GetPieceWithRandomSpotsRow struct {
-	ID                 string
-	Title              string
-	Description        sql.NullString
-	Composer           sql.NullString
-	Measures           sql.NullInt64
-	BeatsPerMeasure    sql.NullInt64
-	GoalTempo          sql.NullInt64
-	LastPracticed      sql.NullInt64
-	SpotID             string
-	SpotName           string
-	SpotIdx            int64
-	SpotStage          string
-	SpotAudioPromptUrl string
-	SpotImagePromptUrl string
-	SpotNotesPrompt    string
-	SpotTextPrompt     string
-	SpotCurrentTempo   sql.NullInt64
-	SpotMeasures       sql.NullString
+	ID                 string         `json:"id"`
+	Title              string         `json:"title"`
+	Description        sql.NullString `json:"description"`
+	Composer           sql.NullString `json:"composer"`
+	Measures           sql.NullInt64  `json:"measures"`
+	BeatsPerMeasure    sql.NullInt64  `json:"beatsPerMeasure"`
+	GoalTempo          sql.NullInt64  `json:"goalTempo"`
+	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
+	SpotID             string         `json:"spotId"`
+	SpotName           string         `json:"spotName"`
+	SpotIdx            int64          `json:"spotIdx"`
+	SpotStage          string         `json:"spotStage"`
+	SpotAudioPromptUrl string         `json:"spotAudioPromptUrl"`
+	SpotImagePromptUrl string         `json:"spotImagePromptUrl"`
+	SpotNotesPrompt    string         `json:"spotNotesPrompt"`
+	SpotTextPrompt     string         `json:"spotTextPrompt"`
+	SpotCurrentTempo   sql.NullInt64  `json:"spotCurrentTempo"`
+	SpotMeasures       sql.NullString `json:"spotMeasures"`
 }
 
 func (q *Queries) GetPieceWithRandomSpots(ctx context.Context, arg GetPieceWithRandomSpotsParams) ([]GetPieceWithRandomSpotsRow, error) {
@@ -367,12 +449,12 @@ func (q *Queries) GetPieceWithRandomSpots(ctx context.Context, arg GetPieceWithR
 }
 
 const getPieceWithoutSpots = `-- name: GetPieceWithoutSpots :one
-SELECT id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced FROM pieces WHERE id = ? AND user_id = ?
+SELECT id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage FROM pieces WHERE id = ? AND user_id = ?
 `
 
 type GetPieceWithoutSpotsParams struct {
-	ID     string
-	UserID string
+	ID     string `json:"id"`
+	UserID string `json:"userId"`
 }
 
 func (q *Queries) GetPieceWithoutSpots(ctx context.Context, arg GetPieceWithoutSpotsParams) (Piece, error) {
@@ -388,8 +470,60 @@ func (q *Queries) GetPieceWithoutSpots(ctx context.Context, arg GetPieceWithoutS
 		&i.GoalTempo,
 		&i.UserID,
 		&i.LastPracticed,
+		&i.Stage,
 	)
 	return i, err
+}
+
+const listActiveUserPieces = `-- name: ListActiveUserPieces :many
+SELECT
+    id,
+    title,
+    composer,
+    last_practiced,
+    (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS completed_spots,
+    (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS active_spots
+FROM pieces
+WHERE user_id = ? AND stage = 'active'
+`
+
+type ListActiveUserPiecesRow struct {
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	Composer       sql.NullString `json:"composer"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	CompletedSpots int64          `json:"completedSpots"`
+	ActiveSpots    int64          `json:"activeSpots"`
+}
+
+func (q *Queries) ListActiveUserPieces(ctx context.Context, userID string) ([]ListActiveUserPiecesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveUserPieces, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActiveUserPiecesRow
+	for rows.Next() {
+		var i ListActiveUserPiecesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Composer,
+			&i.LastPracticed,
+			&i.CompletedSpots,
+			&i.ActiveSpots,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAllUserPieces = `-- name: ListAllUserPieces :many
@@ -405,12 +539,12 @@ WHERE user_id = ?
 `
 
 type ListAllUserPiecesRow struct {
-	ID             string
-	Title          string
-	Composer       sql.NullString
-	LastPracticed  sql.NullInt64
-	CompletedSpots int64
-	ActiveSpots    int64
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	Composer       sql.NullString `json:"composer"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	CompletedSpots int64          `json:"completedSpots"`
+	ActiveSpots    int64          `json:"activeSpots"`
 }
 
 func (q *Queries) ListAllUserPieces(ctx context.Context, userID string) ([]ListAllUserPiecesRow, error) {
@@ -457,17 +591,17 @@ LIMIT ? OFFSET ?
 `
 
 type ListPaginatedUserPiecesParams struct {
-	UserID string
-	Limit  int64
-	Offset int64
+	UserID string `json:"userId"`
+	Limit  int64  `json:"limit"`
+	Offset int64  `json:"offset"`
 }
 
 type ListPaginatedUserPiecesRow struct {
-	ID             string
-	Title          string
-	Composer       sql.NullString
-	CompletedSpots int64
-	ActiveSpots    int64
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	Composer       sql.NullString `json:"composer"`
+	CompletedSpots int64          `json:"completedSpots"`
+	ActiveSpots    int64          `json:"activeSpots"`
 }
 
 func (q *Queries) ListPaginatedUserPieces(ctx context.Context, arg ListPaginatedUserPiecesParams) ([]ListPaginatedUserPiecesRow, error) {
@@ -513,11 +647,11 @@ LIMIT 5
 `
 
 type ListRecentlyPracticedPiecesRow struct {
-	ID             string
-	Title          string
-	Composer       sql.NullString
-	CompletedSpots int64
-	ActiveSpots    int64
+	ID             string         `json:"id"`
+	Title          string         `json:"title"`
+	Composer       sql.NullString `json:"composer"`
+	CompletedSpots int64          `json:"completedSpots"`
+	ActiveSpots    int64          `json:"activeSpots"`
 }
 
 func (q *Queries) ListRecentlyPracticedPieces(ctx context.Context, userID string) ([]ListRecentlyPracticedPiecesRow, error) {
@@ -557,20 +691,22 @@ SET
     composer = ?,
     measures = ?,
     beats_per_measure = ?,
-    goal_tempo = ?
+    goal_tempo = ?,
+    stage = ?
 WHERE id = ? AND user_id = ?
-RETURNING id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced
+RETURNING id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage
 `
 
 type UpdatePieceParams struct {
-	Title           string
-	Description     sql.NullString
-	Composer        sql.NullString
-	Measures        sql.NullInt64
-	BeatsPerMeasure sql.NullInt64
-	GoalTempo       sql.NullInt64
-	ID              string
-	UserID          string
+	Title           string         `json:"title"`
+	Description     sql.NullString `json:"description"`
+	Composer        sql.NullString `json:"composer"`
+	Measures        sql.NullInt64  `json:"measures"`
+	BeatsPerMeasure sql.NullInt64  `json:"beatsPerMeasure"`
+	GoalTempo       sql.NullInt64  `json:"goalTempo"`
+	Stage           string         `json:"stage"`
+	ID              string         `json:"id"`
+	UserID          string         `json:"userId"`
 }
 
 func (q *Queries) UpdatePiece(ctx context.Context, arg UpdatePieceParams) (Piece, error) {
@@ -581,6 +717,7 @@ func (q *Queries) UpdatePiece(ctx context.Context, arg UpdatePieceParams) (Piece
 		arg.Measures,
 		arg.BeatsPerMeasure,
 		arg.GoalTempo,
+		arg.Stage,
 		arg.ID,
 		arg.UserID,
 	)
@@ -595,6 +732,7 @@ func (q *Queries) UpdatePiece(ctx context.Context, arg UpdatePieceParams) (Piece
 		&i.GoalTempo,
 		&i.UserID,
 		&i.LastPracticed,
+		&i.Stage,
 	)
 	return i, err
 }
@@ -606,8 +744,8 @@ WHERE pieces.id = ?1 AND user_id = ?2
 `
 
 type UpdatePiecePracticedParams struct {
-	PieceID string
-	UserID  string
+	PieceID string `json:"pieceId"`
+	UserID  string `json:"userId"`
 }
 
 func (q *Queries) UpdatePiecePracticed(ctx context.Context, arg UpdatePiecePracticedParams) error {

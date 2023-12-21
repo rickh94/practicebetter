@@ -38,8 +38,10 @@ CREATE TABLE pieces (
     goal_tempo INTEGER,
     user_id TEXT NOT NULL,
     last_practiced INTEGER,
+    stage TEXT NOT NULL DEFAULT 'active',
     PRIMARY KEY (id),
     CHECK (LENGTH(title) > 0),
+    CHECK (stage IN ('active', 'completed', 'future')),
     CONSTRAINT user FOREIGN KEY (user_id) REFERENCES users (
         id
     ) ON UPDATE NO ACTION ON DELETE CASCADE
@@ -63,7 +65,7 @@ CREATE TABLE spots (
     current_tempo INTEGER,
     last_practiced INTEGER,
     priority INTEGER NOT NULL DEFAULT 0,
-    CHECK(stage IN ('repeat', 'more_repeat', 'random', 'interleave', 'interleave_days', 'completed')),
+    CHECK(stage IN ('repeat', 'extra_repeat', 'random', 'interleave', 'interleave_days', 'completed')),
     CHECK(LENGTH(name) > 0),
     CHECK(priority > -3),
     CHECK(priority < 3),
@@ -111,5 +113,54 @@ CREATE TABLE practice_spot (
     CONSTRAINT spot FOREIGN KEY (spot_id) REFERENCES spots (
         id
     ) ON UPDATE NO ACTION ON DELETE CASCADE
-)
+);
+
+
+CREATE TABLE practice_plans (
+    id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    intensity TEXT NOT NULL,
+    date INTEGER NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT 0,
+    practice_session_id TEXT,
+    CHECK (intensity IN ('light', 'medium', 'heavy')),
+    PRIMARY KEY (id),
+    CONSTRAINT user FOREIGN KEY (user_id) REFERENCES users (
+        id
+    ) ON UPDATE NO ACTION ON DELETE CASCADE,
+    CONSTRAINT ps FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (
+        id
+    ) ON UPDATE NO ACTION ON DELETE SET NULL
+);
+
+CREATE TABLE practice_plan_spots (
+    practice_plan_id TEXT NOT NULL,
+    spot_id TEXT NOT NULL,
+    practice_type TEXT NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT 0,
+    CHECK (practice_type IN ('new', 'extra_repeat', 'interleave', 'interleave_days')),
+    PRIMARY KEY (practice_plan_id, spot_id),
+    CONSTRAINT plan FOREIGN KEY (practice_plan_id) REFERENCES practice_plans (
+        id
+    ) ON UPDATE NO ACTION ON DELETE CASCADE,
+    CONSTRAINT spot FOREIGN KEY (spot_id) REFERENCES spots (
+        id
+    ) ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+
+CREATE TABLE practice_plan_pieces (
+    practice_plan_id TEXT NOT NULL,
+    piece_id TEXT NOT NULL,
+    practice_type TEXT NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT 0,
+    CHECK (practice_type IN ('random_spots', 'starting_point')),
+    PRIMARY KEY (practice_plan_id, piece_id),
+    CONSTRAINT plan FOREIGN KEY (practice_plan_id) REFERENCES practice_plans (
+        id
+    ) ON UPDATE NO ACTION ON DELETE CASCADE,
+    CONSTRAINT piece FOREIGN KEY (piece_id) REFERENCES pieces (
+        id
+    ) ON UPDATE NO ACTION ON DELETE CASCADE
+);
 

@@ -29,6 +29,7 @@ func (s *Server) startLogin(w http.ResponseWriter, r *http.Request) {
 		nextLoc = "/auth/me"
 	}
 	cookie, err := r.Cookie("rememberEmail")
+	fmt.Println(cookie)
 	if err != nil {
 		s.HxRender(w, r, authpages.StartLoginPage(csrfToken, nextLoc), "Login")
 		return
@@ -164,11 +165,10 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 			cookie := http.Cookie{
 				Name:     "rememberEmail",
 				Value:    user.Email,
-				Path:     "/",
 				MaxAge:   60 * 60 * 24 * 7,
 				HttpOnly: true,
 				Secure:   true,
-				SameSite: http.SameSiteStrictMode,
+				SameSite: http.SameSiteLaxMode,
 			}
 			http.SetCookie(w, &cookie)
 		}

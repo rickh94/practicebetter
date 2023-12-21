@@ -4,35 +4,88 @@ import "practicebetter/internal/components"
 import "practicebetter/internal/heroicons"
 import "practicebetter/internal/db"
 import "database/sql"
+import "practicebetter/internal/pages"
+import "strconv"
 
-templ Dashboard(pieces []db.ListRecentlyPracticedPiecesRow) {
+// TODO: component to parse and combine practice session info and group by date (has to be on frontend because of timezone).
+
+templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, practiceSessions string, hasActivePlan bool, activePracticePlan *db.GetPracticePlanWithTodoRow, recentPracticePlans []db.ListRecentPracticePlansRow) {
 	<title>Library | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.HeadingText("Library") , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Library") , components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: true },
 				})
 		}
 		@components.TwoColumnContainer() {
-			<div class="flex flex-col">
+			<div class="flex flex-col gap-4 pt-2 sm:pt-4 md:pt-0">
+				<h2 class="text-2xl font-bold text-center">
+					Your Practicing
+				</h2>
+				if hasActivePlan {
+					@components.HxLink("flex flex-col gap-4 p-4 text-black bg-white rounded-lg shadow shadow-black/20 focusable hover:bg-violet-200/80", "/library/plans/"+activePracticePlan.ID, "#main-content") {
+						<h3 class="pb-1 text-xl font-bold text-center text-black border-b-2 border-black">
+							Current Practice Plan <span class="text-violet-700">- Click to View</span>
+						</h3>
+						<dl class="columns-2">
+							<div class="flex gap-1">
+								<dt class="font-medium">Spots Completed:{ " " }</dt>
+								<dd>{ strconv.FormatInt(activePracticePlan.CompletedSpotsCount, 10) }</dd>
+							</div>
+							<div class="flex gap-1">
+								<dt class="font-medium">Spots Remaining:{ " " }</dt>
+								<dd>{ strconv.FormatInt(activePracticePlan.IncompleteSpotsCount, 10) }</dd>
+							</div>
+							<div class="flex gap-1">
+								<dt class="font-medium">Pieces Completed:{ " " }</dt>
+								<dd>{ strconv.FormatInt(activePracticePlan.CompletedPiecesCount, 10) }</dd>
+							</div>
+							<div class="flex gap-1">
+								<dt class="font-medium">Pieces Remaining:{ " " }</dt>
+								<dd>{ strconv.FormatInt(activePracticePlan.IncompletePiecesCount, 10) }</dd>
+							</div>
+						</dl>
+					}
+				} else {
+					@components.HxLink("flex gap-2 justify-center items-center py-6 px-6 text-2xl font-semibold text-center text-emerald-700 rounded-xl bg-emerald-700/10 hover:bg-emerald-700/20 focusable", "/library/plans/create", "#main-content") {
+						@heroicons.IconDocumentCheckSolid("-ml-2 size-8")
+						Start Practicing
+					}
+				}
+				<div class="flex flex-col gap-2 p-4 w-full rounded-xl bg-neutral-700/10">
+					<h3 class="text-2xl font-bold col-span">Recent Practice Plans</h3>
+					for _, plan := range recentPracticePlans {
+						@components.PracticePlanCard(plan.ID, plan.Date, plan.NewSpotsCount, plan.RepeatSpotsCount, plan.InterleaveSpotsCount, plan.InterleaveDaysSpotsCount, plan.PiecesCount)
+					}
+					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/plans", "#main-content") {
+						@heroicons.IconViewColumnsSolid("-ml-1 size-6")
+						All Practice Plans
+					}
+				</div>
+				<div class="flex flex-col gap-2 p-4 w-full rounded-xl bg-neutral-700/10">
+					<h3 class="text-2xl font-bold col-span">Recent Practice Sessions</h3>
+					<past-practice-display sessions={ practiceSessions } background="true"></past-practice-display>
+					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/practice-sessions", "#main-content") {
+						@heroicons.IconViewColumnsSolid("-ml-1 size-6")
+						All Practice Sessions
+					}
+				</div>
+			</div>
+			<div class="flex flex-col gap-4">
 				@LibraryPieceList(pieces)
-				<div class="flex flex-col gap-4 p-4 mt-4 w-full sm:flex-row">
+				<div class="flex flex-col gap-4 w-full sm:flex-row">
 					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/pieces", "#main-content") {
-						@heroicons.IconViewColumnsSolid("-ml-1 h-6 w-6")
+						@heroicons.IconViewColumnsSolid("-ml-1 size-5")
 						All Pieces
 					}
 					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-emerald-700 rounded-xl bg-emerald-700/10 hover:bg-emerald-700/20 focusable", "/library/pieces/create", "#main-content") {
-						@heroicons.IconDocumentPlusSolid("-ml-1 h-6 w-6")
+						@heroicons.IconDocumentPlusSolid("-ml-1 size-5")
 						New Piece
 					}
 				</div>
 			</div>
-			<div class="flex flex-col pt-2 sm:pt-4 md:pt-0 border-neutral-700/10">
-				<h2 class="py-1 text-2xl font-bold text-center">
-					Practice Sessions
-				</h2>
-			</div>
 		}
+		<script type="module" src={ s.StaticUrl("out/practice-display.js") }></script>
 	}
 }
 
@@ -44,8 +97,8 @@ func composerOrDefault(composer sql.NullString) string {
 }
 
 templ LibraryPieceList(pieces []db.ListRecentlyPracticedPiecesRow) {
-	<h2 class="py-1 text-2xl font-bold text-center">Recent Pieces</h2>
-	<ul class="flex flex-col gap-4 p-4">
+	<h2 class="text-2xl font-bold text-center">Recent Pieces</h2>
+	<ul class="flex flex-col gap-4">
 		for _, piece := range pieces {
 			@components.PieceCard(piece.ID, piece.Title, composerOrDefault(piece.Composer), piece.ActiveSpots, piece.CompletedSpots)
 		}

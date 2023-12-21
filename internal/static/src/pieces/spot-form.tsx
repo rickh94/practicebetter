@@ -15,6 +15,7 @@ import {
   AddTextPrompt,
   AddNotesPrompt,
 } from "./add-prompts";
+import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 
 export default function SpotFormFields({
   formState,
@@ -192,11 +193,13 @@ export default function SpotFormFields({
         className="flex flex-row-reverse justify-start gap-4 pt-4"
         id="spot-form-button-row"
       >
-        <HappyButton disabled={!formState.isValid} type="submit">
-          <FolderPlusIcon className="-ml-1 h-6 w-6" />
+        <HappyButton type="submit">
+          <FolderPlusIcon className="-ml-1 size-5" />
           {isUpdating ? "Saving..." : "Save"}
         </HappyButton>
-        <WarningLink href={backTo}>← Go Back</WarningLink>
+        <WarningLink href={backTo}>
+          <ChevronLeftIcon className="-ml-1 size-5" /> Go Back
+        </WarningLink>
       </div>
     </div>
   );

@@ -387,27 +387,77 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	practiceSessionID := cuid2.Generate()
-	if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-		ID:              practiceSessionID,
-		UserID:          user.ID,
-		DurationMinutes: info.DurationMinutes,
-		Date:            time.Now().Unix(),
-	}); err != nil {
+	// TODO: better error handling
+	var practiceSessionID string
+	activePracticePlanID, err := s.GetActivePracticePlanID(r.Context())
+	if err != nil {
 		log.Default().Println(err)
-		http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-		return
+		practiceSessionID = cuid2.Generate()
+		if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
+			ID:              practiceSessionID,
+			UserID:          user.ID,
+			DurationMinutes: info.DurationMinutes,
+			Date:            time.Now().Unix(),
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not create practice session", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		activePracticePlan, err := qtx.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
+			ID:     activePracticePlanID,
+			UserID: user.ID,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not get active practice plan", http.StatusInternalServerError)
+			return
+		}
+		if !activePracticePlan.PracticeSessionID.Valid {
+			practiceSessionID = cuid2.Generate()
+			if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
+				ID:              practiceSessionID,
+				UserID:          user.ID,
+				DurationMinutes: info.DurationMinutes,
+				Date:            time.Now().Unix(),
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not create practice session", http.StatusInternalServerError)
+				return
+			}
+		}
+		practiceSessionID = activePracticePlan.PracticeSessionID.String
+		if err := qtx.ExtendPracticeSessionToNow(r.Context(), db.ExtendPracticeSessionToNowParams{
+			ID:     practiceSessionID,
+			UserID: user.ID,
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not extend practice session", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if err := qtx.PracticeSpot(r.Context(), db.PracticeSpotParams{
 		UserID:            user.ID,
-		PieceID:           pieceID,
 		SpotID:            spotID,
 		PracticeSessionID: practiceSessionID,
 	}); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Could not practice spot", http.StatusInternalServerError)
 		return
+	}
+
+	// TODO: consider more about whether this should require success
+	if activePracticePlanID != "" {
+		if err := qtx.CompletePracticePlanSpot(r.Context(), db.CompletePracticePlanSpotParams{
+			UserID: user.ID,
+			SpotID: spotID,
+			PlanID: activePracticePlanID,
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not complete practice plan spot", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	if info.Success {
@@ -422,7 +472,7 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 				http.Error(w, "Could not promote to random", http.StatusInternalServerError)
 				return
 			}
-		case "more_repeat":
+		case "extra_repeat":
 			if err := qtx.PromoteToMoreRepeat(r.Context(), db.PromoteToMoreRepeatParams{
 				UserID:  user.ID,
 				PieceID: pieceID,

@@ -78,7 +78,7 @@ templ StageReadMoreDialog() {
 
 templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 	<title>{ spot.Name } - { spot.PieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(spot.Name + " - " + spot.PieceTitle) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(spot.Name + " - " + spot.PieceTitle) , components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
@@ -88,11 +88,11 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 				})
 			<div class="flex flex-grow gap-2 justify-end">
 				@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-green-700/10 px-4 py-2 font-semibold text-green-800  transition duration-200 hover:bg-green-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/practice/repeat", "#main-content") {
-					@heroicons.IconPlaySolid("-ml-1 h-5 w-5")
+					@heroicons.IconPlaySolid("-ml-1 size-5")
 					Practice
 				}
 				@components.HxLink( "focusable flex items-center justify-center gap-1 rounded-xl bg-amber-700/10 px-4 py-2 font-semibold  text-amber-800 transition duration-200 hover:bg-amber-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/edit", "#main-content") {
-					@heroicons.IconPencilSolid("-ml-1 h-5 w-5")
+					@heroicons.IconPencilSolid("-ml-1 size-5")
 					Edit
 				}
 				<button
@@ -102,7 +102,7 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
  					hx-confirm={ "Are you sure you want to delete spot " + spot.Name + "? This cannot be reversed" }
  					hx-target="#main-content"
 				>
-					@heroicons.IconTrashSolid("-ml-1 h-5 w-5")
+					@heroicons.IconTrashSolid("-ml-1 size-5")
 					Delete Spot
 				</button>
 			</div>
@@ -149,9 +149,9 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 								Stage
 							</dt>
 							<dd class="flex gap-1 items-center mt-1 leading-6 sm:mt-0 text-neutral-700">
-								<span class="font-medium">{ getStageDisplayName(spot.Stage) }</span>
+								<span class="font-medium"><spot-stage stage={ spot.Stage }></spot-stage></span>
 								<button class="text-neutral-400 hover:text-neutral-500" onClick={ components.ShowModal(stageModalID) }>
-									@heroicons.IconInformationCircleSolid("h-4 w-4")
+									@heroicons.IconInformationCircleSolid("size-4")
 									<span class="sr-only">Read More</span>
 								</button>
 							</dd>

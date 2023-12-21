@@ -21,6 +21,7 @@ SELECT
     pieces.beats_per_measure,
     pieces.goal_tempo,
     pieces.last_practiced,
+    pieces.stage,
     spots.id AS spot_id,
     spots.name AS spot_name,
     spots.idx AS spot_idx,
@@ -84,6 +85,25 @@ FROM pieces
 INNER JOIN spots ON pieces.id = spots.piece_id AND spots.stage != 'completed'
 WHERE pieces.id = :piece_id AND pieces.user_id = :user_id;
 
+-- name: GetPieceForPlan :many
+SELECT
+    pieces.id,
+    pieces.title,
+    pieces.description,
+    pieces.composer,
+    pieces.measures,
+    pieces.beats_per_measure,
+    pieces.goal_tempo,
+    pieces.last_practiced,
+    spots.id AS spot_id,
+    spots.name AS spot_name,
+    spots.idx AS spot_idx,
+    spots.stage AS spot_stage,
+    spots.last_practiced AS spot_last_practiced
+FROM pieces
+LEFT JOIN spots ON pieces.id = spots.piece_id
+WHERE pieces.id = :piece_id AND pieces.user_id = :user_id;
+
 -- name: GetPieceWithoutSpots :one
 SELECT * FROM pieces WHERE id = ? AND user_id = ?;
 
@@ -125,6 +145,18 @@ SELECT
 FROM pieces
 WHERE user_id = ?;
 
+-- name: ListActiveUserPieces :many
+SELECT
+    id,
+    title,
+    composer,
+    last_practiced,
+    (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS completed_spots,
+    (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS active_spots
+FROM pieces
+WHERE user_id = ? AND stage = 'active';
+
+
 -- name: UpdatePiece :one
 UPDATE pieces
 SET
@@ -133,7 +165,8 @@ SET
     composer = ?,
     measures = ?,
     beats_per_measure = ?,
-    goal_tempo = ?
+    goal_tempo = ?,
+    stage = ?
 WHERE id = ? AND user_id = ?
 RETURNING *;
 

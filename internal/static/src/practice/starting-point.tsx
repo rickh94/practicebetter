@@ -242,7 +242,7 @@ export function StartingPointSetupForm({
           </p>
         </div>
       </div>
-      <div className="grid-rows-8 grid w-full grid-cols-1 gap-1 sm:grid-cols-2 sm:grid-rows-4">
+      <div className="grid w-full grid-cols-1 grid-rows-8 gap-1 sm:grid-cols-2 sm:grid-rows-4">
         <div className="col-span-1 col-start-1 row-span-1 row-start-1">
           <label
             className="text-lg font-semibold text-neutral-800"
@@ -399,7 +399,7 @@ export function StartingPointSetupForm({
               }}
               type="button"
             >
-              <XMarkIcon className="-ml-1 h-5 w-5" />
+              <XMarkIcon className="-ml-1 size-5" />
               Clear
             </BasicButton>
           </div>
@@ -571,11 +571,11 @@ export function Summary({
       <div className="flex w-full flex-col justify-center gap-4 pb-8 pt-12 sm:flex-row  sm:gap-6">
         {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
         <WarningButton onClick={setup}>
-          <Cog6ToothIcon className="-ml-1 h-5 w-5" />
+          <Cog6ToothIcon className="-ml-1 size-5" />
           Back to Setup
         </WarningButton>
         <HappyButton onClick={practice}>
-          <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+          <MusicalNoteIcon className="-ml-1 size-5" />
           Practice More
         </HappyButton>
       </div>

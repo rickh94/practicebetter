@@ -1,0 +1,45 @@
+
+package pspages
+
+import "practicebetter/internal/pages"
+import "practicebetter/internal/components"
+import "strconv"
+import "practicebetter/internal/heroicons"
+
+// TODO: make no pages thing look right
+
+templ PSList(s pages.ServerUtil,  practiceSessions string, page int, hasNext bool) {
+	<title>Practice Sessions | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Practice Sessions") , components.AccountLink())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Practice Sessions", Href: "/library/practice-sessions", Active: true },
+				})
+		}
+		@components.NormalContainer() {
+			<past-practice-display sessions={ practiceSessions } wide="true" title="Your Practice Sessions" class="w-full"></past-practice-display>
+		}
+		@components.NormalContainer() {
+			<div class="flex flex-grow-0 justify-between items-center py-4 px-4 w-full sm:max-w-5xl sm:max-auto">
+				if page > 1 {
+					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", "/library/practice-sessions?page=" + strconv.Itoa(page-1), "#main-content") {
+						@heroicons.IconChevronLeftSolid("-ml-1 size-5")
+						Newer
+					}
+				} else {
+					<span class="py-2 px-4 text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No Newer Sessions</span>
+				}
+				if hasNext {
+					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", "/library/practice-sessions?page=" + strconv.Itoa(page+1), "#main-content") {
+						Older
+						@heroicons.IconChevronRightSolid("-ml-1 size-5")
+					}
+				} else {
+					<span class="py-2 px-4 h-full text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No Older Sessions</span>
+				}
+			</div>
+		}
+		<script type="module" src={ s.StaticUrl("out/practice-display.js") }></script>
+	}
+}

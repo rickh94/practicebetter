@@ -2,24 +2,24 @@ import { Menu, Transition } from "@headlessui/react";
 import { PlayIcon } from "@heroicons/react/20/solid";
 import { Fragment } from "react";
 import { Link } from "./links";
+import { RandomBoxesIcon, RepeatIcon, ShuffleIcon } from "./icons";
 
 export function PracticeMenu({ pieceid }: { pieceid: string }) {
   const links = [
     {
-      href: `/library/pieces/${pieceid}/practice/random-single`,
-      label: "Random Spots",
-    },
-    {
-      href: `/library/pieces/${pieceid}/practice/random-sequence`,
-      label: "Random Sequence",
-    },
-    {
       href: `/library/pieces/${pieceid}/practice/repeat`,
       label: "Repeat Practice",
+      icon: <RepeatIcon className="ml-1 size-5" />,
+    },
+    {
+      href: `/library/pieces/${pieceid}/practice/random-single`,
+      label: "Random Spots",
+      icon: <ShuffleIcon className="ml-1 size-5" />,
     },
     {
       href: `/library/pieces/${pieceid}/practice/starting-point`,
       label: "Random Starting Point",
+      icon: <RandomBoxesIcon className="ml-1 size-5" />,
     },
   ];
 
@@ -30,8 +30,8 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
       <Menu as="div" className="relative inline-block text-left">
         {/*
       // @ts-ignore */}
-        <Menu.Button className="focusable flex h-10 items-center justify-center gap-1 rounded-xl bg-green-700/10 px-4 py-2 font-semibold text-green-800  transition duration-200 hover:bg-green-700/20">
-          <PlayIcon className="-ml-1 h-5 w-5" />
+        <Menu.Button className="focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20">
+          <PlayIcon className="-ml-1 size-5" />
           Practice
         </Menu.Button>
         <Transition
@@ -45,7 +45,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
         >
           <Menu.Items
             // @ts-ignore
-            className="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-white shadow-lg  ring-1 ring-black ring-opacity-5 backdrop-blur focus:outline-none"
+            className="absolute right-0 z-10 mt-2 w-64 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black  ring-opacity-5 backdrop-blur focus:outline-none sm:left-0 sm:origin-top-left"
             as="nav"
           >
             <ul className="flex flex-col gap-0">
@@ -54,12 +54,13 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
                   key={link.href}
                   as="li"
                   // @ts-ignore
-                  className="w-full text-lg font-semibold text-green-950 first:rounded-t-lg last:rounded-b-lg hover:bg-green-500/20"
+                  className="w-full text-lg font-medium text-green-950 first:rounded-t-lg last:rounded-b-lg hover:bg-green-500/20"
                 >
                   <Link
                     href={link.href}
-                    className="block h-full w-full px-2 py-2"
+                    className="flex h-full w-full items-center gap-1 px-2 py-3"
                   >
+                    {link.icon}
                     {link.label}
                   </Link>
                 </Menu.Item>

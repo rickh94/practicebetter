@@ -54,7 +54,7 @@ async function handleFinishedSpotPracticingEvent(e: CustomEvent) {
       new CustomEvent("ShowAlert", {
         detail: {
           variant: "success",
-          message: "Great job praciticing, keep it up!",
+          message: "Great job practicing, keep it up!",
           title: "Practicing Completed",
           duration: 3000,
         },
@@ -102,7 +102,7 @@ async function handleFinishedStartingPointPracticingEvent(e: CustomEvent) {
       new CustomEvent("ShowAlert", {
         detail: {
           variant: "success",
-          message: "Great job praciticing, keep it up!",
+          message: "Great job practicing, keep it up!",
           title: "Practicing Completed",
           duration: 3000,
         },
@@ -149,7 +149,7 @@ async function handleFinishedRepeatPracticingEvent(e: CustomEvent) {
           detail: {
             variant: "success",
             message:
-              "Great job praciticing, you can now start to randomly practice this spot!",
+              "Great job practicing, you can now start to randomly practice this spot!",
             title: "Practicing Completed",
             duration: 3000,
           },
@@ -161,7 +161,7 @@ async function handleFinishedRepeatPracticingEvent(e: CustomEvent) {
           detail: {
             variant: "info",
             message:
-              "Great job praciticing, come back again to get it five times in a row!",
+              "Great job practicing, come back again to get it five times in a row!",
             title: "Practicing Completed",
             duration: 3000,
           },

@@ -163,7 +163,7 @@ export function SpotsArray({
               </div>
             </div>
             <AngryButton onClick={() => remove(index)}>
-              <TrashIcon className="h-4 w-4" />
+              <TrashIcon className="-ml-1 size-4" />
               Delete
             </AngryButton>
           </li>
@@ -187,7 +187,7 @@ export function SpotsArray({
               })
             }
           >
-            <PlusIcon className="h-6 w-6" />
+            <PlusIcon className="-ml-1 size-6" />
             Add a Spot
           </button>
         </li>

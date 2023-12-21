@@ -2,6 +2,9 @@ import register from "preact-custom-element";
 import { PracticeToolNav } from "./ui/practice-tool-nav";
 import { ConfirmDialog } from "./ui/confirm";
 import { uniqueID } from "./common";
+import { DateFromNow, PrettyDate, NumberDate } from "./ui/date-display";
+import { PieceStage, SpotStage } from "./ui/stages";
+import { InternalNav } from "./ui/internal-nav";
 
 try {
   register(PracticeToolNav, "practice-tool-nav", ["activepath"], {
@@ -15,6 +18,14 @@ try {
       shadow: false,
     },
   );
+  register(DateFromNow, "date-from-now", ["epoch"], { shadow: false });
+  register(PrettyDate, "pretty-date", ["epoch"], { shadow: false });
+  register(NumberDate, "number-date", ["epoch"], { shadow: false });
+  register(PieceStage, "piece-stage", ["stage"], { shadow: false });
+  register(SpotStage, "spot-stage", ["stage"], { shadow: false });
+  register(InternalNav, "internal-nav", ["activeplanid", "activepath"], {
+    shadow: false,
+  });
 } catch (err) {
   console.log(err);
 }

@@ -12,6 +12,7 @@ export default defineConfig({
         about: "internal/static/src/about.ts",
         "create-piece": "internal/static/src/create-piece.ts",
         "notes-display": "internal/static/src/notes-display.ts",
+        "practice-display": "internal/static/src/practice-display.ts",
         "practice-menu": "internal/static/src/practice-menu.ts",
         "edit-piece": "internal/static/src/edit-piece.ts",
         "add-spot": "internal/static/src/add-spot.ts",

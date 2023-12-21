@@ -35,13 +35,13 @@ export function ConfirmDialog({
           id={`${dialogid}-title`}
           class="text-2xl font-semibold leading-6 text-neutral-900"
         >
-          Confirm Request
+          Please Confirm
         </h3>
       </header>
       <main className="mt-2 text-left text-neutral-800">
         <p>{question}</p>
       </main>
-      <section className="mt-4 flex w-full gap-2">
+      <section className="mt-4 flex w-full flex-wrap gap-2">
         <WarningButton onClick={onCancel} grow>
           Cancel
         </WarningButton>

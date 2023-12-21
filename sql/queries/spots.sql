@@ -43,6 +43,7 @@ FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE spots.id = :spot_id AND spots.piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
+
 -- name: UpdateSpot :exec
 UPDATE spots
 SET
@@ -66,21 +67,21 @@ WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pie
 -- name: PromoteToRandom :exec
 UPDATE spots
 SET
-    stage = CASE WHEN stage = 'repeat' OR stage = 'more_repeat' THEN 'random' ELSE stage END,
+    stage = CASE WHEN stage = 'repeat' OR stage = 'extra_repeat' THEN 'random' ELSE stage END,
     last_practiced = unixepoch('now')
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
 -- name: PromoteToMoreRepeat :exec
 UPDATE spots
 SET
-    stage = CASE WHEN stage = 'repeat' THEN 'more_repeat' ELSE stage END,
+    stage = CASE WHEN stage = 'repeat' THEN 'extra_repeat' ELSE stage END,
     last_practiced = unixepoch('now')
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
 -- name: UpdateSpotPracticed :exec
 UPDATE spots
 SET last_practiced = unixepoch('now')
-WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
+WHERE spots.id = :spot_id AND spots.piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
 
 -- name: DeleteSpot :exec
 DELETE FROM spots

@@ -32,6 +32,7 @@ export function EditPieceForm({
           measures: initialPieceInfo.measures ?? undefined,
           goalTempo: initialPieceInfo.goalTempo ?? undefined,
           beatsPerMeasure: initialPieceInfo.beatsPerMeasure ?? undefined,
+          stage: initialPieceInfo.stage ?? "active",
           spots: initialSpots.map((spot, idx) => ({
             id: spot.id ?? "",
             name: spot.name ?? "",
@@ -72,6 +73,7 @@ export function EditPieceForm({
         watch={watch}
         backTo={`/library/pieces/${pieceid}`}
         setValue={setValue}
+        showStage={true}
       />
     </form>
   );

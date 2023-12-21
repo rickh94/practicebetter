@@ -35,13 +35,13 @@ RETURNING credential_id, public_key, transport, attestation_type, flags, authent
 `
 
 type CreateCredentialParams struct {
-	CredentialID    []byte
-	PublicKey       []byte
-	Transport       []byte
-	AttestationType string
-	Flags           []byte
-	Authenticator   []byte
-	UserID          string
+	CredentialID    []byte `json:"credentialId"`
+	PublicKey       []byte `json:"publicKey"`
+	Transport       []byte `json:"transport"`
+	AttestationType string `json:"attestationType"`
+	Flags           []byte `json:"flags"`
+	Authenticator   []byte `json:"authenticator"`
+	UserID          string `json:"userId"`
 }
 
 func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialParams) (Credential, error) {
@@ -73,9 +73,9 @@ RETURNING id, fullname, email, email_verified
 `
 
 type CreateUserParams struct {
-	ID       string
-	Fullname string
-	Email    string
+	ID       string `json:"id"`
+	Fullname string `json:"fullname"`
+	Email    string `json:"email"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -194,11 +194,11 @@ WHERE users.email = LOWER(?1)
 `
 
 type GetUserForLoginRow struct {
-	ID              string
-	Fullname        string
-	Email           string
-	EmailVerified   sql.NullBool
-	CredentialCount int64
+	ID              string       `json:"id"`
+	Fullname        string       `json:"fullname"`
+	Email           string       `json:"email"`
+	EmailVerified   sql.NullBool `json:"emailVerified"`
+	CredentialCount int64        `json:"credentialCount"`
 }
 
 func (q *Queries) GetUserForLogin(ctx context.Context, email string) (GetUserForLoginRow, error) {
@@ -234,10 +234,10 @@ RETURNING id, fullname, email, email_verified
 `
 
 type UpdateUserParams struct {
-	Fullname      string
-	Email         string
-	EmailVerified sql.NullBool
-	ID            string
+	Fullname      string       `json:"fullname"`
+	Email         string       `json:"email"`
+	EmailVerified sql.NullBool `json:"emailVerified"`
+	ID            string       `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {

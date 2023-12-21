@@ -8,7 +8,7 @@ import "practicebetter/internal/heroicons"
 
 templ PiecePracticeStartingPointPage(s pages.ServerUtil, csrf string, piece db.Piece) {
 	<title>{ piece.Title } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(piece.Title), components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(piece.Title), components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
@@ -26,7 +26,7 @@ templ PiecePracticeStartingPointPage(s pages.ServerUtil, csrf string, piece db.P
 
 templ PiecePracticeMissingMeasureInfoPage(pieceTitle string, pieceID string) {
 	<title>{ pieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(pieceTitle) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(pieceTitle) , components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
@@ -46,11 +46,11 @@ templ PiecePracticeMissingMeasureInfoPage(pieceTitle string, pieceID string) {
 				</p>
 				<div class="flex gap-2 py-4">
 					@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-sky-700/10 px-8 py-3 text-xl font-semibold text-sky-800  transition duration-200 hover:bg-sky-700/20", "/library/pieces/"+pieceID, "#main-content") {
-						@heroicons.IconArrowLeftSolid("-ml-1 h-6 w-6")
+						@heroicons.IconArrowLeftSolid("-ml-1 size-6")
 						Back To Piece
 					}
 					@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-amber-700/10 px-8 py-3 text-xl font-semibold text-amber-800  transition duration-200 hover:bg-amber-700/20", "/library/pieces/"+pieceID+"/edit", "#main-content") {
-						@heroicons.IconPencilSolid("-ml-1 h-6 w-6")
+						@heroicons.IconPencilSolid("-ml-1 size-6")
 						Edit Piece
 					}
 				</div>

@@ -315,7 +315,7 @@ function SpotItem({ spot }: { spot: BasicSpot }) {
               variants={variants}
             >
               <span className="sr-only">Completed</span>
-              <CheckCircleSolid className="h-6 w-6 text-green-500" />
+              <CheckCircleSolid className="size-6 text-green-500" />
             </motion.span>
           ) : (
             <motion.span
@@ -326,7 +326,7 @@ function SpotItem({ spot }: { spot: BasicSpot }) {
               variants={variants}
             >
               <span className="sr-only">Incomplete</span>
-              <CheckCircleOutline className="h-6 w-6 text-neutral-500" />
+              <CheckCircleOutline className="size-6 text-neutral-500" />
             </motion.span>
           )}
         </AnimatePresence>

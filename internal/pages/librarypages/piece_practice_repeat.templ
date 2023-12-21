@@ -5,7 +5,8 @@ import "practicebetter/internal/components"
 import "practicebetter/internal/heroicons"
 
 // TODO: add back to piece and other useful links to practicing pages
-// TODO: add button to hide/show other spots
+
+// TODO: add animations
 
 script showAllSpots() {
 	const spots = document.querySelectorAll('.spot-card');
@@ -19,7 +20,7 @@ script showAllSpots() {
 script hideOtherSpots() {
 	const spots = document.querySelectorAll('.spot-card');
 	for (const spot of spots) {
-		if (!(spot.dataset.spotStage === 'repeat' || spot.dataset.spotStage === 'more_repeat')) {
+		if (!(spot.dataset.spotStage === 'repeat' || spot.dataset.spotStage === 'extra_repeat')) {
 			spot.classList.add('hidden');
 		}
 	}
@@ -29,7 +30,7 @@ script hideOtherSpots() {
 
 templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 	<title>{ piece[0].Title } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(piece[0].Title) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(piece[0].Title) , components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
@@ -47,7 +48,7 @@ templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 					<button
  						type="button"
  						onclick={ hideOtherSpots() }
- 						class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+ 						class="hidden gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
  						id="hide-other-spots-button"
 					>
 						Hide Other Spots
@@ -55,7 +56,7 @@ templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 					<button
  						type="button"
  						onclick={ showAllSpots() }
- 						class="hidden gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+ 						class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
  						id="show-all-spots-button"
 					>
 						Show All Spots
@@ -63,7 +64,7 @@ templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 				</div>
 				<ul class="grid grid-cols-1 gap-4 list-none sm:grid-cols-2 md:grid-cols-3">
 					for _, spot := range piece {
-						@components.PracticeSpotCard(piece[0].ID, spot.SpotID, spot.SpotName, SpotMeasuresOrEmpty(spot.SpotMeasures), spot.SpotStage)
+						@components.PracticeSpotCard(piece[0].ID, spot.SpotID, spot.SpotName, SpotMeasuresOrEmpty(spot.SpotMeasures), spot.SpotStage, spot.SpotStage != "repeat" && spot.SpotStage != "extra_repeat")
 					}
 				</ul>
 			</div>
@@ -73,7 +74,7 @@ templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 
 templ PieceRepeatPracticeNoSpotsPage(pieceTitle string, pieceID string) {
 	<title>{ pieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText(pieceTitle) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(pieceTitle) , components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
@@ -94,11 +95,11 @@ templ PieceRepeatPracticeNoSpotsPage(pieceTitle string, pieceID string) {
 				</p>
 				<div class="flex gap-2 py-4">
 					@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-sky-700/10 px-8 py-3 text-xl font-semibold text-sky-800  transition duration-200 hover:bg-sky-700/20", "/library/pieces/"+pieceID, "#main-content") {
-						@heroicons.IconArrowLeftSolid("-ml-1 h-6 w-6")
+						@heroicons.IconArrowLeftSolid("-ml-1 size-6")
 						Back To Piece
 					}
 					@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-amber-700/10 px-8 py-3 text-xl font-semibold text-amber-800  transition duration-200 hover:bg-amber-700/20", "/library/pieces/"+pieceID+"/spots/add", "#main-content") {
-						@heroicons.IconPlusSolid("-ml-1 h-6 w-6")
+						@heroicons.IconPlusSolid("-ml-1 size-6")
 						Add Spots
 					}
 				</div>

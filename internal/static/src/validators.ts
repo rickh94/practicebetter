@@ -10,13 +10,16 @@ const optionalPosInt = yup
 
 export const spotStages = [
   "repeat",
-  "more_repeat",
+  "extra_repeat",
   "random",
   "interleave",
   "interleave_days",
   "completed",
 ] as const;
 export const spotStage = yup.string().oneOf(spotStages);
+
+export const pieceStages = ["active", "future", "completed"] as const;
+export const pieceStage = yup.string().oneOf(pieceStages);
 
 export const basicSpot = yup.object({
   id: yup.string().nullable().optional(),
@@ -46,6 +49,7 @@ export const pieceWithSpots = yup.object({
   practiceNotes: yup.string().optional(),
   goalTempo: optionalPosInt,
   spots: yup.array(basicSpot),
+  stage: pieceStage.default("active"),
 });
 
 export const pieceFormData = pieceWithSpots;

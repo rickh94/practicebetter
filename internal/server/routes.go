@@ -24,16 +24,17 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Use(htmx.NewMiddleware())
 	r.Use(csrf.Protect([]byte(s.SecretKey), csrf.Secure(true)))
 	r.Use(middleware.Compress(5, "application/json", "text/html", "text/css", "application/javascript"))
-	// Just long enough for preload to matter
-	r.Use(middleware.SetHeader("Cache-Control", "max-age=5"))
+	// r.Use(middleware.SetHeader("Cache-Control", "max-age=5"))
 	r.Use(middleware.SetHeader("Vary", "HX-Request"))
 	r.Use(middleware.Timeout(10 * time.Second))
 	r.Use(s.SM.LoadAndSave)
+	r.Use(s.ContextPath)
 
 	// staticfiles
 	sf := http.NewServeMux()
+	// TODO: improve cache control for fonts and such
 	sf.Handle("/", http.StripPrefix("/static", hashfs.FileServer(static.HashStatic)))
-	r.With(middleware.SetHeader("Access-Control-Allow-Origin", "*")).Mount("/static", sf)
+	r.With(middleware.SetHeader("Access-Control-Allow-Origin", "*")).With(middleware.SetHeader("Cache-Control", "max-age=31536000")).Mount("/static", sf)
 	// r.Mount("/static", sf)
 
 	// uploaded files
@@ -68,7 +69,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.With(s.LoginRequired).Post("/passkey/delete", s.deletePasskeys)
 	})
 
-	r.With(s.LoginRequired).Route("/library", func(r chi.Router) {
+	r.With(s.LoginRequired).With(s.MaybePracticePlan).Route("/library", func(r chi.Router) {
 		r.Get("/", s.libraryDashboard)
 
 		r.Get("/pieces", s.pieces)
@@ -89,9 +90,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/pieces/{pieceID}/spots/{spotID}/practice/repeat", s.repeatPracticeSpotFinished)
 
 		r.Get("/pieces/{pieceID}/practice/random-single", s.piecePracticeRandomSpotsPage)
-		r.Post("/pieces/{pieceID}/practice/random-single", s.createSpotsPracticeSession)
+		r.Post("/pieces/{pieceID}/practice/random-single", s.finishPracticePieceSpots)
 		r.Get("/pieces/{pieceID}/practice/random-sequence", s.piecePracticeRandomSequencePage)
-		r.Post("/pieces/{pieceID}/practice/random-sequence", s.createSpotsPracticeSession)
+		r.Post("/pieces/{pieceID}/practice/random-sequence", s.finishPracticePieceSpots)
 
 		r.Get("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointPage)
 		r.Post("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointFinished)
@@ -102,12 +103,15 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/upload/audio", s.uploadAudio)
 		r.Get("/upload/images", s.uploadImageForm)
 		r.Post("/upload/images", s.uploadImage)
-		/*
-			r.Get("/random-single", s.randomPractice)
-			r.Get("/random-sequence", s.sequencePractice)
-			r.Get("/repeat", s.repeatPractice)
-			r.Get("/starting-point", s.startingPointPractice)
-		*/
+
+		r.Get("/practice-sessions", s.listPracticeSessions)
+
+		r.Get("/plans/create", s.createPracticePlanForm)
+		r.Get("/plans", s.planList)
+		r.Post("/plans", s.createPracticePlan)
+		r.Get("/plans/{planID}", s.singlePracticePlan)
+		r.Post("/plans/{planID}/interleave-days-spots/complete-all", s.completeInterleaveDaysPlan)
+		r.Post("/plans/{planID}/interleave-spots/complete-all", s.completeInterleavePlan)
 	})
 
 	return r

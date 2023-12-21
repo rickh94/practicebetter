@@ -28,6 +28,7 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 type RepeatMode = "prepare" | "practice" | "break_success" | "break_fail";
 
+// TODO: scroll to good position on view change
 // TODO: add route handler for repeat practice single spot cuz of csrf silliness
 export function Repeat({
   initialspot,
@@ -71,7 +72,7 @@ export function Repeat({
       setMode("break_success");
       if (
         spot?.stage !== "repeat" &&
-        spot?.stage !== "more_repeat" &&
+        spot?.stage !== "extra_repeat" &&
         pieceid &&
         csrf &&
         startTime &&
@@ -160,7 +161,7 @@ export function Repeat({
                 restart={setModePrepare}
                 pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
                 canPromote={
-                  spot?.stage === "repeat" || spot?.stage === "more_repeat"
+                  spot?.stage === "repeat" || spot?.stage === "extra_repeat"
                 }
                 promoteSpot={promoteSpot}
               />
@@ -181,7 +182,7 @@ export function Repeat({
 
 function RepeatPrepare({ startPracticing }: { startPracticing: () => void }) {
   return (
-    <div className="flex w-full flex-col py-12">
+    <div className="flex w-full flex-col pt-4">
       <RepeatPrepareText />
       <div className="col-span-full flex w-full items-center justify-center py-16">
         <GiantBasicButton type="button" onClick={startPracticing}>
@@ -260,12 +261,12 @@ function RepeatPractice({
           <div className="mx-auto my-8 flex w-full max-w-lg flex-wrap items-center justify-center gap-4 sm:mx-0 sm:w-auto sm:flex-row sm:gap-6">
             <div>
               <BigAngryButton disabled={!waitedLongEnough} onClick={fail}>
-                <XMarkIcon className="-ml-1 h-6 w-6 sm:h-8 sm:w-8" />{" "}
+                <XMarkIcon className="-ml-1 size-6 sm:size-8" />{" "}
                 <span>Mistake</span>
               </BigAngryButton>
             </div>
             <BigHappyButton disabled={!waitedLongEnough} onClick={succeed}>
-              <CheckIcon className="-ml-1 h-6 w-6 sm:h-8 sm:w-8" />{" "}
+              <CheckIcon className="-ml-1 size-6 sm:size-8" />{" "}
               <span>Correct</span>
             </BigHappyButton>
           </div>
@@ -284,7 +285,7 @@ function RepeatPractice({
         <div className="mx-auto flex w-full max-w-lg flex-wrap items-center justify-center">
           <WarningButton onClick={onFail}>
             <span>Move On</span>
-            <ArrowUpRightIcon className="-ml-1 h-6 w-6 sm:h-8 sm:w-8" />{" "}
+            <ArrowUpRightIcon className="-ml-1 size-6 sm:size-8" />{" "}
           </WarningButton>
         </div>
       </div>
@@ -294,15 +295,15 @@ function RepeatPractice({
 
 const variants = {
   initial: {
-    scale: 1.1,
+    scale: 1.2,
   },
   animate: {
     scale: 1,
-    transition: { bounce: 0, duration: 0.1 },
+    transition: { bounce: 0, duration: 0.1, ease: "easeIn" },
   },
   exit: {
-    scale: 1.1,
-    transition: { duration: 0.1, bounce: 0 },
+    scale: 1.2,
+    transition: { bounce: 0, duration: 0.1, ease: "easeOut" },
   },
 };
 
@@ -318,20 +319,20 @@ function PracticeListItem({
       {completed ? (
         <motion.li
           // @ts-ignore
-          className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-green-700 bg-green-500/50 text-green-700 transition-all duration-100  sm:h-12 sm:w-12"
+          className="flex size-10 items-center justify-center rounded-xl border-2 border-green-700 bg-green-500/50 text-green-700 transition-all duration-100 sm:size-12"
           key={`${num}-completed`}
           initial="initial"
           animate="animate"
           exit="exit"
           variants={variants}
         >
-          <CheckIcon className="h-6 w-6 sm:h-8 sm:w-8" />{" "}
+          <CheckIcon className="size-6 sm:size-8" />{" "}
           <span className="sr-only">Checked</span>
         </motion.li>
       ) : (
         <motion.li
           // @ts-ignore
-          className="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-neutral-700/10 bg-neutral-700/10 text-neutral-700/20 transition-all duration-100 sm:h-12 sm:w-12 "
+          className="flex size-10 items-center justify-center rounded-xl border-2 border-neutral-700/10 bg-neutral-700/10 text-neutral-700/20 transition-all duration-100 sm:size-12"
           key={`${num}-incomplete`}
           initial="initial"
           animate="animate"
@@ -384,7 +385,7 @@ function RepeatBreakSuccess({
   );
   const handleMoreRepeat = useCallback(
     function () {
-      promoteSpot("more_repeat");
+      promoteSpot("extra_repeat");
       close();
     },
     [close, promoteSpot],
@@ -402,12 +403,12 @@ function RepeatBreakSuccess({
     <>
       <dialog
         ref={dialogRef}
-        aria-labelledby="add-text-prompt-title"
+        aria-labelledby="promote-title"
         className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
       >
         <header className="mt-2 text-center sm:text-left">
           <h3
-            id="add-text-prompt-title"
+            id="promote-title"
             className="text-2xl font-semibold leading-6 text-neutral-900"
           >
             Promote Spot
@@ -419,13 +420,21 @@ function RepeatBreakSuccess({
           random practicing with this spot, or you feel it needs more repeat
           practicing.
         </div>
-        <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <SkyButton grow onClick={handleMoreRepeat} className="mt-4 w-full">
-            <ArrowPathIcon className="h-6 w-6" />
+        <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row sm:gap-2">
+          <SkyButton
+            grow
+            onClick={handleMoreRepeat}
+            className="h-14 w-full text-lg"
+          >
+            <ArrowPathIcon className="-ml-1 size-6" />
             More Repeat
           </SkyButton>
-          <HappyButton grow onClick={handleRandom} className="mt-4 w-full">
-            <CheckIcon className="h-6 w-6" />
+          <HappyButton
+            grow
+            onClick={handleRandom}
+            className="h-14 w-full text-lg"
+          >
+            <CheckIcon className="-ml-1 size-6" />
             Random
           </HappyButton>
         </div>
@@ -439,23 +448,23 @@ function RepeatBreakSuccess({
           {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
           {pieceHref ? (
             <WarningLink href={`${pieceHref}/practice/random-single`}>
-              <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+              <MusicalNoteIcon className="-ml-1 size-5" />
               Try Random Practicing
             </WarningLink>
           ) : (
             <WarningLink href="/practice/random-single">
-              <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+              <MusicalNoteIcon className="-ml-1 size-5" />
               Try Random Practicing
             </WarningLink>
           )}
           {pieceHref ? (
             <HappyLink href={`${pieceHref}/practice/repeat`}>
-              <ListBulletIcon className="-ml-1 h-5 w-5" />
+              <ListBulletIcon className="-ml-1 size-5" />
               Practice Another Spot
             </HappyLink>
           ) : (
             <HappyButton onClick={restart}>
-              <MusicalNoteIcon className="-ml-1 h-5 w-5" />
+              <MusicalNoteIcon className="-ml-1 size-5" />
               Practice Another Spot
             </HappyButton>
           )}

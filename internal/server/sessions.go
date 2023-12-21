@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"fmt"
 	"time"
 )
 
@@ -108,4 +109,22 @@ func (s *Server) LogoutUser(ctx context.Context) error {
 	}
 	s.SM.Remove(ctx, "userID")
 	return nil
+}
+
+func (s *Server) SetActivePracticePlanID(ctx context.Context, planID string) {
+	s.SM.Put(ctx, "activePracticePlan", planID)
+	s.SM.Put(ctx, "activePracticePlanStarted", time.Now().Unix())
+}
+
+func (s *Server) GetActivePracticePlanID(ctx context.Context) (string, error) {
+	created := s.SM.GetInt64(ctx, "activePracticePlanStarted")
+	createdTime := time.Unix(created, 0)
+
+	if time.Since(createdTime) > 5*time.Hour {
+		return "", fmt.Errorf("Practice Plan has expired. You’ll need to create a new one.")
+	}
+	if s.SM.GetString(ctx, "activePracticePlan") == "" {
+		return "", fmt.Errorf("No active practice plan")
+	}
+	return s.SM.GetString(ctx, "activePracticePlan"), nil
 }
