@@ -42,13 +42,13 @@ templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListAc
 				<p class="col-span-full text-lg text-neutral-800 text-medium">Customize the options below or just click create to use the defaults.</p>
 				<div class="flex flex-col col-span-1 gap-4">
 					<fieldset id="intensities" class="flex flex-col gap-2">
-						<legend class="pb-2 text-lg font-semibold leading-6 text-neutral-800">Select practice plan intensity. This affects how many items will be in your practice plan.</legend>
+						<legend class="pb-2 w-full text-lg font-semibold leading-6 text-neutral-800">Select practice plan intensity. This affects how many items will be in your practice plan.</legend>
 						@planIntensityRadio("Light", "light", false)
 						@planIntensityRadio("Medium", "medium", true)
 						@planIntensityRadio("Heavy", "heavy", false)
 					</fieldset>
 					<fieldset id="practicing-types" class="flex flex-col gap-2">
-						<legend class="pb-2 text-lg font-semibold leading-6 text-neutral-800">Select the types of practicing you would like to do.</legend>
+						<legend class="pb-2 w-full text-lg font-semibold leading-6 text-neutral-800">Select the types of practicing you would like to do.</legend>
 						@practiceCheckbox("New Spots", "practice_new", true)
 						@practiceCheckbox("Random Spots", "practice_random_single", true)
 						@practiceCheckbox("Interleave Spots", "practice_interleave", true)
@@ -56,7 +56,7 @@ templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListAc
 					</fieldset>
 				</div>
 				<fieldset id="pieces" class="grid grid-cols-1 gap-2 sm:grid-cols-2 md:col-span-2 h-min">
-					<legend class="pb-2 text-lg font-semibold leading-6 text-neutral-800">Select the pieces you’d like to practice today.</legend>
+					<legend class="pb-2 w-full text-lg font-semibold leading-6 text-neutral-800">Select the pieces you’d like to practice today.</legend>
 					for i, piece := range pieces {
 						@pieceCheckbox(piece.Title, piece.ID, i < 3)
 					}

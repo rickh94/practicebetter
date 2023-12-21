@@ -511,15 +511,23 @@ func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Req
 
 		return
 	}
+	// TODO: unfuck this and get rid of the goddamn pointers
 	var spots []SpotFormData
 	for _, row := range piece {
 		var measures *string
 		if row.SpotMeasures.Valid {
-			measures = &row.SpotMeasures.String
+			// Copy the value
+			m := row.SpotMeasures.String
+			measures = &m
+		} else {
+			measures = nil
 		}
 		var currentTempo *int64
 		if row.SpotCurrentTempo.Valid {
-			currentTempo = &row.SpotCurrentTempo.Int64
+			t := row.SpotCurrentTempo.Int64
+			currentTempo = &t
+		} else {
+			currentTempo = nil
 		}
 		// row is a moving pointer, directly referencing underlying data is unreliable when
 		// the pointer moves (the spots all ended up with the last spot's id). Need to make copies of the data to point to

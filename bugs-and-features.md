@@ -26,6 +26,12 @@
   mode
 - you don't have any pieces message and links on create practice plan page
 - better way of displaying multiple practice sessions per day (TIMEZONES)
+- skip new spots some days
+- buttons on random practice should stack
+- SHOW SPOT INFO ON REPEAT PRACTICE PREVIEW PAGE, esp MEASURES
+- wrapping or abbreviated breadcrumb on small screen
+- prompts should stack small size random practicing
+- random practicing measures incorrect (after reload?)
 
 # upcoming features
 
@@ -59,3 +65,4 @@
 - better name for interleave days spots
 - better display of practice session data or remove display entirely and use data in a
   different way
+- practice streak data?
