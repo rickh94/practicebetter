@@ -16,7 +16,7 @@ templ PlanList(plans []db.ListPaginatedPracticePlansRow, page int, totalPages in
 					{ Label: "Practice Plans", Href: "/library/plans", Active: true },
 				})
 			<div class="flex flex-grow gap-2 justify-end items-center">
-				@components.HxLink("flex gap-2 justify-center items-center py-3 px-6 font-medium text-center text-emerald-700 rounded-xl bg-emerald-700/10 hover:bg-emerald-700/20 focusable", "/library/plans/create", "#main-content") {
+				@components.HxLink("flex gap-2 justify-center items-center py-3 px-6 font-medium text-center text-green-700 rounded-xl bg-green-700/10 hover:bg-green-700/20 focusable", "/library/plans/create", "#main-content") {
 					@heroicons.IconDocumentPlusSolid("-ml-1 size-6")
 					New Plan
 				}

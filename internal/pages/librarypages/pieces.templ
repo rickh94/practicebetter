@@ -16,7 +16,7 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 					{ Label: "Pieces", Href: "/library/pieces", Active: true },
 				})
 			<div class="flex flex-grow gap-2 justify-end items-center">
-				@components.HxLink("flex gap-2 justify-center items-center py-3 px-6 font-medium text-center text-emerald-700 rounded-xl bg-emerald-700/10 hover:bg-emerald-700/20 focusable", "/library/pieces/create", "#main-content") {
+				@components.HxLink("flex gap-2 justify-center items-center py-3 px-6 font-medium text-center text-green-700 rounded-xl bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/create", "#main-content") {
 					@heroicons.IconDocumentPlusSolid("-ml-1 size-6")
 					New Piece
 				}

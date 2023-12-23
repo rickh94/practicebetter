@@ -2,6 +2,11 @@ package librarypages
 
 import "practicebetter/internal/pages"
 import "practicebetter/internal/components"
+import "practicebetter/internal/heroicons"
+
+// TODO: display field errors
+// TODO: validation for number fields
+// Description and practice notes have been removed for now
 
 templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 	<title>Create Piece | Practice Better</title>
@@ -15,11 +20,69 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 		}
 		<div class="px-4 w-full sm:mx-auto sm:max-w-5xl">
 			<p class="text-lg">
-				Create a new piece to practice below. You can always edit it later.
-				Add spots below.
+				Enter your piece information below then click save. Afterwards you’ll add your practice spots.
 			</p>
-			<create-piece-form csrf={ csrf }></create-piece-form>
+			<form hx-post="/library/pieces" hx-target="#main-content" hx-swap="outerHTML transition:true" action="/library/pieces" method="post" class="flex flex-col gap-2 w-full">
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<div class="grid-cols-1 gap-x-0 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-2 md:gap-x-4">
+					<div class="flex flex-col gap-1">
+						@PieceFormLabel("Title (required)", "title")
+						@PieceFormInput("title", "Piece Title", "text", true)
+					</div>
+					<div class="flex flex-col gap-1">
+						@PieceFormLabel("Composer", "composer")
+						@PieceFormInput("composer", "Composer", "text", false)
+					</div>
+				</div>
+				<div class="grid grid-cols-1 sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-4">
+					<div class="flex flex-col gap-1 sm:col-span-1">
+						@PieceFormLabel("Stage", "stage")
+						<select required id="stage" name="stage" class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:bg-neutral-700/20">
+							<option value="future">
+								Not Started
+							</option>
+							<option value="active" selected>
+								Active
+							</option>
+							<option value="completed">
+								Completed
+							</option>
+						</select>
+					</div>
+					<div class="flex flex-col gap-1 sm:col-span-2 md:col-span-1">
+						@PieceFormLabel("Goal Tempo", "goalTempo")
+						@PieceFormInput("goalTempo", "BPM", "number", false)
+					</div>
+					<div class="flex flex-col gap-1">
+						@PieceFormLabel("Measures", "measures")
+						@PieceFormInput("measures", "mm", "number", false)
+					</div>
+					<div class="flex flex-col gap-1">
+						@PieceFormLabel("Beats Per Measure", "beats")
+						@PieceFormInput("beats", "Beats", "number", false)
+					</div>
+				</div>
+				<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
+					<button type="submit" class="flex gap-1 justify-center items-center px-6 h-12 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable">
+						@heroicons.IconDocumentPlusSolid("-ml-1 inline size-5")
+						Save
+					</button>
+					@components.HxLink("flex gap-1 justify-center items-center px-6 h-12 font-semibold text-red-800 rounded-xl transition duration-200 bg-red-700/10 hover:bg-red-700/20 focusable", "/library/pieces", "#main-content") {
+						@heroicons.IconXMarkSolid("-ml-1 inline size-5")
+						Cancel
+					}
+				</div>
+			</form>
 		</div>
 	}
-	<script type="module" src={ s.StaticUrl("out/create-piece.js") }></script>
+}
+
+templ PieceFormLabel(text string, labelFor string) {
+	<label class="text-sm font-medium leading-6 text-neutral-900" for={ labelFor } id={ labelFor + "-label" }>
+		{ text }
+	</label>
+}
+
+templ PieceFormInput(name string, placeholder string, fieldType string, required bool) {
+	<input autocomplete="off" required?={ required } type={ fieldType } id={ name } name={ name } placeholder={ placeholder } class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 focusable focus:bg-neutral-700/20"/>
 }

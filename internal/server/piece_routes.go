@@ -25,15 +25,7 @@ func (s *Server) createPieceForm(w http.ResponseWriter, r *http.Request) {
 func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	user := r.Context().Value("user").(db.User)
-	tx, err := s.DB.Begin()
-	if err != nil {
-		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
-		return
-	}
-	defer tx.Rollback()
-
 	queries := db.New(s.DB)
-	qtx := queries.WithTx(tx)
 
 	m, err := strconv.Atoi(r.Form.Get("measures"))
 	measures := sql.NullInt64{Int64: int64(m), Valid: true}
@@ -53,7 +45,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 
 	pieceID := cuid2.Generate()
 
-	_, err = qtx.CreatePiece(r.Context(), db.CreatePieceParams{
+	piece, err := queries.CreatePiece(r.Context(), db.CreatePieceParams{
 		ID:              pieceID,
 		Title:           r.Form.Get("title"),
 		Description:     sql.NullString{String: r.Form.Get("description"), Valid: true},
@@ -68,81 +60,27 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to create piece", http.StatusBadRequest)
 		return
 	}
-	for _, s := range r.Form["spots"] {
-		var spot SpotFormData
-		err = json.Unmarshal([]byte(s), &spot)
-		if err != nil {
-			log.Default().Println(err)
-			continue
-		}
-		currentTempo := sql.NullInt64{Valid: false}
-		if spot.CurrentTempo != nil && *spot.CurrentTempo > 0 {
-			currentTempo = sql.NullInt64{Int64: *spot.CurrentTempo, Valid: true}
-		}
-		measures := sql.NullString{Valid: false}
-		if spot.Measures != nil {
-			measures = sql.NullString{String: *spot.Measures, Valid: true}
-		}
-		newSpotID := cuid2.Generate()
-		_, err := qtx.CreateSpot(r.Context(), db.CreateSpotParams{
-			UserID:         user.ID,
-			PieceID:        pieceID,
-			ID:             newSpotID,
-			Name:           spot.Name,
-			Idx:            *spot.Idx,
-			Stage:          spot.Stage,
-			AudioPromptUrl: spot.AudioPromptUrl,
-			ImagePromptUrl: spot.ImagePromptUrl,
-			NotesPrompt:    spot.NotesPrompt,
-			TextPrompt:     spot.TextPrompt,
-			CurrentTempo:   currentTempo,
-			Measures:       measures,
-		})
-		if err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Failed to create spot", http.StatusInternalServerError)
-			return
-		}
-	}
 
-	piece, err := qtx.GetPieceByID(r.Context(), db.GetPieceByIDParams{
-		PieceID: pieceID,
-		UserID:  user.ID,
-	})
-	if err != nil || len(piece) == 0 {
-		// TODO: create a pretty 404 handler
-		log.Default().Println(err)
-		http.Error(w, "Could not find matching piece", http.StatusNotFound)
-		return
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Database operation failed", http.StatusInternalServerError)
-		return
-	}
 	token := csrf.Token(r)
 
 	hxRequest := htmx.Request(r)
 	if hxRequest == nil {
-		s.Redirect(w, r, "/library/pieces/"+pieceID)
+		s.Redirect(w, r, "/library/pieces/"+pieceID+"/spots/add")
 		return
 	}
 
 	w.Header().Set("Content-Type", "text/html")
-	htmx.PushURL(r, "/library/pieces/"+pieceID)
+	htmx.PushURL(r, "/library/pieces/"+pieceID+"/spots/add")
 	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-		Message:  "Successfully added piece: " + piece[0].Title,
+		Message:  "Successfully added piece: " + piece.Title,
 		Title:    "Piece Created!",
 		Variant:  "success",
 		Duration: 3000,
 	})
 
 	w.WriteHeader(http.StatusCreated)
-	component := librarypages.SinglePiece(s, token, piece)
-	component.Render(r.Context(), w)
-	return
+	// TODO: add spots message here for sure
+	s.HxRender(w, r, librarypages.AddSpotPage(s, token, pieceID, piece.Title, make([]db.ListPieceSpotsRow, 0)), piece.Title)
 }
 
 const piecesPerPage = 20

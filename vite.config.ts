@@ -10,7 +10,6 @@ export default defineConfig({
         main: "internal/static/src/main.ts",
         practice: "internal/static/src/practice.ts",
         about: "internal/static/src/about.ts",
-        "create-piece": "internal/static/src/create-piece.ts",
         "notes-display": "internal/static/src/notes-display.ts",
         "practice-display": "internal/static/src/practice-display.ts",
         "practice-menu": "internal/static/src/practice-menu.ts",

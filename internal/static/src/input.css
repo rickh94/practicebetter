@@ -229,3 +229,14 @@ details[open] summary > .summary-icon {
 .action-button {
   @apply flex h-12 items-center justify-center gap-1 rounded-xl px-5 text-lg font-medium transition duration-200;
 }
+
+.custom-select {
+  appearance: none;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23262626"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd" /></svg>');
+  background-repeat: no-repeat;
+  background-position: right 0.7rem top 50%;
+  background-size: 1rem auto;
+  -webkit-appearance: "none";
+  text-indent: 1;
+  text-overflow: "";
+}
