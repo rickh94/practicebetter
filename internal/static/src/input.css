@@ -145,6 +145,9 @@ dialog[open] {
 
 dialog[open]::backdrop {
   animation: backdrop-fade 0.3s ease forwards;
+  height: 100dvh;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
 }
 
 dialog.close::backdrop {

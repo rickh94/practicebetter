@@ -298,3 +298,11 @@ document.addEventListener("htmx:confirm", function (e: HTMXConfirmEvent) {
   document.getElementById("main-content").appendChild(dialog);
   (document.getElementById(id) as HTMLDialogElement).showModal();
 });
+
+document.addEventListener("htmx:after-swap", (event) => {
+  if (!(event.target instanceof HTMLElement)) {
+    return;
+  }
+
+  window.scrollTo(0, 0);
+});

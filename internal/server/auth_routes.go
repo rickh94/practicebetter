@@ -44,6 +44,7 @@ func (s *Server) startLogin(w http.ResponseWriter, r *http.Request) {
 			Secure:   true,
 			SameSite: http.SameSiteLaxMode,
 			Path:     "/",
+			MaxAge:   -1,
 		})
 		s.HxRender(w, r, authpages.StartLoginPage(csrfToken, nextLoc), "Login")
 		return
@@ -169,6 +170,7 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 		if val, ok := s.SM.Get(r.Context(), "rememberMe").(bool); val && ok {
 			cookie := http.Cookie{
 				Name:     "rememberEmail",
+				Path:     "/",
 				Value:    user.Email,
 				MaxAge:   60 * 60 * 24 * 7,
 				HttpOnly: true,
@@ -231,6 +233,7 @@ func (s *Server) logoutUserRoute(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
+		MaxAge:   -1,
 	})
 	s.LogoutUser(r.Context())
 	s.Redirect(w, r, "/")
@@ -404,6 +407,7 @@ func (s *Server) forgetUser(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
+		MaxAge:   -1,
 	})
 	s.Redirect(w, r, "/auth/login")
 }
