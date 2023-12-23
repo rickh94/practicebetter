@@ -1,4 +1,10 @@
-import { StateUpdater, useCallback, useEffect, useState } from "preact/hooks";
+import {
+  StateUpdater,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { PracticeSummaryItem, RandomMode, cn } from "../common";
 import { BasicSpot } from "../validators";
 import { ScaleCrossFadeContent } from "../ui/transitions";
@@ -186,6 +192,13 @@ function SinglePractice({
   const [counter, setCounter] = useState(0);
   const [skipSpotIds, setSkipSpotIds] = useState<string[]>([]);
   const [lastTwoSpots, setLastTwoSpots] = useState<string[]>([]);
+  const topRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (topRef.current) {
+      window.scrollTo(0, topRef.current.offsetTop);
+    }
+  }, [topRef.current]);
 
   const addSpotRep = useCallback(
     function (id: string | undefined) {
@@ -310,7 +323,7 @@ function SinglePractice({
   );
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full" ref={topRef}>
       <div className="absolute left-0 top-0 py-2 sm:py-4">
         <BasicButton onClick={setup}>← Back to setup</BasicButton>
       </div>

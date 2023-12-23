@@ -22,10 +22,10 @@ jobs:
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v4
-        tags: |
-          type=edge,branch=main
         with:
           images: ${{ secrets.DOCKER_USERNAME }}/practicebetter
+          tags: |
+            type=edge,branch=main
       - name: Build and push docker image
         uses: docker/build-push-action@v4
         with:

@@ -7,7 +7,13 @@ import {
   WarningButton,
 } from "../ui/buttons";
 import { BackToPieceLink } from "../ui/links";
-import { StateUpdater, useCallback, useState } from "preact/hooks";
+import {
+  StateUpdater,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "preact/hooks";
 import { cn, uniqueID } from "../common";
 import {
   Cog6ToothIcon,
@@ -471,6 +477,13 @@ export function StartingPointPractice({
   const [section, setSection] = useState<Section>(
     makeRandomSection(measures, beats, maxLength, lowerBound, upperBound),
   );
+  const topRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (topRef.current) {
+      window.scrollTo(0, topRef.current.offsetTop);
+    }
+  }, [topRef.current]);
 
   const nextStartingPoint = useCallback(
     function () {
@@ -495,7 +508,7 @@ export function StartingPointPractice({
   );
 
   return (
-    <div className="relative mb-8 grid grid-cols-1">
+    <div className="relative mb-8 grid grid-cols-1" ref={topRef}>
       <div className="absolute left-0 top-0 sm:p-8">
         <BasicButton onClick={setup} type="button">
           ← Back to setup

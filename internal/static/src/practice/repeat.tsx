@@ -211,6 +211,13 @@ function RepeatPractice({
 }) {
   const [numCompleted, setCompleted] = useState(0);
   const [waitedLongEnough, setWaitedLongEnough] = useState(true);
+  const topRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (topRef.current) {
+      window.scrollTo(0, topRef.current.offsetTop - 160);
+    }
+  }, [topRef.current]);
 
   const succeed = useCallback(
     function () {
@@ -245,7 +252,10 @@ function RepeatPractice({
 
   return (
     <>
-      <div className="flex w-full flex-col sm:mx-auto sm:max-w-3xl">
+      <div
+        className="flex w-full flex-col sm:mx-auto sm:max-w-3xl"
+        ref={topRef}
+      >
         <div className="flex w-full flex-col items-center sm:mx-auto sm:max-w-xl">
           <h2 className="text-center text-2xl font-semibold">Completions</h2>
           <ul className="my-4 grid grid-cols-5 gap-4">
