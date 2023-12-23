@@ -11,8 +11,8 @@ import {
   DocumentMagnifyingGlassIcon,
   DocumentTextIcon,
   HomeIcon,
-  QueueListIcon,
 } from "@heroicons/react/24/solid";
+import { PlayListIcon } from "./icons";
 
 const navItemIconClasses = "ml-1 size-5" as const;
 
@@ -41,9 +41,9 @@ export function InternalNav({
         icon: <DocumentMagnifyingGlassIcon className={navItemIconClasses} />,
       } as const,
       {
-        href: "/",
-        label: "Home",
-        icon: <HomeIcon className={navItemIconClasses} />,
+        href: "/practice",
+        label: "Practice Tools",
+        icon: <PlayListIcon className={navItemIconClasses} />,
       } as const,
     ];
     if (activeplanid) {

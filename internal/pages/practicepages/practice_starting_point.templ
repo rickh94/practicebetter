@@ -46,8 +46,13 @@ templ StartingPointReadMoreDialog() {
 
 templ StartingPointPractice(s pages.ServerUtil) {
 	<title>Random Starting Point | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(), components.PracticeToolNav("/practice/starting-point"),
-	components.ReadMoreButton(spAboutId))) {
+	@components.SingleColumnLayout(
+		components.TwoButtonBar(
+			components.HomeOrInternalNav(),
+			components.PracticeToolNav("/practice/starting-point"),
+			components.ReadMoreButton(spAboutId),
+		),
+	) {
 		<div class="flex flex-col gap-12 justify-center items-center py-8 px-4">
 			<div class="relative w-full sm:mx-auto sm:max-w-3xl">
 				<starting-point id="practice-island" class="hx-fade"></starting-point>

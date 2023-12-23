@@ -44,7 +44,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Get("/", s.index)
 	r.Get("/about", s.about)
-	r.Route("/practice", func(r chi.Router) {
+	r.With(s.MaybeUser).With(s.MaybePracticePlan).Route("/practice", func(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			s.Redirect(w, r, "/practice/random-single")
 		})

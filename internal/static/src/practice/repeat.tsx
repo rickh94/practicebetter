@@ -2,6 +2,7 @@ import {
   ArrowPathIcon,
   ArrowUpRightIcon,
   CheckIcon,
+  HandThumbDownIcon,
   XMarkIcon,
 } from "@heroicons/react/20/solid";
 import { AnimatePresence, motion } from "framer-motion";
@@ -23,7 +24,11 @@ import {
   NotesPromptSummary,
   ImagePromptSummary,
 } from "../ui/prompts";
-import { ListBulletIcon, MusicalNoteIcon } from "@heroicons/react/24/solid";
+import {
+  HandThumbUpIcon,
+  ListBulletIcon,
+  MusicalNoteIcon,
+} from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 type RepeatMode = "prepare" | "practice" | "break_success" | "break_fail";
@@ -260,13 +265,21 @@ function RepeatPractice({
           <h2 className="text-center text-3xl font-semibold">How did it go?</h2>
           <div className="mx-auto my-8 flex w-full max-w-lg flex-wrap items-center justify-center gap-4 sm:mx-0 sm:w-auto sm:flex-row sm:gap-6">
             <div>
-              <BigAngryButton disabled={!waitedLongEnough} onClick={fail}>
-                <XMarkIcon className="-ml-1 size-6 sm:size-8" />{" "}
+              <BigAngryButton
+                disabled={!waitedLongEnough}
+                onClick={fail}
+                className="sm:gap-2"
+              >
+                <HandThumbDownIcon className="-ml-1 size-6 sm:-ml-2 sm:size-8" />
                 <span>Mistake</span>
               </BigAngryButton>
             </div>
-            <BigHappyButton disabled={!waitedLongEnough} onClick={succeed}>
-              <CheckIcon className="-ml-1 size-6 sm:size-8" />{" "}
+            <BigHappyButton
+              disabled={!waitedLongEnough}
+              onClick={succeed}
+              className="sm:gap-2"
+            >
+              <HandThumbUpIcon className="-ml-1 size-6 sm:-ml-2 sm:size-8" />
               <span>Correct</span>
             </BigHappyButton>
           </div>

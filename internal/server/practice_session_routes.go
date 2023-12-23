@@ -69,6 +69,7 @@ const (
 )
 
 // TODO: check that a piece has random spots before putting it in random spots practice
+// TODO: practice plans can generate with no spots or pieces leading to a not found
 
 func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
@@ -266,23 +267,47 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 		ID:     planID,
 		UserID: userID,
 	})
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 	planSpots, err := queries.GetPracticePlanWithSpots(r.Context(), db.GetPracticePlanWithSpotsParams{
 		ID:     planID,
 		UserID: userID,
 	})
+
 	if err != nil {
+		log.Default().Println(err)
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 	activePracticePlanID, _ := s.GetActivePracticePlanID(r.Context())
 
 	var planData pspages.PracticePlanData
-	planData.ID = planPieces[0].ID
-	planData.Date = planPieces[0].Date
-	planData.Completed = planPieces[0].Completed
-	planData.InterleaveDaysSpotsCompleted = true
-	planData.InterleaveSpotsCompleted = true
+	planData.ID = planID
 	planData.IsActive = planID == activePracticePlanID
+	planData.IsActive = planID == activePracticePlanID
+	if len(planPieces) == 0 {
+		plan, err := queries.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
+			ID:     planID,
+			UserID: userID,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		planData.Date = plan.Date
+		planData.Completed = plan.Completed
+		planData.InterleaveDaysSpotsCompleted = true
+		planData.InterleaveSpotsCompleted = true
+	} else {
+		planData.Date = planPieces[0].Date
+		planData.Completed = planPieces[0].Completed
+		planData.InterleaveDaysSpotsCompleted = true
+		planData.InterleaveSpotsCompleted = true
+	}
 
 	for _, row := range planPieces {
 		if row.PieceID.Valid {
@@ -296,19 +321,11 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 			} else {
 				piece.Composer = "Unknown"
 			}
-			if !row.PiecePracticeType.Valid {
-				log.Default().Println("Got a piece without a practice type, shouldn't happen")
-				continue
-			}
-			if row.PieceCompleted.Valid {
-				piece.Completed = row.PieceCompleted.Bool
-			} else {
-				piece.Completed = false
-			}
+			piece.Completed = row.PieceCompleted
 
-			if row.PiecePracticeType.String == "random_spots" {
+			if row.PiecePracticeType == "random_spots" {
 				planData.RandomSpotsPieces = append(planData.RandomSpotsPieces, piece)
-			} else if row.PiecePracticeType.String == "starting_point" {
+			} else if row.PiecePracticeType == "starting_point" {
 				planData.RandomStartPieces = append(planData.RandomStartPieces, piece)
 			}
 
@@ -326,26 +343,21 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 			}
 			spot.PieceTitle = row.SpotPieceTitle
 			spot.PieceID = row.SpotPieceID.String
-			spot.Completed = row.SpotCompleted.Bool
+			spot.Completed = row.SpotCompleted
 
-			if !row.SpotPracticeType.Valid {
-				log.Default().Println("Got a spot without a practice type, shouldn't happen")
-				continue
-			}
-
-			if row.SpotPracticeType.String == "interleave" {
+			if row.SpotPracticeType == "interleave" {
 				planData.InterleaveSpots = append(planData.InterleaveSpots, spot)
-				if !row.SpotCompleted.Bool {
+				if !row.SpotCompleted {
 					planData.InterleaveSpotsCompleted = false
 				}
-			} else if row.SpotPracticeType.String == "interleave_days" {
+			} else if row.SpotPracticeType == "interleave_days" {
 				planData.InterleaveDaysSpots = append(planData.InterleaveDaysSpots, spot)
-				if !row.SpotCompleted.Bool {
+				if !row.SpotCompleted {
 					planData.InterleaveDaysSpotsCompleted = false
 				}
-			} else if row.SpotPracticeType.String == "extra_repeat" {
+			} else if row.SpotPracticeType == "extra_repeat" {
 				planData.ExtraRepeatSpots = append(planData.ExtraRepeatSpots, spot)
-			} else if row.SpotPracticeType.String == "new" {
+			} else if row.SpotPracticeType == "new" {
 				planData.NewSpots = append(planData.NewSpots, spot)
 			}
 		}

@@ -329,7 +329,7 @@ SELECT
     (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS piece_active_spots,
     (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS piece_completed_spots
 FROM practice_plans
-LEFT JOIN practice_plan_pieces ON practice_plans.id = practice_plan_pieces.practice_plan_id
+INNER JOIN practice_plan_pieces ON practice_plans.id = practice_plan_pieces.practice_plan_id
 LEFT JOIN pieces ON practice_plan_pieces.piece_id = pieces.id
 WHERE practice_plans.id = ? AND practice_plans.user_id = ?
 `
@@ -346,8 +346,8 @@ type GetPracticePlanWithPiecesRow struct {
 	Date                int64          `json:"date"`
 	Completed           bool           `json:"completed"`
 	PracticeSessionID   sql.NullString `json:"practiceSessionId"`
-	PiecePracticeType   sql.NullString `json:"piecePracticeType"`
-	PieceCompleted      sql.NullBool   `json:"pieceCompleted"`
+	PiecePracticeType   string         `json:"piecePracticeType"`
+	PieceCompleted      bool           `json:"pieceCompleted"`
 	PieceTitle          sql.NullString `json:"pieceTitle"`
 	PieceID             sql.NullString `json:"pieceId"`
 	PieceComposer       sql.NullString `json:"pieceComposer"`
@@ -404,7 +404,7 @@ SELECT
     spots.stage AS spot_stage,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS spot_piece_title
 FROM practice_plans
-LEFT JOIN practice_plan_spots ON practice_plans.id = practice_plan_spots.practice_plan_id
+INNER JOIN practice_plan_spots ON practice_plans.id = practice_plan_spots.practice_plan_id
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plans.id = ? AND practice_plans.user_id = ?
 `
@@ -421,8 +421,8 @@ type GetPracticePlanWithSpotsRow struct {
 	Date              int64          `json:"date"`
 	Completed         bool           `json:"completed"`
 	PracticeSessionID sql.NullString `json:"practiceSessionId"`
-	SpotPracticeType  sql.NullString `json:"spotPracticeType"`
-	SpotCompleted     sql.NullBool   `json:"spotCompleted"`
+	SpotPracticeType  string         `json:"spotPracticeType"`
+	SpotCompleted     bool           `json:"spotCompleted"`
 	SpotName          sql.NullString `json:"spotName"`
 	SpotID            sql.NullString `json:"spotId"`
 	SpotMeasures      sql.NullString `json:"spotMeasures"`

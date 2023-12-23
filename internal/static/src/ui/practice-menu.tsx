@@ -2,7 +2,14 @@ import { Menu, Transition } from "@headlessui/react";
 import { PlayIcon } from "@heroicons/react/20/solid";
 import { Fragment } from "react";
 import { Link } from "./links";
-import { RandomBoxesIcon, RepeatIcon, ShuffleIcon } from "./icons";
+import {
+  NoteListIcon,
+  PlayListIcon,
+  RandomBoxesIcon,
+  RepeatIcon,
+  ShuffleIcon,
+} from "./icons";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 
 export function PracticeMenu({ pieceid }: { pieceid: string }) {
   const links = [
@@ -30,9 +37,17 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
       <Menu as="div" className="relative inline-block text-left">
         {/*
       // @ts-ignore */}
-        <Menu.Button className="focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20">
-          <PlayIcon className="-ml-1 size-5" />
-          Practice
+        <Menu.Button className="focusable action-button bg-green-700/10 text-green-800 transition-all duration-200 ease-out hover:bg-green-700/20">
+          {({ open }) => (
+            <>
+              {open ? (
+                <XMarkIcon className="-ml-1 size-5" />
+              ) : (
+                <PlayListIcon className="-ml-1 size-5" />
+              )}
+              Practice
+            </>
+          )}
         </Menu.Button>
         <Transition
           as={Fragment}

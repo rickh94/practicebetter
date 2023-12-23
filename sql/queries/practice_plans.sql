@@ -35,7 +35,7 @@ SELECT
     (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS piece_active_spots,
     (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS piece_completed_spots
 FROM practice_plans
-LEFT JOIN practice_plan_pieces ON practice_plans.id = practice_plan_pieces.practice_plan_id
+INNER JOIN practice_plan_pieces ON practice_plans.id = practice_plan_pieces.practice_plan_id
 LEFT JOIN pieces ON practice_plan_pieces.piece_id = pieces.id
 WHERE practice_plans.id = ? AND practice_plans.user_id = ?;
 
@@ -51,7 +51,7 @@ SELECT
     spots.stage AS spot_stage,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS spot_piece_title
 FROM practice_plans
-LEFT JOIN practice_plan_spots ON practice_plans.id = practice_plan_spots.practice_plan_id
+INNER JOIN practice_plan_spots ON practice_plans.id = practice_plan_spots.practice_plan_id
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plans.id = ? AND practice_plans.user_id = ?;
 

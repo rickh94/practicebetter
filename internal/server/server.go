@@ -179,6 +179,19 @@ func (s *Server) LoginRequired(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Server) MaybeUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := s.GetEncFromSession(r.Context(), "userID")
+		queries := db.New(s.DB)
+		user, err := queries.GetUserByID(r.Context(), userID)
+		var ctx context.Context
+		if user.ID != "" && err == nil {
+			ctx = context.WithValue(r.Context(), "user", user)
+		}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (s *Server) MaybePracticePlan(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		practicePlanID, err := s.GetActivePracticePlanID(r.Context())

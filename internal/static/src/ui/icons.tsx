@@ -60,3 +60,55 @@ export function RandomBoxesIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function NoteListIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+    >
+      <title />
+      <g id="music-queue">
+        <path d="M2,10A1,1,0,0,1,3,9h9a1,1,0,0,1,0,2H3A1,1,0,0,1,2,10ZM3,6h9a1,1,0,0,0,0-2H3A1,1,0,0,0,3,6Zm4,8H3a1,1,0,0,0,0,2H7a1,1,0,0,0,0-2ZM21.24,5,18,5.78V17.5A3.78,3.78,0,0,1,14,21a3.78,3.78,0,0,1-4-3.5A3.78,3.78,0,0,1,14,14a4.39,4.39,0,0,1,2,.49V5a1,1,0,0,1,.76-1l4-1A1,1,0,0,1,21.24,5ZM16,17.5c0-.81-.92-1.5-2-1.5s-2,.69-2,1.5.92,1.5,2,1.5S16,18.31,16,17.5Z" />
+      </g>
+    </svg>
+  );
+}
+
+export function NoteSheetIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      aria-hidden="true"
+      fill="currentColor"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <title />
+      <g id="music-sheet">
+        <path d="M22,15v4a1,1,0,0,1-1,1H3a1,1,0,0,1-1-1V5A1,1,0,0,1,3,4h8a1,1,0,0,1,0,2H4V18H20V15a1,1,0,0,1,2,0ZM12,11a1,1,0,0,0-1-1H7a1,1,0,0,0,0,2h4A1,1,0,0,0,12,11ZM7,14a1,1,0,0,0,0,2H9a1,1,0,0,0,0-2ZM21.56,2.17a1,1,0,0,0-.93-.1l-5,2A1,1,0,0,0,15,5V8a2,2,0,1,0,2,2V5.68l3-1.2V7a2,2,0,1,0,2,2V3A1,1,0,0,0,21.56,2.17Z" />
+      </g>
+    </svg>
+  );
+}
+
+export function PlayListIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      aria-hidden="true"
+      fill="currentColor"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <title />
+      <g id="playlist">
+        <path d="M2,5A1,1,0,0,1,3,4H19a1,1,0,0,1,0,2H3A1,1,0,0,1,2,5Zm1,7H19a1,1,0,0,0,0-2H3a1,1,0,0,0,0,2Zm10,4H3a1,1,0,0,0,0,2H13a1,1,0,0,0,0-2Zm4,0v6l5-3Z" />
+      </g>
+    </svg>
+  );
+}

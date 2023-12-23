@@ -4,7 +4,12 @@ import { CrossFadeContentFast } from "../ui/transitions";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "preact/jsx-runtime";
 import { Link } from "./links";
-import { RandomBoxesIcon, RepeatIcon, ShuffleIcon } from "./icons";
+import {
+  PlayListIcon,
+  RandomBoxesIcon,
+  RepeatIcon,
+  ShuffleIcon,
+} from "./icons";
 
 const links = new Map<string, { label: string; icon: preact.JSX.Element }>([
   [
@@ -54,7 +59,7 @@ export function PracticeToolNav({ activepath }: { activepath: string }) {
                   ) : (
                     <>
                       <div className="sr-only">Open Practice Tools Menu</div>
-                      <Bars3CenterLeftIcon
+                      <PlayListIcon
                         className="-ml-2 size-6 text-neutral-800"
                         aria-hidden="true"
                       />

@@ -2,6 +2,7 @@ package components
 
 import "practicebetter/internal/heroicons"
 import "strconv"
+import "practicebetter/internal/icons"
 
 script ShowModal(id string) {
 	document.getElementById(id).showModal();
@@ -197,7 +198,7 @@ templ PieceCard(pieceID string, title string, composer string, activeSpots int64
 			</div>
 			<div class="flex flex-grow-0 items-center">
 				<div class="sr-only">Click to view</div>
-				@heroicons.IconDocumentMagnifyingGlassSolid("w-10 h-10 -mr-2")
+				@icons.NoteSheetIcon("size-10 -mr-2")
 			</div>
 		}
 	</li>
@@ -245,7 +246,7 @@ templ PracticePlanPieceCard(pieceID string, title string, composer string, activ
 					<span class="sr-only">Completed</span>
 				} else {
 					<div class="sr-only">Click to view</div>
-					@heroicons.IconDocumentMagnifyingGlassSolid("size-10 -mr-2")
+					@icons.NoteSheetIcon("size-10 -mr-2")
 				}
 			</div>
 		}
@@ -264,7 +265,7 @@ func getSpotCardClass(completed bool, stage string) string {
 }
 
 templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, showTitle bool, pieceTitle string, hidden bool) {
-	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block  spot-card", templ.KV("hidden", hidden) }>
+	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration- spot-card", templ.KV("hidden", hidden) }>
 		@HxLink(getSpotCardClass(practiced, stage), href, "#main-content") {
 			<div class="flex flex-col flex-grow">
 				<h3 class="text-lg font-bold">

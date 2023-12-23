@@ -44,7 +44,7 @@ templ SequenceReadMoreDialog() {
 
 templ SequencePractice(s pages.ServerUtil) {
 	<title>Sequenced Practice | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.BackHomeLink(),
+	@components.SingleColumnLayout(components.TwoButtonBar(components.HomeOrInternalNav(),
 	components.PracticeToolNav("/practice/random-sequence"),
 	components.ReadMoreButton(seqAboutId))) {
 		<div class="flex flex-col gap-12 justify-center items-center py-8 px-4">
