@@ -58,6 +58,13 @@ SET
     measures = ?
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
+-- name: UpdateTextPrompt :one
+UPDATE spots
+SET
+    text_prompt = ?
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
+RETURNING *;
+
 -- name: UpdateSpotPriority :exec
 UPDATE spots
 SET

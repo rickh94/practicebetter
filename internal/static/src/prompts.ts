@@ -1,15 +1,29 @@
 import register from "preact-custom-element";
 import {
-  TextPromptSummary,
+  RemindersSummary,
   AudioPromptSummary,
   ImagePromptSummary,
   NotesPromptSummary,
+  EditRemindersSummary,
 } from "./ui/prompts";
 
 try {
-  register(TextPromptSummary, "text-prompt-summary", ["text"], {
-    shadow: false,
-  });
+  register(
+    RemindersSummary,
+    "reminders-summary",
+    ["text", "pieceid", "spotid"],
+    {
+      shadow: false,
+    },
+  );
+  register(
+    EditRemindersSummary,
+    "edit-reminders-summary",
+    ["text", "pieceid", "spotid", "csrf"],
+    {
+      shadow: false,
+    },
+  );
   register(AudioPromptSummary, "audio-prompt-summary", ["url"], {
     shadow: false,
   });

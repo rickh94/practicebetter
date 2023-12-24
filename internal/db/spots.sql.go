@@ -440,3 +440,44 @@ func (q *Queries) UpdateSpotPriority(ctx context.Context, arg UpdateSpotPriority
 	)
 	return err
 }
+
+const updateTextPrompt = `-- name: UpdateTextPrompt :one
+UPDATE spots
+SET
+    text_prompt = ?
+WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
+RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, priority
+`
+
+type UpdateTextPromptParams struct {
+	TextPrompt string `json:"textPrompt"`
+	SpotID     string `json:"spotId"`
+	UserID     string `json:"userId"`
+	PieceID    string `json:"pieceId"`
+}
+
+func (q *Queries) UpdateTextPrompt(ctx context.Context, arg UpdateTextPromptParams) (Spot, error) {
+	row := q.db.QueryRowContext(ctx, updateTextPrompt,
+		arg.TextPrompt,
+		arg.SpotID,
+		arg.UserID,
+		arg.PieceID,
+	)
+	var i Spot
+	err := row.Scan(
+		&i.ID,
+		&i.PieceID,
+		&i.Name,
+		&i.Idx,
+		&i.Stage,
+		&i.Measures,
+		&i.AudioPromptUrl,
+		&i.ImagePromptUrl,
+		&i.NotesPrompt,
+		&i.TextPrompt,
+		&i.CurrentTempo,
+		&i.LastPracticed,
+		&i.Priority,
+	)
+	return i, err
+}

@@ -20,7 +20,7 @@ import { ArrowRightIcon, CheckIcon } from "@heroicons/react/20/solid";
 import Summary from "./summary";
 import {
   AudioPromptSummary,
-  TextPromptSummary,
+  RemindersSummary,
   NotesPromptSummary,
   ImagePromptSummary,
 } from "../ui/prompts";
@@ -44,6 +44,10 @@ export function RandomSpots({
     function (finalSummary: PracticeSummaryItem[]) {
       setSummary(finalSummary);
       setMode("summary");
+      document.removeEventListener(
+        "UpdateSpotRemindersField",
+        updateSpotRemindersField,
+      );
 
       if (pieceid && csrf && startTime) {
         const initialSpots: BasicSpot[] = JSON.parse(initialspots);
@@ -70,6 +74,41 @@ export function RandomSpots({
     [setMode, setSummary, startTime, pieceid, initialspots, csrf],
   );
 
+  const updateSpotRemindersField = useCallback(
+    function (event: CustomEvent) {
+      const { id, text } = event.detail;
+      setSpots((spots) =>
+        spots.map((spot) =>
+          spot.id === id ? { ...spot, textPrompt: text } : spot,
+        ),
+      );
+    },
+    [setSpots],
+  );
+
+  const startPracticing = useCallback(
+    function () {
+      setStartTime(new Date());
+      setMode("practice");
+      document.addEventListener(
+        "UpdateSpotRemindersField",
+        updateSpotRemindersField,
+      );
+    },
+    [setMode, setStartTime, updateSpotRemindersField],
+  );
+
+  const backToSetup = useCallback(
+    function () {
+      setMode("setup");
+      document.removeEventListener(
+        "UpdateSpotRemindersField",
+        updateSpotRemindersField,
+      );
+    },
+    [setMode],
+  );
+
   useEffect(
     function () {
       if (initialspots) {
@@ -89,19 +128,17 @@ export function RandomSpots({
               <SingleSetupForm
                 setSpots={setSpots}
                 spots={spots}
-                submit={() => {
-                  setMode("practice");
-                  setStartTime(new Date());
-                }}
+                submit={startPracticing}
               />
             ),
             practice: (
               <SinglePractice
                 spots={spots}
-                setup={() => setMode("setup")}
+                setup={backToSetup}
                 finish={finish}
                 skipSpotIds={skipSpotIds}
                 setSkipSpotIds={setSkipSpotIds}
+                pieceid={pieceid}
               />
             ),
             summary: (
@@ -144,7 +181,8 @@ function SingleSetupForm({
       return;
     }
     submit();
-  }, [submit]);
+  }, [submit, spots]);
+
   return (
     <>
       <div className="flex w-full flex-col py-4">
@@ -171,16 +209,20 @@ function SingleSetupForm({
   );
 }
 
+// TODO: add events to keep you from moving on while the reminders form is open
+
 function SinglePractice({
   spots,
   setup,
   finish,
+  pieceid,
 }: {
   spots: BasicSpot[];
   setup: () => void;
   finish: (summary: PracticeSummaryItem[]) => void;
   skipSpotIds: string[];
   setSkipSpotIds: StateUpdater<string[]>;
+  pieceid?: string;
 }) {
   const [currentSpotIdx, setCurrentSpotIdx] = useState(
     Math.floor(Math.random() * spots.length),
@@ -334,12 +376,14 @@ function SinglePractice({
         </div>
         <div className="relative w-full py-4">
           <ScaleCrossFadeContent
-            component={<SpotDisplay spot={spots[currentSpotIdx]} />}
+            component={
+              <SpotDisplay spot={spots[currentSpotIdx]} pieceid={pieceid} />
+            }
             id={`${currentSpotIdx}-${counter}`}
           />
         </div>
         <div className="flex flex-col items-center justify-center gap-4 pt-12">
-          <div className="flex justify-center gap-2">
+          <div className="flex flex-col justify-center gap-2 md:flex-row">
             <BigHappyButton type="button" onClick={evictSpot}>
               <CheckIcon className="-ml-1 size-6" />
               Finish Spot
@@ -364,7 +408,13 @@ function SinglePractice({
 // TODO: fix done button
 // TODO: add icons to these buttons
 // TODO: maybe should cover whole screen
-function SpotDisplay({ spot }: { spot?: BasicSpot }) {
+function SpotDisplay({
+  spot,
+  pieceid = "",
+}: {
+  spot: BasicSpot;
+  pieceid?: string;
+}) {
   if (!spot) {
     return <>Missing Spot data</>;
   }
@@ -377,11 +427,11 @@ function SpotDisplay({ spot }: { spot?: BasicSpot }) {
     <div
       className={cn(
         hasPrompts
-          ? "grid grid-cols-6 gap-2"
+          ? "grid gap-2 md:grid-cols-6"
           : "flex flex-col items-center justify-center",
       )}
     >
-      <div className="col-span-2 flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 text-center text-3xl font-bold shadow-lg sm:px-8 sm:text-5xl">
+      <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 text-center text-3xl font-bold shadow-lg sm:px-8 sm:text-5xl md:col-span-2">
         {spot.name ?? "Something went wrong"}
         {spot.measures && (
           <span className="text-lg text-neutral-700">
@@ -390,10 +440,16 @@ function SpotDisplay({ spot }: { spot?: BasicSpot }) {
         )}
       </div>
       {hasPrompts && (
-        <div className="col-span-4 flex flex-col gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 text-center font-bold shadow-lg sm:px-8">
-          <h2 className="text-lg font-semibold underline">Prompts</h2>
+        <div className="flex flex-col gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 shadow-lg sm:px-8 md:col-span-4">
+          <h2 className="text-center text-lg font-semibold underline">
+            Prompts
+          </h2>
+          <RemindersSummary
+            text={spot.textPrompt}
+            spotid={spot.id}
+            pieceid={pieceid}
+          />
           <AudioPromptSummary url={spot.audioPromptUrl} />
-          <TextPromptSummary text={spot.textPrompt} />
           <NotesPromptSummary notes={spot.notesPrompt} />
           <ImagePromptSummary url={spot.imagePromptUrl} />
         </div>

@@ -3,8 +3,25 @@ import { RandomSpots } from "./practice/random-spots";
 import { SequenceSpots } from "./practice/sequence-spots";
 import { Repeat } from "./practice/repeat";
 import { StartingPoint } from "./practice/starting-point";
+import { RemindersSummary, EditRemindersSummary } from "./ui/prompts";
 
 try {
+  register(
+    RemindersSummary,
+    "reminders-summary",
+    ["text", "pieceid", "spotid"],
+    {
+      shadow: false,
+    },
+  );
+  register(
+    EditRemindersSummary,
+    "edit-reminders-summary",
+    ["text", "pieceid", "spotid", "csrf"],
+    {
+      shadow: false,
+    },
+  );
   register(RandomSpots, "random-spots", ["initialspots", "pieceid", "csrf"], {
     shadow: false,
   });

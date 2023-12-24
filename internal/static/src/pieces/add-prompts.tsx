@@ -17,7 +17,11 @@ import {
   HappyButton,
   WarningButton,
 } from "../ui/buttons";
-import { CloudArrowUpIcon, TrashIcon } from "@heroicons/react/24/solid";
+import {
+  ChatBubbleBottomCenterTextIcon,
+  CloudArrowUpIcon,
+  TrashIcon,
+} from "@heroicons/react/24/solid";
 // import NotesDisplay from "../ui/notes-display";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
@@ -418,7 +422,7 @@ export function AddImagePrompt({
   );
 }
 
-export function AddTextPrompt({
+export function AddReminders({
   textPrompt,
   registerReturn,
 }: {
@@ -468,21 +472,21 @@ export function AddTextPrompt({
             <CheckIcon className="-ml-1 size-4" />
           </>
         ) : (
-          <DocumentTextIcon className="-ml-1 size-4" />
+          <ChatBubbleBottomCenterTextIcon className="-ml-1 size-4" />
         )}
-        Text
+        Reminders
       </ColorlessButton>
       <dialog
         ref={ref}
-        aria-labelledby="add-text-prompt-title"
+        aria-labelledby="add-reminders-title"
         className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
       >
         <header className="mt-2 text-center sm:text-left">
           <h3
-            id="add-text-prompt-title"
+            id="add-reminders-title"
             className="text-2xl font-semibold leading-6 text-neutral-900"
           >
-            Add Text Prompt
+            Add Reminders
           </h3>
         </header>
         <div className="prose prose-sm prose-neutral mt-2 text-left">
@@ -493,7 +497,7 @@ export function AddTextPrompt({
             className="text-left text-sm font-medium leading-6 text-neutral-900"
             htmlFor="textPrompt"
           >
-            Text Prompt
+            Reminders
           </label>
           <textarea
             {...registerReturn}

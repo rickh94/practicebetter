@@ -13,7 +13,7 @@ import { PieceFormData, UpdatePieceData } from "../validators";
 import {
   AddAudioPrompt,
   AddImagePrompt,
-  AddTextPrompt,
+  AddReminders,
   AddNotesPrompt,
 } from "./add-prompts";
 
@@ -152,7 +152,7 @@ export function SpotsArray({
                   }
                   imagePromptUrl={watch(`spots.${index}.imagePromptUrl`)}
                 />
-                <AddTextPrompt
+                <AddReminders
                   registerReturn={register(`spots.${index}.textPrompt`)}
                   textPrompt={watch(`spots.${index}.textPrompt`)}
                 />

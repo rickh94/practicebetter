@@ -20,7 +20,7 @@ import { BasicSpot } from "../validators";
 import { BackToPieceLink, HappyLink, WarningLink } from "../ui/links";
 import {
   AudioPromptSummary,
-  TextPromptSummary,
+  RemindersSummary,
   NotesPromptSummary,
   ImagePromptSummary,
 } from "../ui/prompts";
@@ -159,6 +159,7 @@ export function Repeat({
                 onSuccess={setModeBreakSuccess}
                 onFail={setModeBreakFail}
                 spot={spot}
+                pieceid={pieceid}
               />
             ),
             break_success: (
@@ -203,11 +204,13 @@ function RepeatPractice({
   onFail,
   startTime,
   spot,
+  pieceid,
 }: {
   onSuccess: () => void;
   onFail: () => void;
   startTime: number;
   spot?: BasicSpot;
+  pieceid?: string;
 }) {
   const [numCompleted, setCompleted] = useState(0);
   const [waitedLongEnough, setWaitedLongEnough] = useState(true);
@@ -280,7 +283,7 @@ function RepeatPractice({
                 onClick={fail}
                 className="sm:gap-2"
               >
-                <HandThumbDownIcon className="-ml-1 size-6 sm:-ml-2 sm:size-8" />
+                <HandThumbDownIcon className="-ml-1 size-6 sm:size-8" />
                 <span>Mistake</span>
               </BigAngryButton>
             </div>
@@ -289,7 +292,7 @@ function RepeatPractice({
               onClick={succeed}
               className="sm:gap-2"
             >
-              <HandThumbUpIcon className="-ml-1 size-6 sm:-ml-2 sm:size-8" />
+              <HandThumbUpIcon className="-ml-1 size-6 sm:size-8" />
               <span>Correct</span>
             </BigHappyButton>
           </div>
@@ -297,8 +300,12 @@ function RepeatPractice({
       </div>
       {spot && (
         <div className="flex flex-col gap-2 sm:mx-auto sm:max-w-xl">
+          <RemindersSummary
+            text={spot.textPrompt}
+            pieceid={pieceid}
+            spotid={spot.id}
+          />
           <AudioPromptSummary url={spot.audioPromptUrl} />
-          <TextPromptSummary text={spot.textPrompt} />
           <NotesPromptSummary notes={spot.notesPrompt} />
           <ImagePromptSummary url={spot.imagePromptUrl} />
         </div>

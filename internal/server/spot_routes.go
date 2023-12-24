@@ -494,6 +494,83 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 	w.Write([]byte("OK"))
 }
 
+func (s *Server) getEditRemindersForm(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	user := r.Context().Value("user").(db.User)
+	queries := db.New(s.DB)
+
+	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+		SpotID:  spotID,
+		UserID:  user.ID,
+		PieceID: pieceID,
+	})
+	if err != nil {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Could not find matching spot"))
+		return
+	}
+
+	token := csrf.Token(r)
+	librarypages.EditRemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, token, "").Render(r.Context(), w)
+}
+
+func (s *Server) updateReminders(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	user := r.Context().Value("user").(db.User)
+	queries := db.New(s.DB)
+
+	newText := r.FormValue("text")
+	spot, err := queries.UpdateTextPrompt(r.Context(), db.UpdateTextPromptParams{
+		SpotID:     spotID,
+		UserID:     user.ID,
+		PieceID:    pieceID,
+		TextPrompt: newText,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not update reminders",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		librarypages.EditRemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, csrf.Token(r), "Failed to Update").Render(r.Context(), w)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	htmx.Trigger(r, "UpdateSpotRemindersField", map[string]string{
+		"id":   spot.ID,
+		"text": newText,
+	})
+	librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w)
+}
+func (s *Server) getReminders(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	user := r.Context().Value("user").(db.User)
+	queries := db.New(s.DB)
+
+	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+		SpotID:  spotID,
+		UserID:  user.ID,
+		PieceID: pieceID,
+	})
+	if err != nil {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Could not find matching spot"))
+		return
+	}
+
+	librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w)
+}
+
 /*
 func (s *Server) updateSpotPriority(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")

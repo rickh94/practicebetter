@@ -12,7 +12,7 @@ import { SpotFormData, spotStages } from "../validators";
 import {
   AddAudioPrompt,
   AddImagePrompt,
-  AddTextPrompt,
+  AddReminders,
   AddNotesPrompt,
 } from "./add-prompts";
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
@@ -179,7 +179,7 @@ export default function SpotFormFields({
             save={(url) => setValue("imagePromptUrl", url)}
             imagePromptUrl={watch("imagePromptUrl")}
           />
-          <AddTextPrompt
+          <AddReminders
             textPrompt={watch("textPrompt")}
             registerReturn={register("textPrompt")}
           />
