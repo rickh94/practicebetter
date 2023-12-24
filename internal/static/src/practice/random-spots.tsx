@@ -18,12 +18,7 @@ import {
 } from "../ui/buttons";
 import { ArrowRightIcon, CheckIcon } from "@heroicons/react/20/solid";
 import Summary from "./summary";
-import {
-  AudioPromptSummary,
-  RemindersSummary,
-  NotesPromptSummary,
-  ImagePromptSummary,
-} from "../ui/prompts";
+import { PracticeSpotDisplay } from "./practice-spot-display";
 
 export function RandomSpots({
   initialspots,
@@ -377,7 +372,10 @@ function SinglePractice({
         <div className="relative w-full py-4">
           <ScaleCrossFadeContent
             component={
-              <SpotDisplay spot={spots[currentSpotIdx]} pieceid={pieceid} />
+              <PracticeSpotDisplay
+                spot={spots[currentSpotIdx]}
+                pieceid={pieceid}
+              />
             }
             id={`${currentSpotIdx}-${counter}`}
           />
@@ -401,59 +399,6 @@ function SinglePractice({
           <WarningButton onClick={handleDone}>Done</WarningButton>
         </div>
       </div>
-    </div>
-  );
-}
-
-// TODO: fix done button
-// TODO: add icons to these buttons
-// TODO: maybe should cover whole screen
-function SpotDisplay({
-  spot,
-  pieceid = "",
-}: {
-  spot: BasicSpot;
-  pieceid?: string;
-}) {
-  if (!spot) {
-    return <>Missing Spot data</>;
-  }
-  const hasPrompts =
-    !!spot.audioPromptUrl ||
-    !!spot.textPrompt ||
-    !!spot.imagePromptUrl ||
-    !!spot.notesPrompt;
-  return (
-    <div
-      className={cn(
-        hasPrompts
-          ? "grid gap-2 md:grid-cols-6"
-          : "flex flex-col items-center justify-center",
-      )}
-    >
-      <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 text-center text-3xl font-bold shadow-lg sm:px-8 sm:text-5xl md:col-span-2">
-        {spot.name ?? "Something went wrong"}
-        {spot.measures && (
-          <span className="text-lg text-neutral-700">
-            Measures: {spot.measures}
-          </span>
-        )}
-      </div>
-      {hasPrompts && (
-        <div className="flex flex-col gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 shadow-lg sm:px-8 md:col-span-4">
-          <h2 className="text-center text-lg font-semibold underline">
-            Prompts
-          </h2>
-          <RemindersSummary
-            text={spot.textPrompt}
-            spotid={spot.id}
-            pieceid={pieceid}
-          />
-          <AudioPromptSummary url={spot.audioPromptUrl} />
-          <NotesPromptSummary notes={spot.notesPrompt} />
-          <ImagePromptSummary url={spot.imagePromptUrl} />
-        </div>
-      )}
     </div>
   );
 }

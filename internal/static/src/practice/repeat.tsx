@@ -3,7 +3,6 @@ import {
   ArrowUpRightIcon,
   CheckIcon,
   HandThumbDownIcon,
-  XMarkIcon,
 } from "@heroicons/react/20/solid";
 import { AnimatePresence, motion } from "framer-motion";
 import { ScaleCrossFadeContent } from "../ui/transitions";
@@ -30,11 +29,11 @@ import {
   MusicalNoteIcon,
 } from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { PracticeSpotDisplay } from "./practice-spot-display";
 
 type RepeatMode = "prepare" | "practice" | "break_success" | "break_fail";
 
-// TODO: scroll to good position on view change
-// TODO: add route handler for repeat practice single spot cuz of csrf silliness
+// TODO: add event listener to update spot
 export function Repeat({
   initialspot,
   pieceid,
@@ -152,7 +151,13 @@ export function Repeat({
       <ScaleCrossFadeContent
         component={
           {
-            prepare: <RepeatPrepare startPracticing={startPracticing} />,
+            prepare: (
+              <RepeatPrepare
+                startPracticing={startPracticing}
+                spot={spot}
+                pieceid={pieceid}
+              />
+            ),
             practice: (
               <RepeatPractice
                 startTime={startTime}
@@ -186,10 +191,26 @@ export function Repeat({
   );
 }
 
-function RepeatPrepare({ startPracticing }: { startPracticing: () => void }) {
+function RepeatPrepare({
+  startPracticing,
+  spot,
+  pieceid,
+}: {
+  startPracticing: () => void;
+  spot?: BasicSpot;
+  pieceid?: string;
+}) {
   return (
-    <div className="flex w-full flex-col pt-4">
-      <RepeatPrepareText />
+    <div className="flex w-full flex-col" id="repeat-prepare-wrapper">
+      <h2 className="py-1 text-left text-2xl font-bold">Repeat Practicing</h2>
+      <p className="text-left text-base">
+        Repeat practicing is an important part of learning, but you need to do
+        it carefully!
+      </p>
+      <div className="px-8 py-4">
+        {spot && <PracticeSpotDisplay spot={spot} pieceid={pieceid} />}
+      </div>
+      <RepeatPrepareText open={!spot} />
       <div className="col-span-full flex w-full items-center justify-center py-16">
         <GiantBasicButton type="button" onClick={startPracticing}>
           Start Practicing
@@ -299,19 +320,11 @@ function RepeatPractice({
         </div>
       </div>
       {spot && (
-        <div className="flex flex-col gap-2 sm:mx-auto sm:max-w-xl">
-          <RemindersSummary
-            text={spot.textPrompt}
-            pieceid={pieceid}
-            spotid={spot.id}
-          />
-          <AudioPromptSummary url={spot.audioPromptUrl} />
-          <NotesPromptSummary notes={spot.notesPrompt} />
-          <ImagePromptSummary url={spot.imagePromptUrl} />
+        <div className="px-8 pt-8">
+          <PracticeSpotDisplay spot={spot} pieceid={pieceid} />
         </div>
       )}
-
-      <div className="flex w-full flex-col py-24 sm:mx-auto sm:max-w-3xl">
+      <div className="flex w-full flex-col py-12 sm:mx-auto sm:max-w-3xl">
         <div className="mx-auto flex w-full max-w-lg flex-wrap items-center justify-center">
           <WarningButton onClick={onFail}>
             <span>Move On</span>

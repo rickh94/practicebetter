@@ -104,9 +104,6 @@ export function RemindersSummary({
   } else {
     targetId = `reminder-details-${pieceid}-${spotid}`;
   }
-  if (!text) {
-    return <div>No Reminders</div>;
-  }
   return (
     <details open id={`reminder-details-${pieceid}-${spotid}`}>
       <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-300/50">
@@ -117,7 +114,7 @@ export function RemindersSummary({
         <ChevronRightIcon className="summary-icon -mr-1 size-6 transition-transform" />
       </summary>
       <div className="flex min-h-12 py-1" id="reminder-details">
-        <p className="min-h-12 flex-grow py-1">{text}</p>
+        <p className="min-h-12 flex-grow py-1">{text ?? "No Reminders"}</p>
         {!!pieceid && !!spotid && (
           <Link
             pushUrl={false}

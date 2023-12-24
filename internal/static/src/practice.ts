@@ -6,25 +6,13 @@ import { StartingPoint } from "./practice/starting-point";
 import { RemindersSummary, EditRemindersSummary } from "./ui/prompts";
 
 try {
-  register(
-    RemindersSummary,
-    "reminders-summary",
-    ["text", "pieceid", "spotid"],
-    {
-      shadow: false,
-    },
-  );
-  register(
-    EditRemindersSummary,
-    "edit-reminders-summary",
-    ["text", "pieceid", "spotid", "csrf"],
-    {
-      shadow: false,
-    },
-  );
   register(RandomSpots, "random-spots", ["initialspots", "pieceid", "csrf"], {
     shadow: false,
   });
+} catch (err) {
+  console.log(err);
+}
+try {
   register(
     SequenceSpots,
     "sequence-spots",
@@ -33,9 +21,17 @@ try {
       shadow: false,
     },
   );
+} catch (err) {
+  console.log(err);
+}
+try {
   register(Repeat, "repeat-practice", ["initialspot", "pieceid", "csrf"], {
     shadow: false,
   });
+} catch (err) {
+  console.log(err);
+}
+try {
   register(
     StartingPoint,
     "starting-point",

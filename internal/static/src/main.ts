@@ -5,11 +5,16 @@ import { uniqueID } from "./common";
 import { DateFromNow, PrettyDate, NumberDate } from "./ui/date-display";
 import { PieceStage, SpotStage } from "./ui/stages";
 import { InternalNav } from "./ui/internal-nav";
+import { EditRemindersSummary, RemindersSummary } from "./ui/prompts";
 
 try {
   register(PracticeToolNav, "practice-tool-nav", ["activepath"], {
     shadow: false,
   });
+} catch (err) {
+  console.log(err);
+}
+try {
   register(
     ConfirmDialog,
     "confirm-dialog",
@@ -18,14 +23,62 @@ try {
       shadow: false,
     },
   );
+} catch (err) {
+  console.log(err);
+}
+try {
   register(DateFromNow, "date-from-now", ["epoch"], { shadow: false });
+} catch (err) {
+  console.log(err);
+}
+try {
   register(PrettyDate, "pretty-date", ["epoch"], { shadow: false });
+} catch (err) {
+  console.log(err);
+}
+try {
   register(NumberDate, "number-date", ["epoch"], { shadow: false });
+} catch (err) {
+  console.log(err);
+}
+try {
   register(PieceStage, "piece-stage", ["stage"], { shadow: false });
+} catch (err) {
+  console.log(err);
+}
+try {
   register(SpotStage, "spot-stage", ["stage"], { shadow: false });
+} catch (err) {
+  console.log(err);
+}
+try {
   register(InternalNav, "internal-nav", ["activeplanid", "activepath"], {
     shadow: false,
   });
+} catch (err) {
+  console.log(err);
+}
+try {
+  register(
+    RemindersSummary,
+    "reminders-summary",
+    ["text", "pieceid", "spotid"],
+    {
+      shadow: false,
+    },
+  );
+} catch (err) {
+  console.log(err);
+}
+try {
+  register(
+    EditRemindersSummary,
+    "edit-reminders-summary",
+    ["text", "pieceid", "spotid", "csrf"],
+    {
+      shadow: false,
+    },
+  );
 } catch (err) {
   console.log(err);
 }
