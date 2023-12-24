@@ -2,21 +2,89 @@ package librarypages
 
 import "practicebetter/internal/pages"
 import "practicebetter/internal/components"
+import "practicebetter/internal/heroicons"
+import "practicebetter/internal/db"
+import "strconv"
 
-templ EditPiecePage(s pages.ServerUtil, csrf string, title string, id string, pieceData string, spotsData string) {
-	<title>{ title } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav() , components.HeadingText(title), components.AccountLink())) {
+templ EditPiecePage(s pages.ServerUtil, csrf string, piece db.Piece) {
+	<title>{ piece.Title } | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav() , components.HeadingText("Edit "+piece.Title), components.AccountLink())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
-					{ Label: title, Href: "/library/pieces/"+id, Active: false },
-					{ Label: "Edit", Href: "/library/pieces/"+id+"/edit", Active: true },
+					{ Label: piece.Title, Href: "/library/pieces/"+piece.ID, Active: false },
+					{ Label: "Edit", Href: "/library/pieces/"+piece.ID+"/edit", Active: true },
 				})
 		}
 		<div class="px-4 w-full sm:mx-auto sm:max-w-5xl">
-			<edit-piece-form csrf={ csrf } piece={ pieceData } spots={ spotsData } pieceid={ id }></edit-piece-form>
+			<form hx-put={ "/library/pieces/" + piece.ID } hx-target="#main-content" hx-swap="outerHTML transition:true" action="#" class="flex flex-col gap-2 w-full">
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<div class="grid-cols-1 gap-x-0 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-2 md:gap-x-4">
+					<div class="flex flex-col gap-1">
+						@PieceFormLabel("Title (required)", "title")
+						@PieceFormInput("title", "Piece Title", "text", piece.Title, true)
+					</div>
+					<div class="flex flex-col gap-1">
+						@PieceFormLabel("Composer", "composer")
+						if piece.Composer.Valid {
+							@PieceFormInput("composer", "Composer", "text", piece.Composer.String, false)
+						} else {
+							@PieceFormInput("composer", "Composer", "text", "", false)
+						}
+					</div>
+				</div>
+				<div class="grid grid-cols-1 sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-4">
+					<div class="flex flex-col gap-1 sm:col-span-1">
+						@PieceFormLabel("Stage", "stage")
+						<select required id="stage" name="stage" class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:bg-neutral-700/20">
+							<option value="future" selected?={ piece.Stage == "future" }>
+								Not Started
+							</option>
+							<option value="active" selected?={ piece.Stage == "active" }>
+								Active
+							</option>
+							<option value="completed" selected?={ piece.Stage == "completed" }>
+								Completed
+							</option>
+						</select>
+					</div>
+					<div class="flex flex-col gap-1 md:col-span-1">
+						@PieceFormLabel("Goal Tempo", "goalTempo")
+						if piece.GoalTempo.Valid {
+							@PieceFormInput("goalTempo", "BPM", "number", strconv.FormatInt(piece.GoalTempo.Int64, 10), false)
+						} else {
+							@PieceFormInput("goalTempo", "BPM", "number", "", false)
+						}
+					</div>
+					<div class="flex flex-col gap-1">
+						@PieceFormLabel("Measures", "measures")
+						if piece.Measures.Valid {
+							@PieceFormInput("measures", "mm", "number", strconv.FormatInt(piece.Measures.Int64, 10), false)
+						} else {
+							@PieceFormInput("measures", "mm", "number", "", false)
+						}
+					</div>
+					<div class="flex flex-col gap-1">
+						@PieceFormLabel("Beats Per Measure", "beats")
+						if piece.BeatsPerMeasure.Valid {
+							@PieceFormInput("beats", "Beats", "number", strconv.FormatInt(piece.BeatsPerMeasure.Int64, 10), false)
+						} else {
+							@PieceFormInput("beats", "Beats", "number", "", false)
+						}
+					</div>
+				</div>
+				<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
+					<button type="submit" class="flex gap-1 justify-center items-center px-6 h-12 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable">
+						@heroicons.IconDocumentPlusSolid("-ml-1 inline size-5")
+						Save
+					</button>
+					@components.HxLink("flex gap-1 justify-center items-center px-6 h-12 font-semibold text-red-800 rounded-xl transition duration-200 bg-red-700/10 hover:bg-red-700/20 focusable", "/library/pieces", "#main-content") {
+						@heroicons.IconXMarkSolid("-ml-1 inline size-5")
+						Cancel
+					}
+				</div>
+			</form>
 		</div>
 	}
-	<script type="module" src={ s.StaticUrl("out/edit-piece.js") }></script>
 }

@@ -27,11 +27,11 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 				<div class="grid-cols-1 gap-x-0 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-2 md:gap-x-4">
 					<div class="flex flex-col gap-1">
 						@PieceFormLabel("Title (required)", "title")
-						@PieceFormInput("title", "Piece Title", "text", true)
+						@PieceFormInput("title", "Piece Title", "text", "", true)
 					</div>
 					<div class="flex flex-col gap-1">
 						@PieceFormLabel("Composer", "composer")
-						@PieceFormInput("composer", "Composer", "text", false)
+						@PieceFormInput("composer", "Composer", "text", "", false)
 					</div>
 				</div>
 				<div class="grid grid-cols-1 sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-4">
@@ -51,15 +51,15 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 					</div>
 					<div class="flex flex-col gap-1 sm:col-span-2 md:col-span-1">
 						@PieceFormLabel("Goal Tempo", "goalTempo")
-						@PieceFormInput("goalTempo", "BPM", "number", false)
+						@PieceFormInput("goalTempo", "BPM", "number", "", false)
 					</div>
 					<div class="flex flex-col gap-1">
 						@PieceFormLabel("Measures", "measures")
-						@PieceFormInput("measures", "mm", "number", false)
+						@PieceFormInput("measures", "mm", "number", "", false)
 					</div>
 					<div class="flex flex-col gap-1">
 						@PieceFormLabel("Beats Per Measure", "beats")
-						@PieceFormInput("beats", "Beats", "number", false)
+						@PieceFormInput("beats", "Beats", "number", "", false)
 					</div>
 				</div>
 				<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
@@ -83,6 +83,6 @@ templ PieceFormLabel(text string, labelFor string) {
 	</label>
 }
 
-templ PieceFormInput(name string, placeholder string, fieldType string, required bool) {
-	<input autocomplete="off" required?={ required } type={ fieldType } id={ name } name={ name } placeholder={ placeholder } class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 focusable focus:bg-neutral-700/20"/>
+templ PieceFormInput(name string, placeholder string, fieldType string, defaultValue string, required bool) {
+	<input value={ defaultValue } autocomplete="off" required?={ required } type={ fieldType } id={ name } name={ name } placeholder={ placeholder } class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 focusable focus:bg-neutral-700/20"/>
 }

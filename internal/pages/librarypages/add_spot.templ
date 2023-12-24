@@ -17,13 +17,19 @@ templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, pieceTitle st
 				})
 		}
 		@components.FiveColumnContainer() {
-			<div class="flex col-span-2 justify-center items-start mx-auto max-w-lg lg:mx-0 lg:max-w-none" id="add-spot-section">
-				<div class="flex flex-col flex-grow-0 gap-2 p-4 rounded-xl border border-neutral-500 bg-white/80 text-neutral-900">
+			<div class="flex flex-col col-span-2 gap-4 items-center mx-auto md:flex-row md:items-start lg:flex-col lg:justify-start lg:mx-0 lg:max-w-none" id="add-spot-section">
+				<div class="flex flex-col flex-grow-0 gap-2 p-4 max-w-lg bg-white rounded-xl border border-neutral-500 text-neutral-900">
 					<div class="flex justify-center">
 						<h2 class="text-2xl font-bold">Add Spot</h2>
 					</div>
 					<add-spot-form pieceid={ pieceID } csrf={ csrf } initialspotcount={ strconv.Itoa(len(spots)) }></add-spot-form>
 				</div>
+				<aside class="py-4 px-4 space-y-2 max-w-lg h-full text-base bg-white rounded-xl shadow-sm lg:h-auto">
+					<h3 class="text-2xl font-bold underline">About Spots</h3>
+					<p>Spots are your smallest unit of practicing</p>
+					<p>Think them through, err on the side of making them too short to start with.</p>
+					<p>Remember you can always add more later, so it’s fine to just add a few at a time</p>
+				</aside>
 			</div>
 			@AddSpotsSpotList(spots)
 		}

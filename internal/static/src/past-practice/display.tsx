@@ -68,12 +68,14 @@ export function PastPracticeDisplay({
       if (!(rows instanceof Array)) {
         return;
       }
+      // track the seen ids so we don't double(or more) count the durations
+      let seenIds = new Set();
       for (let row of rows) {
         const localDate = dayjs.unix(row.date).tz(dayjs.tz.guess());
         if (!displaySessionMap.get(localDate.format("YYYY-MM-DD"))) {
           displaySessionMap.set(localDate.format("YYYY-MM-DD"), {
             id: row.id,
-            durationMinutes: row.durationMinutes,
+            durationMinutes: 0,
             date: localDate,
             pieces: [],
             spots: [],
@@ -83,7 +85,10 @@ export function PastPracticeDisplay({
         const displaySession = displaySessionMap.get(
           localDate.format("YYYY-MM-DD"),
         ) as DisplaySession;
-        displaySession.durationMinutes += row.durationMinutes;
+        if (!seenIds.has(row.id)) {
+          seenIds.add(row.id);
+          displaySession.durationMinutes += row.durationMinutes;
+        }
         if (
           row.pieceId.Valid &&
           !displaySession.pieces.find((p) => p.pieceId === row.pieceId.String)
@@ -131,7 +136,8 @@ export function PastPracticeDisplay({
             className="flex flex-col rounded-xl bg-white/50 px-4 py-2 shadow shadow-neutral-700/5"
           >
             <h3 className="col-span-full text-lg font-semibold">
-              Practiced for {ps.durationMinutes} minutes - {ps.date.fromNow()}
+              Practiced for <HoursMinutesDisplay minutes={ps.durationMinutes} />{" "}
+              - {ps.date.fromNow()}
             </h3>
             <div className="grid grid-cols-2 gap-x-2">
               <div>
@@ -174,4 +180,16 @@ export function PastPracticeDisplay({
       </ul>
     </>
   );
+}
+
+function HoursMinutesDisplay({ minutes }: { minutes: number }) {
+  const hours = Math.floor(minutes / 60);
+  const minutesRemainder = minutes % 60;
+  if (hours === 0) {
+    return <>{`${minutesRemainder} minutes`}</>;
+  }
+  if (minutesRemainder === 0) {
+    return <>{`${hours} hours`}</>;
+  }
+  return <>{`${hours} hours and ${minutesRemainder} minutes`}</>;
 }

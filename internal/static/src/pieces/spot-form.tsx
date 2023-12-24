@@ -168,7 +168,7 @@ export default function SpotFormFields({
             Add small prompts to help you play this spot correctly
           </p>
         </div>
-        <div className="grid grid-cols-2 grid-rows-2 gap-2 md:grid-cols-4 md:grid-rows-1 lg:grid-cols-2 lg:grid-rows-1">
+        <div className="grid grid-cols-2 grid-rows-2 gap-2">
           <AddAudioPrompt
             csrf={csrf}
             save={(url) => setValue("audioPromptUrl", url)}

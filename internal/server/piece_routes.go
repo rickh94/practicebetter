@@ -207,59 +207,20 @@ func (s *Server) editPiece(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	user := r.Context().Value("user").(db.User)
 	queries := db.New(s.DB)
-	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
-		PieceID: pieceID,
-		UserID:  user.ID,
+	piece, err := queries.GetPieceWithoutSpots(r.Context(), db.GetPieceWithoutSpotsParams{
+		ID:     pieceID,
+		UserID: user.ID,
 	})
 
-	if err != nil || len(piece) == 0 {
+	if err != nil {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
 		http.Error(w, "Could not find matching piece", http.StatusNotFound)
 		return
 	}
 
-	var pieceFormData PieceFormData
-	pieceFormData.ID = piece[0].ID
-	pieceFormData.Title = piece[0].Title
-	if piece[0].Description.Valid {
-		pieceFormData.Description = &piece[0].Description.String
-	}
-	if piece[0].Composer.Valid {
-		pieceFormData.Composer = &piece[0].Composer.String
-	}
-	if piece[0].Measures.Valid && piece[0].Measures.Int64 > 0 {
-		pieceFormData.Measures = &piece[0].Measures.Int64
-	}
-	if piece[0].BeatsPerMeasure.Valid && piece[0].BeatsPerMeasure.Int64 > 0 {
-		pieceFormData.BeatsPerMeasure = &piece[0].BeatsPerMeasure.Int64
-	}
-	if piece[0].GoalTempo.Valid && piece[0].GoalTempo.Int64 > 0 {
-		pieceFormData.GoalTempo = &piece[0].GoalTempo.Int64
-	}
-
-	var spotsFormData []SpotFormData
-
-	for _, row := range piece {
-		if row.SpotID.Valid {
-			spotsFormData = append(spotsFormData, makeSpotFormDataFromRow(row))
-		}
-	}
-	pieceJson, err := json.Marshal(pieceFormData)
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-	spotsJson, err := json.Marshal(spotsFormData)
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.EditPiecePage(s, token, pieceFormData.Title, pieceID, string(pieceJson), string(spotsJson)), pieceFormData.Title)
+	s.HxRender(w, r, librarypages.EditPiecePage(s, token, piece), piece.Title)
 }
 
 func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
@@ -311,78 +272,6 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not update piece", http.StatusInternalServerError)
 		return
 	}
-	var keepSpotIDs []string
-	for _, s := range r.Form["spots"] {
-		var spot SpotFormData
-		err = json.Unmarshal([]byte(s), &spot)
-		if err != nil {
-			log.Default().Println(err)
-			continue
-		}
-		currentTempo := sql.NullInt64{Valid: false}
-		if spot.CurrentTempo != nil && *spot.CurrentTempo > 0 {
-			currentTempo = sql.NullInt64{Int64: *spot.CurrentTempo, Valid: true}
-		}
-		measures := sql.NullString{Valid: false}
-		if spot.Measures != nil {
-			measures = sql.NullString{String: *spot.Measures, Valid: true}
-		}
-		if spot.ID != nil {
-			keepSpotIDs = append(keepSpotIDs, *spot.ID)
-			err := qtx.UpdateSpot(r.Context(), db.UpdateSpotParams{
-				Name:           spot.Name,
-				Idx:            *spot.Idx,
-				Stage:          spot.Stage,
-				AudioPromptUrl: spot.AudioPromptUrl,
-				ImagePromptUrl: spot.ImagePromptUrl,
-				NotesPrompt:    spot.NotesPrompt,
-				TextPrompt:     spot.TextPrompt,
-				CurrentTempo:   currentTempo,
-				SpotID:         *spot.ID,
-				UserID:         user.ID,
-				PieceID:        pieceID,
-				Measures:       measures,
-			})
-			if err != nil {
-				log.Default().Println(err)
-				http.Error(w, "Failed to update spot", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			newSpotID := cuid2.Generate()
-			_, err := qtx.CreateSpot(r.Context(), db.CreateSpotParams{
-				UserID:         user.ID,
-				PieceID:        pieceID,
-				ID:             newSpotID,
-				Name:           spot.Name,
-				Idx:            *spot.Idx,
-				Stage:          spot.Stage,
-				AudioPromptUrl: spot.AudioPromptUrl,
-				ImagePromptUrl: spot.ImagePromptUrl,
-				NotesPrompt:    spot.NotesPrompt,
-				TextPrompt:     spot.TextPrompt,
-				CurrentTempo:   currentTempo,
-				Measures:       measures,
-			})
-			if err != nil {
-				log.Default().Println(err)
-				http.Error(w, "Failed to create spot", http.StatusInternalServerError)
-				return
-			}
-			keepSpotIDs = append(keepSpotIDs, newSpotID)
-		}
-
-	}
-	err = qtx.DeleteSpotsExcept(r.Context(), db.DeleteSpotsExceptParams{
-		SpotIDs: keepSpotIDs,
-		UserID:  user.ID,
-		PieceID: pieceID,
-	})
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Failed to delete spots", http.StatusInternalServerError)
-		return
-	}
 
 	piece, err := qtx.GetPieceByID(r.Context(), db.GetPieceByIDParams{
 		PieceID: pieceID,
@@ -404,12 +293,6 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := csrf.Token(r)
-
-	hxRequest := htmx.Request(r)
-	if hxRequest == nil {
-		s.Redirect(w, r, "/library/pieces/"+pieceID)
-		return
-	}
 
 	w.Header().Set("Content-Type", "text/html")
 	htmx.PushURL(r, "/library/pieces/"+pieceID)
