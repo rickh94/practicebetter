@@ -25,7 +25,7 @@ export function AudioPromptSummary({ url }: { url: string }) {
           <SpeakerWaveIcon className="-ml-1 size-5" />
           Audio Prompt
         </div>
-        <ChevronRightIcon className="summary-icon -mr-1 size-6 transition-transform" />
+        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
       </summary>
       <audio controls className="my-1 w-full py-1">
         <source src={url} type="audio/mpeg" />
@@ -44,7 +44,7 @@ export function ImagePromptSummary({ url }: { url: string }) {
           <PhotoIcon className="-ml-1 size-5" />
           Image Prompt
         </div>
-        <ChevronRightIcon className="summary-icon -mr-1 size-6 transition-transform" />
+        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
       </summary>
       <img
         src={url}
@@ -67,7 +67,7 @@ export function NotesPromptSummary({ notes }: { notes: string }) {
           <MusicalNoteIcon className="-ml-1 size-5" />
           Notes Prompt
         </div>
-        <ChevronRightIcon className="summary-icon -mr-1 size-6 transition-transform" />
+        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
       </summary>
       <div className="min-h-[6rem] w-full">
         <Suspense fallback={<div className="my-2">Loading Notes...</div>}>
@@ -111,7 +111,7 @@ export function RemindersSummary({
           <ChatBubbleBottomCenterTextIcon className="-ml-1 size-5" />
           Reminders
         </div>
-        <ChevronRightIcon className="summary-icon -mr-1 size-6 transition-transform" />
+        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
       </summary>
       <div className="flex min-h-12 py-1" id="reminder-details">
         <p className="min-h-12 flex-grow py-1">{text ?? "No Reminders"}</p>
@@ -156,7 +156,7 @@ export function EditRemindersSummary({
           <ChatBubbleBottomCenterTextIcon className="-ml-1 size-5" />
           Reminders
         </div>
-        <ChevronRightIcon className="summary-icon -mr-1 size-6 transition-transform" />
+        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
       </summary>
       <form
         className="flex gap-2 py-1"

@@ -1,18 +1,18 @@
 import { NavItem, cn } from "../common";
-import { Bars3CenterLeftIcon, XMarkIcon } from "@heroicons/react/20/solid";
+import {
+  Bars3CenterLeftIcon,
+  XMarkIcon,
+  ClipboardDocumentListIcon,
+  DocumentCheckIcon,
+  RectangleStackIcon,
+  ClipboardDocumentCheckIcon,
+} from "@heroicons/react/24/solid";
 import { CrossFadeContentFast } from "../ui/transitions";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "preact/jsx-runtime";
 import { Link } from "./links";
 import { useMemo } from "preact/hooks";
-import {
-  BookOpenIcon,
-  DocumentCheckIcon,
-  DocumentMagnifyingGlassIcon,
-  DocumentTextIcon,
-  HomeIcon,
-} from "@heroicons/react/24/solid";
-import { PlayListIcon } from "./icons";
+import { NoteSheetIcon, PlayListIcon } from "./icons";
 
 const navItemIconClasses = "ml-1 size-5" as const;
 
@@ -28,17 +28,17 @@ export function InternalNav({
       {
         href: "/library",
         label: "Library",
-        icon: <BookOpenIcon className={navItemIconClasses} />,
+        icon: <RectangleStackIcon className={navItemIconClasses} />,
       } as const,
       {
         href: "/library/plans",
         label: "Practice Plans",
-        icon: <DocumentTextIcon className={navItemIconClasses} />,
+        icon: <ClipboardDocumentListIcon className={navItemIconClasses} />,
       } as const,
       {
         href: "/library/pieces",
         label: "Pieces",
-        icon: <DocumentMagnifyingGlassIcon className={navItemIconClasses} />,
+        icon: <NoteSheetIcon className={navItemIconClasses} />,
       } as const,
       {
         href: "/practice",
@@ -50,7 +50,7 @@ export function InternalNav({
       linkList.unshift({
         href: `/library/plans/${activeplanid}`,
         label: "Current Practice Plan",
-        icon: <DocumentCheckIcon className={navItemIconClasses} />,
+        icon: <ClipboardDocumentCheckIcon className={navItemIconClasses} />,
         highlight: true,
       });
     }

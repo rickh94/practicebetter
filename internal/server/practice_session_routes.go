@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"log"
@@ -247,7 +248,8 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	s.SetActivePracticePlanID(r.Context(), newPlan.ID)
 	htmx.PushURL(r, "/library/plans/"+newPlan.ID)
-	s.renderPracticePlanPage(w, r, newPlan.ID, user.ID)
+	ctx := context.WithValue(r.Context(), "practicePlanID", newPlan.ID)
+	s.renderPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
 }
 
 func (s *Server) singlePracticePlan(w http.ResponseWriter, r *http.Request) {

@@ -10,7 +10,7 @@ export function RepeatPrepareText({ open = false }: { open?: boolean }) {
         >
           <summary className="flex cursor-pointer items-center justify-between text-left text-2xl">
             Preparation
-            <ChevronRightIcon className="summary-icon -mr-1 size-6 transition-transform" />
+            <ChevronRightIcon className="summary-icon size-6 transition-transform" />
           </summary>
           <ul className="flex flex-grow flex-col justify-around text-lg">
             <li>
@@ -28,7 +28,7 @@ export function RepeatPrepareText({ open = false }: { open?: boolean }) {
         >
           <summary className="flex cursor-pointer items-center justify-between text-left text-2xl">
             How it works
-            <ChevronRightIcon className="summary-icon -mr-1 size-6 transition-transform" />
+            <ChevronRightIcon className="summary-icon size-6 transition-transform" />
           </summary>
           <ul className="text-base">
             <li>The goal is to practice five times without a mistake.</li>
