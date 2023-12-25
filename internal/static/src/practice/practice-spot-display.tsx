@@ -7,6 +7,7 @@ import {
 } from "../ui/prompts";
 import { cn } from "../common";
 
+// TODO: set prompt summary min heights so this stays roughly the same height all the time
 export function PracticeSpotDisplay({
   spot,
   pieceid = "",

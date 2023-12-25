@@ -1,5 +1,3 @@
-import { BookOpenIcon, HomeIcon } from "@heroicons/react/20/solid";
-import { UserIcon, UserMinusIcon } from "@heroicons/react/20/solid";
 import { ReactNode, useEffect, useRef } from "preact/compat";
 import { cn } from "../common";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";

@@ -82,6 +82,7 @@ type SpotFormData struct {
 	NotesPrompt    string  `json:"notesPrompt,omitempty"`
 	TextPrompt     string  `json:"textPrompt,omitempty"`
 	CurrentTempo   *int64  `json:"currentTempo,omitempty"`
+	StageStarted   *int64  `json:"stageStarted,omitempty"`
 }
 
 func makeSpotFormDataFromRow(row db.GetPieceByIDRow) SpotFormData {

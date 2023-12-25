@@ -1,26 +1,12 @@
 import register from "preact-custom-element";
 import { RandomSpots } from "./practice/random-spots";
-import { SequenceSpots } from "./practice/sequence-spots";
 import { Repeat } from "./practice/repeat";
 import { StartingPoint } from "./practice/starting-point";
-import { RemindersSummary, EditRemindersSummary } from "./ui/prompts";
 
 try {
   register(RandomSpots, "random-spots", ["initialspots", "pieceid", "csrf"], {
     shadow: false,
   });
-} catch (err) {
-  console.log(err);
-}
-try {
-  register(
-    SequenceSpots,
-    "sequence-spots",
-    ["initialspots", "pieceid", "csrf"],
-    {
-      shadow: false,
-    },
-  );
 } catch (err) {
   console.log(err);
 }
@@ -43,14 +29,9 @@ try {
 }
 
 async function handleFinishedSpotPracticingEvent(e: CustomEvent) {
-  const { spotIDs, durationMinutes, csrf, endpoint } = e.detail;
-  if (
-    !spotIDs ||
-    spotIDs.length === 0 ||
-    !durationMinutes ||
-    !csrf ||
-    !endpoint
-  ) {
+  const { spots, durationMinutes, csrf, endpoint } = e.detail;
+  if (!spots || spots.length === 0 || !durationMinutes || !csrf || !endpoint) {
+    console.log(e.detail);
     console.error("event missing data");
     return;
   }
@@ -60,7 +41,7 @@ async function handleFinishedSpotPracticingEvent(e: CustomEvent) {
       "X-CSRF-Token": csrf,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ spotIDs, durationMinutes }),
+    body: JSON.stringify({ spots, durationMinutes }),
   });
   if (res.ok) {
     document.dispatchEvent(

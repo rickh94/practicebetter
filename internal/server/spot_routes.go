@@ -224,19 +224,42 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 		measures.String = measuresVal
 		measures.Valid = true
 	}
+	var stageStarted int64
+	spotStageInfo, err := queries.GetSpotStageStarted(r.Context(), db.GetSpotStageStartedParams{
+		SpotID:  spotID,
+		UserID:  user.ID,
+		PieceID: pieceID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not update spot: " + err.Error(),
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if spotStageInfo.Stage == r.FormValue("stage") && spotStageInfo.StageStarted.Valid {
+		stageStarted = spotStageInfo.StageStarted.Int64
+	} else {
+		stageStarted = time.Now().Unix()
+	}
 	err = queries.UpdateSpot(r.Context(), db.UpdateSpotParams{
-		UserID:         user.ID,
-		PieceID:        pieceID,
-		SpotID:         spotID,
 		Name:           r.FormValue("name"),
 		Idx:            int64(idx),
 		Stage:          r.FormValue("stage"),
+		StageStarted:   sql.NullInt64{Int64: stageStarted, Valid: true},
 		AudioPromptUrl: r.FormValue("audioPromptUrl"),
 		ImagePromptUrl: r.FormValue("imagePromptUrl"),
 		NotesPrompt:    r.FormValue("notesPrompt"),
 		TextPrompt:     r.FormValue("textPrompt"),
 		CurrentTempo:   currentTempo,
 		Measures:       measures,
+		SpotID:         spotID,
+		UserID:         user.ID,
+		PieceID:        pieceID,
 	})
 	if err != nil {
 		log.Default().Println(err)
@@ -437,14 +460,20 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	if err := qtx.PracticeSpot(r.Context(), db.PracticeSpotParams{
+	if err := qtx.CreatePracticeSpot(r.Context(), db.CreatePracticeSpotParams{
 		UserID:            user.ID,
 		SpotID:            spotID,
 		PracticeSessionID: practiceSessionID,
 	}); err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Could not practice spot", http.StatusInternalServerError)
-		return
+		if err := qtx.AddRepToPracticeSpot(r.Context(), db.AddRepToPracticeSpotParams{
+			UserID:            user.ID,
+			SpotID:            spotID,
+			PracticeSessionID: practiceSessionID,
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not practice spot", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// TODO: consider more about whether this should require success
@@ -463,7 +492,7 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 	if info.Success {
 		switch info.ToStage {
 		case "random":
-			if err := qtx.PromoteToRandom(r.Context(), db.PromoteToRandomParams{
+			if err := qtx.PromoteSpotToRandom(r.Context(), db.PromoteSpotToRandomParams{
 				UserID:  user.ID,
 				PieceID: pieceID,
 				SpotID:  spotID,
@@ -473,7 +502,7 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 				return
 			}
 		case "extra_repeat":
-			if err := qtx.PromoteToMoreRepeat(r.Context(), db.PromoteToMoreRepeatParams{
+			if err := qtx.PromoteSpotToExtraRepeat(r.Context(), db.PromoteSpotToExtraRepeatParams{
 				UserID:  user.ID,
 				PieceID: pieceID,
 				SpotID:  spotID,
@@ -549,6 +578,7 @@ func (s *Server) updateReminders(w http.ResponseWriter, r *http.Request) {
 	})
 	librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w)
 }
+
 func (s *Server) getReminders(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
@@ -570,62 +600,3 @@ func (s *Server) getReminders(w http.ResponseWriter, r *http.Request) {
 
 	librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w)
 }
-
-/*
-func (s *Server) updateSpotPriority(w http.ResponseWriter, r *http.Request) {
-	pieceID := chi.URLParam(r, "pieceID")
-	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
-	queries := db.New(s.DB)
-	r.ParseForm()
-	priority, err := strconv.Atoi(r.FormValue("priority"))
-	if err != nil || priority <= -3 || priority >= 3 {
-		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Invalid priority",
-			Title:    "Error",
-			Variant:  "error",
-			Duration: 3000,
-		})
-		http.Error(w, "Invalid priority", http.StatusBadRequest)
-		return
-	}
-	err = queries.UpdateSpotPriority(r.Context(), db.UpdateSpotPriorityParams{
-		UserID:   user.ID,
-		PieceID:  pieceID,
-		SpotID:   spotID,
-		Priority: int64(priority),
-	})
-	if err != nil {
-		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not update spot: " + err.Error(),
-			Title:    "Error",
-			Variant:  "error",
-			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
-		SpotID:  spotID,
-		UserID:  user.ID,
-		PieceID: pieceID,
-	})
-	if err != nil {
-		// TODO: create a pretty 404 handler
-		log.Default().Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	htmx.PushURL(r, "/library/pieces/"+pieceID+"/spots/"+spotID)
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-		Message:  "This spot has been updated with your new values",
-		Title:    "Spot Updated!",
-		Variant:  "success",
-		Duration: 3000,
-	})
-	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token), spot.Name+" - "+spot.PieceTitle)
-}
-*/

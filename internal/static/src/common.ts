@@ -10,6 +10,10 @@ export type PracticeSummaryItem = {
   name: string;
   reps: number;
   id: string;
+  excellent?: number;
+  fine?: number;
+  poor?: number;
+  day?: number;
 };
 
 export type RandomMode = "setup" | "practice" | "summary";

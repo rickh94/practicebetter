@@ -66,7 +66,7 @@ export function InternalNav({
         // @ts-ignore */}
         <Menu.Button
           className={cn(
-            "focusable inline-flex h-14 w-full items-center justify-center gap-x-1.5 rounded-xl px-6 py-4 shadow-sm",
+            "focusable inline-flex h-14 w-full items-center justify-center gap-x-1.5 rounded-xl px-6 py-4 shadow-sm transition duration-200",
             activeplanid
               ? "bg-violet-700/30 hover:bg-violet-700/40"
               : "bg-neutral-700/10 hover:bg-neutral-700/20",

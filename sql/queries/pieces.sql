@@ -56,9 +56,10 @@ SELECT
     spots.notes_prompt AS spot_notes_prompt,
     spots.text_prompt AS spot_text_prompt,
     spots.current_tempo AS spot_current_tempo,
+    spots.stage_started AS spot_stage_started,
     spots.measures AS spot_measures
 FROM pieces
-INNER JOIN spots ON pieces.id = spots.piece_id AND spots.stage != 'repeat' AND spots.stage != 'completed'
+INNER JOIN spots ON pieces.id = spots.piece_id AND spots.stage = 'random'
 WHERE pieces.id = :piece_id AND pieces.user_id = :user_id;
 
 -- name: GetPieceWithIncompleteSpots :many

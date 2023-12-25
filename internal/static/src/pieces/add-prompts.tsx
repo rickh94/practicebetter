@@ -1,12 +1,3 @@
-import {
-  CheckIcon,
-  SpeakerWaveIcon,
-  ArrowPathIcon,
-  PhotoIcon,
-  DocumentTextIcon,
-  MusicalNoteIcon,
-  XMarkIcon,
-} from "@heroicons/react/20/solid";
 import { lazy, Suspense } from "preact/compat";
 import { useState, useCallback, useRef } from "preact/hooks";
 import { UseFormRegisterReturn } from "react-hook-form";
@@ -18,15 +9,19 @@ import {
   WarningButton,
 } from "../ui/buttons";
 import {
+  CheckIcon,
+  SpeakerWaveIcon,
+  ArrowPathIcon,
+  PhotoIcon,
+  MusicalNoteIcon,
+  XMarkIcon,
   ChatBubbleBottomCenterTextIcon,
   CloudArrowUpIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
-// import NotesDisplay from "../ui/notes-display";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
-// TODO: change these to my native dialogs
-// TODO: figure out file uploading
+// TODO: this might be possible without custom elements
 
 export function AddAudioPrompt({
   audioPromptUrl,

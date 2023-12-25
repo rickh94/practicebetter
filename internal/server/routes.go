@@ -95,8 +95,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 		r.Get("/pieces/{pieceID}/practice/random-single", s.piecePracticeRandomSpotsPage)
 		r.Post("/pieces/{pieceID}/practice/random-single", s.finishPracticePieceSpots)
-		r.Get("/pieces/{pieceID}/practice/random-sequence", s.piecePracticeRandomSequencePage)
-		r.Post("/pieces/{pieceID}/practice/random-sequence", s.finishPracticePieceSpots)
 
 		r.Get("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointPage)
 		r.Post("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointFinished)

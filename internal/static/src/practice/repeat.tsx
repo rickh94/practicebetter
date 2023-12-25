@@ -3,7 +3,7 @@ import {
   ArrowUpRightIcon,
   CheckIcon,
   HandThumbDownIcon,
-} from "@heroicons/react/20/solid";
+} from "@heroicons/react/24/solid";
 import { AnimatePresence, motion } from "framer-motion";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { RepeatPrepareText } from "./repeat-prepare-text";
@@ -17,12 +17,6 @@ import {
 } from "../ui/buttons";
 import { BasicSpot } from "../validators";
 import { BackToPieceLink, HappyLink, WarningLink } from "../ui/links";
-import {
-  AudioPromptSummary,
-  RemindersSummary,
-  NotesPromptSummary,
-  ImagePromptSummary,
-} from "../ui/prompts";
 import {
   HandThumbUpIcon,
   ListBulletIcon,

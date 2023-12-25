@@ -1,5 +1,5 @@
 import { cn } from "../common";
-import { Bars3CenterLeftIcon, XMarkIcon } from "@heroicons/react/20/solid";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import { CrossFadeContentFast } from "../ui/transitions";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "preact/jsx-runtime";

@@ -450,14 +450,20 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		if err := qtx.PracticeSpot(r.Context(), db.PracticeSpotParams{
+		if err := qtx.CreatePracticeSpot(r.Context(), db.CreatePracticeSpotParams{
 			UserID:            user.ID,
 			SpotID:            planSpot.SpotID,
 			PracticeSessionID: practiceSessionID,
 		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not practice spot", http.StatusInternalServerError)
-			return
+			if err := qtx.AddRepToPracticeSpot(r.Context(), db.AddRepToPracticeSpotParams{
+				UserID:            user.ID,
+				SpotID:            planSpot.SpotID,
+				PracticeSessionID: practiceSessionID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not practice spot", http.StatusInternalServerError)
+				return
+			}
 		}
 		spotInfo = append(spotInfo, pspages.PracticePlanSpot{
 			ID:         planSpot.SpotID,
@@ -566,14 +572,20 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		if err := qtx.PracticeSpot(r.Context(), db.PracticeSpotParams{
+		if err := qtx.CreatePracticeSpot(r.Context(), db.CreatePracticeSpotParams{
 			UserID:            user.ID,
 			SpotID:            planSpot.SpotID,
 			PracticeSessionID: practiceSessionID,
 		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not practice spot", http.StatusInternalServerError)
-			return
+			if err := qtx.AddRepToPracticeSpot(r.Context(), db.AddRepToPracticeSpotParams{
+				UserID:            user.ID,
+				SpotID:            planSpot.SpotID,
+				PracticeSessionID: practiceSessionID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not practice spot", http.StatusInternalServerError)
+				return
+			}
 		}
 		spotInfo = append(spotInfo, pspages.PracticePlanSpot{
 			ID:         planSpot.SpotID,

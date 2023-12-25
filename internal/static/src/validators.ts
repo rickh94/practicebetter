@@ -32,6 +32,7 @@ export const basicSpot = yup.object({
   notesPrompt: yup.string().nullable().optional(),
   textPrompt: yup.string().nullable().optional(),
   currentTempo: optionalPosInt,
+  stageStarted: optionalPosInt,
 });
 
 export const spotFormData = basicSpot;

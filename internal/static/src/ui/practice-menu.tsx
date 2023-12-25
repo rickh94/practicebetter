@@ -1,9 +1,7 @@
 import { Menu, Transition } from "@headlessui/react";
-import { PlayIcon } from "@heroicons/react/20/solid";
 import { Fragment } from "react";
 import { Link } from "./links";
 import {
-  NoteListIcon,
   PlayListIcon,
   RandomBoxesIcon,
   RepeatIcon,

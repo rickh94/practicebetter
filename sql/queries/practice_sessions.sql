@@ -36,7 +36,7 @@ INSERT INTO practice_piece (
     ?, ?
 );
 
--- name: PracticeSpot :exec
+-- name: CreatePracticeSpot :exec
 INSERT INTO practice_spot (
     spot_id,
     practice_session_id
@@ -45,6 +45,12 @@ INSERT INTO practice_spot (
     ?
 );
 
+-- name: AddRepToPracticeSpot :exec
+UPDATE practice_spot
+SET
+    reps = reps + 1
+WHERE spot_id = (SELECT spots.id FROM spots WHERE spots.piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id) AND spots.id = :spot_id)
+AND practice_session_id = ?;
 
 -- name: ListRecentPracticeSessions :many
 SELECT practice_sessions.*,

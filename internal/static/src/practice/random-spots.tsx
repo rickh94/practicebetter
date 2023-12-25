@@ -2,23 +2,30 @@ import {
   StateUpdater,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "preact/hooks";
-import { PracticeSummaryItem, RandomMode, cn } from "../common";
+import { PracticeSummaryItem, RandomMode } from "../common";
 import { BasicSpot } from "../validators";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { CreateSpots } from "./create-spots";
 import {
   BasicButton,
+  BigAngryButton,
   BigHappyButton,
   BigSkyButton,
   GiantBasicButton,
   WarningButton,
 } from "../ui/buttons";
-import { ArrowRightIcon, CheckIcon } from "@heroicons/react/20/solid";
+import {
+  HandRaisedIcon,
+  HandThumbDownIcon,
+  HandThumbUpIcon,
+} from "@heroicons/react/24/solid";
 import Summary from "./summary";
 import { PracticeSpotDisplay } from "./practice-spot-display";
+import dayjs from "dayjs";
 
 export function RandomSpots({
   initialspots,
@@ -35,6 +42,18 @@ export function RandomSpots({
   const [mode, setMode] = useState<RandomMode>("setup");
   const [startTime, setStartTime] = useState<Date | null>(null);
 
+  const initialSpotIds = useMemo(
+    function () {
+      if (!initialspots) return [];
+      const initialSpots: BasicSpot[] = JSON.parse(initialspots);
+      if (!(initialSpots instanceof Array) || initialSpots.length === 0) {
+        return [];
+      }
+      return initialSpots.map((spot) => spot.id);
+    },
+    [initialspots],
+  );
+
   const finish = useCallback(
     function (finalSummary: PracticeSummaryItem[]) {
       setSummary(finalSummary);
@@ -43,28 +62,6 @@ export function RandomSpots({
         "UpdateSpotRemindersField",
         updateSpotRemindersField,
       );
-
-      if (pieceid && csrf && startTime) {
-        const initialSpots: BasicSpot[] = JSON.parse(initialspots);
-        const initialSpotIds = initialSpots.map((spot) => spot.id);
-        const spotIDs = finalSummary
-          .filter((item) => item.reps > 0)
-          .map((item) => item.id)
-          .filter((id) => initialSpotIds.includes(id));
-        const durationMinutes = Math.ceil(
-          (new Date().getTime() - startTime.getTime()) / 1000 / 60,
-        );
-        document.dispatchEvent(
-          new CustomEvent("FinishedSpotPracticing", {
-            detail: {
-              spotIDs,
-              durationMinutes,
-              csrf,
-              endpoint: `/library/pieces/${pieceid}/practice/random-single`,
-            },
-          }),
-        );
-      }
     },
     [setMode, setSummary, startTime, pieceid, initialspots, csrf],
   );
@@ -107,8 +104,8 @@ export function RandomSpots({
   useEffect(
     function () {
       if (initialspots) {
-        const spots: BasicSpot[] = JSON.parse(initialspots);
-        setSpots(spots);
+        const initSpots: BasicSpot[] = JSON.parse(initialspots);
+        setSpots(initSpots);
       }
     },
     [initialspots],
@@ -142,6 +139,10 @@ export function RandomSpots({
                 setup={() => setMode("setup")}
                 practice={() => setMode("practice")}
                 pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
+                initialSpotIds={initialSpotIds}
+                pieceid={pieceid}
+                csrf={csrf}
+                startTime={startTime}
               />
             ),
           }[mode]
@@ -205,6 +206,14 @@ function SingleSetupForm({
 }
 
 // TODO: add events to keep you from moving on while the reminders form is open
+/*
+ * Spot Promotion/Demotion rules
+ * - just five excellents, recommend promotion beyond day three
+ * - always evict after five net excellents (minus poor)
+ * - after day five, demote if no excellents
+ * - always evict after three poors
+ * - after day three, demote after three poors
+ */
 
 function SinglePractice({
   spots,
@@ -222,9 +231,9 @@ function SinglePractice({
   const [currentSpotIdx, setCurrentSpotIdx] = useState(
     Math.floor(Math.random() * spots.length),
   );
-  const [practiceSummary, setPracticeSummary] = useState<Map<string, number>>(
-    new Map<string, number>(),
-  );
+  const [practiceSummary, setPracticeSummary] = useState<
+    Map<string, { excellent: number; fine: number; poor: number }>
+  >(new Map());
   // This counter ensures that the animation runs, even if the same spot is generated twice in a row.
   const [counter, setCounter] = useState(0);
   const [skipSpotIds, setSkipSpotIds] = useState<string[]>([]);
@@ -238,40 +247,59 @@ function SinglePractice({
   }, [topRef.current]);
 
   const addSpotRep = useCallback(
-    function (id: string | undefined) {
-      if (!id) {
+    function (id: string | undefined, quality: "excellent" | "fine" | "poor") {
+      if (!id || !quality) {
         return;
       }
-      practiceSummary.set(id, (practiceSummary.get(id) ?? 0) + 1);
+      let summary = practiceSummary.get(id) ?? {
+        excellent: 0,
+        fine: 0,
+        poor: 0,
+      };
+      summary[quality] += 1;
+      practiceSummary.set(id, summary);
       setPracticeSummary(practiceSummary);
+      return summary;
     },
     [setPracticeSummary, practiceSummary],
   );
 
+  // TODO: handle adding rep correctly when hitting done
   const handleDone = useCallback(
     function () {
       const finalSummary: PracticeSummaryItem[] = [];
       for (const spot of spots) {
-        let reps = practiceSummary.get(spot.id) ?? 0;
-        if (spots[currentSpotIdx]?.id === spot.id) {
-          reps += 1;
+        let results = practiceSummary.get(spot.id) ?? {
+          excellent: 0,
+          fine: 0,
+          poor: 0,
+        };
+        let day = 0;
+        if (spot.stageStarted) {
+          let stageStarted = dayjs.unix(spot.stageStarted).tz(dayjs.tz.guess());
+          let now = dayjs().tz(dayjs.tz.guess());
+          day = now.diff(stageStarted, "day");
         }
         finalSummary.push({
           name: spot.name ?? "Missing spot name",
-          reps,
+          reps: results.excellent + results.fine + results.poor,
+          excellent: results.excellent,
+          fine: results.fine,
+          poor: results.poor,
           id: spot.id ?? "Missing spot id",
+          day,
         });
       }
       finish(finalSummary);
     },
-    [practiceSummary, finish, currentSpotIdx, spots],
+    [practiceSummary, finish, spots],
   );
 
   const nextSpot = useCallback(
-    function () {
+    function (nextSkipSpotIds: string[]) {
       setCounter((curr) => curr + 1);
-      addSpotRep(spots[currentSpotIdx]?.id);
-      if (skipSpotIds.length >= spots.length) {
+      // addSpotRep(spots[currentSpotIdx]?.id);
+      if (nextSkipSpotIds.length >= spots.length) {
         document.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
@@ -289,12 +317,12 @@ function SinglePractice({
       let nextSpotId = spots[nextSpotIdx]?.id;
       while (
         !nextSpotId ||
-        (nextSpotId && skipSpotIds.includes(nextSpotId)) ||
+        (nextSpotId && nextSkipSpotIds.includes(nextSpotId)) ||
         // check if the last two spots are the same and also the same as the next spot
         // but only if the skip spots is more than one smaller than the spots, otherwise
         // there is only one spot left and it will infinitely loop
         (nextSpotId &&
-          spots.length - 1 > skipSpotIds.length &&
+          spots.length - 1 > nextSkipSpotIds.length &&
           lastTwoSpots[0] === lastTwoSpots[1] &&
           lastTwoSpots[1] === nextSpotId)
       ) {
@@ -304,67 +332,59 @@ function SinglePractice({
       setCurrentSpotIdx(nextSpotIdx);
       setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
     },
-    [addSpotRep, currentSpotIdx, handleDone, skipSpotIds, spots, lastTwoSpots],
+    [addSpotRep, currentSpotIdx, handleDone, spots, lastTwoSpots],
   );
 
   const evictSpot = useCallback(
-    function () {
-      const currentSpotId = spots[currentSpotIdx]?.id;
+    function (spotId: string) {
       // going to need a copy of this because the it won't be updated by setstate until after the function finishes
       const newSkipSpotIds = [...skipSpotIds];
-      if (currentSpotId) {
-        newSkipSpotIds.push(currentSpotId);
+      if (spotId) {
+        newSkipSpotIds.push(spotId);
       }
-
-      if (newSkipSpotIds.length >= spots.length) {
-        document.dispatchEvent(
-          new CustomEvent("ShowAlert", {
-            detail: {
-              message: "You practiced every spot!",
-              title: "Practicing Complete",
-              variant: "success",
-              duration: 3000,
-            },
-          }),
-        );
-        handleDone();
-        return;
-      }
-
-      setCounter((curr) => curr + 1);
-      addSpotRep(currentSpotId);
-
-      let nextSpotIdx = Math.floor(Math.random() * spots.length);
-      let nextSpotId = spots[nextSpotIdx]?.id;
-      while (
-        !nextSpotId ||
-        (nextSpotId && newSkipSpotIds.includes(nextSpotId)) ||
-        // check if the last two spots are the same and also the same as the next spot
-        // but only if the skip spots is more than one smaller than the spots, otherwise
-        // there is only one spot left and it will infinitely loop
-        (nextSpotId &&
-          spots.length - 1 > newSkipSpotIds.length &&
-          lastTwoSpots[0] === lastTwoSpots[1] &&
-          lastTwoSpots[1] === nextSpotId)
-      ) {
-        nextSpotIdx = Math.floor(Math.random() * spots.length);
-        nextSpotId = spots[nextSpotIdx]?.id;
-      }
-
       setSkipSpotIds(newSkipSpotIds);
-
-      setCurrentSpotIdx(nextSpotIdx);
-      setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
+      return newSkipSpotIds;
     },
-    [spots, currentSpotIdx, skipSpotIds, addSpotRep, handleDone],
+    [spots, skipSpotIds],
+  );
+
+  const handleExcellent = useCallback(
+    function () {
+      const currentSpotId = spots[currentSpotIdx]?.id;
+      const summary = addSpotRep(currentSpotId, "excellent");
+      let nextSkipSpotIds = skipSpotIds;
+      if (summary.excellent - summary.poor > 4) {
+        nextSkipSpotIds = evictSpot(currentSpotId);
+      }
+      nextSpot(nextSkipSpotIds);
+    },
+    [spots, currentSpotIdx, skipSpotIds, addSpotRep, nextSpot, evictSpot],
+  );
+
+  const handleFine = useCallback(
+    function () {
+      const currentSpotId = spots[currentSpotIdx]?.id;
+      addSpotRep(currentSpotId, "fine");
+      nextSpot(skipSpotIds);
+    },
+    [spots, currentSpotIdx, skipSpotIds, addSpotRep, nextSpot],
+  );
+
+  const handlePoor = useCallback(
+    function () {
+      const currentSpotId = spots[currentSpotIdx]?.id;
+      const summary = addSpotRep(currentSpotId, "poor");
+      let nextSkipSpotIds = skipSpotIds;
+      if (summary.poor > 2) {
+        nextSkipSpotIds = evictSpot(currentSpotId);
+      }
+      nextSpot(nextSkipSpotIds);
+    },
+    [spots, currentSpotIdx, skipSpotIds, addSpotRep, nextSpot, evictSpot],
   );
 
   return (
     <div className="relative w-full" ref={topRef}>
-      <div className="absolute left-0 top-0 py-2 sm:py-4">
-        <BasicButton onClick={setup}>← Back to setup</BasicButton>
-      </div>
-      <div className="h-12" />
       <div className="flex w-full flex-col items-center justify-center gap-2 pt-8 sm:pt-24">
         <div className="text-2xl font-semibold text-neutral-700">
           Practicing:
@@ -380,22 +400,26 @@ function SinglePractice({
             id={`${currentSpotIdx}-${counter}`}
           />
         </div>
-        <div className="flex flex-col items-center justify-center gap-4 pt-12">
-          <div className="flex flex-col justify-center gap-2 md:flex-row">
-            <BigHappyButton type="button" onClick={evictSpot}>
-              <CheckIcon className="-ml-1 size-6" />
-              Finish Spot
-            </BigHappyButton>
-            <BigSkyButton type="button" onClick={nextSpot}>
-              Next Spot <ArrowRightIcon className="-mr-1 size-6" />
-            </BigSkyButton>
-          </div>
-          <p className="mx-auto max-w-2xl text-sm text-neutral-800">
-            Once you feel good about a particular spot, you can click “Finish
-            Spot” to remove it and keep practicing the others.{" "}
-          </p>
+        <div className="flex flex-col justify-center gap-2 pt-12 sm:flex-row-reverse">
+          <BigHappyButton
+            type="button"
+            onClick={handleExcellent}
+            className="gap-2"
+          >
+            <HandThumbUpIcon className="-ml-1 size-6" />
+            Excellent
+          </BigHappyButton>
+          <BigSkyButton type="button" onClick={handleFine} className="gap-2">
+            <HandRaisedIcon className="-mr-1 size-6" />
+            Fine
+          </BigSkyButton>
+          <BigAngryButton type="button" onClick={handlePoor} className="gap-2">
+            <HandThumbDownIcon className="-mr-1 size-6" />
+            Poor
+          </BigAngryButton>
         </div>
-        <div className="pt-8">
+        <div className="flex justify-center gap-4 pt-8">
+          <BasicButton onClick={setup}>← Back to setup</BasicButton>
           <WarningButton onClick={handleDone}>Done</WarningButton>
         </div>
       </div>

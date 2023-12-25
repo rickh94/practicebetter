@@ -1,4 +1,3 @@
-import { FolderPlusIcon } from "@heroicons/react/20/solid";
 import {
   FormState,
   UseFormSetValue,
@@ -15,7 +14,7 @@ import {
   AddReminders,
   AddNotesPrompt,
 } from "./add-prompts";
-import { ChevronLeftIcon } from "@heroicons/react/24/solid";
+import { FolderPlusIcon, ChevronLeftIcon } from "@heroicons/react/24/solid";
 
 export default function SpotFormFields({
   formState,

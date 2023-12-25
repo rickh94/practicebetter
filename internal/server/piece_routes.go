@@ -350,6 +350,13 @@ func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Req
 		} else {
 			currentTempo = nil
 		}
+		var stageStarted *int64
+		if row.SpotStageStarted.Valid {
+			t := row.SpotStageStarted.Int64
+			stageStarted = &t
+		} else {
+			stageStarted = nil
+		}
 		// row is a moving pointer, directly referencing underlying data is unreliable when
 		// the pointer moves (the spots all ended up with the last spot's id). Need to make copies of the data to point to
 		spotID := row.SpotID
@@ -365,6 +372,7 @@ func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Req
 			TextPrompt:     row.SpotTextPrompt,
 			CurrentTempo:   currentTempo,
 			Measures:       measures,
+			StageStarted:   stageStarted,
 		})
 	}
 
@@ -378,9 +386,15 @@ func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Req
 	s.HxRender(w, r, librarypages.PiecePracticeRandomSpotsPage(s, token, piece, string(spotsData)), piece[0].Title)
 }
 
+type PracticeSpot struct {
+	ID      string `json:"id"`
+	Promote bool   `json:"promote"`
+	Demote  bool   `json:"demote"`
+}
+
 type PieceSpotsPracticeInfo struct {
-	DurationMinutes int64    `json:"durationMinutes"`
-	SpotIDs         []string `json:"spotIDs"`
+	DurationMinutes int64          `json:"durationMinutes"`
+	Spots           []PracticeSpot `json:"Spots"`
 }
 
 func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request) {
@@ -466,24 +480,53 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 
 	}
 
-	for _, spotID := range info.SpotIDs {
-		if err := qtx.PracticeSpot(r.Context(), db.PracticeSpotParams{
+	for _, spot := range info.Spots {
+		if err := qtx.CreatePracticeSpot(r.Context(), db.CreatePracticeSpotParams{
 			UserID:            user.ID,
-			SpotID:            spotID,
+			SpotID:            spot.ID,
 			PracticeSessionID: practiceSessionID,
 		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not practice spot", http.StatusInternalServerError)
-			return
+			if err := qtx.AddRepToPracticeSpot(r.Context(), db.AddRepToPracticeSpotParams{
+				UserID:            user.ID,
+				SpotID:            spot.ID,
+				PracticeSessionID: practiceSessionID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not practice spot", http.StatusInternalServerError)
+				return
+			}
 		}
 
-		if err := qtx.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
-			SpotID: spotID,
-			UserID: user.ID,
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not update spot", http.StatusInternalServerError)
-			return
+		log.Default().Println(spot)
+		if spot.Promote {
+			if err := qtx.PromoteSpotToInterleave(r.Context(), db.PromoteSpotToInterleaveParams{
+				SpotID:  spot.ID,
+				UserID:  user.ID,
+				PieceID: pieceID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not promote spot", http.StatusInternalServerError)
+				return
+			}
+		} else if spot.Demote {
+			if err := qtx.DemoteSpotToExtraRepeat(r.Context(), db.DemoteSpotToExtraRepeatParams{
+				SpotID:  spot.ID,
+				UserID:  user.ID,
+				PieceID: pieceID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not demote spot", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			if err := qtx.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
+				SpotID: spot.ID,
+				UserID: user.ID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not update spot", http.StatusInternalServerError)
+				return
+			}
 		}
 
 	}
@@ -494,67 +537,6 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
-}
-
-func (s *Server) piecePracticeRandomSequencePage(w http.ResponseWriter, r *http.Request) {
-	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
-	queries := db.New(s.DB)
-	piece, err := queries.GetPieceWithRandomSpots(r.Context(), db.GetPieceWithRandomSpotsParams{
-		PieceID: pieceID,
-		UserID:  user.ID,
-	})
-	if err != nil || len(piece) == 0 {
-		piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
-			PieceID: pieceID,
-			UserID:  user.ID,
-		})
-		if err != nil || len(piece) == 0 {
-			// TODO: create a pretty 404 handler
-			log.Default().Println(err)
-			http.Error(w, "Could not find matching piece", http.StatusNotFound)
-			return
-		}
-		s.HxRender(w, r, librarypages.PiecePracticeNoSpotsPage(piece[0].Title, piece[0].ID), piece[0].Title)
-
-		return
-	}
-	var spots []SpotFormData
-	for _, row := range piece {
-		var measures *string
-		if row.SpotMeasures.Valid {
-			measures = &row.SpotMeasures.String
-		}
-		var currentTempo *int64
-		if row.SpotCurrentTempo.Valid {
-			currentTempo = &row.SpotCurrentTempo.Int64
-		}
-		// row is a moving pointer, directly referencing underlying data is unreliable when
-		// the pointer moves (the spots all ended up with the last spot's id). Need to make copies of the data to point to
-		spotID := row.SpotID
-		spotIdx := row.SpotIdx
-		spots = append(spots, SpotFormData{
-			ID:             &spotID,
-			Name:           row.SpotName,
-			Idx:            &spotIdx,
-			Stage:          row.SpotStage,
-			AudioPromptUrl: row.SpotAudioPromptUrl,
-			ImagePromptUrl: row.SpotImagePromptUrl,
-			NotesPrompt:    row.SpotNotesPrompt,
-			TextPrompt:     row.SpotTextPrompt,
-			CurrentTempo:   currentTempo,
-			Measures:       measures,
-		})
-	}
-
-	spotData, err := json.Marshal(spots)
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.PiecePracticeRandomSequencePage(s, token, piece, string(spotData)), piece[0].Title)
 }
 
 func (s *Server) piecePracticeStartingPointPage(w http.ResponseWriter, r *http.Request) {

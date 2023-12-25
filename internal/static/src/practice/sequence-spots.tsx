@@ -11,7 +11,7 @@ import { ScaleCrossFadeContent } from "../ui/transitions";
 import { CreateSpots } from "./create-spots";
 import Summary from "./summary";
 import { RadioBox } from "../ui/form";
-import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/20/solid";
+import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
 import { CheckCircleIcon as CheckCircleOutline } from "@heroicons/react/24/outline";
 
 export function SequenceSpots({

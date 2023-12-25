@@ -64,6 +64,7 @@ CREATE TABLE spots (
     text_prompt TEXT NOT NULL DEFAULT '',
     current_tempo INTEGER,
     last_practiced INTEGER,
+    stage_started INTEGER,
     priority INTEGER NOT NULL DEFAULT 0,
     CHECK(stage IN ('repeat', 'extra_repeat', 'random', 'interleave', 'interleave_days', 'completed')),
     CHECK(LENGTH(name) > 0),
@@ -106,6 +107,7 @@ CREATE TABLE practice_piece (
 CREATE TABLE practice_spot (
     practice_session_id TEXT NOT NULL,
     spot_id TEXT NOT NULL,
+    reps INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (practice_session_id, spot_id),
     CONSTRAINT practice_session FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (
         id
