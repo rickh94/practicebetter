@@ -33,10 +33,10 @@ func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not get practice sessions", http.StatusInternalServerError)
 		return
 	}
-	activePracticePlanID := r.Context().Value("practicePlanID").(string)
 	var plan db.GetPracticePlanWithTodoRow
 	hasPlan := false
-	if activePracticePlanID != "" {
+	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
+	if ok {
 		plan, err = queries.GetPracticePlanWithTodo(r.Context(), db.GetPracticePlanWithTodoParams{
 			ID:     activePracticePlanID,
 			UserID: user.ID,

@@ -5,8 +5,13 @@ CREATE TABLE users (
     fullname text NOT NULL DEFAULT '',
     email text NOT NULL,
     email_verified boolean DEFAULT 0,
+    active_practice_plan_id TEXT,
+    active_practice_plan_started INTEGER,
     PRIMARY KEY (id),
-    CHECK (email_verified IN (0, 1))
+    CHECK (email_verified IN (0, 1)),
+    CONSTRAINT plan FOREIGN KEY (active_practice_plan_id) REFERENCES practice_plans (
+        id
+    ) ON UPDATE NO ACTION ON DELETE SET NULL
 );
 -- Create index "users_email" to table: "users"
 CREATE UNIQUE INDEX users_email ON users (email);

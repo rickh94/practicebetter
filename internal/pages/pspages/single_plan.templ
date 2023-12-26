@@ -3,6 +3,7 @@ package pspages
 import "practicebetter/internal/components"
 import "strconv"
 import "practicebetter/internal/heroicons"
+import "time"
 
 type PracticePlanSpot struct {
 	ID         string
@@ -41,6 +42,16 @@ type PracticePlanData struct {
 // TODO: create variants of all the cards that swap the link icon for a check and disable or change color
 // TODO: add piece title to spot card
 
+func canResume(planData PracticePlanData) bool {
+	if planData.IsActive {
+		return false
+	}
+	if time.Since(time.Unix(planData.Date, 0)) > 5*time.Hour {
+		return false
+	}
+	return true
+}
+
 templ PracticePlanPage(planData PracticePlanData, csrf string) {
 	<title>Practice Plan | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Practice Plan") , components.AccountLink())) {
@@ -50,6 +61,41 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 					{ Label: "Practice Plans", Href: "/library/plans", Active: false, IsDate: false },
 					{ Label: strconv.FormatInt(planData.Date, 10), Href: "/library/plans/"+planData.ID, Active: true, IsDate: true },
 				})
+			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+				if canResume(planData) {
+					<button
+ 						class="text-violet-800 action-button bg-violet-700/10 hover:bg-violet-700/20 focusable"
+ 						hx-post={ "/library/plans/" + planData.ID + "/resume" }
+ 						hx-headers={ components.HxCsrfHeader(csrf) }
+ 						hx-target="#main-content"
+					>
+						@heroicons.IconClipboardDocumentCheckSolid("-ml-1 size-5")
+						Resume Practicing
+					</button>
+				}
+				if planData.IsActive {
+					<button
+ 						class="text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
+ 						hx-post={ "/library/plans/" + planData.ID + "/stop" }
+ 						hx-headers={ components.HxCsrfHeader(csrf) }
+ 						hx-target="#main-content"
+					>
+						@heroicons.IconStopSolid("-ml-1 size-5")
+						Stop Practicing
+					</button>
+				} else {
+					<button
+ 						class="text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
+ 						hx-delete={ "/library/plans/" + planData.ID }
+ 						hx-headers={ components.HxCsrfHeader(csrf) }
+ 						hx-confirm="Are you sure you want to delete this practice plan?"
+ 						hx-target="#main-content"
+					>
+						@heroicons.IconTrashSolid("-ml-1 size-5")
+						Delete Plan
+					</button>
+				}
+			</div>
 		}
 		@components.NormalContainer() {
 			<div class="grid flex-grow grid-cols-1 gap-4 p-4 w-full min-h-full text-black bg-white rounded shadow sm:grid-cols-2 lg:grid-cols-3 shadow-black/20">

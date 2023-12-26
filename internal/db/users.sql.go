@@ -10,6 +10,17 @@ import (
 	"database/sql"
 )
 
+const clearActivePracticePlan = `-- name: ClearActivePracticePlan :exec
+UPDATE users
+SET active_practice_plan_id = NULL, active_practice_plan_started = NULL
+WHERE id = ?1
+`
+
+func (q *Queries) ClearActivePracticePlan(ctx context.Context, userID string) error {
+	_, err := q.db.ExecContext(ctx, clearActivePracticePlan, userID)
+	return err
+}
+
 const countUserCredentials = `-- name: CountUserCredentials :one
 SELECT COUNT(*) FROM credentials WHERE user_id = ?
 `
@@ -69,7 +80,7 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, fullname, email) VALUES (?, ?, ?)
-RETURNING id, fullname, email, email_verified
+RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
 `
 
 type CreateUserParams struct {
@@ -86,6 +97,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Fullname,
 		&i.Email,
 		&i.EmailVerified,
+		&i.ActivePracticePlanID,
+		&i.ActivePracticePlanStarted,
 	)
 	return i, err
 }
@@ -109,7 +122,7 @@ func (q *Queries) DeleteUserCredentials(ctx context.Context, userID string) erro
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, fullname, email, email_verified
+SELECT id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
 FROM users
 WHERE email = LOWER(?1)
 `
@@ -122,24 +135,28 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Fullname,
 		&i.Email,
 		&i.EmailVerified,
+		&i.ActivePracticePlanID,
+		&i.ActivePracticePlanStarted,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, fullname, email, email_verified
+SELECT id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
 FROM users
-WHERE id = ?
+WHERE id = ?1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByID, id)
+func (q *Queries) GetUserByID(ctx context.Context, userID string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, userID)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Fullname,
 		&i.Email,
 		&i.EmailVerified,
+		&i.ActivePracticePlanID,
+		&i.ActivePracticePlanStarted,
 	)
 	return i, err
 }
@@ -214,9 +231,25 @@ func (q *Queries) GetUserForLogin(ctx context.Context, email string) (GetUserFor
 	return i, err
 }
 
+const setActivePracticePlan = `-- name: SetActivePracticePlan :exec
+UPDATE users
+SET active_practice_plan_id = ?, active_practice_plan_started = unixepoch('now')
+WHERE id = ?
+`
+
+type SetActivePracticePlanParams struct {
+	ActivePracticePlanID sql.NullString `json:"activePracticePlanId"`
+	UserID               string         `json:"userId"`
+}
+
+func (q *Queries) SetActivePracticePlan(ctx context.Context, arg SetActivePracticePlanParams) error {
+	_, err := q.db.ExecContext(ctx, setActivePracticePlan, arg.ActivePracticePlanID, arg.UserID)
+	return err
+}
+
 const setEmailVerified = `-- name: SetEmailVerified :exec
 UPDATE users SET email_verified = 1 WHERE id = ?
-RETURNING id, fullname, email, email_verified
+RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
 `
 
 func (q *Queries) SetEmailVerified(ctx context.Context, id string) error {
@@ -230,7 +263,7 @@ SET fullname = COALESCE(?, fullname),
     email = COALESCE(?, email),
     email_verified = COALESCE(?, email_verified)
 WHERE id = ?
-RETURNING id, fullname, email, email_verified
+RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
 `
 
 type UpdateUserParams struct {
@@ -253,6 +286,8 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.Fullname,
 		&i.Email,
 		&i.EmailVerified,
+		&i.ActivePracticePlanID,
+		&i.ActivePracticePlanStarted,
 	)
 	return i, err
 }

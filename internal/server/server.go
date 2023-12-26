@@ -192,14 +192,47 @@ func (s *Server) MaybeUser(next http.Handler) http.Handler {
 	})
 }
 
+func (s *Server) SetActivePracticePlanID(ctx context.Context, planID string, userID string) error {
+	queries := db.New(s.DB)
+	return queries.SetActivePracticePlan(ctx, db.SetActivePracticePlanParams{
+		ActivePracticePlanID: sql.NullString{Valid: true, String: planID},
+		UserID:               userID,
+	})
+
+}
+
+func (s *Server) GetActivePracticePlanID(ctx context.Context) (string, bool) {
+	queries := db.New(s.DB)
+	practicePlanID, ok := ctx.Value("activePracticePlanID").(string)
+	if ok && practicePlanID != "" {
+		return practicePlanID, true
+	}
+	user, ok := ctx.Value("user").(db.User)
+	if !ok || user.ID == "" {
+		return "", false
+	}
+	if user.ActivePracticePlanID.Valid {
+		if !user.ActivePracticePlanStarted.Valid && time.Since(time.Unix(user.ActivePracticePlanStarted.Int64, 0)) > 5*time.Hour {
+			err := queries.ClearActivePracticePlan(ctx, user.ID)
+			if err != nil {
+				return "", false
+			}
+			return "", false
+		}
+		return user.ActivePracticePlanID.String, true
+	} else {
+		return "", false
+	}
+}
+
 func (s *Server) MaybePracticePlan(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		practicePlanID, err := s.GetActivePracticePlanID(r.Context())
+		practicePlanID, ok := s.GetActivePracticePlanID(r.Context())
 		var ctx context.Context
-		if err != nil {
-			ctx = context.WithValue(r.Context(), "practicePlanID", "")
+		if ok {
+			ctx = context.WithValue(r.Context(), "activePracticePlanID", practicePlanID)
 		} else {
-			ctx = context.WithValue(r.Context(), "practicePlanID", practicePlanID)
+			ctx = context.WithValue(r.Context(), "activePracticePlanID", "")
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

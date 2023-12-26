@@ -91,8 +91,10 @@ type Spot struct {
 }
 
 type User struct {
-	ID            string       `json:"id"`
-	Fullname      string       `json:"fullname"`
-	Email         string       `json:"email"`
-	EmailVerified sql.NullBool `json:"emailVerified"`
+	ID                        string         `json:"id"`
+	Fullname                  string         `json:"fullname"`
+	Email                     string         `json:"email"`
+	EmailVerified             sql.NullBool   `json:"emailVerified"`
+	ActivePracticePlanID      sql.NullString `json:"activePracticePlanId"`
+	ActivePracticePlanStarted sql.NullInt64  `json:"activePracticePlanStarted"`
 }

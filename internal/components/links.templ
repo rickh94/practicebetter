@@ -40,7 +40,7 @@ templ LoginLink() {
 }
 
 func getActivePracticePlan(ctx context.Context) string {
-	return ctx.Value("practicePlanID").(string)
+	return ctx.Value("activePracticePlanID").(string)
 }
 
 templ LibraryLink() {

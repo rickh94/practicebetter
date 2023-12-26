@@ -135,3 +135,7 @@ WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE pra
 UPDATE practice_plans
 SET practice_session_id = ?
 WHERE id = ? AND user_id = ?;
+
+-- name: DeletePracticePlan :exec
+DELETE FROM practice_plans
+WHERE id = ? AND user_id = ?;

@@ -412,21 +412,8 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 
 	// TODO: better error handling
 	var practiceSessionID string
-	activePracticePlanID, err := s.GetActivePracticePlanID(r.Context())
-	if err != nil {
-		log.Default().Println(err)
-		practiceSessionID = cuid2.Generate()
-		if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-			ID:              practiceSessionID,
-			UserID:          user.ID,
-			DurationMinutes: info.DurationMinutes,
-			Date:            time.Now().Unix(),
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-			return
-		}
-	} else {
+	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
+	if ok {
 		activePracticePlan, err := qtx.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
 			ID:     activePracticePlanID,
 			UserID: user.ID,
@@ -456,6 +443,19 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 		}); err != nil {
 			log.Default().Println(err)
 			http.Error(w, "Could not extend practice session", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		log.Default().Println(err)
+		practiceSessionID = cuid2.Generate()
+		if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
+			ID:              practiceSessionID,
+			UserID:          user.ID,
+			DurationMinutes: info.DurationMinutes,
+			Date:            time.Now().Unix(),
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not create practice session", http.StatusInternalServerError)
 			return
 		}
 	}

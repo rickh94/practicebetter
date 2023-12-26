@@ -7,10 +7,20 @@ SELECT *
 FROM users
 WHERE email = LOWER(:email);
 
+-- name: SetActivePracticePlan :exec
+UPDATE users
+SET active_practice_plan_id = ?, active_practice_plan_started = unixepoch('now')
+WHERE id = :user_id;
+
+-- name: ClearActivePracticePlan :exec
+UPDATE users
+SET active_practice_plan_id = NULL, active_practice_plan_started = NULL
+WHERE id = :user_id;
+
 -- name: GetUserByID :one
 SELECT *
 FROM users
-WHERE id = ?;
+WHERE id = :user_id;
 
 -- name: GetUserForLogin :one
 SELECT

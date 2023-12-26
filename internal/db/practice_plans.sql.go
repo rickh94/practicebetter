@@ -169,6 +169,21 @@ func (q *Queries) CreatePracticePlanSpot(ctx context.Context, arg CreatePractice
 	return i, err
 }
 
+const deletePracticePlan = `-- name: DeletePracticePlan :exec
+DELETE FROM practice_plans
+WHERE id = ? AND user_id = ?
+`
+
+type DeletePracticePlanParams struct {
+	ID     string `json:"id"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) DeletePracticePlan(ctx context.Context, arg DeletePracticePlanParams) error {
+	_, err := q.db.ExecContext(ctx, deletePracticePlan, arg.ID, arg.UserID)
+	return err
+}
+
 const getPracticePlan = `-- name: GetPracticePlan :one
 SELECT id, user_id, intensity, date, completed, practice_session_id
 FROM practice_plans
