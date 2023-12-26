@@ -161,6 +161,92 @@ func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
 	s.HxRender(w, r, librarypages.SinglePiece(s, token, piece), piece[0].Title)
 }
 
+func (s *Server) pieceSpots(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	user := r.Context().Value("user").(db.User)
+	queries := db.New(s.DB)
+	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
+		PieceID: pieceID,
+		UserID:  user.ID,
+	})
+	if err != nil || len(piece) == 0 {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		http.Error(w, "Could not find matching piece", http.StatusNotFound)
+		return
+	}
+	token := csrf.Token(r)
+	info := librarypages.ListSpotsInfo{
+		PieceTitle:          piece[0].Title,
+		PieceID:             piece[0].ID,
+		RepeatSpots:         make([]librarypages.ListSpotsSpot, 0, len(piece)/2),
+		ExtraRepeatSpots:    make([]librarypages.ListSpotsSpot, 0, len(piece)/2),
+		RandomSpots:         make([]librarypages.ListSpotsSpot, 0, len(piece)/2),
+		InterleaveSpots:     make([]librarypages.ListSpotsSpot, 0, len(piece)/2),
+		InterleaveDaysSpots: make([]librarypages.ListSpotsSpot, 0, len(piece)/2),
+		CompletedSpots:      make([]librarypages.ListSpotsSpot, 0, len(piece)/2),
+	}
+	for _, row := range piece {
+		if !row.SpotStage.Valid {
+			continue
+		}
+		if !row.SpotName.Valid {
+			continue
+		}
+		var measures string
+		if row.SpotMeasures.Valid {
+			measures = row.SpotMeasures.String
+		} else {
+			measures = ""
+		}
+		switch row.SpotStage.String {
+		case "repeat":
+			info.RepeatSpots = append(info.RepeatSpots, librarypages.ListSpotsSpot{
+				ID:       pieceID,
+				Name:     row.SpotName.String,
+				Measures: measures,
+				Stage:    row.SpotStage.String,
+			})
+		case "extra_repeat":
+			info.ExtraRepeatSpots = append(info.ExtraRepeatSpots, librarypages.ListSpotsSpot{
+				ID:       pieceID,
+				Name:     row.SpotName.String,
+				Measures: measures,
+				Stage:    row.SpotStage.String,
+			})
+		case "random":
+			info.RandomSpots = append(info.RandomSpots, librarypages.ListSpotsSpot{
+				ID:       pieceID,
+				Name:     row.SpotName.String,
+				Measures: measures,
+				Stage:    row.SpotStage.String,
+			})
+		case "interleave":
+			info.InterleaveSpots = append(info.InterleaveSpots, librarypages.ListSpotsSpot{
+				ID:       pieceID,
+				Name:     row.SpotName.String,
+				Measures: measures,
+				Stage:    row.SpotStage.String,
+			})
+		case "interleave_days":
+			info.InterleaveDaysSpots = append(info.InterleaveDaysSpots, librarypages.ListSpotsSpot{
+				ID:       pieceID,
+				Name:     row.SpotName.String,
+				Measures: measures,
+				Stage:    row.SpotStage.String,
+			})
+		case "completed":
+			info.CompletedSpots = append(info.CompletedSpots, librarypages.ListSpotsSpot{
+				ID:       pieceID,
+				Name:     row.SpotName.String,
+				Measures: measures,
+				Stage:    row.SpotStage.String,
+			})
+		}
+	}
+	s.HxRender(w, r, librarypages.ListSpots(s, token, info), info.PieceTitle)
+}
+
 func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	user := r.Context().Value("user").(db.User)

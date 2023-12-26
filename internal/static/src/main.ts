@@ -6,9 +6,17 @@ import { DateFromNow, PrettyDate, NumberDate } from "./ui/date-display";
 import { PieceStage, SpotStage } from "./ui/stages";
 import { InternalNav } from "./ui/internal-nav";
 import { EditRemindersSummary, RemindersSummary } from "./ui/prompts";
+import { BackToPiece } from "./ui/links";
 
 try {
   register(PracticeToolNav, "practice-tool-nav", ["activepath"], {
+    shadow: false,
+  });
+} catch (err) {
+  console.log(err);
+}
+try {
+  register(BackToPiece, "back-to-piece", ["pieceid"], {
     shadow: false,
   });
 } catch (err) {

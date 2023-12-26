@@ -38,6 +38,9 @@ templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 					{ Label: piece[0].Title, Href: "/library/pieces/" + piece[0].ID, Active: false },
 					{ Label: "Repeat Practice", Href: "/library/pieces/" + piece[0].ID+"/practice/repeat", Active: true },
 				})
+			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+				<back-to-piece pieceid={ piece[0].ID }></back-to-piece>
+			</div>
 		}
 		@components.NarrowContainer() {
 			<div class="p-4 w-full rounded-xl bg-neutral-700/5">

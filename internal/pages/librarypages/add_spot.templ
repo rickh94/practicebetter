@@ -15,6 +15,9 @@ templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, pieceTitle st
 					{ Label: pieceTitle, Href: "/library/pieces/" + pieceID, Active: false },
 					{ Label: "Add Spot", Href: "/library/pieces/" + pieceID + "/spots/add", Active: true },
 				})
+			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+				<back-to-piece pieceid={ pieceID }></back-to-piece>
+			</div>
 		}
 		@components.FiveColumnContainer() {
 			<div class="flex flex-col col-span-2 gap-4 items-center mx-auto md:flex-row md:items-start lg:flex-col lg:justify-start lg:mx-0 lg:max-w-none" id="add-spot-section">

@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef } from "preact/compat";
 import { cn } from "../common";
 import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import { NoteSheetIcon } from "./icons";
 
 export const topNavClasses =
   "focusable flex h-14 items-center gap-2 rounded-xl bg-neutral-700/10 px-6 py-4 font-semibold text-neutral-700 transition-all duration-200 hover:bg-neutral-700/20";
@@ -60,18 +61,6 @@ export function TopNavLink({
   );
 }
 
-export function BackToPieceLink({ pieceHref }: { pieceHref: string }) {
-  return (
-    <Link
-      href={pieceHref}
-      className="focusable flex items-center justify-center gap-1 rounded-xl bg-sky-700/10 px-4 py-2 font-semibold text-sky-800 transition duration-200 hover:bg-sky-700/20"
-    >
-      <ArrowLeftIcon className="-ml-1 size-5" />
-      Back to Piece
-    </Link>
-  );
-}
-
 export function WarningLink({
   href,
   className = "",
@@ -118,6 +107,18 @@ export function HappyLink({
       )}
     >
       {children}
+    </Link>
+  );
+}
+
+export function BackToPiece({ pieceid }: { pieceid: string }) {
+  return (
+    <Link
+      href={`/library/pieces/${pieceid}`}
+      className="focusable action-button bg-sky-700/10  text-sky-800 hover:bg-sky-700/20"
+    >
+      <NoteSheetIcon className="-ml-1 size-5" />
+      Back to Piece
     </Link>
   );
 }

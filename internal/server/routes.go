@@ -81,6 +81,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Put("/pieces/{pieceID}", s.updatePiece)
 		r.Delete("/pieces/{pieceID}", s.deletePiece)
 
+		r.Get("/pieces/{pieceID}/spots", s.pieceSpots)
 		r.Post("/pieces/{pieceID}/spots", s.addSpot)
 		r.Get("/pieces/{pieceID}/spots/add", s.addSpotPage)
 		r.Get("/pieces/{pieceID}/spots/{spotID}/edit", s.editSpot)

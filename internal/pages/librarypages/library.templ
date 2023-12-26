@@ -57,7 +57,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 					for _, plan := range recentPracticePlans {
 						@components.PracticePlanCard(plan.ID, plan.Date, plan.NewSpotsCount, plan.RepeatSpotsCount, plan.InterleaveSpotsCount, plan.InterleaveDaysSpotsCount, plan.PiecesCount)
 					}
-					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/plans", "#main-content") {
+					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans", "#main-content") {
 						@heroicons.IconViewColumnsSolid("-ml-1 size-6")
 						All Practice Plans
 					}
@@ -74,7 +74,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 			<div class="flex flex-col gap-4">
 				@LibraryPieceList(pieces)
 				<div class="flex flex-col gap-4 w-full sm:flex-row">
-					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/pieces", "#main-content") {
+					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-sky-700 rounded-xl bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/pieces", "#main-content") {
 						@heroicons.IconViewColumnsSolid("-ml-1 size-5")
 						All Pieces
 					}

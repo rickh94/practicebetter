@@ -14,6 +14,9 @@ templ PiecePracticeRandomSequencePage(s pages.ServerUtil, csrf string, piece []d
 					{ Label: piece[0].Title, Href: "/library/pieces/" + piece[0].ID, Active: false },
 					{ Label: "Random Sequence", Href: "/library/pieces/" + piece[0].ID+"/practice/random-sequence", Active: true },
 				})
+			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+				<back-to-piece pieceid={ piece[0].ID }></back-to-piece>
+			</div>
 		}
 		@components.NormalContainer() {
 			<sequence-spots class="w-full" initialspots={ spotsData } pieceid={ piece[0].ID } csrf={ csrf }></sequence-spots>

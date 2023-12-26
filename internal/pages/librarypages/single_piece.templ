@@ -112,17 +112,23 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 				</div>
 			</div>
 			<div class="p-4 rounded-xl bg-neutral-700/5">
-				<div class="flex justify-between px-0.5 pb-2">
+				<div class="flex flex-wrap justify-between px-0.5 pb-2">
 					<h2 class="py-1 text-2xl font-bold text-center">
 						Spots
 						<span id="spot-count">
 							({ strconv.Itoa(getNumSpots(piece)) })
 						</span>
 					</h2>
-					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
-						@heroicons.IconPlusSolid("-ml-1 size-6")
-						Add Spots
-					}
+					<div class="flex flex-wrap flex-grow gap-2 justify-end">
+						@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-orange-800 rounded-xl transition duration-200 bg-orange-700/10 hover:bg-orange-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots", "#main-content") {
+							@heroicons.IconViewColumnsSolid("-ml-1 size-6")
+							All Spots
+						}
+						@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
+							@heroicons.IconPlusSolid("-ml-1 size-6")
+							Add Spots
+						}
+					</div>
 				</div>
 				<ul class="grid grid-cols-1 gap-4 list-none sm:grid-cols-2">
 					for _, row := range piece {

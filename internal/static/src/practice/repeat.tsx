@@ -16,7 +16,7 @@ import {
   WarningButton,
 } from "../ui/buttons";
 import { BasicSpot } from "../validators";
-import { BackToPieceLink, HappyLink, WarningLink } from "../ui/links";
+import { BackToPiece, HappyLink, WarningLink } from "../ui/links";
 import {
   HandThumbUpIcon,
   ListBulletIcon,
@@ -164,7 +164,7 @@ export function Repeat({
             break_success: (
               <RepeatBreakSuccess
                 restart={setModePrepare}
-                pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
+                pieceid={pieceid}
                 canPromote={
                   spot?.stage === "repeat" || spot?.stage === "extra_repeat"
                 }
@@ -172,10 +172,7 @@ export function Repeat({
               />
             ),
             break_fail: (
-              <RepeatBreakFail
-                restart={setModePrepare}
-                pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
-              />
+              <RepeatBreakFail restart={setModePrepare} pieceid={pieceid} />
             ),
           }[mode]
         }
@@ -385,12 +382,12 @@ function PracticeListItem({
 
 function RepeatBreakSuccess({
   restart,
-  pieceHref,
+  pieceid,
   canPromote,
   promoteSpot,
 }: {
   restart: () => void;
-  pieceHref?: string;
+  pieceid?: string;
   canPromote: boolean;
   promoteSpot: (toStage: string) => void;
 }) {
@@ -482,9 +479,11 @@ function RepeatBreakSuccess({
           Great job completing your five times in a row!
         </p>
         <div className="my-8 flex w-full flex-col justify-center gap-4 sm:flex-row sm:gap-6">
-          {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
-          {pieceHref ? (
-            <WarningLink href={`${pieceHref}/practice/random-single`}>
+          {pieceid && <BackToPiece pieceid={pieceid} />}
+          {pieceid ? (
+            <WarningLink
+              href={`/library/pieces/${pieceid}/practice/random-single`}
+            >
               <MusicalNoteIcon className="-ml-1 size-5" />
               Try Random Practicing
             </WarningLink>
@@ -494,8 +493,8 @@ function RepeatBreakSuccess({
               Try Random Practicing
             </WarningLink>
           )}
-          {pieceHref ? (
-            <HappyLink href={`${pieceHref}/practice/repeat`}>
+          {pieceid ? (
+            <HappyLink href={`/library/pieces/${pieceid}/practice/repeat`}>
               <ListBulletIcon className="-ml-1 size-5" />
               Practice Another Spot
             </HappyLink>
@@ -530,10 +529,10 @@ function RepeatBreakSuccess({
 
 function RepeatBreakFail({
   restart,
-  pieceHref,
+  pieceid,
 }: {
   restart: () => void;
-  pieceHref?: string;
+  pieceid?: string;
 }) {
   return (
     <div className="flex w-full flex-col items-center sm:mx-auto sm:max-w-3xl">
@@ -543,12 +542,12 @@ function RepeatBreakFail({
         reinforce mistakes
       </p>
       <div className="my-8 flex w-full flex-col justify-center gap-4 sm:flex-row sm:gap-6">
-        {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
+        {pieceid && <BackToPiece pieceid={pieceid} />}
         <WarningLink href="/practice/random-spots">
           Try Random Practicing
         </WarningLink>
-        {pieceHref ? (
-          <HappyLink href={`${pieceHref}/practice/repeat`}>
+        {pieceid ? (
+          <HappyLink href={`/library/pieces/${pieceid}/practice/repeat`}>
             Practice Another Spot
           </HappyLink>
         ) : (

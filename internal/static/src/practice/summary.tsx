@@ -5,7 +5,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { type PracticeSummaryItem } from "../common";
 import { AngryButton, HappyButton, WarningButton } from "../ui/buttons";
-import { BackToPieceLink } from "../ui/links";
+import { BackToPiece } from "../ui/links";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useAutoAnimate } from "@formkit/auto-animate/preact";
@@ -17,7 +17,6 @@ export default function Summary({
   summary,
   setup,
   practice,
-  pieceHref,
   pieceid,
   csrf,
   startTime,
@@ -26,7 +25,6 @@ export default function Summary({
   summary: PracticeSummaryItem[];
   setup: () => void;
   practice: () => void;
-  pieceHref?: string;
   pieceid?: string;
   csrf?: string;
   startTime?: Date;
@@ -271,7 +269,7 @@ export default function Summary({
         </div>
       </dialog>
       <div className="flex w-full flex-col justify-center gap-x-8 gap-y-2 px-4 pt-4 sm:flex-row sm:gap-x-6 sm:px-0">
-        {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
+        {pieceid && <BackToPiece pieceid={pieceid} />}
         <WarningButton onClick={setup}>
           <Cog6ToothIcon className="-ml-1 size-5" />
           Back to Setup

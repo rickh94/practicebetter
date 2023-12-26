@@ -1,0 +1,93 @@
+package librarypages
+
+import "practicebetter/internal/components"
+import "practicebetter/internal/heroicons"
+import "practicebetter/internal/pages"
+import "strconv"
+
+type ListSpotsSpot struct {
+	ID       string
+	Name     string
+	Measures string
+	Stage    string
+}
+
+type ListSpotsInfo struct {
+	PieceTitle          string
+	PieceID             string
+	RepeatSpots         []ListSpotsSpot
+	ExtraRepeatSpots    []ListSpotsSpot
+	RandomSpots         []ListSpotsSpot
+	InterleaveSpots     []ListSpotsSpot
+	InterleaveDaysSpots []ListSpotsSpot
+	CompletedSpots      []ListSpotsSpot
+}
+
+templ ListSpots(s pages.ServerUtil, csrf string, info ListSpotsInfo) {
+	<title>{ info.PieceTitle } | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(info.PieceTitle) , components.AccountLink())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Pieces", Href: "/library/pieces", Active: false },
+					{ Label: info.PieceTitle, Href: "/library/pieces/" + info.PieceID, Active: false },
+					{ Label: "Spots", Href: "/library/pieces/" + info.PieceID + "/spots", Active: true },
+				})
+			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+				<back-to-piece pieceid={ info.PieceID }></back-to-piece>
+				@components.HxLink("focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20", "/library/pieces/" + info.PieceID + "/spots/add", "#main-content") {
+					@heroicons.IconPlusSolid("-ml-1 size-5")
+					Add Spots
+				}
+			</div>
+		}
+		@components.NormalContainer() {
+			<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+				@ListSpotsColumn("Repeat Spots", info.RepeatSpots, info.PieceID)
+				@ListSpotsColumn("Extra Repeat Spots", info.ExtraRepeatSpots, info.PieceID)
+				@ListSpotsColumn("Random Spots", info.RandomSpots, info.PieceID)
+				@ListSpotsColumn("Interleave Spots", info.InterleaveSpots, info.PieceID)
+				@ListSpotsColumn("Interleave Days Spots", info.InterleaveDaysSpots, info.PieceID)
+				@ListSpotsColumn("Completed Spots", info.CompletedSpots, info.PieceID)
+			</div>
+		}
+		<script type="module" src={ s.StaticUrl("out/practice-menu.js") }></script>
+	}
+}
+
+templ ListSpotsColumn(name string, spots []ListSpotsSpot, pieceID string) {
+	<div class="p-4 rounded-xl bg-neutral-700/5">
+		<div class="flex col-span-1 justify-between px-0.5 pb-2" id="repeat-spots">
+			<h2 class="py-1 text-2xl font-bold text-center">
+				{ name }
+				<span id="spot-count">
+					({ strconv.Itoa(len(spots)) })
+				</span>
+			</h2>
+		</div>
+		<ul class="flex flex-col gap-2">
+			for _, spot := range spots {
+				@components.SmallSpotCard(pieceID, spot.ID, spot.Name, spot.Measures, spot.Stage)
+			}
+		</ul>
+	</div>
+}
+
+/*
+
+				<practice-menu pieceid={ info.PieceID } class="h-12 min-w-[7.25rem]"></practice-menu>
+					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
+						@heroicons.IconPlusSolid("-ml-1 size-6")
+						Add Spots
+					}
+
+	<li>
+		@components.HxLink("focusable flex h-full items-center justify-between rounded-xl border border-dashed border-neutral-500 bg-white/50 px-4 py-6 text-neutral-700 hover:bg-white/90 hover:text-black", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
+			<div class="flex flex-col flex-grow justify-center items-center h-full">
+				<h3 class="text-lg font-bold">Add Spots</h3>
+			</div>
+			@heroicons.IconArrowTopRightOnSquareSolid("-mr-1 size-6")
+			<span class="sr-only">Click to create spot</span>
+		}
+	</li>
+*/

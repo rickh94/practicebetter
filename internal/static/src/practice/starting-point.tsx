@@ -6,7 +6,7 @@ import {
   HappyButton,
   WarningButton,
 } from "../ui/buttons";
-import { BackToPieceLink } from "../ui/links";
+import { BackToPiece } from "../ui/links";
 import {
   StateUpdater,
   useCallback,
@@ -184,7 +184,7 @@ export function StartingPoint({
                 measuresPracticed={measuresPracticed}
                 setup={setModeSetup}
                 practice={setModePractice}
-                pieceHref={pieceid ? `/library/pieces/${pieceid}` : undefined}
+                pieceid={pieceid}
               />
             ),
           }[mode]
@@ -571,18 +571,18 @@ export function Summary({
   measuresPracticed,
   setup,
   practice,
-  pieceHref,
+  pieceid,
 }: {
   summary: Section[];
   measuresPracticed: [number, number][];
   setup: () => void;
   practice: () => void;
-  pieceHref?: string;
+  pieceid?: string;
 }) {
   return (
     <>
       <div className="flex w-full flex-col justify-center gap-4 pb-8 pt-12 sm:flex-row  sm:gap-6">
-        {pieceHref && <BackToPieceLink pieceHref={pieceHref} />}
+        {pieceid && <BackToPiece pieceid={pieceid} />}
         <WarningButton onClick={setup}>
           <Cog6ToothIcon className="-ml-1 size-5" />
           Back to Setup
