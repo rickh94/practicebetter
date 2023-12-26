@@ -466,7 +466,7 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 		Variant:  "success",
 		Duration: 3000,
 	})
-	pspages.PracticePlanInterleaveDaysSpots(spotInfo, planID, token, true).Render(r.Context(), w)
+	pspages.PracticePlanInterleaveDaysSpots(spotInfo, planID, token, true, true).Render(r.Context(), w)
 }
 
 func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) {
@@ -588,7 +588,7 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 		Variant:  "success",
 		Duration: 3000,
 	})
-	pspages.PracticePlanInterleaveDaysSpots(spotInfo, planID, token, true).Render(r.Context(), w)
+	pspages.PracticePlanInterleaveSpots(spotInfo, planID, token, true, true).Render(r.Context(), w)
 }
 
 const plansPerPage = 20

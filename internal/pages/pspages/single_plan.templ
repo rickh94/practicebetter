@@ -113,7 +113,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						<p class="italic">You can return to this page at any time using the menu in the top left.</p>
 					}
 				</header>
-				@PracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted)
+				@PracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)
 				<section id="extra-repeat-spots" class="flex flex-col gap-2">
 					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Extra Repeat Practice Spots</h3>
 					<p class="w-full text-sm">Repeat Practice these spots today</p>
@@ -123,7 +123,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						}
 					</ul>
 				</section>
-				@PracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted)
+				@PracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted, planData.IsActive)
 				<section id="random-spots-pieces" class="flex flex-col gap-2">
 					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Practice Pieces</h3>
 					<p class="w-full text-sm">Random Practice the spots from these pieces.</p>
@@ -156,7 +156,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 	}
 }
 
-templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool) {
+templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool) {
 	<section id="interleave-days-spots" class="flex flex-col gap-2">
 		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Days Spots</h3>
 		<p class="w-full text-sm">Play these spots at least once today</p>
@@ -165,7 +165,7 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, spot.Completed)
 			}
 		</ul>
-		if len(interleaveDaysSpots) > 0 {
+		if active && len(interleaveDaysSpots) > 0 {
 			if allCompleted {
 				<div
  					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"
@@ -190,7 +190,7 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 	</section>
 }
 
-templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool) {
+templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool) {
 	<section id="interleave-spots" class="flex flex-col gap-2">
 		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
 		<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
@@ -199,7 +199,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
 			}
 		</ul>
-		if len(interleaveSpots) > 0 {
+		if active && len(interleaveSpots) > 0 {
 			if allCompleted {
 				<div
  					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"

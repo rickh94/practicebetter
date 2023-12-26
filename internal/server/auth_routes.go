@@ -29,7 +29,6 @@ func (s *Server) startLogin(w http.ResponseWriter, r *http.Request) {
 		nextLoc = "/auth/me"
 	}
 	cookie, err := r.Cookie("rememberEmail")
-	fmt.Println(cookie)
 	if err != nil {
 		s.HxRender(w, r, authpages.StartLoginPage(csrfToken, nextLoc), "Login")
 		return
