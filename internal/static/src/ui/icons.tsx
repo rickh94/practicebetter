@@ -7,7 +7,6 @@ export function ShuffleIcon({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-hidden="true"
-      stroke="currentColor"
       fill="currentColor"
     >
       <g id="Layer_1" />
@@ -33,7 +32,6 @@ export function RepeatIcon({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-hidden="true"
-      stroke="currentColor"
       fill="currentColor"
     >
       <g>
@@ -108,6 +106,24 @@ export function PlayListIcon({ className }: { className?: string }) {
       <g id="playlist">
         <path d="M2,5A1,1,0,0,1,3,4H19a1,1,0,0,1,0,2H3A1,1,0,0,1,2,5Zm1,7H19a1,1,0,0,0,0-2H3a1,1,0,0,0,0,2Zm10,4H3a1,1,0,0,0,0,2H13a1,1,0,0,0,0-2Zm4,0v6l5-3Z" />
       </g>
+    </svg>
+  );
+}
+
+export function SpotIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      aria-hidden="true"
+      fill="currentColor"
+      height="128"
+      viewBox="0 0 128 128"
+      width="128"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <title />
+      <path d="M110,58.9986V32.79492a6.02365,6.02365,0,0,0-2.9834-5.18738S60.00885.2619,59.99707.25531a2.07432,2.07432,0,0,0-2.00293.00488L10.9834,27.60754A6.02365,6.02365,0,0,0,8,32.79492V85.20221a6.0236,6.0236,0,0,0,2.9834,5.18744s46.98572,27.33282,47.01074,27.34741A2.023,2.023,0,0,0,61,116.00824V60.999h47A2.00029,2.00029,0,0,0,110,58.9986ZM57,112.53107l-44.00488-25.599A2.01054,2.01054,0,0,1,12,85.20221V60.999H57Zm0-55.53278H12V32.79492a2.01034,2.01034,0,0,1,.99512-1.72974L57,5.46613Zm49,0H61V5.46613l44.00488,25.59906A2.01034,2.01034,0,0,1,106,32.79492Z" />
+      <path d="M118,68H69a1.984,1.984,0,0,0-2,1.96741v56.07111a1.96144,1.96144,0,0,0,1.00293,1.70514,2.06744,2.06744,0,0,0,2.00293-.00482l47.01074-26.89716A5.90688,5.90688,0,0,0,120,95.73962V69.96741A1.984,1.984,0,0,0,118,68Zm-2,27.73962a1.97128,1.97128,0,0,1-.99512,1.70129L71,122.61859V71.93481h45Z" />
     </svg>
   );
 }

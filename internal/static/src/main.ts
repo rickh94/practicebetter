@@ -55,7 +55,7 @@ try {
   console.log(err);
 }
 try {
-  register(SpotStage, "spot-stage", ["stage"], { shadow: false });
+  register(SpotStage, "spot-stage", ["stage", "icon"], { shadow: false });
 } catch (err) {
   console.log(err);
 }

@@ -130,7 +130,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 						}
 					</div>
 				</div>
-				<ul class="grid grid-cols-1 gap-4 list-none sm:grid-cols-2">
+				<ul class="grid grid-cols-1 gap-4 list-none md:grid-cols-2">
 					for _, row := range piece {
 						if row.SpotID.Valid {
 							@components.SmallSpotCard(row.ID, row.SpotID.String, row.SpotName.String, SpotMeasuresOrEmpty(row.SpotMeasures), row.SpotStage.String)

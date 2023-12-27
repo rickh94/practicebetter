@@ -111,15 +111,15 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 			</div>
 		}
 		@components.NarrowContainer() {
-			<div class="grid grid-cols-1 gap-4 p-4 w-full rounded-xl border sm:grid-cols-3 border-neutral-500 bg-white/80 text-neutral-900">
+			<div class="grid grid-cols-1 gap-4 p-4 w-full rounded-xl border sm:grid-cols-5 border-neutral-500 bg-white/80 text-neutral-900">
 				<div class="flex col-span-full justify-center text-center">
 					<h2 class="px-4 text-2xl font-bold border-b-2 border-neutral-500">
 						{ spot.Name }
 					</h2>
 				</div>
-				<div>
+				<div class="sm:col-span-2">
 					<dl class="text-base divide-y divide-neutral-700 border-y border-neutral-700">
-						<div class="py-2 px-4 sm:flex sm:justify-between sm:px-0">
+						<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
 							<dt class="font-medium leading-6 text-neutral-900">
 								Order
 							</dt>
@@ -127,7 +127,7 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 								{ strconv.FormatInt(spot.Idx, 10)  }
 							</dd>
 						</div>
-						<div class="py-2 px-4 sm:flex sm:justify-between sm:px-0">
+						<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
 							<dt class="font-medium leading-6 text-neutral-900">
 								Measures
 							</dt>
@@ -137,7 +137,7 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 								}
 							</dd>
 						</div>
-						<div class="py-2 px-4 sm:flex sm:justify-between sm:px-0">
+						<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
 							<dt class="font-medium leading-6 text-neutral-900">
 								Current Tempo
 							</dt>
@@ -147,12 +147,12 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 								}
 							</dd>
 						</div>
-						<div class="py-2 px-4 sm:flex sm:justify-between sm:px-0">
+						<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
 							<dt class="font-medium leading-6 text-neutral-900">
 								Stage
 							</dt>
 							<dd class="flex gap-1 items-center mt-1 leading-6 sm:mt-0 text-neutral-700">
-								<span class="font-medium"><spot-stage stage={ spot.Stage }></spot-stage></span>
+								<span class="font-medium"><spot-stage icon="true" stage={ spot.Stage }></spot-stage></span>
 								<button class="text-neutral-400 hover:text-neutral-500" onClick={ components.ShowModal(stageModalID) }>
 									@heroicons.IconInformationCircleSolid("size-4")
 									<span class="sr-only">Read More</span>
@@ -161,7 +161,7 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 						</div>
 					</dl>
 				</div>
-				<div class="flex flex-col gap-2 sm:col-span-2">
+				<div class="flex flex-col gap-2 sm:col-span-3">
 					@RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID)
 					<audio-prompt-summary url={ spot.AudioPromptUrl }></audio-prompt-summary>
 					<notes-prompt-summary notes={ spot.NotesPrompt }></notes-prompt-summary>

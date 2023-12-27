@@ -267,8 +267,8 @@ func getSpotCardClass(completed bool, stage string) string {
 templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, showTitle bool, pieceTitle string, hidden bool) {
 	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration- spot-card", templ.KV("hidden", hidden) }>
 		@HxLink(getSpotCardClass(practiced, stage), href, "#main-content") {
-			<div class="flex flex-col flex-grow">
-				<h3 class="text-lg font-bold">
+			<div class="flex flex-col flex-grow overflow-x-clip">
+				<h3 class="text-lg font-bold truncate">
 					{ name }
 					if showTitle {
 						<span class="text-neutral-700">
@@ -302,10 +302,26 @@ templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, s
 					</p>
 				</div>
 			</div>
-			if practiced {
-				<div class="mr-3 w-8 h-8"></div>
-				@heroicons.IconCheckCircleSolid("size-8 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-green-900")
+			if practiced || stage == "completed" {
+				<div class="mr-3 size-6"></div>
+				@heroicons.IconCheckCircleSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-green-900")
 				<span class="sr-only">Completed</span>
+			} else if stage == "extra_repeat" || stage == "repeat" {
+				<div class="mr-3 size-6"></div>
+				@icons.RepeatIcon("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="sr-only">Click to view</span>
+			} else if stage == "random" {
+				<div class="mr-3 size-6"></div>
+				@icons.ShuffleIcon("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="sr-only">Click to view</span>
+			} else if stage == "interleave" {
+				<div class="mr-3 size-6"></div>
+				@heroicons.IconBookmarkSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="sr-only">Click to view</span>
+			} else if stage == "interleave_days" {
+				<div class="mr-3 size-6"></div>
+				@heroicons.IconCalendarDaysSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="sr-only">Click to view</span>
 			}
 			<span class="sr-only">Click to view spot</span>
 		}

@@ -48,11 +48,8 @@ templ PiecePracticeMissingMeasureInfoPage(pieceTitle string, pieceID string) {
 					measures (from the time signature). Fill in that information and return to this page or practice something else.
 				</p>
 				<div class="flex gap-2 py-4">
-					@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-sky-700/10 px-8 py-3 text-xl font-semibold text-sky-800  transition duration-200 hover:bg-sky-700/20", "/library/pieces/"+pieceID, "#main-content") {
-						@heroicons.IconArrowLeftSolid("-ml-1 size-6")
-						Back To Piece
-					}
-					@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-amber-700/10 px-8 py-3 text-xl font-semibold text-amber-800  transition duration-200 hover:bg-amber-700/20", "/library/pieces/"+pieceID+"/edit", "#main-content") {
+					<back-to-piece pieceid={ pieceID }></back-to-piece>
+					@components.HxLink("focusable action-button bg-amber-700/10 text-amber-800 hover:bg-amber-700/20", "/library/pieces/"+pieceID+"/edit", "#main-content") {
 						@heroicons.IconPencilSolid("-ml-1 size-6")
 						Edit Piece
 					}

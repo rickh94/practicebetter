@@ -25,9 +25,9 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 				if hasActivePlan {
 					@components.HxLink("flex flex-col gap-4 p-4 text-black bg-white rounded-lg shadow shadow-black/20 focusable hover:bg-violet-200/80", "/library/plans/"+activePracticePlan.ID, "#main-content") {
 						<h3 class="pb-1 text-xl font-bold text-center text-black border-b-2 border-black">
-							Current Practice Plan <span class="text-violet-700">- Click to View</span>
+							Current Practice Plan <span class="text-violet-700 whitespace-nowrap">- Click to View</span>
 						</h3>
-						<dl class="columns-2">
+						<dl class="sm:columns-2">
 							<div class="flex gap-1">
 								<dt class="font-medium">Spots Completed:{ " " }</dt>
 								<dd>{ strconv.FormatInt(activePracticePlan.CompletedSpotsCount, 10) }</dd>
@@ -62,7 +62,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 						All Practice Plans
 					}
 				</div>
-				<div class="flex flex-col gap-2 p-4 w-full rounded-xl bg-neutral-700/10">
+				<div class="hidden flex-col gap-2 p-4 w-full rounded-xl md:block bg-neutral-700/10">
 					<h3 class="text-2xl font-bold col-span">Recent Practice Sessions</h3>
 					<past-practice-display sessions={ practiceSessions } background="true"></past-practice-display>
 					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/practice-sessions", "#main-content") {

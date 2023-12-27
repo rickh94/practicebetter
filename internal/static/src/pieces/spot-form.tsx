@@ -15,6 +15,7 @@ import {
   AddNotesPrompt,
 } from "./add-prompts";
 import { FolderPlusIcon, ChevronLeftIcon } from "@heroicons/react/24/solid";
+import { SpotStageIcon } from "../ui/stages";
 
 export default function SpotFormFields({
   formState,

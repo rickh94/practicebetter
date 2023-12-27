@@ -721,6 +721,21 @@ func (s *Server) piecePracticeRepeatPage(w http.ResponseWriter, r *http.Request)
 		PieceID: pieceID,
 		UserID:  user.ID,
 	})
+	if err != nil || len(piece) == 0 {
+		piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
+			PieceID: pieceID,
+			UserID:  user.ID,
+		})
+		if err != nil || len(piece) == 0 {
+			// TODO: create a pretty 404 handler
+			log.Default().Println(err)
+			http.Error(w, "Could not find matching piece", http.StatusNotFound)
+			return
+		}
+		s.HxRender(w, r, librarypages.PieceRepeatPracticeNoSpotsPage(piece[0].Title, piece[0].ID), piece[0].Title)
+
+		return
+	}
 	if err != nil {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
