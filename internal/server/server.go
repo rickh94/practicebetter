@@ -215,6 +215,7 @@ func (s *Server) GetActivePracticePlanID(ctx context.Context) (string, bool) {
 		if !user.ActivePracticePlanStarted.Valid && time.Since(time.Unix(user.ActivePracticePlanStarted.Int64, 0)) > 5*time.Hour {
 			err := queries.ClearActivePracticePlan(ctx, user.ID)
 			if err != nil {
+				log.Default().Printf("failed to clear active practice plan: %v\n", err)
 				return "", false
 			}
 			return "", false

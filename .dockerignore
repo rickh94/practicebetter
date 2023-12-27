@@ -6,4 +6,5 @@ prettier.config.mjs
 .devenv
 internal/static/css/main.css
 *_templ.go
+**/*_templ.go
 Dockerfile
