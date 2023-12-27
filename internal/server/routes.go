@@ -22,7 +22,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Use(middleware.Logger)
 	r.Use(htmx.NewMiddleware())
-	r.Use(csrf.Protect([]byte(s.SecretKey), csrf.Secure(true)))
+	r.Use(csrf.Protect([]byte(s.SecretKey), csrf.Secure(true), csrf.Path("/"), csrf.SameSite(csrf.SameSiteLaxMode)))
 	r.Use(middleware.Compress(5, "application/json", "text/html", "text/css", "application/javascript"))
 	// r.Use(middleware.SetHeader("Cache-Control", "max-age=5"))
 	r.Use(middleware.SetHeader("Vary", "HX-Request"))
