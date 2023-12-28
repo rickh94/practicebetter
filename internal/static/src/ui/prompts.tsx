@@ -146,9 +146,6 @@ export function EditRemindersSummary({
   csrf: string;
   error?: string;
 }) {
-  if (!text) {
-    return <div>No Reminders</div>;
-  }
   return (
     <details open>
       <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-300/50">
@@ -170,7 +167,8 @@ export function EditRemindersSummary({
         <div className="flex h-max min-h-10 flex-grow flex-col gap-1">
           <textarea
             name="text"
-            defaultValue={text}
+            defaultValue={text ?? ""}
+            placeholder="Add some reminders"
             className={cn(
               "focusable min-h-[5.25rem] w-full flex-grow rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20",
             )}
