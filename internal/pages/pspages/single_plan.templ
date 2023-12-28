@@ -71,7 +71,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 					{ Label: "Practice Plans", Href: "/library/plans", Active: false, IsDate: false },
 					{ Label: strconv.FormatInt(planData.Date, 10), Href: "/library/plans/"+planData.ID, Active: true, IsDate: true },
 				})
-			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+			@components.ActionButtonContainer() {
 				if canResume(planData) {
 					<button
  						class="text-violet-800 action-button bg-violet-700/10 hover:bg-violet-700/20 focusable"
@@ -105,7 +105,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						Delete Plan
 					</button>
 				}
-			</div>
+			}
 		}
 		@components.NormalContainer() {
 			<div class="grid flex-grow grid-cols-1 gap-4 p-4 w-full min-h-full text-black bg-white rounded shadow sm:grid-cols-2 lg:grid-cols-3 shadow-black/20">

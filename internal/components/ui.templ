@@ -120,17 +120,14 @@ type BreadcrumbInfo struct {
 	Active bool
 }
 
-// TODO: fix too much top padding repeat practice page
-// TODO: fix overflowing breadcrumb on very small screens
+// TODO: maybe create dropdown with all the links
 
 templ BreadcrumbWrapper() {
-	<div class="flex">
-		<nav aria-label="Breadcrumb" class="block">
-			<ul class="flex flex-grow-0 justify-around items-center py-2 px-4 rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
-				{ children... }
-			</ul>
-		</nav>
-	</div>
+	<nav aria-label="Breadcrumb" class="hidden flex-grow-0 sm:flex">
+		<ul class="flex flex-grow-0 flex-shrink justify-around items-center py-2 px-4 text-sm rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
+			{ children... }
+		</ul>
+	</nav>
 }
 
 templ Breadcrumb(bc []BreadcrumbInfo) {
@@ -138,6 +135,14 @@ templ Breadcrumb(bc []BreadcrumbInfo) {
 		for i, b := range bc {
 			@BreadcrumbItem(b.Label, b.Href, b.Active, i == len(bc) - 1, false)
 		}
+	}
+	if len(bc) > 1 {
+		<nav aria-label="Breadcrumb" class="flex flex-grow-0 sm:hidden">
+			@HxLink("focusable action-button text-xl  bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
+				@heroicons.IconChevronLeftSolid("-ml-1 size-5")
+				{ bc[len(bc)-2].Label }
+			}
+		</nav>
 	}
 }
 
@@ -171,7 +176,7 @@ templ BreadcrumbItem(label string, href string, active bool, isLast bool, isDate
 	</li>
 	if !isLast {
 		<span class="flex items-center h-full text-neutral-900/50" aria-hidden="true">
-			@heroicons.IconChevronRightSolid("w-4 h-4 sm:w-6 sm:h-6")
+			@heroicons.IconChevronRightSolid("size-4 sm:size-6")
 		</span>
 	}
 }

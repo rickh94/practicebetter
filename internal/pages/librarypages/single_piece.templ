@@ -15,7 +15,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: piece[0].Title, Href: "/library/pieces/" + piece[0].ID, Active: true },
 				})
-			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+			@components.ActionButtonContainer() {
 				@components.HxLink("focusable action-button bg-amber-700/10 text-amber-800 hover:bg-amber-700/20", "/library/pieces/" + piece[0].ID + "/edit", "#main-content") {
 					@heroicons.IconPencilSolid("-ml-1 size-5")
 					Edit
@@ -31,7 +31,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 					@heroicons.IconTrashSolid("-ml-1 size-5")
 					Delete Piece
 				</button>
-			</div>
+			}
 		}
 		@components.TwoColumnContainer() {
 			<div class="flex flex-col">

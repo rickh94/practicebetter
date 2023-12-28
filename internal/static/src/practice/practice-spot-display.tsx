@@ -7,7 +7,6 @@ import {
 } from "../ui/prompts";
 import { cn } from "../common";
 
-// TODO: set prompt summary min heights so this stays roughly the same height all the time
 export function PracticeSpotDisplay({
   spot,
   pieceid = "",
@@ -28,7 +27,7 @@ export function PracticeSpotDisplay({
     <div
       className={cn(
         shouldDisplayPrompts
-          ? "grid gap-2 md:grid-cols-6"
+          ? "mx-auto grid max-w-md gap-2 md:mx-0 md:max-w-full md:grid-cols-6"
           : "flex flex-col items-center justify-center",
       )}
     >

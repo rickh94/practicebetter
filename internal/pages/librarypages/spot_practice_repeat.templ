@@ -15,9 +15,9 @@ templ SpotPracticeRepeatPage(s pages.ServerUtil, spot db.GetSpotRow, csrf string
 					{ Label: spot.Name, Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID, Active: false },
 					{ Label: "Repeat Practice", Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID+"/practice/repeat", Active: true },
 				})
-			<div class="flex flex-grow gap-2 justify-end">
+			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ spot.PieceID }></back-to-piece>
-			</div>
+			}
 		}
 		@components.NormalContainer() {
 			<repeat-practice initialspot={ spotData } csrf={ csrf } pieceid={ spot.PieceID }></repeat-practice>

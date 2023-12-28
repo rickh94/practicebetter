@@ -33,13 +33,13 @@ templ ListSpots(s pages.ServerUtil, csrf string, info ListSpotsInfo) {
 					{ Label: info.PieceTitle, Href: "/library/pieces/" + info.PieceID, Active: false },
 					{ Label: "Spots", Href: "/library/pieces/" + info.PieceID + "/spots", Active: true },
 				})
-			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ info.PieceID }></back-to-piece>
 				@components.HxLink("focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20", "/library/pieces/" + info.PieceID + "/spots/add", "#main-content") {
 					@heroicons.IconPlusSolid("-ml-1 size-5")
 					Add Spots
 				}
-			</div>
+			}
 		}
 		@components.NormalContainer() {
 			<div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">

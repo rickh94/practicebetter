@@ -34,9 +34,9 @@ templ PiecePracticeMissingMeasureInfoPage(pieceTitle string, pieceID string) {
 					{ Label: pieceTitle, Href: "/library/pieces/" + pieceID, Active: false },
 					{ Label: "Starting Point", Href: "/library/pieces/" + pieceID+"/practice/starting-point", Active: true },
 				})
-			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ pieceID }></back-to-piece>
-			</div>
+			}
 		}
 		@components.NarrowContainer() {
 			<div class="flex flex-col gap-4">

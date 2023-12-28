@@ -15,12 +15,12 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: true },
 				})
-			<div class="flex flex-grow gap-2 justify-end items-center">
+			@components.ActionButtonContainer() {
 				@components.HxLink("flex gap-2 justify-center items-center py-3 px-6 font-medium text-center text-green-700 rounded-xl bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/create", "#main-content") {
 					@heroicons.IconDocumentPlusSolid("-ml-1 size-6")
 					New Piece
 				}
-			</div>
+			}
 		}
 		<ul class="grid flex-grow grid-cols-1 auto-rows-min gap-x-2 gap-y-4 px-4 w-full list-none sm:grid-cols-2 sm:mx-auto sm:max-w-5xl">
 			for _, piece := range pieces {

@@ -15,9 +15,9 @@ templ PiecePracticeRandomSpotsPage(s pages.ServerUtil, csrf string, piece []db.G
 					{ Label: piece[0].Title, Href: "/library/pieces/" + piece[0].ID, Active: false },
 					{ Label: "Random Spots", Href: "/library/pieces/" + piece[0].ID+"/practice/random-single", Active: true },
 				})
-			<div class="flex flex-wrap flex-grow gap-2 justify-end items-center" id="action-buttons">
+			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ piece[0].ID }></back-to-piece>
-			</div>
+			}
 		}
 		@components.NormalContainer() {
 			<random-spots initialspots={ spotsData } pieceid={ piece[0].ID } csrf={ csrf } class="w-full"></random-spots>

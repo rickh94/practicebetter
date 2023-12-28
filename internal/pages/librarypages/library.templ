@@ -12,11 +12,6 @@ import "strconv"
 templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, practiceSessions string, hasActivePlan bool, activePracticePlan *db.GetPracticePlanWithTodoRow, recentPracticePlans []db.ListRecentPracticePlansRow) {
 	<title>Library | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Library") , components.AccountLink())) {
-		@components.BreadcrumbContainer() {
-			@components.Breadcrumb([]components.BreadcrumbInfo{
-					{ Label: "Library", Href: "/library", Active: true },
-				})
-		}
 		@components.TwoColumnContainer() {
 			<div class="flex flex-col gap-4 pt-2 sm:pt-4 md:pt-0">
 				<h2 class="text-2xl font-bold text-center">

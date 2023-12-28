@@ -3,7 +3,6 @@ import {
   Bars3CenterLeftIcon,
   XMarkIcon,
   ClipboardDocumentListIcon,
-  DocumentCheckIcon,
   RectangleStackIcon,
   ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/solid";

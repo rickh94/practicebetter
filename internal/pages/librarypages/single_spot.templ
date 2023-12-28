@@ -88,18 +88,18 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 					{ Label: "Spots", Href: "/library/pieces/"+spot.PieceID+"/spots", Active: false },
 					{ Label: spot.Name, Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID, Active: true },
 				})
-			<div class="flex flex-grow gap-2 justify-end">
+			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ spot.PieceID }></back-to-piece>
-				@components.HxLink("focusable flex items-center justify-center gap-1 rounded-xl bg-green-700/10 px-4 py-2 font-semibold text-green-800  transition duration-200 hover:bg-green-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/practice/repeat", "#main-content") {
+				@components.HxLink("focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/practice/repeat", "#main-content") {
 					@icons.RepeatIcon("-ml-1 size-5")
 					Practice
 				}
-				@components.HxLink( "focusable flex items-center justify-center gap-1 rounded-xl bg-amber-700/10 px-4 py-2 font-semibold  text-amber-800 transition duration-200 hover:bg-amber-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/edit", "#main-content") {
+				@components.HxLink( "focusable action-button bg-amber-700/10 text-amber-800 hover:bg-amber-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/edit", "#main-content") {
 					@heroicons.IconPencilSolid("-ml-1 size-5")
 					Edit
 				}
 				<button
- 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-red-800 rounded-xl transition duration-200 bg-red-700/10 hover:bg-red-700/20 focusable"
+ 					class="text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
  					hx-delete={ "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID }
  					hx-headers={ components.HxCsrfHeader(csrf) }
  					hx-confirm={ "Are you sure you want to delete spot " + spot.Name + "? This cannot be reversed" }
@@ -108,7 +108,7 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 					@heroicons.IconTrashSolid("-ml-1 size-5")
 					Delete Spot
 				</button>
-			</div>
+			}
 		}
 		@components.NarrowContainer() {
 			<div class="grid grid-cols-1 gap-4 p-4 w-full rounded-xl border sm:grid-cols-5 border-neutral-500 bg-white/80 text-neutral-900">

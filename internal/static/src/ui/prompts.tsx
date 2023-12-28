@@ -113,12 +113,15 @@ export function RemindersSummary({
         </div>
         <ChevronRightIcon className="summary-icon size-6 transition-transform" />
       </summary>
-      <div className="flex min-h-12 py-1" id="reminder-details">
+      <div
+        className="flex flex-col py-1 sm:min-h-12 sm:flex-row"
+        id="reminder-details"
+      >
         <p className="min-h-12 flex-grow py-1">{text ?? "No Reminders"}</p>
         {!!pieceid && !!spotid && (
           <Link
             pushUrl={false}
-            className="focusable flex items-center gap-1 rounded-xl bg-lime-700/10 px-6 py-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-700/20"
+            className="focusable flex items-center justify-center gap-1 rounded-xl bg-lime-700/10 px-6 py-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-700/20"
             href={`/library/pieces/${pieceid}/spots/${spotid}/reminders/edit`}
             target={`#${targetId}`}
           >
@@ -156,7 +159,7 @@ export function EditRemindersSummary({
         <ChevronRightIcon className="summary-icon size-6 transition-transform" />
       </summary>
       <form
-        className="flex gap-2 py-1"
+        className="flex flex-col gap-2 py-1 sm:flex-row"
         id="reminder-details-form"
         hx-target={`#${id}`}
         hx-post={`/library/pieces/${pieceid}/spots/${spotid}/reminders`}
@@ -164,7 +167,7 @@ export function EditRemindersSummary({
         hx-push-url="false"
       >
         <input type="hidden" name="gorilla.csrf.Token" value={csrf} />
-        <div className="flex h-max min-h-10 flex-grow flex-col gap-1">
+        <div className="flex h-max flex-grow flex-col gap-1 sm:min-h-12 sm:flex-row">
           <textarea
             name="text"
             defaultValue={text ?? ""}
@@ -185,7 +188,7 @@ export function EditRemindersSummary({
           </button>
           <Link
             pushUrl={false}
-            className="focusable flex items-center gap-1 rounded-xl bg-red-700/10 px-6 py-2 font-semibold text-red-800 transition duration-200 hover:bg-red-700/20"
+            className="focusable flex items-center justify-center gap-1 rounded-xl bg-red-700/10 px-6 py-2 font-semibold text-red-800 transition duration-200 hover:bg-red-700/20"
             href={`/library/pieces/${pieceid}/spots/${spotid}/reminders`}
             target={`#${id}`}
           >

@@ -15,9 +15,9 @@ templ EditSpot(s pages.ServerUtil, spot db.GetSpotRow, spotData string, csrf str
 					{ Label: spot.Name, Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID, Active: false },
 					{ Label: "Edit", Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID+"/edit", Active: true },
 				})
-			<div class="flex flex-grow gap-2 justify-end">
+			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ spot.PieceID }></back-to-piece>
-			</div>
+			}
 		}
 		@components.NarrowContainer() {
 			<div class="flex flex-col col-span-2 gap-2 p-4 rounded-xl border border-neutral-500 bg-white/80 text-neutral-900">

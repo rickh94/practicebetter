@@ -198,7 +198,7 @@ function RepeatPrepare({
         Repeat practicing is an important part of learning, but you need to do
         it carefully!
       </p>
-      <div className="px-8 py-4">
+      <div className="py-2">
         {spot && <PracticeSpotDisplay spot={spot} pieceid={pieceid} />}
       </div>
       <RepeatPrepareText open={!spot} />
