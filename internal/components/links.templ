@@ -39,7 +39,7 @@ templ LoginLink() {
 	}
 }
 
-func getActivePracticePlan(ctx context.Context) string {
+func GetActivePracticePlan(ctx context.Context) string {
 	return ctx.Value("activePracticePlanID").(string)
 }
 
@@ -55,7 +55,7 @@ func getCurrentPath(ctx context.Context) string {
 }
 
 templ InternalNav() {
-	<internal-nav activeplanid={ getActivePracticePlan(ctx) } activepath={ getCurrentPath(ctx) }></internal-nav>
+	<internal-nav activeplanid={ GetActivePracticePlan(ctx) } activepath={ getCurrentPath(ctx) }></internal-nav>
 }
 
 templ LogoutLink() {

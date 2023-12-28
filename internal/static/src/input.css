@@ -307,3 +307,15 @@ details[open] summary > .summary-icon {
   text-indent: 1;
   text-overflow: "";
 }
+
+.hazard-background {
+  color: white;
+  padding: 5px;
+  background-image: repeating-linear-gradient(
+    -55deg,
+    #000,
+    #000 20px,
+    #ffb101 20px,
+    #ffb101 40px
+  );
+}

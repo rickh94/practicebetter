@@ -281,7 +281,7 @@ func getSpotCardClass(completed bool, stage string) string {
 	}
 }
 
-templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, showTitle bool, pieceTitle string, hidden bool) {
+templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, showTitle bool, pieceTitle string, hidden bool, showStage bool) {
 	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration- spot-card", templ.KV("hidden", hidden) }>
 		@HxLink(getSpotCardClass(practiced, stage), href, "#main-content") {
 			<div class="flex flex-col flex-grow overflow-x-clip">
@@ -310,14 +310,16 @@ templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, s
 						}
 					</p>
 				</div>
-				<div class="text-sm whitespace-break-spaces">
-					<h4 class="text-sm">
-						Stage
-					</h4>
-					<p>
-						<spot-stage class="font-semibold" stage={ stage }></spot-stage>
-					</p>
-				</div>
+				if showStage {
+					<div class="text-sm whitespace-break-spaces">
+						<h4 class="text-sm">
+							Stage
+						</h4>
+						<p>
+							<spot-stage class="font-semibold" stage={ stage }></spot-stage>
+						</p>
+					</div>
+				}
 			</div>
 			if practiced || stage == "completed" {
 				<div class="mr-3 size-6"></div>
@@ -346,18 +348,18 @@ templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, s
 }
 
 templ SmallSpotCard(pieceID, spotID, name, measures, stage string) {
-	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID, false, false, "", false)
+	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID, false, false, "", false, true)
 }
 
 templ PracticeSpotCard(pieceID, spotID, name, measures, stage string, hidden bool) {
-	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", false, false, "", hidden)
+	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", false, false, "", hidden, true)
 }
 
 templ PracticePlanSpotCard(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool) {
 	if stage == "extra_repeat" || stage == "repeat" {
-		@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", practiced, true, pieceTitle, false)
+		@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", practiced, true, pieceTitle, false, false)
 	} else {
-		@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID, practiced, true, pieceTitle, false)
+		@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID, practiced, true, pieceTitle, false, false)
 	}
 }
 
@@ -369,6 +371,9 @@ templ PracticePlanCard(planID string, date int64, newSpots int64, repeatSpots in
 	@HxLink("flex flex-col gap-4 p-4 text-black bg-white rounded-lg shadow shadow-black/20 focusable hover:bg-violet-200/80", "/library/plans/"+planID, "#main-content") {
 		<h3 class="pb-1 text-xl font-bold text-center text-black border-b-2 border-black">
 			<pretty-date class="text-black" epoch={ strconv.FormatInt(date, 10) }></pretty-date>
+			if planID == GetActivePracticePlan(ctx) {
+				<span class="text-violet-700">- Active</span>
+			}
 		</h3>
 		<dl class="text-sm md:text-base columns-2">
 			<div class="flex gap-1">

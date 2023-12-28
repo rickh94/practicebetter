@@ -20,7 +20,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 				if hasActivePlan {
 					@components.HxLink("flex flex-col gap-4 p-4 text-black bg-white rounded-lg shadow shadow-black/20 focusable hover:bg-violet-200/80", "/library/plans/"+activePracticePlan.ID, "#main-content") {
 						<h3 class="pb-1 text-xl font-bold text-center text-black border-b-2 border-black">
-							Current Practice Plan <span class="text-violet-700 whitespace-nowrap">- Click to View</span>
+							Active Practice Plan <span class="text-violet-700 whitespace-nowrap">- Click to View</span>
 						</h3>
 						<dl class="sm:columns-2">
 							<div class="flex gap-1">

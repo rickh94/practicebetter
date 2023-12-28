@@ -123,44 +123,56 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						<p class="italic">You can return to this page at any time using the menu in the top left.</p>
 					}
 				</header>
-				@PracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)
-				<section id="extra-repeat-spots" class="flex flex-col gap-2">
-					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Extra Repeat Practice Spots</h3>
-					<p class="w-full text-sm">Repeat Practice these spots today</p>
-					<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-						for _, spot := range planData.ExtraRepeatSpots {
-							@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "extra_repeat", spot.PieceTitle, spot.Completed)
-						}
-					</ul>
-				</section>
-				@PracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted, planData.IsActive)
-				<section id="random-spots-pieces" class="flex flex-col gap-2">
-					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Practice Pieces</h3>
-					<p class="w-full text-sm">Random Practice the spots from these pieces.</p>
-					<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-						for _, piece := range planData.RandomSpotsPieces {
-							@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.ActiveSpots, piece.CompletedSpots, piece.Completed, "random_single")
-						}
-					</ul>
-				</section>
-				<section id="starting-point-pieces" class="flex flex-col gap-2">
-					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Starting Point Pieces</h3>
-					<p class="w-full text-sm">Practice these pieces using the random starting points.</p>
-					<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-						for _, piece := range planData.RandomStartPieces {
-							@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.ActiveSpots, piece.CompletedSpots, piece.Completed, "starting_point")
-						}
-					</ul>
-				</section>
-				<section id="new-spots" class="flex flex-col gap-2">
-					<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">New Spots</h3>
-					<p class="w-full text-sm">Get started on some new spots. Don’t feel like you need to get to all of them</p>
-					<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-						for _, spot := range planData.NewSpots {
-							@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "repeat", spot.PieceTitle, spot.Completed)
-						}
-					</ul>
-				</section>
+				if len(planData.InterleaveDaysSpots) > 0 {
+					@PracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)
+				}
+				if len(planData.ExtraRepeatSpots) > 0 {
+					<section id="extra-repeat-spots" class="flex flex-col gap-2">
+						<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Extra Repeat Practice Spots</h3>
+						<p class="w-full text-sm">Repeat Practice these spots today</p>
+						<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+							for _, spot := range planData.ExtraRepeatSpots {
+								@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "extra_repeat", spot.PieceTitle, spot.Completed)
+							}
+						</ul>
+					</section>
+				}
+				if len(planData.InterleaveSpots) > 0 {
+					@PracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted, planData.IsActive)
+				}
+				if len(planData.RandomSpotsPieces) > 0 {
+					<section id="random-spots-pieces" class="flex flex-col gap-2">
+						<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Practice Pieces</h3>
+						<p class="w-full text-sm">Random Practice the spots from these pieces.</p>
+						<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+							for _, piece := range planData.RandomSpotsPieces {
+								@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.ActiveSpots, piece.CompletedSpots, piece.Completed, "random_single")
+							}
+						</ul>
+					</section>
+				}
+				if len(planData.RandomStartPieces) > 0 {
+					<section id="starting-point-pieces" class="flex flex-col gap-2">
+						<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Starting Point Pieces</h3>
+						<p class="w-full text-sm">Practice these pieces using the random starting points.</p>
+						<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+							for _, piece := range planData.RandomStartPieces {
+								@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.ActiveSpots, piece.CompletedSpots, piece.Completed, "starting_point")
+							}
+						</ul>
+					</section>
+				}
+				if len(planData.NewSpots) > 0 {
+					<section id="new-spots" class="flex flex-col gap-2">
+						<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">New Spots</h3>
+						<p class="w-full text-sm">Get started on some new spots. Don’t feel like you need to get to all of them</p>
+						<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+							for _, spot := range planData.NewSpots {
+								@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "repeat", spot.PieceTitle, spot.Completed)
+							}
+						</ul>
+					</section>
+				}
 			</div>
 		}
 	}

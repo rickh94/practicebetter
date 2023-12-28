@@ -22,10 +22,18 @@ templ Head(s *Server, title string) {
 	<head>
 		<meta charset="utf-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimal-ui"/>
-		if title == "" {
-			<title>Practice Better</title>
+		if s.Debug {
+			if title == "" {
+				<title>DEV: Practice Better</title>
+			} else {
+				<title>DEV: { title } | Practice Better</title>
+			}
 		} else {
-			<title>{ title } | Practice Better</title>
+			if title == "" {
+				<title>Practice Better</title>
+			} else {
+				<title>{ title } | Practice Better</title>
+			}
 		}
 		<link rel="stylesheet" href={ s.StaticUrl("css/main.css") }/>
 		<link
@@ -114,11 +122,19 @@ templ Head(s *Server, title string) {
 
 templ Body(s *Server) {
 	<body class="flex flex-col h-full min-h-svh text-black bg-gradient-to-br from-[#ffefce] to-white font-work-sans">
+		if s.Debug {
+			<div class="fixed top-0 z-50 w-screen h-2 hazard-background"></div>
+			<div class="w-screen h-2"></div>
+		}
 		{ children... }
 		<!-- toast container -->
 		<div aria-live="assertive" class="flex fixed inset-0 z-50 items-end py-6 px-4 pointer-events-none sm:items-start sm:p-6">
 			<div class="flex flex-col items-center space-y-4 w-full sm:items-end" id="toast-container"></div>
 		</div>
+		if s.Debug {
+			<div class="fixed bottom-0 z-50 w-screen h-2 hazard-background"></div>
+			<div class="w-screen h-2"></div>
+		}
 		<script src={ s.StaticUrl("js/webauthn-browser.min.js") } defer></script>
 		<script type="module" src={ s.StaticUrl("out/main.js") }></script>
 		<script src={ s.StaticUrl("js/htmx.min.js") }></script>

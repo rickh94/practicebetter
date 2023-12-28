@@ -33,6 +33,7 @@ type Server struct {
 	SecretKey      string
 	StaticHostname string
 	UploadsPath    string
+	Debug          bool
 }
 
 func getEnvOrPanic(key string) string {
@@ -112,6 +113,11 @@ func NewServer() *http.Server {
 	es.Password = getEnvOrPanic("EMAIL_PASSWORD")
 	es.Encryption = mail.EncryptionSTARTTLS
 
+	debug := false
+	if debugValue := os.Getenv("DEBUG"); debugValue != "" {
+		debug = true
+	}
+
 	NewServer := &Server{
 		port:           port,
 		DB:             pool,
@@ -122,6 +128,7 @@ func NewServer() *http.Server {
 		SecretKey:      getEnvOrPanic("SECRET_KEY"),
 		StaticHostname: os.Getenv("STATIC_HOSTNAME"),
 		UploadsPath:    getEnvOrPanic("UPLOADS_PATH"),
+		Debug:          debug,
 	}
 
 	// Declare Server config
