@@ -187,6 +187,9 @@ func (s *Server) pieceSpots(w http.ResponseWriter, r *http.Request) {
 		CompletedSpots:      make([]librarypages.ListSpotsSpot, 0, len(piece)/2),
 	}
 	for _, row := range piece {
+		if !row.SpotID.Valid {
+			continue
+		}
 		if !row.SpotStage.Valid {
 			continue
 		}
@@ -202,42 +205,42 @@ func (s *Server) pieceSpots(w http.ResponseWriter, r *http.Request) {
 		switch row.SpotStage.String {
 		case "repeat":
 			info.RepeatSpots = append(info.RepeatSpots, librarypages.ListSpotsSpot{
-				ID:       pieceID,
+				ID:       row.SpotID.String,
 				Name:     row.SpotName.String,
 				Measures: measures,
 				Stage:    row.SpotStage.String,
 			})
 		case "extra_repeat":
 			info.ExtraRepeatSpots = append(info.ExtraRepeatSpots, librarypages.ListSpotsSpot{
-				ID:       pieceID,
+				ID:       row.SpotID.String,
 				Name:     row.SpotName.String,
 				Measures: measures,
 				Stage:    row.SpotStage.String,
 			})
 		case "random":
 			info.RandomSpots = append(info.RandomSpots, librarypages.ListSpotsSpot{
-				ID:       pieceID,
+				ID:       row.SpotID.String,
 				Name:     row.SpotName.String,
 				Measures: measures,
 				Stage:    row.SpotStage.String,
 			})
 		case "interleave":
 			info.InterleaveSpots = append(info.InterleaveSpots, librarypages.ListSpotsSpot{
-				ID:       pieceID,
+				ID:       row.SpotID.String,
 				Name:     row.SpotName.String,
 				Measures: measures,
 				Stage:    row.SpotStage.String,
 			})
 		case "interleave_days":
 			info.InterleaveDaysSpots = append(info.InterleaveDaysSpots, librarypages.ListSpotsSpot{
-				ID:       pieceID,
+				ID:       row.SpotID.String,
 				Name:     row.SpotName.String,
 				Measures: measures,
 				Stage:    row.SpotStage.String,
 			})
 		case "completed":
 			info.CompletedSpots = append(info.CompletedSpots, librarypages.ListSpotsSpot{
-				ID:       pieceID,
+				ID:       row.SpotID.String,
 				Name:     row.SpotName.String,
 				Measures: measures,
 				Stage:    row.SpotStage.String,
