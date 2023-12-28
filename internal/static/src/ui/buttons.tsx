@@ -126,7 +126,7 @@ export function WarningButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-4 py-2 font-semibold transition duration-200",
+        "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
           : "bg-yellow-700/10 text-yellow-800 hover:bg-yellow-700/20",

@@ -205,6 +205,70 @@ details[open] summary > .summary-icon {
   @apply bg-neutral-700/10;
 }
 
+.poor-radio-option.checked {
+  @apply bg-red-700/20 shadow;
+}
+
+.poor-radio-option.checked > .icon {
+  @apply visible;
+}
+
+.poor-radio-option.checked > .radio-border {
+  @apply border-red-800;
+}
+
+.poor-radio-option > .radio-border {
+  @apply border-transparent;
+}
+
+.poor-radio-option > .icon {
+  @apply invisible;
+}
+
+.poor-radio-option {
+  @apply bg-red-700/10;
+}
+
+.fine-radio-option.checked > .icon {
+  @apply visible;
+}
+
+.fine-radio-option.checked > .radio-border {
+  @apply border-sky-800;
+}
+
+.fine-radio-option > .radio-border {
+  @apply border-transparent;
+}
+
+.fine-radio-option > .icon {
+  @apply invisible;
+}
+
+.fine-radio-option {
+  @apply bg-sky-700/10;
+}
+
+.excellent-radio-option.checked > .icon {
+  @apply visible;
+}
+
+.excellent-radio-option.checked > .radio-border {
+  @apply border-green-800;
+}
+
+.excellent-radio-option > .radio-border {
+  @apply border-transparent;
+}
+
+.excellent-radio-option > .icon {
+  @apply invisible;
+}
+
+.excellent-radio-option {
+  @apply bg-green-700/10;
+}
+
 .check-option.checked {
   @apply bg-neutral-700/20 shadow;
 }

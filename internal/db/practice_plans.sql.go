@@ -277,6 +277,7 @@ SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practi
     spots.measures AS spot_measures,
     spots.piece_id AS spot_piece_id,
     spots.stage AS spot_stage,
+    spots.stage_started AS spot_stage_started,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS spot_piece_title
 FROM practice_plan_spots
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
@@ -289,15 +290,16 @@ type GetPracticePlanInterleaveSpotsParams struct {
 }
 
 type GetPracticePlanInterleaveSpotsRow struct {
-	PracticePlanID string         `json:"practicePlanId"`
-	SpotID         string         `json:"spotId"`
-	PracticeType   string         `json:"practiceType"`
-	Completed      bool           `json:"completed"`
-	SpotName       sql.NullString `json:"spotName"`
-	SpotMeasures   sql.NullString `json:"spotMeasures"`
-	SpotPieceID    sql.NullString `json:"spotPieceId"`
-	SpotStage      sql.NullString `json:"spotStage"`
-	SpotPieceTitle string         `json:"spotPieceTitle"`
+	PracticePlanID   string         `json:"practicePlanId"`
+	SpotID           string         `json:"spotId"`
+	PracticeType     string         `json:"practiceType"`
+	Completed        bool           `json:"completed"`
+	SpotName         sql.NullString `json:"spotName"`
+	SpotMeasures     sql.NullString `json:"spotMeasures"`
+	SpotPieceID      sql.NullString `json:"spotPieceId"`
+	SpotStage        sql.NullString `json:"spotStage"`
+	SpotStageStarted sql.NullInt64  `json:"spotStageStarted"`
+	SpotPieceTitle   string         `json:"spotPieceTitle"`
 }
 
 func (q *Queries) GetPracticePlanInterleaveSpots(ctx context.Context, arg GetPracticePlanInterleaveSpotsParams) ([]GetPracticePlanInterleaveSpotsRow, error) {
@@ -318,6 +320,7 @@ func (q *Queries) GetPracticePlanInterleaveSpots(ctx context.Context, arg GetPra
 			&i.SpotMeasures,
 			&i.SpotPieceID,
 			&i.SpotStage,
+			&i.SpotStageStarted,
 			&i.SpotPieceTitle,
 		); err != nil {
 			return nil, err

@@ -30,7 +30,7 @@ INSERT INTO spots (
     ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
     unixepoch('now')
 )
-RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, priority
+RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
 `
 
 type CreateSpotParams struct {
@@ -78,6 +78,7 @@ func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, e
 		&i.CurrentTempo,
 		&i.LastPracticed,
 		&i.StageStarted,
+		&i.SkipDays,
 		&i.Priority,
 	)
 	return i, err
@@ -149,9 +150,45 @@ func (q *Queries) DemoteSpotToExtraRepeat(ctx context.Context, arg DemoteSpotToE
 	return err
 }
 
+const demoteSpotToRandom = `-- name: DemoteSpotToRandom :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'interleave' THEN 'random' ELSE stage END,
+    stage_started = CASE WHEN stage = 'interleave' THEN unixepoch('now') ELSE stage_started END,
+    last_practiced = unixepoch('now')
+WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+`
+
+type DemoteSpotToRandomParams struct {
+	SpotID string `json:"spotId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) DemoteSpotToRandom(ctx context.Context, arg DemoteSpotToRandomParams) error {
+	_, err := q.db.ExecContext(ctx, demoteSpotToRandom, arg.SpotID, arg.UserID)
+	return err
+}
+
+const fixSpotStageStarted = `-- name: FixSpotStageStarted :exec
+UPDATE spots
+SET
+    stage_started = unixepoch('now')
+WHERE spots.id = ?1 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+`
+
+type FixSpotStageStartedParams struct {
+	SpotID string `json:"spotId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) FixSpotStageStarted(ctx context.Context, arg FixSpotStageStartedParams) error {
+	_, err := q.db.ExecContext(ctx, fixSpotStageStarted, arg.SpotID, arg.UserID)
+	return err
+}
+
 const getSpot = `-- name: GetSpot :one
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -178,6 +215,7 @@ type GetSpotRow struct {
 	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
 	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
+	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
@@ -199,6 +237,7 @@ func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (GetSpotRow, e
 		&i.CurrentTempo,
 		&i.LastPracticed,
 		&i.StageStarted,
+		&i.SkipDays,
 		&i.Priority,
 		&i.PieceTitle,
 	)
@@ -234,7 +273,7 @@ func (q *Queries) GetSpotStageStarted(ctx context.Context, arg GetSpotStageStart
 
 const listHighPrioritySpots = `-- name: ListHighPrioritySpots :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -256,6 +295,7 @@ type ListHighPrioritySpotsRow struct {
 	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
 	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
+	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
@@ -283,6 +323,7 @@ func (q *Queries) ListHighPrioritySpots(ctx context.Context, userID string) ([]L
 			&i.CurrentTempo,
 			&i.LastPracticed,
 			&i.StageStarted,
+			&i.SkipDays,
 			&i.Priority,
 			&i.PieceTitle,
 		); err != nil {
@@ -301,7 +342,7 @@ func (q *Queries) ListHighPrioritySpots(ctx context.Context, userID string) ([]L
 
 const listPieceSpots = `-- name: ListPieceSpots :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -328,6 +369,7 @@ type ListPieceSpotsRow struct {
 	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
 	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
+	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
@@ -355,6 +397,7 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 			&i.CurrentTempo,
 			&i.LastPracticed,
 			&i.StageStarted,
+			&i.SkipDays,
 			&i.Priority,
 			&i.PieceTitle,
 		); err != nil {
@@ -408,6 +451,25 @@ type PromoteSpotToInterleaveParams struct {
 
 func (q *Queries) PromoteSpotToInterleave(ctx context.Context, arg PromoteSpotToInterleaveParams) error {
 	_, err := q.db.ExecContext(ctx, promoteSpotToInterleave, arg.SpotID, arg.UserID, arg.PieceID)
+	return err
+}
+
+const promoteSpotToInterleaveDays = `-- name: PromoteSpotToInterleaveDays :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'interleave' THEN 'interleave_days' ELSE stage END,
+    stage_started = CASE WHEN stage = 'interleave' THEN unixepoch('now') ELSE stage_started END,
+    last_practiced = unixepoch('now')
+WHERE spots.id = ?1 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+`
+
+type PromoteSpotToInterleaveDaysParams struct {
+	SpotID string `json:"spotId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) PromoteSpotToInterleaveDays(ctx context.Context, arg PromoteSpotToInterleaveDaysParams) error {
+	_, err := q.db.ExecContext(ctx, promoteSpotToInterleaveDays, arg.SpotID, arg.UserID)
 	return err
 }
 
@@ -527,7 +589,7 @@ UPDATE spots
 SET
     text_prompt = ?
 WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
-RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, priority
+RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
 `
 
 type UpdateTextPromptParams struct {
@@ -559,6 +621,7 @@ func (q *Queries) UpdateTextPrompt(ctx context.Context, arg UpdateTextPromptPara
 		&i.CurrentTempo,
 		&i.LastPracticed,
 		&i.StageStarted,
+		&i.SkipDays,
 		&i.Priority,
 	)
 	return i, err

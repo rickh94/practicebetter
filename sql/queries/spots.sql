@@ -82,6 +82,12 @@ SET
     priority = :priority
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
+-- name: FixSpotStageStarted :exec
+UPDATE spots
+SET
+    stage_started = unixepoch('now')
+WHERE spots.id = :spot_id AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
+
 -- name: PromoteSpotToRandom :exec
 UPDATE spots
 SET
@@ -113,6 +119,22 @@ SET
     stage_started = CASE WHEN stage = 'random' THEN unixepoch('now') ELSE stage_started END,
     last_practiced = unixepoch('now')
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
+
+-- name: PromoteSpotToInterleaveDays :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'interleave' THEN 'interleave_days' ELSE stage END,
+    stage_started = CASE WHEN stage = 'interleave' THEN unixepoch('now') ELSE stage_started END,
+    last_practiced = unixepoch('now')
+WHERE spots.id = :spot_id AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
+
+-- name: DemoteSpotToRandom :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'interleave' THEN 'random' ELSE stage END,
+    stage_started = CASE WHEN stage = 'interleave' THEN unixepoch('now') ELSE stage_started END,
+    last_practiced = unixepoch('now')
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
 
 -- name: UpdateSpotPracticed :exec
 UPDATE spots

@@ -111,6 +111,7 @@ SELECT practice_plan_spots.*,
     spots.measures AS spot_measures,
     spots.piece_id AS spot_piece_id,
     spots.stage AS spot_stage,
+    spots.stage_started AS spot_stage_started,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS spot_piece_title
 FROM practice_plan_spots
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id

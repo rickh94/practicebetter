@@ -28,7 +28,7 @@ export function ConfirmDialog({
     <dialog
       id={dialogid}
       aria-labelledby={`${dialogid}-title`}
-      className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
+      className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] p-4 text-left sm:max-w-xl"
     >
       <header className="mt-2 text-center sm:text-left">
         <h3

@@ -87,6 +87,7 @@ type Spot struct {
 	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
 	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
+	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
 }
 
