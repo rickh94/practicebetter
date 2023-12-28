@@ -159,6 +159,18 @@ templ BreadcrumbWithDates(bc []BreadcrumbWithDatesInfo) {
 			@BreadcrumbItem(b.Label, b.Href, b.Active, i == len(bc) - 1, b.IsDate)
 		}
 	}
+	if len(bc) > 1 {
+		<nav aria-label="Breadcrumb" class="flex flex-grow-0 sm:hidden">
+			@HxLink("focusable action-button text-xl  bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
+				@heroicons.IconChevronLeftSolid("-ml-1 size-5")
+				if bc[len(bc)-2].IsDate {
+					<number-date epoch={ bc[len(bc)-2].Label }></number-date>
+				} else {
+					{ bc[len(bc)-2].Label }
+				}
+			}
+		</nav>
+	}
 }
 
 templ BreadcrumbItem(label string, href string, active bool, isLast bool, isDate bool) {

@@ -212,7 +212,7 @@ func (s *Server) GetActivePracticePlanID(ctx context.Context) (string, bool) {
 		return "", false
 	}
 	if user.ActivePracticePlanID.Valid {
-		if !user.ActivePracticePlanStarted.Valid && time.Since(time.Unix(user.ActivePracticePlanStarted.Int64, 0)) > 5*time.Hour {
+		if !user.ActivePracticePlanStarted.Valid || time.Since(time.Unix(user.ActivePracticePlanStarted.Int64, 0)) > 5*time.Hour {
 			err := queries.ClearActivePracticePlan(ctx, user.ID)
 			if err != nil {
 				log.Default().Printf("failed to clear active practice plan: %v\n", err)

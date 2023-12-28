@@ -107,7 +107,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/upload/images", s.uploadImageForm)
 		r.Post("/upload/images", s.uploadImage)
 
-		r.Get("/practice-sessions", s.listPracticeSessions)
+		// r.Get("/practice-sessions", s.listPracticeSessions)
 
 		r.Get("/plans/create", s.createPracticePlanForm)
 		r.Get("/plans", s.planList)
@@ -123,13 +123,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 	return r
 }
 
-func (s *Server) HxRender(w http.ResponseWriter, r *http.Request, component templ.Component, title string) {
+func (s *Server) HxRender(w http.ResponseWriter, r *http.Request, mainContent templ.Component, title string) {
 	hxRequest := htmx.Request(r)
 	if hxRequest == nil || hxRequest.Boosted {
-		component = Page(s, component, title)
+		mainContent = Page(s, mainContent, title)
 	}
 	w.Header().Set("Content-Type", "text/html")
-	component.Render(r.Context(), w)
+	mainContent.Render(r.Context(), w)
 }
 
 func (s *Server) Redirect(w http.ResponseWriter, r *http.Request, url string) {

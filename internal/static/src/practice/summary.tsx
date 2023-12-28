@@ -3,8 +3,13 @@ import {
   Cog6ToothIcon,
   MusicalNoteIcon,
 } from "@heroicons/react/24/solid";
-import { type PracticeSummaryItem } from "../common";
-import { AngryButton, HappyButton, WarningButton } from "../ui/buttons";
+import { cn, type PracticeSummaryItem } from "../common";
+import {
+  AngryButton,
+  HappyButton,
+  VioletButton,
+  WarningButton,
+} from "../ui/buttons";
 import { BackToPiece } from "../ui/links";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { XMarkIcon } from "@heroicons/react/24/solid";
@@ -279,17 +284,20 @@ export default function Summary({
           <Cog6ToothIcon className="-ml-1 size-5" />
           Back to Setup
         </WarningButton>
-        <HappyButton onClick={practice}>
+        {/*
+          TODO: this button could go back to the active practice plan
+        */}
+        <VioletButton onClick={practice}>
           <MusicalNoteIcon className="-ml-1 size-5" />
           Practice More
-        </HappyButton>
+        </VioletButton>
       </div>
       <h2 className="w-full pt-12 text-center text-2xl font-semibold">
         Practice Summary
       </h2>
       <div className="flex w-full flex-col items-center justify-center gap-2 pt-4">
-        <table className="min-w-full divide-y divide-neutral-700">
-          <thead>
+        <table className="hidden w-full divide-y divide-neutral-700 sm:table">
+          <thead className="w-full">
             <tr>
               <th
                 scope="col"
@@ -348,6 +356,36 @@ export default function Summary({
             ))}
           </tbody>
         </table>
+        <ul className="flex w-full list-none flex-col divide-y divide-neutral-700 border-y border-y-neutral-700 sm:hidden">
+          {summary.map(({ name, reps, id, excellent, fine, poor }, idx) => (
+            <li
+              className={cn(
+                "flex flex-col gap-1 px-3 py-2",
+                idx % 2 === 0 && "bg-neutral-700/10",
+              )}
+              key={id}
+            >
+              <span className="flex gap-1">
+                Spot:
+                <strong className="font-bold">{name}</strong>
+              </span>
+              <span className="flex max-w-sm flex-wrap justify-between gap-2">
+                <span className="flex gap-1 text-green-800">
+                  Excellent: <strong className="font-bold">{excellent}</strong>
+                </span>
+                <span className="flex gap-1 text-sky-800">
+                  Fine: <strong className="font-bold">{fine}</strong>
+                </span>
+                <span className="flex gap-1 text-red-800">
+                  Poor: <strong className="font-bold">{poor}</strong>
+                </span>
+                <span className="flex gap-1 text-black">
+                  Total: <strong className="font-bold">{reps}</strong>
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </>
   );

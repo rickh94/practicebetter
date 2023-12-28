@@ -45,10 +45,37 @@ export function HappyButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-4 py-2 font-semibold transition duration-200",
+        "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
           : "bg-green-700/10 text-green-800 hover:bg-green-700/20",
+        grow && "flex-grow",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function VioletButton({
+  disabled,
+  children,
+  type = "button",
+  grow = false,
+  className = "",
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      disabled={disabled}
+      type={type}
+      className={cn(
+        "focusable action-button",
+        disabled
+          ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
+          : "bg-violet-700/10 text-violet-800 hover:bg-violet-700/20",
         grow && "flex-grow",
         className,
       )}
@@ -72,7 +99,7 @@ export function ColorlessButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-4 py-2 font-semibold transition duration-200",
+        "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
           : "",

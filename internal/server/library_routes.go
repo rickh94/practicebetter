@@ -27,12 +27,15 @@ func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not get pieces", http.StatusInternalServerError)
 		return
 	}
-	practiceSessionRows, err := queries.ListRecentPracticeSessions(r.Context(), user.ID)
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Could not get practice sessions", http.StatusInternalServerError)
-		return
-	}
+	/*
+		practiceSessionRows, err := queries.ListRecentPracticeSessions(r.Context(), user.ID)
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not get practice sessions", http.StatusInternalServerError)
+			return
+		}
+		data, err := json.Marshal(practiceSessionRows)
+	*/
 	var plan db.GetPracticePlanWithTodoRow
 	hasPlan := false
 	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
@@ -56,8 +59,7 @@ func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not get practice plans", http.StatusInternalServerError)
 		return
 	}
-	data, err := json.Marshal(practiceSessionRows)
-	s.HxRender(w, r, librarypages.Dashboard(s, pieces, string(data), hasPlan, &plan, recentPracticePlans), "Library")
+	s.HxRender(w, r, librarypages.Dashboard(s, pieces, hasPlan, &plan, recentPracticePlans), "Library")
 }
 
 type PieceFormData struct {

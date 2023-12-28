@@ -385,7 +385,7 @@ function SinglePractice({
 
   return (
     <div className="relative w-full" ref={topRef}>
-      <div className="flex w-full flex-col items-center justify-center gap-2 pt-8 sm:pt-24">
+      <div className="flex w-full flex-col items-center justify-center gap-2 pt-8 sm:pt-12">
         <div className="text-2xl font-semibold text-neutral-700">
           Practicing:
         </div>
@@ -400,7 +400,7 @@ function SinglePractice({
             id={`${currentSpotIdx}-${counter}`}
           />
         </div>
-        <div className="flex flex-col justify-center gap-2 pt-12 sm:flex-row-reverse">
+        <div className="flex w-full flex-col justify-center gap-2 px-4 pt-12 sm:flex-row-reverse sm:px-0">
           <BigHappyButton
             type="button"
             onClick={handleExcellent}

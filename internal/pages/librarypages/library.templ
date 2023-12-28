@@ -9,7 +9,7 @@ import "strconv"
 
 // TODO: component to parse and combine practice session info and group by date (has to be on frontend because of timezone).
 
-templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, practiceSessions string, hasActivePlan bool, activePracticePlan *db.GetPracticePlanWithTodoRow, recentPracticePlans []db.ListRecentPracticePlansRow) {
+templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, hasActivePlan bool, activePracticePlan *db.GetPracticePlanWithTodoRow, recentPracticePlans []db.ListRecentPracticePlansRow) {
 	<title>Library | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Library") , components.AccountLink())) {
 		@components.TwoColumnContainer() {
@@ -57,14 +57,6 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 						All Practice Plans
 					}
 				</div>
-				<div class="hidden flex-col gap-2 p-4 w-full rounded-xl md:block bg-neutral-700/10">
-					<h3 class="text-2xl font-bold col-span">Recent Practice Sessions</h3>
-					<past-practice-display sessions={ practiceSessions } background="true"></past-practice-display>
-					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/practice-sessions", "#main-content") {
-						@heroicons.IconViewColumnsSolid("-ml-1 size-6")
-						All Practice Sessions
-					}
-				</div>
 			</div>
 			<div class="flex flex-col gap-4">
 				@LibraryPieceList(pieces)
@@ -83,6 +75,18 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 		<script type="module" src={ s.StaticUrl("out/practice-display.js") }></script>
 	}
 }
+
+/*
+
+	<div class="hidden flex-col gap-2 p-4 w-full rounded-xl md:block bg-neutral-700/10">
+		<h3 class="text-2xl font-bold col-span">Recent Practice Sessions</h3>
+		<past-practice-display sessions={ practiceSessions } background="true"></past-practice-display>
+		@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/practice-sessions", "#main-content") {
+			@heroicons.IconViewColumnsSolid("-ml-1 size-6")
+			All Practice Sessions
+		}
+	</div>
+*/
 
 func composerOrDefault(composer sql.NullString) string {
 	if composer.Valid {
