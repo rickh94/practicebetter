@@ -125,6 +125,7 @@ UPDATE spots
 SET
     stage = CASE WHEN stage = 'interleave' THEN 'interleave_days' ELSE stage END,
     stage_started = CASE WHEN stage = 'interleave' THEN unixepoch('now') ELSE stage_started END,
+    skip_days = 1,
     last_practiced = unixepoch('now')
 WHERE spots.id = :spot_id AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
 
@@ -135,6 +136,30 @@ SET
     stage_started = CASE WHEN stage = 'interleave' THEN unixepoch('now') ELSE stage_started END,
     last_practiced = unixepoch('now')
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
+
+-- name: DemoteSpotToInterleave :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'interleave_days' THEN 'interleave' ELSE stage END,
+    stage_started = CASE WHEN stage = 'interleave_days' THEN unixepoch('now') ELSE stage_started END,
+    skip_days = 1,
+    last_practiced = unixepoch('now')
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
+
+-- name: PromoteSpotToCompleted :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'interleave_days' THEN 'completed' ELSE stage END,
+    stage_started = CASE WHEN stage = 'interleave_days' THEN unixepoch('now') ELSE stage_started END,
+    skip_days = 1,
+    last_practiced = unixepoch('now')
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
+
+-- name: UpdateSpotSkipDays :exec
+UPDATE spots
+SET
+    skip_days = :skip_days
+WHERE spots.id = :spot_id AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
 
 -- name: UpdateSpotPracticed :exec
 UPDATE spots

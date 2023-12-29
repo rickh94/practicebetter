@@ -100,7 +100,8 @@ SELECT
     spots.name AS spot_name,
     spots.idx AS spot_idx,
     spots.stage AS spot_stage,
-    spots.last_practiced AS spot_last_practiced
+    spots.last_practiced AS spot_last_practiced,
+    spots.skip_days AS spot_skip_days
 FROM pieces
 LEFT JOIN spots ON pieces.id = spots.piece_id
 WHERE pieces.id = :piece_id AND pieces.user_id = :user_id;

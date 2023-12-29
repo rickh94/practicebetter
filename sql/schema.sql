@@ -70,7 +70,7 @@ CREATE TABLE spots (
     current_tempo INTEGER,
     last_practiced INTEGER,
     stage_started INTEGER,
-    skip_days INTEGER NOT NULL DEFAULT 0,
+    skip_days INTEGER NOT NULL DEFAULT 1,
     priority INTEGER NOT NULL DEFAULT 0,
     CHECK(stage IN ('repeat', 'extra_repeat', 'random', 'interleave', 'interleave_days', 'completed')),
     CHECK(LENGTH(name) > 0),

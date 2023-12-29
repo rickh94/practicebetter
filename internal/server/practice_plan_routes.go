@@ -148,7 +148,24 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 				}
 			} else if row.SpotStage.String == "interleave_days" {
 				// if the spot doesn't have a last practiced date, or if it wasn't practiced yesterday (roughly)
-				if !row.SpotLastPracticed.Valid || row.SpotLastPracticed.Int64 < time.Now().Unix()-60*60*25 {
+				if !row.SpotSkipDays.Valid {
+					err := qtx.UpdateSpotSkipDays(r.Context(), db.UpdateSpotSkipDaysParams{
+						SkipDays: 1,
+						SpotID:   row.SpotID.String,
+						UserID:   user.ID,
+					})
+					if err != nil {
+						log.Default().Printf("Database error: %v\n", err)
+						htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+							Message:  "Could not update invalid interleave days spot",
+							Title:    "Failed to update",
+							Variant:  "error",
+							Duration: 3000,
+						})
+						return
+					}
+				}
+				if !row.SpotLastPracticed.Valid || time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > time.Duration(row.SpotSkipDays.Int64)*24*time.Hour {
 					_, err := qtx.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
 						PracticePlanID: newPlan.ID,
 						SpotID:         row.SpotID.String,
@@ -329,6 +346,26 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 			} else {
 				spot.Measures = ""
 			}
+
+			if row.SpotStageStarted.Valid {
+				spot.DaysSinceStarted = int64(time.Since(time.Unix(row.SpotStageStarted.Int64, 0)).Hours() / 24)
+			} else {
+				spot.DaysSinceStarted = 0
+				err := queries.FixSpotStageStarted(r.Context(), db.FixSpotStageStartedParams{
+					SpotID: row.SpotID.String,
+					UserID: userID,
+				})
+				if err != nil {
+					log.Default().Println(err)
+				}
+			}
+
+			if row.SpotSkipDays.Valid {
+				spot.SkipDays = row.SpotSkipDays.Int64
+			} else {
+				spot.SkipDays = 0
+			}
+
 			spot.PieceTitle = row.SpotPieceTitle
 			spot.PieceID = row.SpotPieceID.String
 			spot.Completed = row.SpotCompleted
@@ -359,8 +396,7 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 }
 
 /*
-skip days value for interleave days spots.
-after day 5 it can increase
+after day 4 it can increase
 excellent doubles until it reaches 7, on day 25 it can be completed
 interleave days spot list should be randomized
 
@@ -418,7 +454,7 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	planSpots, err := qtx.GetPracticePlanInterleaveDaysSpots(r.Context(), db.GetPracticePlanInterleaveDaysSpotsParams{
+	interleaveDaysSpots, err := qtx.GetPracticePlanInterleaveDaysSpots(r.Context(), db.GetPracticePlanInterleaveDaysSpotsParams{
 		PlanID: planID,
 		UserID: user.ID,
 	})
@@ -427,10 +463,10 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	spotInfo := make([]pspages.PracticePlanSpot, 0, len(planSpots))
-	for _, planSpot := range planSpots {
+	spotInfo := make([]pspages.PracticePlanSpot, 0, len(interleaveDaysSpots))
+	for _, interleaveDaysSpot := range interleaveDaysSpots {
 		if err := qtx.CompletePracticePlanSpot(r.Context(), db.CompletePracticePlanSpotParams{
-			SpotID: planSpot.SpotID,
+			SpotID: interleaveDaysSpot.SpotID,
 			UserID: user.ID,
 			PlanID: planID,
 		}); err != nil {
@@ -438,23 +474,155 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 			http.Error(w, "Could not update spot", http.StatusInternalServerError)
 			return
 		}
-		if err := qtx.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
-			SpotID: planSpot.SpotID,
-			UserID: user.ID,
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not update spot", http.StatusInternalServerError)
-			return
+
+		quality := r.FormValue(fmt.Sprintf("%s.quality", interleaveDaysSpot.SpotID))
+		var skipDays int64
+		if interleaveDaysSpot.SpotSkipDays.Valid {
+			skipDays = interleaveDaysSpot.SpotSkipDays.Int64
+		} else {
+			skipDays = 1
+
+			err := qtx.UpdateSpotSkipDays(r.Context(), db.UpdateSpotSkipDaysParams{
+				SkipDays: 1,
+				SpotID:   interleaveDaysSpot.SpotID,
+				UserID:   user.ID,
+			})
+
+			if err != nil {
+				log.Default().Println(err)
+				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+					Message:  "Could not fix interleave days spot",
+					Title:    "Error",
+					Variant:  "error",
+					Duration: 3000,
+				})
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+		var timeSinceStarted time.Duration
+		if interleaveDaysSpot.SpotStageStarted.Valid {
+			timeSinceStarted = time.Since(time.Unix(interleaveDaysSpot.SpotStageStarted.Int64, 0))
+		} else {
+			timeSinceStarted = 0
+			err := qtx.FixSpotStageStarted(r.Context(), db.FixSpotStageStartedParams{
+				SpotID: interleaveDaysSpot.SpotID,
+				UserID: user.ID,
+			})
+			if err != nil {
+				log.Default().Println(err)
+				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+					Message:  "Could not fix interleave days spot",
+					Title:    "Error",
+					Variant:  "error",
+					Duration: 3000,
+				})
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
+		// excellent and more than three days old and days is less than 7, double the skip time
+		if quality == "excellent" &&
+			interleaveDaysSpot.SpotStageStarted.Valid &&
+			timeSinceStarted > 4*24*time.Hour &&
+			interleaveDaysSpot.SpotSkipDays.Int64 < 7 {
+			skipDays *= 2
+			err := qtx.UpdateSpotSkipDays(r.Context(), db.UpdateSpotSkipDaysParams{
+				SkipDays: skipDays,
+				SpotID:   interleaveDaysSpot.SpotID,
+				UserID:   user.ID,
+			})
+			if err != nil {
+				log.Default().Println(err)
+				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+					Message:  "Could not update spot",
+					Title:    "Error",
+					Variant:  "error",
+					Duration: 3000,
+				})
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			// poor quality resets days to 1 or demotes immediately
+		} else if quality == "poor" {
+			if skipDays < 2 {
+				err := qtx.DemoteSpotToInterleave(r.Context(), db.DemoteSpotToInterleaveParams{
+					SpotID: interleaveDaysSpot.SpotID,
+					UserID: user.ID,
+				})
+				if err != nil {
+					log.Default().Println(err)
+					htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+						Message:  "Could not demote spot",
+						Title:    "Error",
+						Variant:  "error",
+						Duration: 3000,
+					})
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+			} else {
+				skipDays = 1
+				err := qtx.UpdateSpotSkipDays(r.Context(), db.UpdateSpotSkipDaysParams{
+					SkipDays: skipDays,
+					SpotID:   interleaveDaysSpot.SpotID,
+					UserID:   user.ID,
+				})
+				if err != nil {
+					log.Default().Println(err)
+					htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+						Message:  "Could not update spot",
+						Title:    "Error",
+						Variant:  "error",
+						Duration: 3000,
+					})
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+			}
+			// completed promotes to completed, also have to verify conditions and not trust the client
+		} else if quality == "completed" && skipDays > 6 && timeSinceStarted > 20 {
+			err := qtx.PromoteSpotToCompleted(r.Context(), db.PromoteSpotToCompletedParams{
+				SpotID: interleaveDaysSpot.SpotID,
+				UserID: user.ID,
+			})
+			if err != nil {
+				log.Default().Println(err)
+				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+					Message:  "Could not promote spot",
+					Title:    "Error",
+					Variant:  "error",
+					Duration: 3000,
+				})
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		} else {
+			if err := qtx.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
+				SpotID: interleaveDaysSpot.SpotID,
+				UserID: user.ID,
+			}); err != nil {
+				log.Default().Println(err)
+				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+					Message:  "Could not update spot",
+					Title:    "Error",
+					Variant:  "error",
+					Duration: 3000,
+				})
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 		}
 
 		if err := qtx.CreatePracticeSpot(r.Context(), db.CreatePracticeSpotParams{
 			UserID:            user.ID,
-			SpotID:            planSpot.SpotID,
+			SpotID:            interleaveDaysSpot.SpotID,
 			PracticeSessionID: practiceSessionID,
 		}); err != nil {
 			if err := qtx.AddRepToPracticeSpot(r.Context(), db.AddRepToPracticeSpotParams{
 				UserID:            user.ID,
-				SpotID:            planSpot.SpotID,
+				SpotID:            interleaveDaysSpot.SpotID,
 				PracticeSessionID: practiceSessionID,
 			}); err != nil {
 				log.Default().Println(err)
@@ -463,12 +631,14 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 			}
 		}
 		spotInfo = append(spotInfo, pspages.PracticePlanSpot{
-			ID:         planSpot.SpotID,
-			Name:       planSpot.SpotName.String,
-			Measures:   planSpot.SpotMeasures.String,
-			Completed:  true,
-			PieceID:    planSpot.SpotPieceID.String,
-			PieceTitle: planSpot.SpotPieceTitle,
+			ID:               interleaveDaysSpot.SpotID,
+			Name:             interleaveDaysSpot.SpotName.String,
+			Measures:         interleaveDaysSpot.SpotMeasures.String,
+			Completed:        true,
+			PieceID:          interleaveDaysSpot.SpotPieceID.String,
+			PieceTitle:       interleaveDaysSpot.SpotPieceTitle,
+			SkipDays:         skipDays,
+			DaysSinceStarted: int64(timeSinceStarted.Hours() / 24),
 		})
 	}
 
@@ -480,7 +650,7 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 
 	token := csrf.Token(r)
 	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-		Message:  "You’ve completed your interleaved days spots!",
+		Message:  "You completed your interleaved days spots!",
 		Title:    "Completed!",
 		Variant:  "success",
 		Duration: 3000,
@@ -679,7 +849,7 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 
 	token := csrf.Token(r)
 	htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
-		Message:  "You’ve completed your interleaved spots!",
+		Message:  "You completed your interleaved spots!",
 		Title:    "Completed!",
 		Variant:  "success",
 		Duration: 3000,
@@ -791,7 +961,7 @@ func (s *Server) resumePracticePlan(w http.ResponseWriter, r *http.Request) {
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if ok && activePlanID == plan.ID {
 		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "You’re already using this practice plan.",
+			Message:  "You are already using this practice plan.",
 			Title:    "Already Active",
 			Variant:  "warning",
 			Duration: 3000,
@@ -832,7 +1002,7 @@ func (s *Server) resumePracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-		Message:  "You’ve resumed your practice plan!",
+		Message:  "You resumed your practice plan!",
 		Title:    "Resumed!",
 		Variant:  "success",
 		Duration: 3000,
@@ -888,7 +1058,7 @@ func (s *Server) stopPracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-		Message:  "You’ve stopped your practice plan!",
+		Message:  "You stopped your practice plan!",
 		Title:    "Stopped",
 		Variant:  "success",
 		Duration: 3000,

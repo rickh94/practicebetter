@@ -16,12 +16,14 @@ script changeSelectedQuality(id, value string) {
 }
 
 type PracticePlanSpot struct {
-	ID         string
-	Name       string
-	Measures   string
-	PieceTitle string
-	PieceID    string
-	Completed  bool
+	ID               string
+	Name             string
+	Measures         string
+	PieceTitle       string
+	PieceID          string
+	Completed        bool
+	SkipDays         int64
+	DaysSinceStarted int64
 }
 
 type PracticePlanPiece struct {
@@ -138,7 +140,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 		@components.NormalContainer() {
 			<div class="flex flex-col flex-grow gap-0 p-0 min-h-full text-black bg-white rounded shadow shadow-black/20">
 				<label id="progress-label" class="sr-only">Plan Progress</label>
-				<progress value={ strconv.Itoa(planData.CompletedItems) } max={ strconv.Itoa(planData.TotalItems) } class="pb-2 m-0 w-full progress-violet-600 progress-bg-white" aria-labelledby="progress-label">{ strconv.Itoa(planData.CompletedItems) }/{ strconv.Itoa(planData.TotalItems) }</progress>
+				<progress value={ strconv.Itoa(planData.CompletedItems) } max={ strconv.Itoa(planData.TotalItems) } class="pb-2 m-0 w-full progress-rounded progress-violet-600 progress-bg-white" aria-labelledby="progress-label">{ strconv.Itoa(planData.CompletedItems) }/{ strconv.Itoa(planData.TotalItems) }</progress>
 				<div class="grid grid-cols-1 gap-4 p-4 w-full sm:grid-cols-2 lg:grid-cols-3">
 					<header class="flex flex-col col-span-full justify-center items-center pb-4 w-full">
 						<div class="py-2 px-4 text-center border-b-2 border-black sm:px-8">
@@ -229,16 +231,14 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 				</div>
 			} else {
 				<button
- 					hx-post={ "/library/plans/" + planID + "/interleave-days-spots/complete-all" }
- 					hx-headers={ components.HxCsrfHeader(csrf) }
- 					hx-target="#interleave-days-spots"
- 					hx-swap="outerHTML transition:true"
+ 					onClick={ components.ShowModal(completeInterleaveDaysFormId) }
  					type="button"
  					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
 				>
 					@heroicons.IconCheckCircleOutline("-ml-1 size-5")
 					Complete
 				</button>
+				@CompleteInterleaveDaysForm(planID, csrf, interleaveDaysSpots)
 			}
 		}
 	</section>
@@ -369,6 +369,138 @@ templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpo
 			<section class="flex flex-wrap gap-2 mt-4 w-full">
 				<button
  					onclick={ components.CloseModal(completeInterleaveFormId) }
+ 					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
+ 					type="button"
+				>
+					@heroicons.IconXCircleSolid("-ml-1 size-5 text-red-800")
+					Close
+				</button>
+				<button
+ 					class="flex-grow text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 					type="submit"
+				>
+					@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800")
+					Complete
+				</button>
+			</section>
+		</form>
+	</dialog>
+}
+
+const completeInterleaveDaysFormId = "complete-interleave-days-form"
+
+templ CompleteInterleaveDaysForm(planID string, csrf string, spots []PracticePlanSpot) {
+	<dialog id={ completeInterleaveDaysFormId } class="modal" aria-labelledby="interleave-days-form-modal-title" class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
+		<header class="p-4 mt-2 max-w-lg text-center sm:text-left">
+			<h3 id="interleave-days-form-modal-title" class="text-2xl font-semibold leading-6 text-neutral-900">Evaluate Interleave Days Spots</h3>
+			<p class="text-sm">Evaluate how well you think you did on each spot below.</p>
+			<p class="text-sm">When you have been playing a spot for a long time, you may get the option to choose “Completed” and stop it from coming up again.</p>
+		</header>
+		<form
+ 			hx-post={ "/library/plans/" + planID + "/interleave-days-spots/complete-all" }
+ 			hx-headers={ components.HxCsrfHeader(csrf) }
+ 			hx-target="#interleave-days-spots"
+ 			hx-swap="outerHTML transition:true"
+ 			hx-on::after-request={ components.CloseModal(completeInterleaveDaysFormId) }
+ 			class="flex flex-col gap-2 p-4 w-full max-w-lg"
+		>
+			<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+				for _, spot := range spots {
+					<li class="flex flex-wrap gap-4 justify-between items-center" id={ "quality-" + spot.ID }>
+						<span class="flex flex-wrap items-center">
+							{ spot.Name }
+							if spot.Measures != "" {
+								- { spot.Measures }
+							}
+						</span>
+						<span class="flex gap-1">
+							<label for={ spot.ID + ".quality.poor" } class="flex relative py-3 pr-2 pl-4 text-red-800 rounded-xl cursor-pointer quality-option poor-radio-option focusable" id={ spot.ID + ".quality.poor" + "-label" }>
+								<input
+ 									type="radio"
+ 									name={ spot.ID + ".quality" }
+ 									id={ spot.ID + ".quality.poor" }
+ 									value="poor"
+ 									class="sr-only"
+ 									aria-labelledby={ spot.ID + ".quality.poor" + "-label" }
+ 									onchange={ changeSelectedQuality(spot.ID, "poor") }
+								/>
+								<span class="flex flex-1 gap-1 items-center">
+									@heroicons.IconHandThumbDownSolid("-ml-1 size-5 text-red-800/80")
+									<span class="font-medium">
+										Poor
+									</span>
+								</span>
+								@heroicons.IconCheckCircleSolid("ml-3 size-5 text-red-800 icon")
+								<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+							</label>
+							<label for={ spot.ID + ".quality.fine" } class="flex relative py-3 pr-2 pl-4 rounded-xl cursor-pointer quality-option fine-radio-option text-sky-800 checked focusable" id={ spot.ID + ".quality.fine" + "-label" }>
+								<input
+ 									type="radio"
+ 									name={ spot.ID + ".quality" }
+ 									id={ spot.ID + ".quality.fine" }
+ 									value="fine"
+ 									class="sr-only"
+ 									checked
+ 									aria-labelledby={ spot.ID + ".quality.fine" + "-label" }
+ 									onchange={ changeSelectedQuality(spot.ID, "fine") }
+								/>
+								<span class="flex flex-1 gap-1 items-center">
+									@heroicons.IconHandRaisedSolid("-ml-1 size-5 text-sky-800/80")
+									<span class="font-medium">
+										Fine
+									</span>
+								</span>
+								@heroicons.IconCheckCircleSolid("ml-3 size-5 text-sky-800 icon")
+								<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+							</label>
+							if spot.SkipDays > 6 && spot.DaysSinceStarted > 20 {
+								<label for={ spot.ID + ".quality.completed" } class="flex relative py-3 pr-2 pl-4 text-green-800 rounded-xl cursor-pointer quality-option excellent-radio-option focusable" id={ spot.ID + ".quality.completed" + "-label" }>
+									<input
+ 										type="radio"
+ 										name={ spot.ID + ".quality" }
+ 										id={ spot.ID + ".quality.completed" }
+ 										value="completed"
+ 										class="sr-only"
+ 										aria-labelledby={ spot.ID + ".quality.completed" + "-label" }
+ 										onchange={ changeSelectedQuality(spot.ID, "completed") }
+									/>
+									<span class="flex flex-1 gap-1 items-center">
+										@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800/80")
+										<span class="font-medium">
+											Complete
+										</span>
+									</span>
+									@heroicons.IconCheckCircleSolid("ml-3 size-5 text-green-800 icon")
+									<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+								</label>
+							} else {
+								<label for={ spot.ID + ".quality.excellent" } class="flex relative py-3 pr-2 pl-4 text-green-800 rounded-xl cursor-pointer quality-option excellent-radio-option focusable" id={ spot.ID + ".quality.excellent" + "-label" }>
+									<input
+ 										type="radio"
+ 										name={ spot.ID + ".quality" }
+ 										id={ spot.ID + ".quality.excellent" }
+ 										value="excellent"
+ 										class="sr-only"
+ 										aria-labelledby={ spot.ID + ".quality.excellent" + "-label" }
+ 										onchange={ changeSelectedQuality(spot.ID, "excellent") }
+									/>
+									<span class="flex flex-1 gap-1 items-center">
+										@heroicons.IconHandThumbUpSolid("-ml-1 size-5 text-green-800/80")
+										<span class="font-medium">
+											Excellent
+										</span>
+									</span>
+									@heroicons.IconCheckCircleSolid("ml-3 size-5 text-green-800 icon")
+									<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+								</label>
+							}
+						</span>
+					</li>
+				}
+			</ul>
+			<section class="flex flex-wrap gap-2 mt-4 w-full">
+				<button
+ 					onclick={ components.CloseModal(completeInterleaveDaysFormId) }
  					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
  					type="button"
 				>

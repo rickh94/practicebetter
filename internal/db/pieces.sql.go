@@ -11,7 +11,7 @@ import (
 )
 
 const checkPieceForRandomSpots = `-- name: CheckPieceForRandomSpots :one
-SELECT COUNT(*) FROM spots WHERE piece_id = ? AND stage = 'random' LIMIT 1
+SELECT COUNT(*) FROM spots WHERE piece_id = ? AND stage = 'random'
 `
 
 func (q *Queries) CheckPieceForRandomSpots(ctx context.Context, pieceID string) (int64, error) {
@@ -209,7 +209,8 @@ SELECT
     spots.name AS spot_name,
     spots.idx AS spot_idx,
     spots.stage AS spot_stage,
-    spots.last_practiced AS spot_last_practiced
+    spots.last_practiced AS spot_last_practiced,
+    spots.skip_days AS spot_skip_days
 FROM pieces
 LEFT JOIN spots ON pieces.id = spots.piece_id
 WHERE pieces.id = ?1 AND pieces.user_id = ?2
@@ -234,6 +235,7 @@ type GetPieceForPlanRow struct {
 	SpotIdx           sql.NullInt64  `json:"spotIdx"`
 	SpotStage         sql.NullString `json:"spotStage"`
 	SpotLastPracticed sql.NullInt64  `json:"spotLastPracticed"`
+	SpotSkipDays      sql.NullInt64  `json:"spotSkipDays"`
 }
 
 func (q *Queries) GetPieceForPlan(ctx context.Context, arg GetPieceForPlanParams) ([]GetPieceForPlanRow, error) {
@@ -259,6 +261,7 @@ func (q *Queries) GetPieceForPlan(ctx context.Context, arg GetPieceForPlanParams
 			&i.SpotIdx,
 			&i.SpotStage,
 			&i.SpotLastPracticed,
+			&i.SpotSkipDays,
 		); err != nil {
 			return nil, err
 		}

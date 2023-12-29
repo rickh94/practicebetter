@@ -150,6 +150,26 @@ func (q *Queries) DemoteSpotToExtraRepeat(ctx context.Context, arg DemoteSpotToE
 	return err
 }
 
+const demoteSpotToInterleave = `-- name: DemoteSpotToInterleave :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'interleave_days' THEN 'interleave' ELSE stage END,
+    stage_started = CASE WHEN stage = 'interleave_days' THEN unixepoch('now') ELSE stage_started END,
+    skip_days = 1,
+    last_practiced = unixepoch('now')
+WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+`
+
+type DemoteSpotToInterleaveParams struct {
+	SpotID string `json:"spotId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) DemoteSpotToInterleave(ctx context.Context, arg DemoteSpotToInterleaveParams) error {
+	_, err := q.db.ExecContext(ctx, demoteSpotToInterleave, arg.SpotID, arg.UserID)
+	return err
+}
+
 const demoteSpotToRandom = `-- name: DemoteSpotToRandom :exec
 UPDATE spots
 SET
@@ -414,6 +434,26 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 	return items, nil
 }
 
+const promoteSpotToCompleted = `-- name: PromoteSpotToCompleted :exec
+UPDATE spots
+SET
+    stage = CASE WHEN stage = 'interleave_days' THEN 'completed' ELSE stage END,
+    stage_started = CASE WHEN stage = 'interleave_days' THEN unixepoch('now') ELSE stage_started END,
+    skip_days = 1,
+    last_practiced = unixepoch('now')
+WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+`
+
+type PromoteSpotToCompletedParams struct {
+	SpotID string `json:"spotId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) PromoteSpotToCompleted(ctx context.Context, arg PromoteSpotToCompletedParams) error {
+	_, err := q.db.ExecContext(ctx, promoteSpotToCompleted, arg.SpotID, arg.UserID)
+	return err
+}
+
 const promoteSpotToExtraRepeat = `-- name: PromoteSpotToExtraRepeat :exec
 UPDATE spots
 SET
@@ -459,6 +499,7 @@ UPDATE spots
 SET
     stage = CASE WHEN stage = 'interleave' THEN 'interleave_days' ELSE stage END,
     stage_started = CASE WHEN stage = 'interleave' THEN unixepoch('now') ELSE stage_started END,
+    skip_days = 1,
     last_practiced = unixepoch('now')
 WHERE spots.id = ?1 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
 `
@@ -581,6 +622,24 @@ func (q *Queries) UpdateSpotPriority(ctx context.Context, arg UpdateSpotPriority
 		arg.UserID,
 		arg.PieceID,
 	)
+	return err
+}
+
+const updateSpotSkipDays = `-- name: UpdateSpotSkipDays :exec
+UPDATE spots
+SET
+    skip_days = ?1
+WHERE spots.id = ?2 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?3)
+`
+
+type UpdateSpotSkipDaysParams struct {
+	SkipDays int64  `json:"skipDays"`
+	SpotID   string `json:"spotId"`
+	UserID   string `json:"userId"`
+}
+
+func (q *Queries) UpdateSpotSkipDays(ctx context.Context, arg UpdateSpotSkipDaysParams) error {
+	_, err := q.db.ExecContext(ctx, updateSpotSkipDays, arg.SkipDays, arg.SpotID, arg.UserID)
 	return err
 }
 

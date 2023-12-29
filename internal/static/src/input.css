@@ -341,6 +341,13 @@ details[open] summary > .summary-icon {
   --progress-border-top-left-radius: 0.25rem;
 }
 
+.progress-rounded {
+  --progress-border-bottom-right-radius: 0.25rem;
+  --progress-border-bottom-left-radius: 0.25rem;
+  --progress-border-top-right-radius: 0.25rem;
+  --progress-border-top-left-radius: 0.25rem;
+}
+
 progress[value] {
   -webkit-appearance: none;
   -moz-appearance: none;
