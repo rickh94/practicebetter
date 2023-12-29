@@ -47,7 +47,7 @@ templ PiecePracticeNoSpotsPage(pieceTitle string, pieceID string) {
 					aren’t comfortable yet. Spots that are completed or haven’t been
 					repeat practiced yet won’t show up here.
 				</p>
-				<div class="flex gap-2 py-4">
+				<div class="flex flex-wrap gap-2 py-4">
 					<back-to-piece pieceid={ pieceID }></back-to-piece>
 					@components.HxLink("focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20", "/library/pieces/"+pieceID+"/spots/add", "#main-content") {
 						@heroicons.IconPlusSolid("-ml-1 size-6")

@@ -10,6 +10,17 @@ import (
 	"database/sql"
 )
 
+const checkPieceForRandomSpots = `-- name: CheckPieceForRandomSpots :one
+SELECT COUNT(*) FROM spots WHERE piece_id = ? AND stage = 'random' LIMIT 1
+`
+
+func (q *Queries) CheckPieceForRandomSpots(ctx context.Context, pieceID string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, checkPieceForRandomSpots, pieceID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countUserPieces = `-- name: CountUserPieces :one
 SELECT COUNT(*) FROM pieces WHERE user_id = ?
 `

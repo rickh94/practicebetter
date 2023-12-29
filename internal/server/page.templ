@@ -121,7 +121,7 @@ templ Head(s *Server, title string) {
 */
 
 templ Body(s *Server) {
-	<body class="flex flex-col h-full min-h-svh text-black bg-gradient-to-br from-[#ffefce] to-white font-work-sans">
+	<body class="flex flex-col h-full min-h-svh text-black bg-gradient-to-br from-[#ffefce] to-white font-work-sans overflow-x-clip">
 		if s.Debug {
 			<div class="fixed top-0 z-50 w-screen h-2 hazard-background"></div>
 			<div class="w-screen h-2"></div>
@@ -133,7 +133,7 @@ templ Body(s *Server) {
 		</div>
 		if s.Debug {
 			<div class="fixed bottom-0 z-50 w-screen h-2 hazard-background"></div>
-			<div class="w-screen h-2"></div>
+			<div class="w-screen"></div>
 		}
 		<script src={ s.StaticUrl("js/webauthn-browser.min.js") } defer></script>
 		<script type="module" src={ s.StaticUrl("out/main.js") }></script>

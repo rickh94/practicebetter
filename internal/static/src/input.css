@@ -319,3 +319,62 @@ details[open] summary > .summary-icon {
     #ffb101 40px
   );
 }
+
+.progress-green {
+  --progress-color: #16a34a; /* the progress color */
+}
+
+.progress-violet-600 {
+  --progress-color: #7c3aed; /* the progress color */
+}
+
+.progress-bg-neutral-200 {
+  --progress-background: #e5e5e5; /* the background color */
+}
+
+.progress-bg-white {
+  --progress-background: #ffffff; /* the background color */
+}
+
+.progress-rounded-top {
+  --progress-border-top-right-radius: 0.25rem;
+  --progress-border-top-left-radius: 0.25rem;
+}
+
+progress[value] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  background: var(--progress-background);
+  border-top-left-radius: var(--progress-border-top-left-radius);
+  border-top-right-radius: var(--progress-border-top-right-radius);
+  border-bottom-right-radius: var(--progress-border-top-right-radius);
+  border-bottom-left-radius: var(--progress-border-top-left-radius);
+  @apply h-1;
+}
+
+progress[value]::-webkit-progress-bar {
+  background: var(--progress-background);
+  border-top-left-radius: var(--progress-border-top-left-radius);
+  border-top-right-radius: var(--progress-border-top-right-radius);
+  border-bottom-right-radius: var(--progress-border-top-right-radius);
+  border-bottom-left-radius: var(--progress-border-top-left-radius);
+  @apply h-1;
+}
+progress[value]::-webkit-progress-value {
+  background: var(--progress-color);
+  border-top-left-radius: var(--progress-border-top-left-radius);
+  border-top-right-radius: var(--progress-border-top-right-radius);
+  border-bottom-right-radius: var(--progress-border-top-right-radius);
+  border-bottom-left-radius: var(--progress-border-top-left-radius);
+  @apply h-1;
+}
+progress[value]::-moz-progress-bar {
+  background: var(--progress-color);
+  border-top-left-radius: var(--progress-border-top-left-radius);
+  border-top-right-radius: var(--progress-border-top-right-radius);
+  border-bottom-right-radius: var(--progress-border-top-right-radius);
+  border-bottom-left-radius: var(--progress-border-top-left-radius);
+  @apply h-1;
+}

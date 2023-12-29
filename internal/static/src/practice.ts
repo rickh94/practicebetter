@@ -11,9 +11,14 @@ try {
   console.log(err);
 }
 try {
-  register(Repeat, "repeat-practice", ["initialspot", "pieceid", "csrf"], {
-    shadow: false,
-  });
+  register(
+    Repeat,
+    "repeat-practice",
+    ["initialspot", "pieceid", "csrf", "piecetitle"],
+    {
+      shadow: false,
+    },
+  );
 } catch (err) {
   console.log(err);
 }

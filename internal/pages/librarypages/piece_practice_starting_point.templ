@@ -47,7 +47,7 @@ templ PiecePracticeMissingMeasureInfoPage(pieceTitle string, pieceID string) {
 					Practicing random starting points requires info about the number of measures in the piece and the beats per
 					measures (from the time signature). Fill in that information and return to this page or practice something else.
 				</p>
-				<div class="flex gap-2 py-4">
+				<div class="flex flex-wrap gap-2 py-4">
 					<back-to-piece pieceid={ pieceID }></back-to-piece>
 					@components.HxLink("focusable action-button bg-amber-700/10 text-amber-800 hover:bg-amber-700/20", "/library/pieces/"+pieceID+"/edit", "#main-content") {
 						@heroicons.IconPencilSolid("-ml-1 size-6")

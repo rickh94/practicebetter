@@ -32,10 +32,12 @@ export function Repeat({
   initialspot,
   pieceid,
   csrf,
+  piecetitle = "",
 }: {
   initialspot?: string;
   pieceid?: string;
   csrf?: string;
+  piecetitle?: string;
 }) {
   const [mode, setMode] = useState<RepeatMode>("prepare");
   const [startTime, setStartTime] = useState<number>(0);
@@ -150,6 +152,7 @@ export function Repeat({
                 startPracticing={startPracticing}
                 spot={spot}
                 pieceid={pieceid}
+                piecetitle={piecetitle}
               />
             ),
             practice: (
@@ -159,6 +162,7 @@ export function Repeat({
                 onFail={setModeBreakFail}
                 spot={spot}
                 pieceid={pieceid}
+                piecetitle={piecetitle}
               />
             ),
             break_success: (
@@ -186,10 +190,12 @@ function RepeatPrepare({
   startPracticing,
   spot,
   pieceid,
+  piecetitle = "",
 }: {
   startPracticing: () => void;
   spot?: BasicSpot;
   pieceid?: string;
+  piecetitle?: string;
 }) {
   return (
     <div className="flex w-full flex-col" id="repeat-prepare-wrapper">
@@ -199,7 +205,13 @@ function RepeatPrepare({
         it carefully!
       </p>
       <div className="py-2">
-        {spot && <PracticeSpotDisplay spot={spot} pieceid={pieceid} />}
+        {spot && (
+          <PracticeSpotDisplay
+            spot={spot}
+            pieceid={pieceid}
+            piecetitle={piecetitle}
+          />
+        )}
       </div>
       <RepeatPrepareText open={!spot} />
       <div className="col-span-full flex w-full items-center justify-center py-16">
@@ -217,12 +229,14 @@ function RepeatPractice({
   startTime,
   spot,
   pieceid,
+  piecetitle = "",
 }: {
   onSuccess: () => void;
   onFail: () => void;
   startTime: number;
   spot?: BasicSpot;
   pieceid?: string;
+  piecetitle?: string;
 }) {
   const [numCompleted, setCompleted] = useState(0);
   const [waitedLongEnough, setWaitedLongEnough] = useState(true);
@@ -282,44 +296,41 @@ function RepeatPractice({
           </ul>
         </div>
         <div className="flex w-full flex-col items-center pt-4 sm:mx-auto sm:max-w-xl">
-          <p className="py-4 text-base">
-            <strong className="font-semibold">Practice your spot</strong>{" "}
-            Remember to go slow and pause between repetitions. Press the
-            appropriate button below after each repetition.
-          </p>
           <h2 className="text-center text-3xl font-semibold">How did it go?</h2>
-          <div className="mx-auto my-8 flex w-full max-w-lg flex-wrap items-center justify-center gap-4 sm:mx-0 sm:w-auto sm:flex-row sm:gap-6">
-            <div>
-              <BigAngryButton
-                disabled={!waitedLongEnough}
-                onClick={fail}
-                className="sm:gap-2"
-              >
-                <HandThumbDownIcon className="-ml-1 size-6 sm:size-8" />
-                <span>Mistake</span>
-              </BigAngryButton>
-            </div>
+          <div className="flex w-full flex-col justify-center gap-2 px-4 pt-8 sm:flex-row-reverse sm:px-0">
             <BigHappyButton
               disabled={!waitedLongEnough}
               onClick={succeed}
               className="sm:gap-2"
             >
-              <HandThumbUpIcon className="-ml-1 size-6 sm:size-8" />
+              <HandThumbUpIcon className="-ml-1 size-6" />
               <span>Correct</span>
             </BigHappyButton>
+            <BigAngryButton
+              disabled={!waitedLongEnough}
+              onClick={fail}
+              className="sm:gap-2"
+            >
+              <HandThumbDownIcon className="-ml-1 size-6" />
+              <span>Mistake</span>
+            </BigAngryButton>
           </div>
         </div>
       </div>
       {spot && (
         <div className="px-8 pt-8">
-          <PracticeSpotDisplay spot={spot} pieceid={pieceid} />
+          <PracticeSpotDisplay
+            spot={spot}
+            pieceid={pieceid}
+            piecetitle={piecetitle}
+          />
         </div>
       )}
       <div className="flex w-full flex-col py-12 sm:mx-auto sm:max-w-3xl">
         <div className="mx-auto flex w-full max-w-lg flex-wrap items-center justify-center">
           <WarningButton onClick={onFail}>
             <span>Move On</span>
-            <ArrowUpRightIcon className="-ml-1 size-6 sm:size-8" />{" "}
+            <ArrowUpRightIcon className="-ml-1 size-6" />{" "}
           </WarningButton>
         </div>
       </div>

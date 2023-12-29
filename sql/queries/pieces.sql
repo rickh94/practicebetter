@@ -105,6 +105,9 @@ FROM pieces
 LEFT JOIN spots ON pieces.id = spots.piece_id
 WHERE pieces.id = :piece_id AND pieces.user_id = :user_id;
 
+-- name: CheckPieceForRandomSpots :one
+SELECT COUNT(*) FROM spots WHERE piece_id = ? AND stage = 'random';
+
 -- name: GetPieceWithoutSpots :one
 SELECT * FROM pieces WHERE id = ? AND user_id = ?;
 

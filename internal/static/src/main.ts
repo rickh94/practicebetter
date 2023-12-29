@@ -360,10 +360,11 @@ document.addEventListener("htmx:confirm", function (e: HTMXConfirmEvent) {
   (document.getElementById(id) as HTMLDialogElement).showModal();
 });
 
-document.addEventListener("htmx:after-swap", (event) => {
+document.addEventListener("htmx:afterSwap", (event: CustomEvent) => {
   if (!(event.target instanceof HTMLElement)) {
     return;
   }
-
-  window.scrollTo(0, 0);
+  if (event.detail?.target?.id === "main-content") {
+    window.scrollTo(0, 0);
+  }
 });

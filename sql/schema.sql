@@ -163,7 +163,7 @@ CREATE TABLE practice_plan_pieces (
     practice_type TEXT NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT 0,
     CHECK (practice_type IN ('random_spots', 'starting_point')),
-    PRIMARY KEY (practice_plan_id, piece_id),
+    PRIMARY KEY (practice_plan_id, piece_id, practice_type),
     CONSTRAINT plan FOREIGN KEY (practice_plan_id) REFERENCES practice_plans (
         id
     ) ON UPDATE NO ACTION ON DELETE CASCADE,

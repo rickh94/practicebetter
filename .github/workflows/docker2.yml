@@ -1,4 +1,4 @@
-name: Publish Docker image
+name: Publish latest edge Docker image
 on:
   push:
 jobs:

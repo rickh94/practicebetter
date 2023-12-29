@@ -137,7 +137,6 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			} else if row.SpotStage.String == "interleave" {
-				canRandomSpotsPractice = true
 				_, err := qtx.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
 					PracticePlanID: newPlan.ID,
 					SpotID:         row.SpotID.String,
@@ -148,7 +147,6 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			} else if row.SpotStage.String == "interleave_days" {
-				canRandomSpotsPractice = true
 				// if the spot doesn't have a last practiced date, or if it wasn't practiced yesterday (roughly)
 				if !row.SpotLastPracticed.Valid || row.SpotLastPracticed.Int64 < time.Now().Unix()-60*60*25 {
 					_, err := qtx.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
@@ -243,6 +241,8 @@ func (s *Server) singlePracticePlan(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, planID string, userID string) {
 	queries := db.New(s.DB)
+	totalItems := 0
+	completedItems := 0
 	planPieces, err := queries.GetPracticePlanWithPieces(r.Context(), db.GetPracticePlanWithPiecesParams{
 		ID:     planID,
 		UserID: userID,
@@ -291,6 +291,10 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 
 	for _, row := range planPieces {
 		if row.PieceID.Valid {
+			totalItems++
+			if row.PieceCompleted {
+				completedItems++
+			}
 			var piece pspages.PracticePlanPiece
 			piece.ID = row.PieceID.String
 			piece.Title = row.PieceTitle.String
@@ -313,6 +317,10 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 	}
 	for _, row := range planSpots {
 		if row.SpotID.Valid {
+			totalItems++
+			if row.SpotCompleted {
+				completedItems++
+			}
 			var spot pspages.PracticePlanSpot
 			spot.ID = row.SpotID.String
 			spot.Name = row.SpotName.String
@@ -342,6 +350,8 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 			}
 		}
 	}
+	planData.TotalItems = totalItems
+	planData.CompletedItems = completedItems
 
 	token := csrf.Token(r)
 	// ctx := context.WithValue(r.Context(), "activePracticePlanID", activePracticePlanID)
@@ -470,7 +480,7 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 
 	token := csrf.Token(r)
 	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-		Message:  "You've completed your interleaved days spots!",
+		Message:  "You’ve completed your interleaved days spots!",
 		Title:    "Completed!",
 		Variant:  "success",
 		Duration: 3000,
@@ -669,7 +679,7 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 
 	token := csrf.Token(r)
 	htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
-		Message:  "You've completed your interleaved spots!",
+		Message:  "You’ve completed your interleaved spots!",
 		Title:    "Completed!",
 		Variant:  "success",
 		Duration: 3000,

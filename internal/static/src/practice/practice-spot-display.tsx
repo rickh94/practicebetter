@@ -10,9 +10,11 @@ import { cn } from "../common";
 export function PracticeSpotDisplay({
   spot,
   pieceid = "",
+  piecetitle = "",
 }: {
   spot: BasicSpot;
   pieceid?: string;
+  piecetitle?: string;
 }) {
   if (!spot) {
     return <>Missing Spot data</>;
@@ -32,9 +34,14 @@ export function PracticeSpotDisplay({
       )}
     >
       <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 py-8 text-center text-3xl font-bold shadow-lg sm:px-8 sm:text-5xl md:col-span-2">
+        {piecetitle && (
+          <h4 className="-mb-4 -mt-2 text-lg text-neutral-700 underline underline-offset-1">
+            {piecetitle}
+          </h4>
+        )}
         {spot.name ?? "Something went wrong"}
         {spot.measures && (
-          <span className="text-lg text-neutral-700">
+          <span className="-mb-2 text-lg text-neutral-700">
             Measures: {spot.measures}
           </span>
         )}

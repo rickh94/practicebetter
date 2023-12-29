@@ -150,10 +150,10 @@ export default function Summary({
       const demote = [];
       for (const item of summary) {
         if (
-          item.excellent > 4 &&
+          item.excellent > 2 &&
           item.poor === 0 &&
           item.fine < 2 &&
-          item.day > 2
+          item.day > 3
         ) {
           promote.push(item);
         } else if (item.poor > 2 || (item.excellent === 0 && item.day > 6)) {
