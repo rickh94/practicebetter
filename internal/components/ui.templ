@@ -240,7 +240,7 @@ func getPracticePlanPieceCardClass(completed bool) string {
 	}
 }
 
-templ PracticePlanPieceCard(pieceID string, title string, composer string, activeSpots int64, completedSpots int64, completed bool, practiceType string) {
+templ PracticePlanPieceCard(pieceID string, title string, composer string, activeSpots int64, completed bool, practiceType string) {
 	<li>
 		@HxLink(getPracticePlanPieceCardClass(completed), getPracticeUrl(pieceID, practiceType), "#main-content") {
 			<div class="flex flex-col flex-1 flex-grow gap-1">
@@ -250,7 +250,9 @@ templ PracticePlanPieceCard(pieceID string, title string, composer string, activ
 						—{ " " }{ composer }
 					</span>
 				</div>
-				<div>Active Spots: { strconv.FormatInt(activeSpots, 10) }</div>
+				if practiceType == "random_single" {
+					<div>Random Spots: { strconv.FormatInt(activeSpots, 10) }</div>
+				}
 				if completed {
 					<div class="font-bold">Completed</div>
 				} else {
@@ -261,8 +263,14 @@ templ PracticePlanPieceCard(pieceID string, title string, composer string, activ
 				if completed {
 					@heroicons.IconCheckCircleSolid("size-10 -mr-2 text-green-900")
 					<span class="sr-only">Completed</span>
+				} else if practiceType == "random_single" {
+					<span class="sr-only">Click to practice</span>
+					@icons.ShuffleIcon("size-10 -mr-2")
+				} else if practiceType == "starting_point" {
+					<span class="sr-only">Click to practice</span>
+					@icons.RandomBoxesIcon("size-10 -mr-2")
 				} else {
-					<div class="sr-only">Click to view</div>
+					<span class="sr-only">Click to view</span>
 					@icons.NoteSheetIcon("size-10 -mr-1")
 				}
 			</div>

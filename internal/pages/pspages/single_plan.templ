@@ -33,6 +33,7 @@ type PracticePlanPiece struct {
 	Composer       string
 	ActiveSpots    int64
 	CompletedSpots int64
+	RandomSpots    int64
 }
 
 type PracticePlanData struct {
@@ -179,7 +180,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 							<p class="w-full text-sm">Random Practice the spots from these pieces.</p>
 							<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
 								for _, piece := range planData.RandomSpotsPieces {
-									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.ActiveSpots, piece.CompletedSpots, piece.Completed, "random_single")
+									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.RandomSpots, piece.Completed, "random_single")
 								}
 							</ul>
 						</section>
@@ -190,7 +191,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 							<p class="w-full text-sm">Practice these pieces using the random starting points.</p>
 							<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
 								for _, piece := range planData.RandomStartPieces {
-									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.ActiveSpots, piece.CompletedSpots, piece.Completed, "starting_point")
+									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, 0, piece.Completed, "starting_point")
 								}
 							</ul>
 						</section>

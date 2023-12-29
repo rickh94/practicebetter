@@ -117,7 +117,9 @@ export function RemindersSummary({
         className="flex flex-col py-1 sm:min-h-12 sm:flex-row"
         id="reminder-details"
       >
-        <p className="min-h-12 flex-grow py-1">{text ?? "No Reminders"}</p>
+        <p className="min-h-12 flex-grow py-1 font-semibold">
+          {text?.length > 0 ? text : "No Reminders"}
+        </p>
         {!!pieceid && !!spotid && (
           <Link
             pushUrl={false}

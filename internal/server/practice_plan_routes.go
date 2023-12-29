@@ -317,6 +317,7 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 			piece.Title = row.PieceTitle.String
 			piece.ActiveSpots = row.PieceActiveSpots
 			piece.CompletedSpots = row.PieceCompletedSpots
+			piece.RandomSpots = row.PieceRandomSpots
 			if row.PieceComposer.Valid {
 				piece.Composer = row.PieceComposer.String
 			} else {

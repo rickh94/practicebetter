@@ -35,7 +35,7 @@ export function PracticeSpotDisplay({
     >
       <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 py-8 text-center text-3xl font-bold shadow-lg sm:px-8 sm:text-5xl md:col-span-2">
         {piecetitle && (
-          <h4 className="-mb-4 -mt-2 text-lg text-neutral-700 underline underline-offset-1">
+          <h4 className="-mb-3 -mt-2 text-lg text-neutral-700 underline underline-offset-1">
             {piecetitle}
           </h4>
         )}

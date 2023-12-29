@@ -351,6 +351,7 @@ SELECT
     pieces.id AS piece_id,
     pieces.composer AS piece_composer,
     (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS piece_active_spots,
+    (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'random') AS piece_random_spots,
     (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS piece_completed_spots
 FROM practice_plans
 INNER JOIN practice_plan_pieces ON practice_plans.id = practice_plan_pieces.practice_plan_id
@@ -376,6 +377,7 @@ type GetPracticePlanWithPiecesRow struct {
 	PieceID             sql.NullString `json:"pieceId"`
 	PieceComposer       sql.NullString `json:"pieceComposer"`
 	PieceActiveSpots    int64          `json:"pieceActiveSpots"`
+	PieceRandomSpots    int64          `json:"pieceRandomSpots"`
 	PieceCompletedSpots int64          `json:"pieceCompletedSpots"`
 }
 
@@ -401,6 +403,7 @@ func (q *Queries) GetPracticePlanWithPieces(ctx context.Context, arg GetPractice
 			&i.PieceID,
 			&i.PieceComposer,
 			&i.PieceActiveSpots,
+			&i.PieceRandomSpots,
 			&i.PieceCompletedSpots,
 		); err != nil {
 			return nil, err

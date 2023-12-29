@@ -33,6 +33,7 @@ SELECT
     pieces.id AS piece_id,
     pieces.composer AS piece_composer,
     (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS piece_active_spots,
+    (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'random') AS piece_random_spots,
     (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS piece_completed_spots
 FROM practice_plans
 INNER JOIN practice_plan_pieces ON practice_plans.id = practice_plan_pieces.practice_plan_id
