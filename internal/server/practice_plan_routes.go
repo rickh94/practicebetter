@@ -904,6 +904,13 @@ func (s *Server) getInterleaveList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := csrf.Token(r)
+
+	hxRequest := htmx.Request(r)
+	log.Default().Println(hxRequest)
+	if hxRequest == nil {
+		http.Redirect(w, r, fmt.Sprintf("/library/plans/%s", planID), http.StatusSeeOther)
+		return
+	}
 	pspages.PracticePlanInterleaveSpots(spotInfo, planID, token, allCompleted, false, false).Render(r.Context(), w)
 }
 

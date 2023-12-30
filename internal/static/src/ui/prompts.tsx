@@ -3,12 +3,12 @@ import {
   MusicalNoteIcon,
   XMarkIcon,
   ChatBubbleBottomCenterTextIcon,
-  DocumentTextIcon,
   PencilIcon,
   PhotoIcon,
   SpeakerWaveIcon,
 } from "@heroicons/react/24/solid";
 import { Suspense, lazy } from "preact/compat";
+import { useCallback, useRef } from "preact/hooks";
 import { Link } from "./links";
 import { cn } from "../common";
 
@@ -34,26 +34,67 @@ export function AudioPromptSummary({ url }: { url: string }) {
   );
 }
 export function ImagePromptSummary({ url }: { url: string }) {
+  const lightboxRef = useRef<HTMLDialogElement>(null);
+
+  const showBig = useCallback(() => {
+    lightboxRef.current?.showModal();
+  }, [lightboxRef.current]);
+
+  const closeBig = useCallback(() => {
+    if (lightboxRef.current) {
+      lightboxRef.current.classList.add("close");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (lightboxRef.current) {
+            lightboxRef.current.classList.remove("close");
+            lightboxRef.current.close();
+          }
+        });
+      });
+    }
+  }, [lightboxRef.current]);
+
   if (!url) {
     return <div>No Image Prompt</div>;
   }
   return (
-    <details>
-      <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50">
-        <div className="flex items-center gap-2">
-          <PhotoIcon className="-ml-1 size-5" />
-          Image Prompt
-        </div>
-        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
-      </summary>
-      <img
-        src={url}
-        width={480}
-        height={120}
-        alt="Image Prompt"
-        className="my-2 w-full"
-      />
-    </details>
+    <>
+      <details>
+        <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50">
+          <div className="flex items-center gap-2">
+            <PhotoIcon className="-ml-1 size-5" />
+            Image Prompt
+          </div>
+          <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+        </summary>
+        <button onClick={showBig} className="m-0 p-0">
+          <figure className="my-2 w-full">
+            <img
+              src={url}
+              width={480}
+              height={120}
+              alt="Image Prompt"
+              className="my-2 w-full"
+            />
+            <figcaption className="text-sm">Click to view larger</figcaption>
+          </figure>
+        </button>
+      </details>
+      <dialog ref={lightboxRef} className="p-0">
+        <button onClick={closeBig} className="m-0 p-0">
+          <figure className="w-full sm:max-w-3xl">
+            <img
+              src={url}
+              width={480}
+              height={120}
+              alt="Image Prompt"
+              className="h-auto w-full"
+            />
+            <figcaption className="text-sm">Click to Close</figcaption>
+          </figure>
+        </button>
+      </dialog>
+    </>
   );
 }
 export function NotesPromptSummary({ notes }: { notes: string }) {
