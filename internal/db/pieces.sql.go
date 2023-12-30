@@ -119,10 +119,12 @@ SELECT
     spots.notes_prompt AS spot_notes_prompt,
     spots.text_prompt AS spot_text_prompt,
     spots.current_tempo AS spot_current_tempo,
-    spots.measures AS spot_measures
+    spots.measures AS spot_measures,
+    spots.last_practiced AS spot_last_practiced
 FROM pieces
 LEFT JOIN spots ON pieces.id = spots.piece_id
 WHERE pieces.id = ?1 AND pieces.user_id = ?2
+ORDER BY spot_last_practiced DESC
 `
 
 type GetPieceByIDParams struct {
@@ -150,6 +152,7 @@ type GetPieceByIDRow struct {
 	SpotTextPrompt     sql.NullString `json:"spotTextPrompt"`
 	SpotCurrentTempo   sql.NullInt64  `json:"spotCurrentTempo"`
 	SpotMeasures       sql.NullString `json:"spotMeasures"`
+	SpotLastPracticed  sql.NullInt64  `json:"spotLastPracticed"`
 }
 
 func (q *Queries) GetPieceByID(ctx context.Context, arg GetPieceByIDParams) ([]GetPieceByIDRow, error) {
@@ -181,6 +184,7 @@ func (q *Queries) GetPieceByID(ctx context.Context, arg GetPieceByIDParams) ([]G
 			&i.SpotTextPrompt,
 			&i.SpotCurrentTempo,
 			&i.SpotMeasures,
+			&i.SpotLastPracticed,
 		); err != nil {
 			return nil, err
 		}

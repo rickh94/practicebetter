@@ -3,16 +3,12 @@ import {
   BasicButton,
   GiantBasicButton,
   GiantHappyButton,
-  HappyButton,
   WarningButton,
 } from "../ui/buttons";
-import { BackToPiece } from "../ui/links";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { cn, uniqueID } from "../common";
 import {
   ArrowLeftCircleIcon,
-  Cog6ToothIcon,
-  MusicalNoteIcon,
   StopCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
