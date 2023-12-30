@@ -10,7 +10,7 @@ templ FinishCodeLoginPage(csrf string, nextLoc string) {
  			action="/auth/code"
  			method="post"
  			hx-post="/auth/code"
- 			hx-swap="outerHTML swap:305ms"
+ 			hx-swap="outerHTML transition:true"
  			hx-target="#main-content"
  			class="flex flex-col gap-4 w-full sm:w-72"
 		>

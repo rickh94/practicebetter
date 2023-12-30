@@ -10,7 +10,7 @@ templ StartLoginPage(csrf string, nextLoc string) {
  			action=""
  			method="post"
  			hx-post=""
- 			hx-swap="outerHTML"
+ 			hx-swap="outerHTML transition:true"
  			hx-target="#main-content"
  			class="flex flex-col gap-4 w-full sm:w-72"
 		>

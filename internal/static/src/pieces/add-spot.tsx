@@ -48,7 +48,7 @@ export function AddSpotForm({
     await htmx.ajax("POST", `/library/pieces/${pieceid}/spots`, {
       values: data,
       target: "#spot-list",
-      swap: "beforeend",
+      swap: "beforeend transition:true",
       headers: {
         "X-CSRF-Token": csrf,
       },

@@ -43,7 +43,7 @@ export function EditSpotForm({
     await htmx.ajax("PUT", `/library/pieces/${pieceid}/spots/${spotid}`, {
       values: data,
       target: "#main-content",
-      swap: "outerHTML",
+      swap: "outerHTML transition:true",
       headers: {
         "X-CSRF-Token": csrf,
       },

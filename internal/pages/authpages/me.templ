@@ -77,7 +77,7 @@ templ UserInfo(user db.User, csrf string) {
 			<button
  				hx-get="/auth/me/edit"
  				hx-headers={ components.HxCsrfHeader(csrf) }
- 				hx-swap="outerHTML"
+ 				hx-swap="outerHTML transition:true"
  				hx-target="#user-info"
  				class="flex flex-grow gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
 			>
@@ -103,7 +103,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
  			action="/auth/me"
  			method="POST"
  			hx-post="/auth/me"
- 			hx-swap="outerHTML"
+ 			hx-swap="outerHTML transition:true"
  			hx-target="#user-info"
 		>
 			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
@@ -168,7 +168,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
 				<button
  					hx-get="/auth/me/reset"
  					hx-headers={ components.HxCsrfHeader(csrf) }
- 					hx-swap="outerHTML"
+ 					hx-swap="outerHTML transition:true"
  					hx-target="#user-info"
  					class="flex flex-grow gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
 				>
