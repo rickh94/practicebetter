@@ -10,10 +10,11 @@ import {
   VioletButton,
   WarningButton,
 } from "../ui/buttons";
-import { BackToPiece } from "../ui/links";
+import { BackToPiece, BackToPlan } from "../ui/links";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useAutoAnimate } from "@formkit/auto-animate/preact";
+import { NextPlanItem } from "../ui/plan-components";
 
 // TODO: improve table layout and appearance
 // TODO: prevent escape closing window or use it to reject recommendations, also maybe add reject button
@@ -26,6 +27,7 @@ export default function Summary({
   csrf,
   startTime,
   initialSpotIds,
+  planid = "",
 }: {
   summary: PracticeSummaryItem[];
   setup: () => void;
@@ -34,6 +36,7 @@ export default function Summary({
   csrf?: string;
   startTime?: Date;
   initialSpotIds?: string[];
+  planid?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [promotionSpots, setPromotionSpots] = useState<PracticeSummaryItem[]>(
@@ -279,18 +282,12 @@ export default function Summary({
         </div>
       </dialog>
       <div className="flex w-full flex-col justify-center gap-x-8 gap-y-2 px-4 pt-4 sm:flex-row sm:gap-x-6 sm:px-0">
-        {pieceid && <BackToPiece pieceid={pieceid} />}
-        <WarningButton onClick={setup}>
-          <Cog6ToothIcon className="-ml-1 size-5" />
-          Back to Setup
-        </WarningButton>
-        {/*
-          TODO: this button could go back to the active practice plan
-        */}
-        <VioletButton onClick={practice}>
-          <MusicalNoteIcon className="-ml-1 size-5" />
-          Practice More
-        </VioletButton>
+        <SummaryActions
+          pieceid={pieceid}
+          planid={planid}
+          setup={setup}
+          practice={practice}
+        />
       </div>
       <h2 className="w-full pt-12 text-center text-2xl font-semibold">
         Practice Summary
@@ -392,4 +389,40 @@ export default function Summary({
       </div>
     </>
   );
+}
+
+export function SummaryActions({
+  planid,
+  setup,
+  practice,
+  pieceid,
+}: {
+  planid: string;
+  pieceid?: string;
+  setup: () => void;
+  practice: () => void;
+}) {
+  if (planid) {
+    return (
+      <>
+        {pieceid && <BackToPiece pieceid={pieceid} />}
+        <BackToPlan planid={planid} />
+        <NextPlanItem planid={planid} />
+      </>
+    );
+  } else {
+    return (
+      <>
+        <WarningButton onClick={setup}>
+          <Cog6ToothIcon className="-ml-1 size-5" />
+          Back to Setup
+        </WarningButton>
+        <VioletButton onClick={practice}>
+          <MusicalNoteIcon className="-ml-1 size-5" />
+          Practice More
+        </VioletButton>
+        {pieceid && <BackToPiece pieceid={pieceid} />}
+      </>
+    );
+  }
 }

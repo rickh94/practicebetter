@@ -7,19 +7,18 @@ import {
   WarningButton,
 } from "../ui/buttons";
 import { BackToPiece } from "../ui/links";
-import {
-  StateUpdater,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { cn, uniqueID } from "../common";
 import {
+  ArrowLeftCircleIcon,
   Cog6ToothIcon,
   MusicalNoteIcon,
+  StopCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import dayjs from "dayjs";
+import { BreakDialog, ResumeDialog } from "./practice-dialogs";
+import { SummaryActions } from "./summary";
 
 type Section = {
   startingPoint: {
@@ -75,13 +74,15 @@ function calculateMeasuresPracticed(summary: Section[]) {
 export function StartingPoint({
   initialmeasures = "100",
   initialbeats = "4",
-  pieceid,
-  csrf,
+  pieceid = "",
+  csrf = "",
+  planid = "",
 }: {
   initialmeasures?: string;
   initialbeats?: string;
   pieceid?: string;
   csrf?: string;
+  planid?: string;
 }) {
   const [measures, setMeasures] = useState<number>(parseInt(initialmeasures));
   const [beats, setBeats] = useState<number>(parseInt(initialbeats));
@@ -92,6 +93,7 @@ export function StartingPoint({
     [number, number][]
   >([]);
   const [startTime, setStartTime] = useState<Date | null>(null);
+  const [numSessions, setNumSessions] = useState(2);
 
   const [lowerBound, setLowerBound] = useState<number | null>(null);
   const [upperBound, setUpperBound] = useState<number | null>(null);
@@ -103,6 +105,70 @@ export function StartingPoint({
       setStartTime(new Date());
     },
     [setMode, setSummary, setStartTime],
+  );
+
+  const saveConfig = useCallback(
+    function (c: FormData) {
+      const measures = c.get("measures");
+      if (measures && typeof measures === "string") {
+        const measuresInt = parseInt(measures);
+        if (!isNaN(measuresInt)) {
+          setMeasures(measuresInt);
+        }
+      }
+
+      const beats = c.get("beats");
+      if (beats && typeof beats === "string") {
+        const beatsInt = parseInt(beats);
+        if (!isNaN(beatsInt)) {
+          setBeats(beatsInt);
+        }
+      }
+
+      const maxLength = c.get("maxLength");
+      if (maxLength && typeof maxLength === "string") {
+        const maxLengthInt = parseInt(maxLength);
+        if (!isNaN(maxLengthInt)) {
+          setMaxLength(maxLengthInt);
+        }
+      }
+
+      const numSessions = c.get("numSessions");
+      if (numSessions && typeof numSessions === "string") {
+        const numSessionsInt = parseInt(numSessions);
+        if (!isNaN(numSessionsInt)) {
+          setNumSessions(numSessionsInt);
+        }
+      }
+
+      const lowerBound = c.get("lowerBound");
+      if (lowerBound && typeof lowerBound === "string") {
+        const lowerBoundInt = parseInt(lowerBound);
+        if (!isNaN(lowerBoundInt)) {
+          setLowerBound(lowerBoundInt);
+        }
+      }
+
+      const upperBound = c.get("upperBound");
+      if (upperBound && typeof upperBound === "string") {
+        const upperBoundInt = parseInt(upperBound);
+        if (!isNaN(upperBoundInt)) {
+          setUpperBound(upperBoundInt);
+        }
+      }
+      setModePractice();
+    },
+    [
+      measures,
+      beats,
+      setBeats,
+      setMeasures,
+      setMaxLength,
+      setNumSessions,
+      setLowerBound,
+      setUpperBound,
+      setModePractice,
+    ],
   );
 
   const setModeSetup = useCallback(
@@ -145,6 +211,17 @@ export function StartingPoint({
     [setSummary, setMode, pieceid, setMeasuresPracticed, startTime, csrf],
   );
 
+  useEffect(
+    function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const skipSetup = !!urlParams.get("skipSetup");
+      if (skipSetup) {
+        setModePractice();
+      }
+    },
+    [setModePractice],
+  );
+
   // TODO: consider switch to react-hook-form for setup to reduce annoying prop complexity
   return (
     <div className="relative left-0 top-0 w-full sm:mx-auto sm:max-w-5xl">
@@ -157,14 +234,10 @@ export function StartingPoint({
                 beats={beats}
                 measures={measures}
                 maxLength={maxLength}
-                setMaxLength={setMaxLength}
-                setBeats={setBeats}
-                setMeasures={setMeasures}
-                submit={setModePractice}
                 lowerBound={lowerBound}
                 upperBound={upperBound}
-                setLowerBound={setLowerBound}
-                setUpperBound={setUpperBound}
+                submit={saveConfig}
+                numSessions={numSessions}
               />
             ),
             practice: (
@@ -176,6 +249,9 @@ export function StartingPoint({
                 finish={finishPracticing}
                 lowerBound={lowerBound}
                 upperBound={upperBound}
+                numSessions={numSessions}
+                pieceid={pieceid}
+                planid={planid}
               />
             ),
             summary: (
@@ -185,6 +261,7 @@ export function StartingPoint({
                 setup={setModeSetup}
                 practice={setModePractice}
                 pieceid={pieceid}
+                planid={planid}
               />
             ),
           }[mode]
@@ -204,12 +281,8 @@ export function StartingPointSetupForm({
   lowerBound,
   upperBound,
   preconfigured,
-  setMaxLength,
-  setBeats,
-  setMeasures,
-  setLowerBound,
-  setUpperBound,
   submit,
+  numSessions,
 }: {
   beats: number;
   measures: number;
@@ -217,22 +290,30 @@ export function StartingPointSetupForm({
   lowerBound: number | null;
   upperBound: number | null;
   preconfigured: boolean;
-  setMaxLength: StateUpdater<number>;
-  setBeats: StateUpdater<number>;
-  setLowerBound: StateUpdater<number | null>;
-  setUpperBound: StateUpdater<number | null>;
-  setMeasures: StateUpdater<number>;
-  submit: () => void;
+  numSessions?: number;
+  submit: (c: FormData) => void;
 }) {
-  function isValid() {
-    return beats > 0 && measures > 0;
-  }
+  const upperBoundRef = useRef<HTMLInputElement>(null);
+  const lowerBoundRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const autoSelect = useCallback(function (e: FocusEvent) {
     if (e.currentTarget instanceof HTMLInputElement) {
       e.currentTarget?.select();
     }
   }, []);
+
+  const handleSubmit = useCallback(
+    function (e: Event) {
+      e.preventDefault();
+      if (!formRef.current) {
+        return;
+      }
+      const data = new FormData(formRef.current);
+      submit(data);
+    },
+    [formRef.current],
+  );
 
   // TODO: improve form
   return (
@@ -248,7 +329,11 @@ export function StartingPointSetupForm({
           </p>
         </div>
       </div>
-      <div className="grid w-full grid-cols-1 grid-rows-8 gap-1 sm:grid-cols-2 sm:grid-rows-4">
+      <form
+        onSubmit={handleSubmit}
+        ref={formRef}
+        className="grid w-full grid-cols-1 grid-rows-8 gap-1 sm:grid-cols-2 sm:grid-rows-4"
+      >
         <div className="col-span-1 col-start-1 row-span-1 row-start-1">
           <label
             className="text-lg font-semibold text-neutral-800"
@@ -268,6 +353,7 @@ export function StartingPointSetupForm({
         <div className="col-span-1 col-start-1 row-span-1 flex items-center gap-2 sm:row-start-2">
           <input
             id="measures"
+            name="measures"
             className={cn(
               "focusable w-24 rounded-xl px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20",
               preconfigured
@@ -276,10 +362,8 @@ export function StartingPointSetupForm({
             )}
             type="number"
             min="2"
-            value={measures}
+            defaultValue={`${measures}`}
             disabled={preconfigured}
-            // @ts-ignore
-            onChange={(e: InputEvent) => setMeasures(parseInt(e.target.value))}
             onFocus={autoSelect}
           />
           <div className="font-medium">Measures</div>
@@ -314,10 +398,9 @@ export function StartingPointSetupForm({
             )}
             type="number"
             min="1"
-            value={beats}
+            name="beats"
+            defaultValue={`${beats}`}
             disabled={preconfigured}
-            // @ts-ignore
-            onChange={(e) => setBeats(parseInt(e.target.value))}
             onFocus={autoSelect}
           />
           <div className="font-medium">Beats</div>
@@ -338,13 +421,12 @@ export function StartingPointSetupForm({
           <div className="flex items-center gap-2">
             <input
               id="maxLength"
+              name="maxLength"
               className="focusable w-24 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20"
               type="number"
               min="1"
-              value={maxLength}
+              defaultValue={`${maxLength}`}
               onFocus={autoSelect}
-              // @ts-ignore
-              onChange={(e) => setMaxLength(parseInt(e.target.value))}
             />
             <div className="font-medium">Measures</div>
           </div>
@@ -367,14 +449,14 @@ export function StartingPointSetupForm({
             </label>
             <input
               id="lowerBound"
+              name="lowerBound"
               className="focusable w-24 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-400 transition duration-200 focus:bg-neutral-700/20"
               type="number"
               min="1"
               placeholder="mm"
-              value={lowerBound ?? ""}
+              defaultValue={`${lowerBound ?? ""}`}
               onFocus={autoSelect}
-              // @ts-ignore
-              onChange={(e) => setLowerBound(parseInt(e.target.value))}
+              ref={lowerBoundRef}
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -386,22 +468,26 @@ export function StartingPointSetupForm({
             </label>
             <input
               id="upperBound"
+              name="upperBound"
               className="focusable w-24 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-400 transition duration-200 focus:bg-neutral-700/20"
               type="number"
               min="1"
               max={measures}
               placeholder="mm"
-              value={upperBound ?? ""}
+              value={`${upperBound ?? ""}`}
               onFocus={autoSelect}
-              // @ts-ignore
-              onChange={(e) => setUpperBound(parseInt(e.target.value))}
+              ref={upperBoundRef}
             />
           </div>
           <div className="flex h-full flex-col justify-end gap-1 sm:pb-2">
             <BasicButton
               onClick={() => {
-                setLowerBound(null);
-                setUpperBound(null);
+                if (lowerBoundRef.current) {
+                  lowerBoundRef.current.value = "";
+                }
+                if (upperBoundRef.current) {
+                  upperBoundRef.current.value = "";
+                }
               }}
               type="button"
             >
@@ -410,12 +496,33 @@ export function StartingPointSetupForm({
             </BasicButton>
           </div>
         </div>
-        <div className="col-span-full my-16 flex w-full items-center justify-center">
-          <GiantBasicButton disabled={!isValid()} onClick={submit}>
-            Start Practicing
-          </GiantBasicButton>
+
+        <div className="flex flex-col">
+          <label
+            className="text-lg font-semibold text-neutral-800"
+            for="num-sessions"
+          >
+            Number of Sessions
+          </label>
+          <p className="pb-2 text-sm text-neutral-700">
+            Random practicing is broken up into five minute sessions with one
+            minute breaks.
+          </p>
+          <div className="flex gap-2">
+            <input
+              id="num-sessions"
+              name="numSessions"
+              className="focusable w-20 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20"
+              type="number"
+              min="1"
+              defaultValue={`${numSessions}`}
+            />
+          </div>
         </div>
-      </div>
+        <div className="col-span-full my-16 flex w-full items-center justify-center">
+          <GiantBasicButton type="submit">Start Practicing</GiantBasicButton>
+        </div>
+      </form>
     </>
   );
 }
@@ -464,14 +571,20 @@ export function StartingPointPractice({
   upperBound,
   setup,
   finish,
+  pieceid = "",
+  numSessions = 2,
+  planid = "",
 }: {
   beats: number;
   measures: number;
   maxLength: number;
   lowerBound: number | null;
   upperBound: number | null;
+  pieceid?: string;
   setup: () => void;
   finish: (summary: Section[]) => void;
+  planid?: string;
+  numSessions?: number;
 }) {
   const [practiceSummary, setPracticeSummary] = useState<Section[]>([]);
   const [section, setSection] = useState<Section>(
@@ -479,20 +592,141 @@ export function StartingPointPractice({
   );
   const topRef = useRef<HTMLDivElement>(null);
 
+  const [sessionsCompleted, setSessionsCompleted] = useState(0);
+  const [sessionStarted, setSessionStarted] = useState(dayjs());
+  const [hasShownResume, setHasShownResume] = useState(false);
+  const resumeRef = useRef<HTMLDialogElement>(null);
+  const breakDialogRef = useRef<HTMLDialogElement>(null);
+  const [canContinue, setCanContinue] = useState(false);
+
+  const saveToStorage = useCallback(
+    function (key: string, value: string) {
+      if (pieceid) {
+        localStorage.setItem(`${pieceid}.startingPoint.${key}`, value);
+        localStorage.setItem(
+          `${pieceid}.startingPoint.savedAt`,
+          Date.now().toString(),
+        );
+      }
+    },
+    [pieceid],
+  );
+
+  const loadFromStorage = useCallback(
+    function (key: string) {
+      if (pieceid) {
+        const savedAt = localStorage.getItem(
+          `${pieceid}.startingPoint.savedAt`,
+        );
+        if (
+          !savedAt ||
+          dayjs(parseInt(savedAt)).isBefore(dayjs().subtract(1, "day"))
+        ) {
+          localStorage.removeItem(`${pieceid}.startingPoint.${key}`);
+          return undefined;
+        }
+        return localStorage.getItem(`${pieceid}.startingPoint.${key}`);
+      }
+    },
+    [pieceid],
+  );
+
   useEffect(() => {
     if (topRef.current) {
       window.scrollTo(0, topRef.current.offsetTop);
     }
   }, [topRef.current]);
 
+  useEffect(() => {
+    setHasShownResume(true);
+    if (!pieceid) {
+      return;
+    }
+    const practiceSummary = loadFromStorage("practiceSummary");
+    if (practiceSummary) {
+      const autoResume = new URLSearchParams(window.location.search).get(
+        "resume",
+      );
+      if (autoResume) {
+        handleResume();
+        return;
+      }
+      if (resumeRef.current && !hasShownResume) {
+        resumeRef.current.showModal();
+      }
+    } else {
+      localStorage.removeItem(`${pieceid}.startingPoint.practiceSummary`);
+      localStorage.removeItem(`${pieceid}.startingPoint.sessionsCompleted`);
+      localStorage.removeItem(`${pieceid}.startingPoint.savedAt`);
+      return;
+    }
+  }, [pieceid, resumeRef.current, hasShownResume]);
+
+  const handleResume = useCallback(
+    function () {
+      const summary = loadFromStorage("practiceSummary");
+      if (summary) {
+        setPracticeSummary(JSON.parse(summary));
+      }
+      const sessionsCompleted = loadFromStorage("sessionsCompleted");
+      if (sessionsCompleted) {
+        setSessionsCompleted(parseInt(sessionsCompleted));
+      }
+    },
+    [resumeRef, setPracticeSummary],
+  );
+
+  const maybeTakeABreak = useCallback(
+    function () {
+      // if (dayjs().diff(sessionStarted, "minute") < 5) {
+      if (dayjs().diff(sessionStarted, "second") < 2) {
+        return;
+      }
+      if (sessionsCompleted >= numSessions - 1) {
+        handleDone();
+      } else {
+        takeABreak();
+        setSessionsCompleted((curr) => curr + 1);
+        saveToStorage("sessionsCompleted", `${sessionsCompleted + 1}`);
+      }
+    },
+    [sessionStarted, sessionsCompleted, setSessionsCompleted],
+  );
+
+  const takeABreak = useCallback(
+    function () {
+      if (breakDialogRef.current) {
+        breakDialogRef.current.showModal();
+        setCanContinue(false);
+        setTimeout(function () {
+          setCanContinue(true);
+          // }, 60000);
+        }, 1000);
+      }
+    },
+    [breakDialogRef.current, setCanContinue],
+  );
+
   const nextStartingPoint = useCallback(
     function () {
-      setPracticeSummary((curr) => [...curr, section]);
+      const nextPracticeSummary = [...practiceSummary, section];
+      setPracticeSummary(nextPracticeSummary);
+      saveToStorage("practiceSummary", JSON.stringify(nextPracticeSummary));
       setSection(
         makeRandomSection(measures, beats, maxLength, lowerBound, upperBound),
       );
+      maybeTakeABreak();
     },
-    [beats, measures, section, maxLength, lowerBound, upperBound],
+    [
+      practiceSummary,
+      beats,
+      measures,
+      section,
+      maxLength,
+      lowerBound,
+      upperBound,
+      maybeTakeABreak,
+    ],
   );
 
   const handleDone = useCallback(
@@ -502,19 +736,32 @@ export function StartingPointPractice({
       finalSummary.sort(
         (a, b) => a.startingPoint.measure - b.startingPoint.measure,
       );
+      localStorage.removeItem(`${pieceid}.startingPoint.practiceSummary`);
+      localStorage.removeItem(`${pieceid}.startingPoint.sessionsCompleted`);
+      localStorage.removeItem(`${pieceid}.startingPoint.savedAt`);
       finish(finalSummary);
     },
     [practiceSummary, finish, section],
   );
 
+  const startSession = useCallback(
+    function () {
+      setSessionStarted(dayjs());
+    },
+    [setSessionStarted],
+  );
+
   return (
     <div className="relative mb-8 grid grid-cols-1" ref={topRef}>
-      <div className="absolute left-0 top-0 sm:p-8">
-        <BasicButton onClick={setup} type="button">
-          ← Back to setup
-        </BasicButton>
-      </div>
-      <div className="h-12" />
+      <BreakDialog
+        dialogRef={breakDialogRef}
+        canContinue={canContinue}
+        onContinue={startSession}
+        onDone={handleDone}
+        planid={planid}
+      />
+      <ResumeDialog dialogRef={resumeRef} onResume={handleResume} />
+      <div className="absolute left-0 top-0 sm:p-8"></div>
       <div className="flex w-full flex-col items-center justify-center gap-2 pt-12 sm:pt-24">
         <div className="relative h-32 w-full">
           <ScaleCrossFadeContent
@@ -527,8 +774,14 @@ export function StartingPointPractice({
             Next Section
           </GiantHappyButton>
         </div>
-        <div className="pt-8">
-          <WarningButton onClick={handleDone}>Done</WarningButton>
+        <div className="flex flex-wrap justify-center gap-2 pt-8">
+          <BasicButton onClick={setup} type="button">
+            <ArrowLeftCircleIcon className="-ml-1 size-5" /> Back to setup
+          </BasicButton>
+          <WarningButton onClick={handleDone}>
+            <StopCircleIcon className="-ml-1 size-5" />
+            Finish
+          </WarningButton>
         </div>
       </div>
     </div>
@@ -572,25 +825,24 @@ export function Summary({
   setup,
   practice,
   pieceid,
+  planid,
 }: {
   summary: Section[];
   measuresPracticed: [number, number][];
   setup: () => void;
   practice: () => void;
   pieceid?: string;
+  planid?: string;
 }) {
   return (
     <>
-      <div className="flex w-full flex-col justify-center gap-4 pb-8 pt-12 sm:flex-row  sm:gap-6">
-        {pieceid && <BackToPiece pieceid={pieceid} />}
-        <WarningButton onClick={setup}>
-          <Cog6ToothIcon className="-ml-1 size-5" />
-          Back to Setup
-        </WarningButton>
-        <HappyButton onClick={practice}>
-          <MusicalNoteIcon className="-ml-1 size-5" />
-          Practice More
-        </HappyButton>
+      <div className="flex w-full flex-col justify-center gap-4 pb-8 pt-4 sm:flex-row sm:gap-6 sm:pt-8">
+        <SummaryActions
+          setup={setup}
+          practice={practice}
+          pieceid={pieceid}
+          planid={planid}
+        />
       </div>
       <div className="flex w-full flex-col items-center justify-center gap-2">
         <div className="flex w-full  justify-center py-4">

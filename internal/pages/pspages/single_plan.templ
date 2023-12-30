@@ -221,11 +221,15 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 	<section id="interleave-days-spots" class="flex flex-col gap-2">
 		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Infrequent Spots</h3>
 		<p class="w-full text-sm">Play these spots at least once today</p>
-		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-			for _, spot := range interleaveDaysSpots {
-				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, spot.Completed)
-			}
-		</ul>
+		if len(interleaveDaysSpots) > 0 {
+			<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+				for _, spot := range interleaveDaysSpots {
+					@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, spot.Completed)
+				}
+			</ul>
+		} else {
+			<p class="w-full text-sm">No Infrequent Spots</p>
+		}
 		if active && len(interleaveDaysSpots) > 0 {
 			if allCompleted {
 				<div
@@ -257,11 +261,15 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
 			<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
 		}
-		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-			for _, spot := range interleaveSpots {
-				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
-			}
-		</ul>
+		if len(interleaveSpots) > 0 {
+			<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+				for _, spot := range interleaveSpots {
+					@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
+				}
+			</ul>
+		} else {
+			<p class="w-full text-sm">No Interleave Spots</p>
+		}
 		if active && len(interleaveSpots) > 0 {
 			if allCompleted {
 				<div

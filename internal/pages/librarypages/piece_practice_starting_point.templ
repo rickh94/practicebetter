@@ -18,7 +18,14 @@ templ PiecePracticeStartingPointPage(s pages.ServerUtil, csrf string, piece db.P
 				})
 		}
 		@components.NormalContainer() {
-			<starting-point class="w-full" pieceid={ piece.ID } csrf={ csrf } initialmeasures={ strconv.FormatInt(piece.Measures.Int64, 10) } initialbeats={ strconv.FormatInt(piece.BeatsPerMeasure.Int64, 10) }></starting-point>
+			<starting-point
+ 				class="w-full"
+ 				pieceid={ piece.ID }
+ 				csrf={ csrf }
+ 				initialmeasures={ strconv.FormatInt(piece.Measures.Int64, 10) }
+ 				initialbeats={ strconv.FormatInt(piece.BeatsPerMeasure.Int64, 10) }
+ 				planid={ components.GetActivePracticePlan(ctx) }
+			></starting-point>
 		}
 		<script type="module" src={ s.StaticUrl("out/practice.js") }></script>
 	}

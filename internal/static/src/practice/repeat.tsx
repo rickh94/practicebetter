@@ -1,6 +1,7 @@
 import {
   ArrowPathIcon,
   ArrowUpRightIcon,
+  BookOpenIcon,
   CheckIcon,
   HandThumbDownIcon,
 } from "@heroicons/react/24/solid";
@@ -16,7 +17,13 @@ import {
   WarningButton,
 } from "../ui/buttons";
 import { BasicSpot } from "../validators";
-import { BackToPiece, HappyLink, WarningLink } from "../ui/links";
+import {
+  BackToPiece,
+  BackToPlan,
+  HappyLink,
+  Link,
+  WarningLink,
+} from "../ui/links";
 import {
   HandThumbUpIcon,
   ListBulletIcon,
@@ -24,6 +31,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { PracticeSpotDisplay } from "./practice-spot-display";
+import { NextPlanItem } from "../ui/plan-components";
 
 type RepeatMode = "prepare" | "practice" | "break_success" | "break_fail";
 
@@ -33,11 +41,13 @@ export function Repeat({
   pieceid,
   csrf,
   piecetitle = "",
+  planid = "",
 }: {
   initialspot?: string;
   pieceid?: string;
   csrf?: string;
   piecetitle?: string;
+  planid?: string;
 }) {
   const [mode, setMode] = useState<RepeatMode>("prepare");
   const [startTime, setStartTime] = useState<number>(0);
@@ -173,10 +183,15 @@ export function Repeat({
                   spot?.stage === "repeat" || spot?.stage === "extra_repeat"
                 }
                 promoteSpot={promoteSpot}
+                planid={planid}
               />
             ),
             break_fail: (
-              <RepeatBreakFail restart={setModePrepare} pieceid={pieceid} />
+              <RepeatBreakFail
+                restart={setModePrepare}
+                pieceid={pieceid}
+                planid={planid}
+              />
             ),
           }[mode]
         }
@@ -396,11 +411,13 @@ function RepeatBreakSuccess({
   pieceid,
   canPromote,
   promoteSpot,
+  planid = "",
 }: {
   restart: () => void;
   pieceid?: string;
   canPromote: boolean;
   promoteSpot: (toStage: string) => void;
+  planid?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -490,31 +507,11 @@ function RepeatBreakSuccess({
           Great job completing your five times in a row!
         </p>
         <div className="my-8 flex w-full flex-col justify-center gap-4 sm:flex-row sm:gap-6">
-          {pieceid && <BackToPiece pieceid={pieceid} />}
-          {pieceid ? (
-            <WarningLink
-              href={`/library/pieces/${pieceid}/practice/random-single`}
-            >
-              <MusicalNoteIcon className="-ml-1 size-5" />
-              Try Random Practicing
-            </WarningLink>
-          ) : (
-            <WarningLink href="/practice/random-single">
-              <MusicalNoteIcon className="-ml-1 size-5" />
-              Try Random Practicing
-            </WarningLink>
-          )}
-          {pieceid ? (
-            <HappyLink href={`/library/pieces/${pieceid}/practice/repeat`}>
-              <ListBulletIcon className="-ml-1 size-5" />
-              Practice Another Spot
-            </HappyLink>
-          ) : (
-            <HappyButton onClick={restart}>
-              <MusicalNoteIcon className="-ml-1 size-5" />
-              Practice Another Spot
-            </HappyButton>
-          )}
+          <RepeatFinishedActionButtons
+            pieceid={pieceid}
+            planid={planid}
+            restart={restart}
+          />
         </div>
         <div className="prose prose-neutral mt-8">
           <h3 className="text-left text-lg">What to do now?</h3>
@@ -541,9 +538,11 @@ function RepeatBreakSuccess({
 function RepeatBreakFail({
   restart,
   pieceid,
+  planid = "",
 }: {
   restart: () => void;
   pieceid?: string;
+  planid?: string;
 }) {
   return (
     <div className="flex w-full flex-col items-center sm:mx-auto sm:max-w-3xl">
@@ -552,18 +551,13 @@ function RepeatBreakFail({
         You must put limits on your practicing so you don’t accidentally
         reinforce mistakes
       </p>
+
       <div className="my-8 flex w-full flex-col justify-center gap-4 sm:flex-row sm:gap-6">
-        {pieceid && <BackToPiece pieceid={pieceid} />}
-        <WarningLink href="/practice/random-spots">
-          Try Random Practicing
-        </WarningLink>
-        {pieceid ? (
-          <HappyLink href={`/library/pieces/${pieceid}/practice/repeat`}>
-            Practice Another Spot
-          </HappyLink>
-        ) : (
-          <HappyButton onClick={restart}>Practice Another Spot</HappyButton>
-        )}
+        <RepeatFinishedActionButtons
+          pieceid={pieceid}
+          planid={planid}
+          restart={restart}
+        />
       </div>
       <div className="prose prose-neutral mt-8">
         <h3 className="text-left text-lg">What to do now?</h3>
@@ -600,5 +594,59 @@ function RepeatBreakFail({
         </ul>
       </div>
     </div>
+  );
+}
+
+function RepeatFinishedActionButtons({
+  pieceid,
+  planid,
+  restart,
+}: {
+  pieceid?: string;
+  planid?: string;
+  restart?: () => void;
+}) {
+  if (planid) {
+    return (
+      <>
+        {!!pieceid && <BackToPiece pieceid={pieceid} />}
+        <BackToPlan planid={planid} />
+        <NextPlanItem planid={planid} />
+      </>
+    );
+  }
+  if (pieceid) {
+    return (
+      <>
+        <BackToPiece pieceid={pieceid} />
+        <WarningLink href={`/library/pieces/${pieceid}/practice/random-single`}>
+          <MusicalNoteIcon className="-ml-1 size-5" />
+          Try Random Practicing
+        </WarningLink>
+        <HappyLink href={`/library/pieces/${pieceid}/practice/repeat`}>
+          <ListBulletIcon className="-ml-1 size-5" />
+          Practice Another Spot
+        </HappyLink>
+      </>
+    );
+  }
+  return (
+    <>
+      <Link
+        className="focusable action-button bg-sky-700/10 text-sky-800 hover:bg-sky-700/20"
+        href="/library"
+      >
+        <BookOpenIcon className="-ml-1 size-5" />
+        Library
+      </Link>
+      <WarningLink href="/practice/random-single">
+        <MusicalNoteIcon className="-ml-1 size-5" />
+        Try Random Practicing
+      </WarningLink>
+      <HappyButton onClick={restart}>
+        <MusicalNoteIcon className="-ml-1 size-5" />
+        Practice Another Spot
+      </HappyButton>
+    </>
   );
 }

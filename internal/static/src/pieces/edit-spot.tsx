@@ -44,9 +44,7 @@ export function EditSpotForm({
       values: data,
       target: "#main-content",
       swap: "outerHTML transition:true",
-      headers: {
-        "X-CSRF-Token": csrf,
-      },
+      headers: { "X-CSRF-Token": csrf },
     });
     reset();
     setIsUpdating(false);

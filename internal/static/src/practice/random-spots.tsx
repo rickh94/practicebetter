@@ -21,10 +21,9 @@ import {
   WarningButton,
 } from "../ui/buttons";
 import {
-  BookmarkIcon,
+  ArrowLeftCircleIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
-  ChevronRightIcon,
   HandRaisedIcon,
   HandThumbDownIcon,
   HandThumbUpIcon,
@@ -35,6 +34,8 @@ import Summary from "./summary";
 import { PracticeSpotDisplay } from "./practice-spot-display";
 import dayjs from "dayjs";
 import { BackToPlan } from "../ui/links";
+import { InterleaveSpotsList } from "../ui/plan-components";
+import { BreakDialog, ResumeDialog } from "./practice-dialogs";
 
 export function RandomSpots({
   initialspots,
@@ -114,18 +115,22 @@ export function RandomSpots({
 
   useEffect(
     function () {
-      if (initialspots) {
-        const initSpots: BasicSpot[] = JSON.parse(initialspots);
-        setSpots(initSpots);
-      }
       // get initial sessions value from query param
       const urlParams = new URLSearchParams(window.location.search);
       const initialSessions = parseInt(urlParams.get("numSessions"));
       if (initialSessions && typeof initialSessions === "number") {
         setNumSessions(initialSessions);
       }
+      if (initialspots) {
+        const initSpots: BasicSpot[] = JSON.parse(initialspots);
+        setSpots(initSpots);
+      }
+      const skipSetup = !!urlParams.get("skipSetup");
+      if (skipSetup) {
+        startPracticing();
+      }
     },
-    [initialspots, setNumSessions],
+    [initialspots, setNumSessions, startPracticing],
   );
 
   return (
@@ -159,6 +164,7 @@ export function RandomSpots({
                 practice={() => setMode("practice")}
                 initialSpotIds={initialSpotIds}
                 pieceid={pieceid}
+                planid={planid}
                 csrf={csrf}
                 startTime={startTime}
               />
@@ -299,11 +305,15 @@ function SinglePractice({
   const [counter, setCounter] = useState(0);
   const [skipSpotIds, setSkipSpotIds] = useState<string[]>([]);
   const [lastTwoSpots, setLastTwoSpots] = useState<string[]>([]);
+
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
   const [sessionStarted, setSessionStarted] = useState(dayjs());
   const [hasShownResume, setHasShownResume] = useState(false);
+  const [canContinue, setCanContinue] = useState(false);
+
   const resumeRef = useRef<HTMLDialogElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
+  const breakDialogRef = useRef<HTMLDialogElement>(null);
   const spotIdsHash = useMemo(
     function () {
       const ids = spots
@@ -314,16 +324,6 @@ function SinglePractice({
     },
     [spots],
   );
-  const breakDialogRef = useRef<HTMLDialogElement>(null);
-  const [canContinue, setCanContinue] = useState(false);
-  const interleaveSpotsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (interleaveSpotsRef.current) {
-      // @ts-ignore
-      htmx.process(interleaveSpotsRef.current);
-    }
-  }, [interleaveSpotsRef.current]);
 
   const saveToStorage = useCallback(
     function (key: string, value: string) {
@@ -396,43 +396,8 @@ function SinglePractice({
       if (sessionsCompleted) {
         setSessionsCompleted(parseInt(sessionsCompleted));
       }
-      closeResume();
     },
-    [resumeRef, setSkipSpotIds, setPracticeSummary],
-  );
-
-  const closeResume = useCallback(
-    function () {
-      if (resumeRef.current) {
-        resumeRef.current.classList.add("close");
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (resumeRef.current) {
-              resumeRef.current.classList.remove("close");
-              resumeRef.current.close();
-            }
-          });
-        });
-      }
-    },
-    [resumeRef.current],
-  );
-
-  const closeBreak = useCallback(
-    function () {
-      if (breakDialogRef.current) {
-        breakDialogRef.current.classList.add("close");
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (breakDialogRef.current) {
-              breakDialogRef.current.classList.remove("close");
-              breakDialogRef.current.close();
-            }
-          });
-        });
-      }
-    },
-    [breakDialogRef.current],
+    [setSkipSpotIds, setPracticeSummary],
   );
 
   const addSpotRep = useCallback(
@@ -488,6 +453,7 @@ function SinglePractice({
       if (pieceid) {
         localStorage.removeItem(`${pieceid}.${spotIdsHash}.practiceSummary`);
         localStorage.removeItem(`${pieceid}.${spotIdsHash}.skipSpotIds`);
+        localStorage.removeItem(`${pieceid}.${spotIdsHash}.sessionsCompleted`);
         localStorage.removeItem(`${pieceid}.${spotIdsHash}.savedAt`);
       }
       finish(finalSummary);
@@ -591,7 +557,6 @@ function SinglePractice({
 
   const startSession = useCallback(
     function () {
-      closeBreak();
       setSessionStarted(dayjs());
     },
     [setSessionStarted],
@@ -631,104 +596,15 @@ function SinglePractice({
   // TODO: handle pretty widths for buttons
   return (
     <div className="relative w-full" ref={topRef}>
-      <dialog
-        ref={breakDialogRef}
-        aria-labelledby="resume-title"
-        className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
-      >
-        <header className="mt-2 text-center sm:text-left">
-          <h3
-            id="resume-title"
-            className="text-2xl font-semibold leading-6 text-neutral-900"
-          >
-            Time for a Break
-          </h3>
-        </header>
-        <div className="mt-2 flex flex-col gap-2 text-left text-neutral-700">
-          <p>
-            It’s been five minutes, time for a short break. Let your mind and
-            hands relax.
-          </p>
-          {!!planid && (
-            <>
-              <p>This is a great time to practice your interleave spots!</p>
-              <details>
-                <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50">
-                  <div className="flex items-center gap-2">
-                    <BookmarkIcon className="-ml-1 size-5" />
-                    Interleave Spots
-                  </div>
-                  <ChevronRightIcon className="summary-icon size-6 transition-transform" />
-                </summary>
-                <div
-                  ref={interleaveSpotsRef}
-                  hx-trigger="load"
-                  hx-swap="innterHTML transition:true"
-                  hx-get={`/library/plans/${planid}/interleave`}
-                  className="w-full py-2"
-                >
-                  Loading Interleave Spots...
-                </div>
-              </details>
-              <p>
-                You can also go back to your practice plan and resume this
-                later.
-              </p>
-            </>
-          )}
-        </div>
-        {canContinue ? (
-          <div className="flex w-full flex-col flex-wrap gap-2 sm:flex-row-reverse">
-            <HappyButton
-              grow
-              onClick={startSession}
-              className="text-lg"
-              disabled={!canContinue}
-            >
-              <CheckCircleIcon className="-ml-1 size-5" />
-              Continue
-            </HappyButton>
-            <WarningButton grow onClick={handleDone}>
-              <StopCircleIcon className="-ml-1 size-5" />
-              Finish
-            </WarningButton>
-            {!!planid && <BackToPlan planid={planid} grow />}
-          </div>
-        ) : (
-          <div className="mt-1 flex w-full justify-center py-2 text-lg font-medium">
-            Enjoy your break!
-          </div>
-        )}
-      </dialog>
+      <BreakDialog
+        dialogRef={breakDialogRef}
+        canContinue={canContinue}
+        onContinue={startSession}
+        onDone={handleDone}
+        planid={planid}
+      />
+      <ResumeDialog dialogRef={resumeRef} onResume={handleResume} />
 
-      <dialog
-        ref={resumeRef}
-        aria-labelledby="resume-title"
-        className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
-      >
-        <header className="mt-2 text-center sm:text-left">
-          <h3
-            id="resume-title"
-            className="text-2xl font-semibold leading-6 text-neutral-900"
-          >
-            Resume Practicing
-          </h3>
-        </header>
-        <div className="prose prose-sm prose-neutral mt-2 text-left">
-          It looks like your practicing was interrupted, would you like to
-          resume it?
-        </div>
-        <div className="mt-2 flex w-full flex-row-reverse flex-wrap gap-2 sm:gap-2">
-          <HappyButton grow onClick={handleResume} className="text-lg">
-            <CheckCircleIcon className="-ml-1 size-5" />
-            Resume
-          </HappyButton>
-          <AngryButton grow onClick={closeResume} className="text-lg">
-            <XCircleIcon className="-ml-1 size-5" />
-            Close
-          </AngryButton>
-        </div>
-      </dialog>
       <div className="flex w-full flex-col items-center justify-center gap-2 pt-2">
         <div className="text-2xl font-semibold text-neutral-700">
           Practicing:
@@ -764,7 +640,7 @@ function SinglePractice({
         </div>
         <div className="flex justify-center gap-4 pt-8">
           <BasicButton onClick={setup}>
-            <ChevronLeftIcon className="-ml-1 size-5" /> Back to setup
+            <ArrowLeftCircleIcon className="-ml-1 size-5" /> Back to setup
           </BasicButton>
           <WarningButton grow onClick={handleDone}>
             <StopCircleIcon className="-ml-1 size-5" />

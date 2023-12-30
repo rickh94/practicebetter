@@ -240,9 +240,10 @@ func getPracticeUrl(completed, isActive bool, pieceID, practiceType, intensity s
 	}
 	switch practiceType {
 	case "random_single":
-		return "/library/pieces/" + pieceID + "/practice/random-single" + "?resume=true&numSessions=" + getSessionsFromIntensity(intensity)
+		return "/library/pieces/" + pieceID + "/practice/random-single?resume=true&skipSetup=true&numSessions=" + getSessionsFromIntensity(intensity)
 	case "starting_point":
-		return "/library/pieces/" + pieceID + "/practice/starting-point"
+		return "/library/pieces/" + pieceID + "/practice/starting-point?resume=true&skipSetup=true&numSessions=" + getSessionsFromIntensity(intensity)
+
 	default:
 		return "/library/pieces/" + pieceID
 	}

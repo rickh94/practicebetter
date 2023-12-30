@@ -20,7 +20,13 @@ templ SpotPracticeRepeatPage(s pages.ServerUtil, spot db.GetSpotRow, csrf string
 			}
 		}
 		@components.NormalContainer() {
-			<repeat-practice initialspot={ spotData } csrf={ csrf } pieceid={ spot.PieceID } piecetitle={ spot.PieceTitle }></repeat-practice>
+			<repeat-practice
+ 				initialspot={ spotData }
+ 				csrf={ csrf }
+ 				pieceid={ spot.PieceID }
+ 				piecetitle={ spot.PieceTitle }
+ 				planid={ components.GetActivePracticePlan(ctx) }
+			></repeat-practice>
 		}
 		<script type="module" src={ s.StaticUrl("out/practice.js") }></script>
 	}

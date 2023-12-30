@@ -661,6 +661,113 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 	pspages.PracticePlanInterleaveDaysSpots(spotInfo, planID, token, true, true).Render(r.Context(), w)
 }
 
+func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(db.User)
+	planID := chi.URLParam(r, "planID")
+
+	queries := db.New(s.DB)
+	activePracticePlanID, _ := s.GetActivePracticePlanID(r.Context())
+
+	if planID != activePracticePlanID {
+		http.Redirect(w, r, "/library/plans/"+planID, http.StatusSeeOther)
+		return
+	}
+
+	extraRepeatSpots, err := queries.GetPracticePlanIncompleteExtraRepeatSpots(r.Context(), db.GetPracticePlanIncompleteExtraRepeatSpotsParams{
+		PlanID: planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get next plan item",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(extraRepeatSpots) > 0 {
+		spotID := extraRepeatSpots[0].SpotID
+		pieceID := extraRepeatSpots[0].SpotPieceID
+		htmx.Redirect(r, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat")
+		http.Redirect(w, r, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", http.StatusSeeOther)
+		return
+	}
+	randomPieces, err := queries.GetPracticePlanIncompleteRandomPieces(r.Context(), db.GetPracticePlanIncompleteRandomPiecesParams{
+		PlanID: planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get next plan item",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(randomPieces) > 0 {
+		pieceID := randomPieces[0].PieceID
+		htmx.Redirect(r, "/library/pieces/"+pieceID+"/practice/random")
+		http.Redirect(w, r, "/library/pieces/"+pieceID+"/practice/random", http.StatusSeeOther)
+		return
+	}
+	startingPointPieces, err := queries.GetPracticePlanIncompleteStartingPointPieces(r.Context(), db.GetPracticePlanIncompleteStartingPointPiecesParams{
+		PlanID: planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get next plan item",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(startingPointPieces) > 0 {
+		pieceID := startingPointPieces[0].PieceID
+		htmx.Redirect(r, "/library/pieces/"+pieceID+"/practice/starting-point")
+		http.Redirect(w, r, "/library/pieces/"+pieceID+"/practice/starting-point", http.StatusSeeOther)
+		return
+	}
+
+	newSpots, err := queries.GetPracticePlanIncompleteNewSpots(r.Context(), db.GetPracticePlanIncompleteNewSpotsParams{
+		PlanID: planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get next plan item",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(newSpots) > 0 {
+		spotID := newSpots[0].SpotID
+		pieceID := newSpots[0].SpotPieceID
+		htmx.Redirect(r, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat")
+		http.Redirect(w, r, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", http.StatusSeeOther)
+		return
+	}
+
+	htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+		Message:  "No more items to practice. Check you infrequent and interleave spots one last time and you are done.",
+		Title:    "Almost Done",
+		Variant:  "success",
+		Duration: 3000,
+	})
+
+	htmx.Redirect(r, "/library/plans/"+planID)
+	http.Redirect(w, r, "/library/plans/"+planID, http.StatusSeeOther)
+}
+
 /*
 excellent after 7 days = promote
 poor ever = demote
@@ -906,7 +1013,6 @@ func (s *Server) getInterleaveList(w http.ResponseWriter, r *http.Request) {
 	token := csrf.Token(r)
 
 	hxRequest := htmx.Request(r)
-	log.Default().Println(hxRequest)
 	if hxRequest == nil {
 		http.Redirect(w, r, fmt.Sprintf("/library/plans/%s", planID), http.StatusSeeOther)
 		return

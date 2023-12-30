@@ -121,7 +121,7 @@ INSERT INTO practice_plan_pieces (
     piece_id,
     practice_type
 ) VALUES (?, ?, ?)
-RETURNING practice_plan_id, piece_id, practice_type, completed
+RETURNING practice_plan_id, piece_id, practice_type, completed, sessions
 `
 
 type CreatePracticePlanPieceParams struct {
@@ -138,6 +138,7 @@ func (q *Queries) CreatePracticePlanPiece(ctx context.Context, arg CreatePractic
 		&i.PieceID,
 		&i.PracticeType,
 		&i.Completed,
+		&i.Sessions,
 	)
 	return i, err
 }
@@ -207,6 +208,194 @@ func (q *Queries) GetPracticePlan(ctx context.Context, arg GetPracticePlanParams
 		&i.PracticeSessionID,
 	)
 	return i, err
+}
+
+const getPracticePlanIncompleteExtraRepeatSpots = `-- name: GetPracticePlanIncompleteExtraRepeatSpots :many
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.completed,
+    spots.piece_id AS spot_piece_id
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'extra_repeat'
+AND practice_plan_spots.completed = false
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+`
+
+type GetPracticePlanIncompleteExtraRepeatSpotsParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+type GetPracticePlanIncompleteExtraRepeatSpotsRow struct {
+	PracticePlanID string `json:"practicePlanId"`
+	SpotID         string `json:"spotId"`
+	PracticeType   string `json:"practiceType"`
+	Completed      bool   `json:"completed"`
+	SpotPieceID    string `json:"spotPieceId"`
+}
+
+func (q *Queries) GetPracticePlanIncompleteExtraRepeatSpots(ctx context.Context, arg GetPracticePlanIncompleteExtraRepeatSpotsParams) ([]GetPracticePlanIncompleteExtraRepeatSpotsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanIncompleteExtraRepeatSpots, arg.PlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPracticePlanIncompleteExtraRepeatSpotsRow
+	for rows.Next() {
+		var i GetPracticePlanIncompleteExtraRepeatSpotsRow
+		if err := rows.Scan(
+			&i.PracticePlanID,
+			&i.SpotID,
+			&i.PracticeType,
+			&i.Completed,
+			&i.SpotPieceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPracticePlanIncompleteNewSpots = `-- name: GetPracticePlanIncompleteNewSpots :many
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.completed,
+    spots.piece_id AS spot_piece_id
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'new'
+AND practice_plan_spots.completed = false
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+`
+
+type GetPracticePlanIncompleteNewSpotsParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+type GetPracticePlanIncompleteNewSpotsRow struct {
+	PracticePlanID string `json:"practicePlanId"`
+	SpotID         string `json:"spotId"`
+	PracticeType   string `json:"practiceType"`
+	Completed      bool   `json:"completed"`
+	SpotPieceID    string `json:"spotPieceId"`
+}
+
+func (q *Queries) GetPracticePlanIncompleteNewSpots(ctx context.Context, arg GetPracticePlanIncompleteNewSpotsParams) ([]GetPracticePlanIncompleteNewSpotsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanIncompleteNewSpots, arg.PlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPracticePlanIncompleteNewSpotsRow
+	for rows.Next() {
+		var i GetPracticePlanIncompleteNewSpotsRow
+		if err := rows.Scan(
+			&i.PracticePlanID,
+			&i.SpotID,
+			&i.PracticeType,
+			&i.Completed,
+			&i.SpotPieceID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPracticePlanIncompleteRandomPieces = `-- name: GetPracticePlanIncompleteRandomPieces :many
+SELECT practice_plan_id, piece_id, practice_type, completed, sessions
+FROM practice_plan_pieces
+WHERE practice_plan_pieces.practice_type = 'random_spots'
+AND practice_plan_pieces.completed = false
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+`
+
+type GetPracticePlanIncompleteRandomPiecesParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) GetPracticePlanIncompleteRandomPieces(ctx context.Context, arg GetPracticePlanIncompleteRandomPiecesParams) ([]PracticePlanPiece, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanIncompleteRandomPieces, arg.PlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PracticePlanPiece
+	for rows.Next() {
+		var i PracticePlanPiece
+		if err := rows.Scan(
+			&i.PracticePlanID,
+			&i.PieceID,
+			&i.PracticeType,
+			&i.Completed,
+			&i.Sessions,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPracticePlanIncompleteStartingPointPieces = `-- name: GetPracticePlanIncompleteStartingPointPieces :many
+SELECT practice_plan_id, piece_id, practice_type, completed, sessions
+FROM practice_plan_pieces
+WHERE practice_plan_pieces.practice_type = 'starting_point'
+AND practice_plan_pieces.completed = false
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+`
+
+type GetPracticePlanIncompleteStartingPointPiecesParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) GetPracticePlanIncompleteStartingPointPieces(ctx context.Context, arg GetPracticePlanIncompleteStartingPointPiecesParams) ([]PracticePlanPiece, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanIncompleteStartingPointPieces, arg.PlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PracticePlanPiece
+	for rows.Next() {
+		var i PracticePlanPiece
+		if err := rows.Scan(
+			&i.PracticePlanID,
+			&i.PieceID,
+			&i.PracticeType,
+			&i.Completed,
+			&i.Sessions,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPracticePlanInterleaveDaysSpots = `-- name: GetPracticePlanInterleaveDaysSpots :many

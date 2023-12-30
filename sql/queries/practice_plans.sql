@@ -122,6 +122,38 @@ FROM practice_plan_spots
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plan_spots.practice_type = 'interleave' AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
 
+-- name: GetPracticePlanIncompleteExtraRepeatSpots :many
+SELECT practice_plan_spots.*,
+    spots.piece_id AS spot_piece_id
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'extra_repeat'
+AND practice_plan_spots.completed = false
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+
+-- name: GetPracticePlanIncompleteRandomPieces :many
+SELECT *
+FROM practice_plan_pieces
+WHERE practice_plan_pieces.practice_type = 'random_spots'
+AND practice_plan_pieces.completed = false
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+
+-- name: GetPracticePlanIncompleteStartingPointPieces :many
+SELECT *
+FROM practice_plan_pieces
+WHERE practice_plan_pieces.practice_type = 'starting_point'
+AND practice_plan_pieces.completed = false
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+
+-- name: GetPracticePlanIncompleteNewSpots :many
+SELECT practice_plan_spots.*,
+    spots.piece_id AS spot_piece_id
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'new'
+AND practice_plan_spots.completed = false
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+
 -- name: GetPracticePlan :one
 SELECT *
 FROM practice_plans
