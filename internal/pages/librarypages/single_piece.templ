@@ -6,7 +6,16 @@ import "practicebetter/internal/heroicons"
 import "practicebetter/internal/pages"
 import "strconv"
 
-templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
+type PieceSpotsBreakdown struct {
+	Repeat      int
+	ExtraRepeat int
+	Random      int
+	Interleave  int
+	Infrequent  int
+	Completed   int
+}
+
+templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow, breakdown PieceSpotsBreakdown) {
 	<title>{ piece[0].Title } | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(piece[0].Title) , components.AccountLink())) {
 		@components.BreadcrumbContainer() {
@@ -110,6 +119,15 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 						</div>
 					</dl>
 				</div>
+				<spot-breakdown
+ 					class="my-2"
+ 					repeat={ strconv.Itoa(breakdown.Repeat) }
+ 					extrarepeat={ strconv.Itoa(breakdown.ExtraRepeat) }
+ 					random={ strconv.Itoa(breakdown.Random) }
+ 					interleave={ strconv.Itoa(breakdown.Interleave) }
+ 					infrequent={ strconv.Itoa(breakdown.Infrequent) }
+ 					completed={ strconv.Itoa(breakdown.Completed) }
+				></spot-breakdown>
 			</div>
 			<div class="p-4 rounded-xl bg-neutral-700/5">
 				<div class="flex flex-wrap justify-between px-0.5 pb-2">
@@ -140,6 +158,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow) {
 			</div>
 		}
 		<script type="module" src={ s.StaticUrl("out/practice-menu.js") }></script>
+		<script type="module" src={ s.StaticUrl("out/spot-breakdown.js") }></script>
 	}
 }
 

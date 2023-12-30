@@ -131,34 +131,62 @@ func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not find matching piece", http.StatusNotFound)
 		return
 	}
+	/*
+		sessions1, err := queries.ListRecentPracticeSessionsForPiece(r.Context(), db.ListRecentPracticeSessionsForPieceParams{
+			UserID:  user.ID,
+			PieceID: piece[0].ID,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			return
+		}
+		sessions2, err := queries.ListRecentPracticeSessionsForPieceSpots(r.Context(), db.ListRecentPracticeSessionsForPieceSpotsParams{
+			UserID:  user.ID,
+			PieceID: piece[0].ID,
+		})
+
+		for _, s := range sessions1 {
+			log.Default().Println(s)
+		}
+		for _, s := range sessions2 {
+			log.Default().Println(s)
+		}
+	*/
+	breakdown := getSpotBreakdown(piece)
+
 	token := csrf.Token(r)
-	sessions1, err := queries.ListRecentPracticeSessionsForPiece(r.Context(), db.ListRecentPracticeSessionsForPieceParams{
-		UserID:  user.ID,
-		PieceID: piece[0].ID,
-	})
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-	sessions2, err := queries.ListRecentPracticeSessionsForPieceSpots(r.Context(), db.ListRecentPracticeSessionsForPieceSpotsParams{
-		UserID:  user.ID,
-		PieceID: piece[0].ID,
-	})
+	s.HxRender(w, r, librarypages.SinglePiece(s, token, piece, breakdown), piece[0].Title)
+}
 
-	for _, s := range sessions1 {
-		log.Default().Println(s)
+func getSpotBreakdown(piece []db.GetPieceByIDRow) librarypages.PieceSpotsBreakdown {
+	breakdown := librarypages.PieceSpotsBreakdown{
+		Repeat:      0,
+		ExtraRepeat: 0,
+		Random:      0,
+		Interleave:  0,
+		Infrequent:  0,
+		Completed:   0,
 	}
-	for _, s := range sessions2 {
-		log.Default().Println(s)
+	for _, row := range piece {
+		if row.SpotID.Valid && row.SpotStage.Valid {
+			switch row.SpotStage.String {
+			case "repeat":
+				breakdown.Repeat++
+			case "extra_repeat":
+				breakdown.ExtraRepeat++
+			case "random":
+				breakdown.Random++
+			case "interleave":
+				breakdown.Interleave++
+			case "interleave_days":
+				breakdown.Infrequent++
+			case "completed":
+				breakdown.Completed++
+			}
+		}
 	}
-
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
-	s.HxRender(w, r, librarypages.SinglePiece(s, token, piece), piece[0].Title)
+	return breakdown
 }
 
 func (s *Server) pieceSpots(w http.ResponseWriter, r *http.Request) {
@@ -392,8 +420,10 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		Duration: 3000,
 	})
 
+	breakdown := getSpotBreakdown(piece)
+
 	w.WriteHeader(http.StatusCreated)
-	component := librarypages.SinglePiece(s, token, piece)
+	component := librarypages.SinglePiece(s, token, piece, breakdown)
 	component.Render(r.Context(), w)
 	return
 }

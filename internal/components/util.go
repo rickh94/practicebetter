@@ -11,7 +11,7 @@ func getStageColor(stage string) string {
 	case "repeat":
 		return "bg-amber-100 hover:bg-amber-200"
 	case "extra_repeat":
-		return "bg-amber-100 hover:bg-amber-200"
+		return "bg-orange-100 hover:bg-orange-200"
 	case "random":
 		return "bg-pink-100 hover:bg-pink-200"
 	case "interleave":
