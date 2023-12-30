@@ -11,30 +11,23 @@ import { BasicSpot } from "../validators";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { CreateSpots } from "./create-spots";
 import {
-  AngryButton,
   BasicButton,
   BigAngryButton,
   BigHappyButton,
   BigSkyButton,
   GiantBasicButton,
-  HappyButton,
   WarningButton,
 } from "../ui/buttons";
 import {
   ArrowLeftCircleIcon,
-  CheckCircleIcon,
-  ChevronLeftIcon,
   HandRaisedIcon,
   HandThumbDownIcon,
   HandThumbUpIcon,
   StopCircleIcon,
-  XCircleIcon,
 } from "@heroicons/react/24/solid";
 import Summary from "./summary";
 import { PracticeSpotDisplay } from "./practice-spot-display";
 import dayjs from "dayjs";
-import { BackToPlan } from "../ui/links";
-import { InterleaveSpotsList } from "../ui/plan-components";
 import { BreakDialog, ResumeDialog } from "./practice-dialogs";
 
 export function RandomSpots({
@@ -517,51 +510,6 @@ function SinglePractice({
     [spots, skipSpotIds, pieceid, spotIdsHash],
   );
 
-  const handleExcellent = useCallback(
-    function () {
-      const currentSpotId = spots[currentSpotIdx]?.id;
-      const summary = addSpotRep(currentSpotId, "excellent");
-      let nextSkipSpotIds = skipSpotIds;
-      if (summary.excellent - summary.poor > 4) {
-        nextSkipSpotIds = evictSpot(currentSpotId);
-      }
-      maybeTakeABreak();
-      nextSpot(nextSkipSpotIds);
-    },
-    [spots, currentSpotIdx, skipSpotIds, addSpotRep, nextSpot, evictSpot],
-  );
-
-  const handleFine = useCallback(
-    function () {
-      const currentSpotId = spots[currentSpotIdx]?.id;
-      addSpotRep(currentSpotId, "fine");
-      maybeTakeABreak();
-      nextSpot(skipSpotIds);
-    },
-    [spots, currentSpotIdx, skipSpotIds, addSpotRep, nextSpot],
-  );
-
-  const handlePoor = useCallback(
-    function () {
-      const currentSpotId = spots[currentSpotIdx]?.id;
-      const summary = addSpotRep(currentSpotId, "poor");
-      let nextSkipSpotIds = skipSpotIds;
-      if (summary.poor > 2) {
-        nextSkipSpotIds = evictSpot(currentSpotId);
-      }
-      maybeTakeABreak();
-      nextSpot(nextSkipSpotIds);
-    },
-    [spots, currentSpotIdx, skipSpotIds, addSpotRep, nextSpot, evictSpot],
-  );
-
-  const startSession = useCallback(
-    function () {
-      setSessionStarted(dayjs());
-    },
-    [setSessionStarted],
-  );
-
   const maybeTakeABreak = useCallback(
     function () {
       if (dayjs().diff(sessionStarted, "minute") < 5) {
@@ -577,6 +525,67 @@ function SinglePractice({
       }
     },
     [sessionStarted, sessionsCompleted, setSessionsCompleted],
+  );
+
+  const handleExcellent = useCallback(
+    function () {
+      const currentSpotId = spots[currentSpotIdx]?.id;
+      const summary = addSpotRep(currentSpotId, "excellent");
+      let nextSkipSpotIds = skipSpotIds;
+      if (summary.excellent - summary.poor > 4) {
+        nextSkipSpotIds = evictSpot(currentSpotId);
+      }
+      maybeTakeABreak();
+      nextSpot(nextSkipSpotIds);
+    },
+    [
+      spots,
+      currentSpotIdx,
+      skipSpotIds,
+      addSpotRep,
+      nextSpot,
+      evictSpot,
+      maybeTakeABreak,
+    ],
+  );
+
+  const handleFine = useCallback(
+    function () {
+      const currentSpotId = spots[currentSpotIdx]?.id;
+      addSpotRep(currentSpotId, "fine");
+      maybeTakeABreak();
+      nextSpot(skipSpotIds);
+    },
+    [spots, currentSpotIdx, skipSpotIds, addSpotRep, nextSpot, maybeTakeABreak],
+  );
+
+  const handlePoor = useCallback(
+    function () {
+      const currentSpotId = spots[currentSpotIdx]?.id;
+      const summary = addSpotRep(currentSpotId, "poor");
+      let nextSkipSpotIds = skipSpotIds;
+      if (summary.poor > 2) {
+        nextSkipSpotIds = evictSpot(currentSpotId);
+      }
+      maybeTakeABreak();
+      nextSpot(nextSkipSpotIds);
+    },
+    [
+      spots,
+      currentSpotIdx,
+      skipSpotIds,
+      addSpotRep,
+      nextSpot,
+      evictSpot,
+      maybeTakeABreak,
+    ],
+  );
+
+  const startSession = useCallback(
+    function () {
+      setSessionStarted(dayjs());
+    },
+    [setSessionStarted],
   );
 
   const takeABreak = useCallback(

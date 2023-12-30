@@ -16,6 +16,7 @@ export default defineConfig({
         "add-spot": "internal/static/src/add-spot.ts",
         "edit-spot": "internal/static/src/edit-spot.ts",
         prompts: "internal/static/src/prompts.ts",
+        "spot-breakdown": "internal/static/src/spot-breakdown.ts",
       },
       name: "musiclib",
       formats: ["es"],

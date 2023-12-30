@@ -1,6 +1,9 @@
 name: Publish latest edge Docker image
 on:
   push:
+    branches:
+      - main
+      - dev
 jobs:
   push_to_registry:
     name: Push Dev Docker image to Docker Hub

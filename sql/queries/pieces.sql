@@ -31,10 +31,12 @@ SELECT
     spots.notes_prompt AS spot_notes_prompt,
     spots.text_prompt AS spot_text_prompt,
     spots.current_tempo AS spot_current_tempo,
-    spots.measures AS spot_measures
+    spots.measures AS spot_measures,
+    spots.last_practiced AS spot_last_practiced
 FROM pieces
 LEFT JOIN spots ON pieces.id = spots.piece_id
-WHERE pieces.id = :piece_id AND pieces.user_id = :user_id;
+WHERE pieces.id = :piece_id AND pieces.user_id = :user_id
+ORDER BY spot_last_practiced DESC;
 
 
 -- name: GetPieceWithRandomSpots :many

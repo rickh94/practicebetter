@@ -322,6 +322,7 @@ func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
 		Variant:  "success",
 		Duration: 3000,
 	})
+	// TODO: refactor to get and render piece function
 	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
 		PieceID: pieceID,
 		UserID:  user.ID,
@@ -332,8 +333,10 @@ func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not find matching piece", http.StatusNotFound)
 		return
 	}
+
+	breakdown := getSpotBreakdown(piece)
 	token := csrf.Token(r)
-	librarypages.SinglePiece(s, token, piece).Render(r.Context(), w)
+	librarypages.SinglePiece(s, token, piece, breakdown).Render(r.Context(), w)
 }
 
 func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {
