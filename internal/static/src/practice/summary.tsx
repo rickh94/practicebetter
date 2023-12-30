@@ -369,17 +369,20 @@ export default function Summary({
                 Spot:
                 <strong className="font-bold">{name}</strong>
               </span>
-              <span className="flex max-w-sm flex-wrap justify-between gap-2">
-                <span className="flex gap-1 text-green-800">
-                  Excellent: <strong className="font-bold">{excellent}</strong>
+              <span className="flex w-full flex-wrap justify-between gap-4">
+                <span className="flex max-w-xs flex-grow flex-wrap justify-between gap-2">
+                  <span className="flex gap-1 text-green-800">
+                    Excellent:{" "}
+                    <strong className="font-bold">{excellent}</strong>
+                  </span>
+                  <span className="flex gap-1 text-sky-800">
+                    Fine: <strong className="font-bold">{fine}</strong>
+                  </span>
+                  <span className="flex gap-1 text-red-800">
+                    Poor: <strong className="font-bold">{poor}</strong>
+                  </span>
                 </span>
-                <span className="flex gap-1 text-sky-800">
-                  Fine: <strong className="font-bold">{fine}</strong>
-                </span>
-                <span className="flex gap-1 text-red-800">
-                  Poor: <strong className="font-bold">{poor}</strong>
-                </span>
-                <span className="flex gap-1 text-black">
+                <span className="flex gap-1 self-end justify-self-end text-black">
                   Total: <strong className="font-bold">{reps}</strong>
                 </span>
               </span>

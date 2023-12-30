@@ -162,6 +162,7 @@ CREATE TABLE practice_plan_pieces (
     piece_id TEXT NOT NULL,
     practice_type TEXT NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT 0,
+    sessions INTEGER NOT NULL DEFAULT 1,
     CHECK (practice_type IN ('random_spots', 'starting_point')),
     PRIMARY KEY (practice_plan_id, piece_id, practice_type),
     CONSTRAINT plan FOREIGN KEY (practice_plan_id) REFERENCES practice_plans (

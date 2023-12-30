@@ -465,15 +465,7 @@ function RepeatBreakSuccess({
           random practicing with this spot, or you feel it needs more repeat
           practicing.
         </div>
-        <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row sm:gap-2">
-          <SkyButton
-            grow
-            onClick={handleMoreRepeat}
-            className="h-14 w-full text-lg"
-          >
-            <ArrowPathIcon className="-ml-1 size-6" />
-            More Repeat
-          </SkyButton>
+        <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row-reverse sm:gap-2">
           <HappyButton
             grow
             onClick={handleRandom}
@@ -482,6 +474,14 @@ function RepeatBreakSuccess({
             <CheckIcon className="-ml-1 size-6" />
             Random
           </HappyButton>
+          <SkyButton
+            grow
+            onClick={handleMoreRepeat}
+            className="h-14 w-full text-lg"
+          >
+            <ArrowPathIcon className="-ml-1 size-6" />
+            More Repeat
+          </SkyButton>
         </div>
       </dialog>
       <div className="flex w-full flex-col items-center sm:mx-auto sm:max-w-3xl">

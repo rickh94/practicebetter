@@ -299,11 +299,13 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 		planData.Completed = plan.Completed
 		planData.InterleaveDaysSpotsCompleted = true
 		planData.InterleaveSpotsCompleted = true
+		planData.Intensity = plan.Intensity
 	} else {
 		planData.Date = planPieces[0].Date
 		planData.Completed = planPieces[0].Completed
 		planData.InterleaveDaysSpotsCompleted = true
 		planData.InterleaveSpotsCompleted = true
+		planData.Intensity = planPieces[0].Intensity
 	}
 
 	for _, row := range planPieces {
@@ -723,6 +725,12 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 		UserID: user.ID,
 	})
 	if err != nil {
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get interleave spots",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -855,7 +863,48 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 		Variant:  "success",
 		Duration: 3000,
 	})
-	pspages.PracticePlanInterleaveSpots(spotInfo, planID, token, true, true).Render(r.Context(), w)
+	pspages.PracticePlanInterleaveSpots(spotInfo, planID, token, true, true, true).Render(r.Context(), w)
+
+}
+
+func (s *Server) getInterleaveList(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(db.User)
+	planID := chi.URLParam(r, "planID")
+	queries := db.New(s.DB)
+
+	interleaveSpots, err := queries.GetPracticePlanInterleaveSpots(r.Context(), db.GetPracticePlanInterleaveSpotsParams{
+		PlanID: planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get interleave spots",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	allCompleted := true
+	spotInfo := make([]pspages.PracticePlanSpot, 0, len(interleaveSpots))
+	for _, interleaveSpot := range interleaveSpots {
+		if !interleaveSpot.Completed {
+			allCompleted = false
+		}
+		spotInfo = append(spotInfo, pspages.PracticePlanSpot{
+			ID:         interleaveSpot.SpotID,
+			Name:       interleaveSpot.SpotName.String,
+			Measures:   interleaveSpot.SpotMeasures.String,
+			Completed:  interleaveSpot.Completed,
+			PieceID:    interleaveSpot.SpotPieceID.String,
+			PieceTitle: interleaveSpot.SpotPieceTitle,
+		})
+	}
+
+	token := csrf.Token(r)
+	pspages.PracticePlanInterleaveSpots(spotInfo, planID, token, allCompleted, false, false).Render(r.Context(), w)
 }
 
 const plansPerPage = 20

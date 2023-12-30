@@ -146,20 +146,13 @@ export function showAlert(
         <div class="flex flex-shrink-0 ml-4">
           <button
             type="button"
-            class="inline-flex focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none"
+            class="inline-flex text-red-700 hover:text-red-500 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none"
             onclick="document.dispatchEvent(new CustomEvent('CloseAlert', { detail: { id: '${toastId}' } }))"
           >
             <span class="sr-only">Close</span>
-            <svg
-              class="w-5 h-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-              />
-            </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clip-rule="evenodd" />
+          </svg>
           </button>
         </div>
       </div>

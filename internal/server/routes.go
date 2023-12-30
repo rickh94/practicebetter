@@ -107,8 +107,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/upload/images", s.uploadImageForm)
 		r.Post("/upload/images", s.uploadImage)
 
-		// r.Get("/practice-sessions", s.listPracticeSessions)
-
 		r.Get("/plans/create", s.createPracticePlanForm)
 		r.Get("/plans", s.planList)
 		r.Post("/plans", s.createPracticePlan)
@@ -116,8 +114,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/plans/{planID}", s.deletePracticePlan)
 		r.Post("/plans/{planID}/resume", s.resumePracticePlan)
 		r.Post("/plans/{planID}/stop", s.stopPracticePlan)
-		r.Post("/plans/{planID}/interleave-days-spots/complete-all", s.completeInterleaveDaysPlan)
-		r.Post("/plans/{planID}/interleave-spots/complete-all", s.completeInterleavePlan)
+		r.Get("/plans/{planID}/interleave", s.getInterleaveList)
+		r.Post("/plans/{planID}/infrequent/complete-all", s.completeInterleaveDaysPlan)
+		r.Post("/plans/{planID}/interleave/complete-all", s.completeInterleavePlan)
 	})
 
 	return r

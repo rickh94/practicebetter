@@ -9,7 +9,6 @@ import {
   WarningButton,
 } from "../ui/buttons";
 import {
-  CheckIcon,
   SpeakerWaveIcon,
   ArrowPathIcon,
   PhotoIcon,
@@ -18,6 +17,7 @@ import {
   ChatBubbleBottomCenterTextIcon,
   CloudArrowUpIcon,
   TrashIcon,
+  CheckCircleIcon,
 } from "@heroicons/react/24/solid";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
@@ -121,10 +121,10 @@ export function AddAudioPrompt({
         {audioPromptUrl ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckIcon className="-ml-1 size-4" />
+            <CheckCircleIcon className="-ml-1 size-5" />
           </>
         ) : (
-          <SpeakerWaveIcon className="-ml-1 size-4" />
+          <SpeakerWaveIcon className="-ml-1 size-5" />
         )}
         Audio
       </ColorlessButton>
@@ -317,10 +317,10 @@ export function AddImagePrompt({
         {imagePromptUrl ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckIcon className="-ml-1 size-4" />
+            <CheckCircleIcon className="-ml-1 size-5" />
           </>
         ) : (
-          <PhotoIcon className="-ml-1 size-4" />
+          <PhotoIcon className="-ml-1 size-5" />
         )}
         Image
       </ColorlessButton>
@@ -464,10 +464,10 @@ export function AddReminders({
         {!!textPrompt ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckIcon className="-ml-1 size-4" />
+            <CheckCircleIcon className="-ml-1 size-5" />
           </>
         ) : (
-          <ChatBubbleBottomCenterTextIcon className="-ml-1 size-4" />
+          <ChatBubbleBottomCenterTextIcon className="-ml-1 size-5" />
         )}
         Reminders
       </ColorlessButton>
@@ -501,7 +501,7 @@ export function AddReminders({
           />
         </div>
         <HappyButton grow onClick={close} className="mt-4 w-full">
-          <CheckIcon className="-ml-1 size-6" />
+          <CheckCircleIcon className="-ml-1 size-6" />
           Done
         </HappyButton>
       </dialog>
@@ -551,16 +551,16 @@ export function AddNotesPrompt({
         onClick={open}
         className={cn(
           notesPrompt ? "bg-sky-500/50" : "bg-sky-700/10",
-          "text-sky-500",
+          "text-sky-800",
         )}
       >
         {notesPrompt ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckIcon className="-ml-1 size-4" />
+            <CheckCircleIcon className="-ml-1 size-5" />
           </>
         ) : (
-          <MusicalNoteIcon className="-ml-1 size-4" />
+          <MusicalNoteIcon className="-ml-1 size-5" />
         )}
         Notes
       </ColorlessButton>
@@ -619,7 +619,7 @@ export function AddNotesPrompt({
           </Suspense>
         </div>
         <HappyButton grow onClick={close} className="mt-4 w-full">
-          <CheckIcon className="-ml-1 size-6" />
+          <CheckCircleIcon className="-ml-1 size-6" />
           Done
         </HappyButton>
       </dialog>

@@ -37,7 +37,7 @@ export function getStageDisplayName(stage: string) {
     case "interleave":
       return "Interleaved Practice";
     case "interleave_days":
-      return "Interleave Between Days";
+      return "Infrequent";
     case "completed":
       return "Completed";
     default:

@@ -47,7 +47,7 @@ templ ListSpots(s pages.ServerUtil, csrf string, info ListSpotsInfo) {
 				@ListSpotsColumn("Extra Repeat Spots", info.ExtraRepeatSpots, info.PieceID)
 				@ListSpotsColumn("Random Spots", info.RandomSpots, info.PieceID)
 				@ListSpotsColumn("Interleave Spots", info.InterleaveSpots, info.PieceID)
-				@ListSpotsColumn("Interleave Days Spots", info.InterleaveDaysSpots, info.PieceID)
+				@ListSpotsColumn("Infrequent Spots", info.InterleaveDaysSpots, info.PieceID)
 				@ListSpotsColumn("Completed Spots", info.CompletedSpots, info.PieceID)
 			</div>
 		}

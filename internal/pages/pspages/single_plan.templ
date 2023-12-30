@@ -51,6 +51,7 @@ type PracticePlanData struct {
 	Completed                    bool
 	CompletedItems               int
 	TotalItems                   int
+	Intensity                    string
 }
 
 // TODO: create interleave/interleave days practice page for a spot
@@ -109,6 +110,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
  						hx-post={ "/library/plans/" + planData.ID + "/resume" }
  						hx-headers={ components.HxCsrfHeader(csrf) }
  						hx-target="#main-content"
+ 						hx-swap="outerHTML transition:true"
 					>
 						@heroicons.IconClipboardDocumentCheckSolid("-ml-1 size-5")
 						Resume Practicing
@@ -120,8 +122,9 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
  						hx-post={ "/library/plans/" + planData.ID + "/stop" }
  						hx-headers={ components.HxCsrfHeader(csrf) }
  						hx-target="#main-content"
+ 						hx-swap="outerHTML transition:true"
 					>
-						@heroicons.IconStopSolid("-ml-1 size-5")
+						@heroicons.IconStopCircleSolid("-ml-1 size-5")
 						Stop Practicing
 					</button>
 				} else {
@@ -131,6 +134,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
  						hx-headers={ components.HxCsrfHeader(csrf) }
  						hx-confirm="Are you sure you want to delete this practice plan?"
  						hx-target="#main-content"
+ 						hx-swap="outerHTML transition:true"
 					>
 						@heroicons.IconTrashSolid("-ml-1 size-5")
 						Delete Plan
@@ -172,7 +176,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						</section>
 					}
 					if len(planData.InterleaveSpots) > 0 {
-						@PracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted, planData.IsActive)
+						@PracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted, planData.IsActive, true)
 					}
 					if len(planData.RandomSpotsPieces) > 0 {
 						<section id="random-spots-pieces" class="flex flex-col gap-2">
@@ -180,7 +184,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 							<p class="w-full text-sm">Random Practice the spots from these pieces.</p>
 							<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
 								for _, piece := range planData.RandomSpotsPieces {
-									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.RandomSpots, piece.Completed, "random_single")
+									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.RandomSpots, piece.Completed, "random_single", planData.Intensity, planData.IsActive)
 								}
 							</ul>
 						</section>
@@ -191,7 +195,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 							<p class="w-full text-sm">Practice these pieces using the random starting points.</p>
 							<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
 								for _, piece := range planData.RandomStartPieces {
-									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, 0, piece.Completed, "starting_point")
+									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, 0, piece.Completed, "starting_point", planData.Intensity, planData.IsActive)
 								}
 							</ul>
 						</section>
@@ -215,7 +219,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 
 templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool) {
 	<section id="interleave-days-spots" class="flex flex-col gap-2">
-		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Days Spots</h3>
+		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Infrequent Spots</h3>
 		<p class="w-full text-sm">Play these spots at least once today</p>
 		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
 			for _, spot := range interleaveDaysSpots {
@@ -247,10 +251,12 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 
 const completeInterleaveFormId = "complete-interleave-form"
 
-templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool) {
+templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool, showHeading bool) {
 	<section id="interleave-spots" class="flex flex-col gap-2">
-		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
-		<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
+		if showHeading {
+			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
+			<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
+		}
 		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
 			for _, spot := range interleaveSpots {
 				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
@@ -288,7 +294,7 @@ templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpo
 			<p class="text-sm">Evaluate how well you think you did on each spot below. Only click excellent if you were able to play correctly the first time</p>
 		</header>
 		<form
- 			hx-post={ "/library/plans/" + planID + "/interleave-spots/complete-all" }
+ 			hx-post={ "/library/plans/" + planID + "/interleave/complete-all" }
  			hx-headers={ components.HxCsrfHeader(csrf) }
  			hx-target="#interleave-spots"
  			hx-swap="outerHTML transition:true"
@@ -393,12 +399,12 @@ const completeInterleaveDaysFormId = "complete-interleave-days-form"
 templ CompleteInterleaveDaysForm(planID string, csrf string, spots []PracticePlanSpot) {
 	<dialog id={ completeInterleaveDaysFormId } class="modal" aria-labelledby="interleave-days-form-modal-title" class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
 		<header class="p-4 mt-2 max-w-lg text-center sm:text-left">
-			<h3 id="interleave-days-form-modal-title" class="text-2xl font-semibold leading-6 text-neutral-900">Evaluate Interleave Days Spots</h3>
+			<h3 id="interleave-days-form-modal-title" class="text-2xl font-semibold leading-6 text-neutral-900">Evaluate Infrequent Spots</h3>
 			<p class="text-sm">Evaluate how well you think you did on each spot below.</p>
 			<p class="text-sm">When you have been playing a spot for a long time, you may get the option to choose “Completed” and stop it from coming up again.</p>
 		</header>
 		<form
- 			hx-post={ "/library/plans/" + planID + "/interleave-days-spots/complete-all" }
+ 			hx-post={ "/library/plans/" + planID + "/infrequent/complete-all" }
  			hx-headers={ components.HxCsrfHeader(csrf) }
  			hx-target="#interleave-days-spots"
  			hx-swap="outerHTML transition:true"

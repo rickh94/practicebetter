@@ -221,13 +221,31 @@ templ PieceCard(pieceID string, title string, composer string, activeSpots int64
 	</li>
 }
 
-func getPracticeUrl(pieceID, practiceType string) string {
-	if practiceType == "random_single" {
-		return "/library/pieces/" + pieceID + "/practice/random-single"
-	} else if practiceType == "starting_point" {
-		return "/library/pieces/" + pieceID + "/practice/starting-point"
+func getSessionsFromIntensity(intensity string) string {
+	switch intensity {
+	case "light":
+		return "1"
+	case "medium":
+		return "3"
+	case "heavy":
+		return "5"
+	default:
+		return "1"
 	}
-	return "/library/pieces/" + pieceID
+}
+
+func getPracticeUrl(completed, isActive bool, pieceID, practiceType, intensity string) string {
+	if completed || !isActive {
+		return "/library/pieces/" + pieceID
+	}
+	switch practiceType {
+	case "random_single":
+		return "/library/pieces/" + pieceID + "/practice/random-single" + "?resume=true&numSessions=" + getSessionsFromIntensity(intensity)
+	case "starting_point":
+		return "/library/pieces/" + pieceID + "/practice/starting-point"
+	default:
+		return "/library/pieces/" + pieceID
+	}
 }
 
 const pieceCardClass = "focusable flex rounded-xl px-6 py-4 text-neutral-700"
@@ -240,9 +258,9 @@ func getPracticePlanPieceCardClass(completed bool) string {
 	}
 }
 
-templ PracticePlanPieceCard(pieceID string, title string, composer string, activeSpots int64, completed bool, practiceType string) {
+templ PracticePlanPieceCard(pieceID string, title string, composer string, activeSpots int64, completed bool, practiceType string, intensity string, isActive bool) {
 	<li>
-		@HxLink(getPracticePlanPieceCardClass(completed), getPracticeUrl(pieceID, practiceType), "#main-content") {
+		@HxLink(getPracticePlanPieceCardClass(completed), getPracticeUrl(completed, isActive, pieceID, practiceType, intensity), "#main-content") {
 			<div class="flex flex-col flex-1 flex-grow gap-1">
 				<div>
 					<strong class="text-xl font-bold">{ title }</strong>
@@ -397,7 +415,7 @@ templ PracticePlanCard(planID string, date int64, newSpots int64, repeatSpots in
 				<dd>{ strconv.FormatInt(interleaveSpots, 10) }</dd>
 			</div>
 			<div class="flex gap-1">
-				<dt class="font-medium">Interleave Days Spots:{ " " }</dt>
+				<dt class="font-medium">Infrequent Spots:{ " " }</dt>
 				<dd>{ strconv.FormatInt(interleaveDaysSpots, 10) }</dd>
 			</div>
 			<div class="flex gap-1">

@@ -1,6 +1,9 @@
 import { ReactNode, useEffect, useRef } from "preact/compat";
 import { cn } from "../common";
-import { ArrowLeftIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowLeftIcon,
+  ClipboardDocumentCheckIcon,
+} from "@heroicons/react/24/solid";
 import { NoteSheetIcon } from "./icons";
 
 export const topNavClasses =
@@ -101,7 +104,7 @@ export function HappyLink({
     <Link
       href={href}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl bg-green-700/10 px-4 py-2 font-semibold text-green-800 transition duration-200 hover:bg-green-700/20",
+        "focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20",
         grow && "flex-grow",
         className,
       )}
@@ -119,6 +122,27 @@ export function BackToPiece({ pieceid }: { pieceid: string }) {
     >
       <NoteSheetIcon className="-ml-1 size-5" />
       Back to Piece
+    </Link>
+  );
+}
+
+export function BackToPlan({
+  planid,
+  grow = false,
+}: {
+  planid: string;
+  grow?: boolean;
+}) {
+  return (
+    <Link
+      href={`/library/plans/${planid}`}
+      className={cn(
+        "focusable action-button bg-violet-700/10  text-violet-800 hover:bg-violet-700/20",
+        grow && "flex-grow",
+      )}
+    >
+      <ClipboardDocumentCheckIcon className="-ml-1 size-5" />
+      Back to Plan
     </Link>
   );
 }

@@ -4,9 +4,14 @@ import { Repeat } from "./practice/repeat";
 import { StartingPoint } from "./practice/starting-point";
 
 try {
-  register(RandomSpots, "random-spots", ["initialspots", "pieceid", "csrf"], {
-    shadow: false,
-  });
+  register(
+    RandomSpots,
+    "random-spots",
+    ["initialspots", "pieceid", "csrf", "initialsessions", "planid"],
+    {
+      shadow: false,
+    },
+  );
 } catch (err) {
   console.log(err);
 }
