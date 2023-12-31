@@ -240,6 +240,18 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	htmx.PushURL(r, "/library/plans/"+newPlan.ID)
+	if err := s.SM.RenewToken(r.Context()); err != nil {
+		log.Default().Println(err)
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not renew session",
+			Title:    "Failed to renew",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	ctx := context.WithValue(r.Context(), "activePracticePlanID", newPlan.ID)
 	ctx = context.WithValue(ctx, "user", user)
 	s.renderPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
