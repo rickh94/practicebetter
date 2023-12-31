@@ -386,3 +386,13 @@ progress[value]::-moz-progress-bar {
   border-bottom-left-radius: var(--progress-border-top-left-radius);
   @apply h-1;
 }
+
+.w-huge {
+  width: 100%;
+}
+
+@media screen(md) {
+  .w-huge {
+    width: min(80vw, 64rem);
+  }
+}

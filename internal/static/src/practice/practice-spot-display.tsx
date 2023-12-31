@@ -33,7 +33,7 @@ export function PracticeSpotDisplay({
           : "flex flex-col items-center justify-center",
       )}
     >
-      <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 py-8 text-center font-bold shadow-lg sm:px-8 md:col-span-2">
+      <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-neutral-500 bg-white px-4 py-8 text-center font-bold shadow-lg sm:px-8 md:col-span-2">
         {piecetitle && (
           <h4 className="-mb-3 -mt-2 text-lg text-neutral-700 underline underline-offset-1">
             {piecetitle}
@@ -55,7 +55,7 @@ export function PracticeSpotDisplay({
         )}
       </div>
       {shouldDisplayPrompts && (
-        <div className="flex flex-col gap-2 rounded-xl border border-neutral-500 bg-white/90 px-4 pb-5 pt-4 shadow-lg sm:px-8 md:col-span-4">
+        <div className="flex flex-col gap-2 rounded-xl border border-neutral-500 bg-white px-4 pb-5 pt-4 shadow-lg sm:px-8 md:col-span-4">
           <h2 className="text-center text-lg font-semibold underline">
             Prompts
           </h2>
@@ -70,5 +70,27 @@ export function PracticeSpotDisplay({
         </div>
       )}
     </div>
+  );
+}
+
+export function PracticeSpotDisplayWrapper({
+  spotjson = "",
+  pieceid = "",
+  piecetitle = "",
+}: {
+  spotjson: string;
+  pieceid?: string;
+  piecetitle?: string;
+}) {
+  const spot = JSON.parse(spotjson) as BasicSpot;
+  if (!spot || !spot.name) {
+    return <>Missing Spot data</>;
+  }
+  return (
+    <PracticeSpotDisplay
+      spot={spot}
+      pieceid={pieceid}
+      piecetitle={piecetitle}
+    />
   );
 }

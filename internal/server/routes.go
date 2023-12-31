@@ -90,6 +90,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Delete("/pieces/{pieceID}/spots/{spotID}", s.deleteSpot)
 		r.Get("/pieces/{pieceID}/spots/{spotID}/practice/repeat", s.repeatPracticeSpot)
 		r.Post("/pieces/{pieceID}/spots/{spotID}/practice/repeat", s.repeatPracticeSpotFinished)
+		r.Get("/pieces/{pieceID}/spots/{spotID}/practice/display", s.getPracticeSpotDisplay)
 		r.Get("/pieces/{pieceID}/spots/{spotID}/reminders/edit", s.getEditRemindersForm)
 		r.Get("/pieces/{pieceID}/spots/{spotID}/reminders", s.getReminders)
 		r.Post("/pieces/{pieceID}/spots/{spotID}/reminders", s.updateReminders)
