@@ -603,3 +603,43 @@ func (s *Server) getReminders(w http.ResponseWriter, r *http.Request) {
 
 	librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w)
 }
+
+func (s *Server) getPracticeSpotDisplay(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(db.User)
+	spotID := chi.URLParam(r, "spotID")
+	pieceID := chi.URLParam(r, "pieceID")
+	queries := db.New(s.DB)
+
+	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+		SpotID:  spotID,
+		UserID:  user.ID,
+		PieceID: pieceID,
+	})
+	if err != nil {
+		// TODO: create a pretty 404 handler
+		log.Default().Println(err)
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not find matching spot",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	spotJSON, err := json.Marshal(spot)
+	if err != nil {
+		log.Default().Println(err)
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid Spot",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	librarypages.PracticeSpotDisplay(string(spotJSON), spot.PieceID, spot.PieceTitle).Render(r.Context(), w)
+}

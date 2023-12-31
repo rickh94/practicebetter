@@ -674,8 +674,8 @@ export function StartingPointPractice({
 
   const maybeTakeABreak = useCallback(
     function () {
-      // if (dayjs().diff(sessionStarted, "minute") < 5) {
-      if (dayjs().diff(sessionStarted, "second") < 2) {
+      if (dayjs().diff(sessionStarted, "minute") < 5) {
+        // if (dayjs().diff(sessionStarted, "second") < 2) {
         return;
       }
       if (sessionsCompleted >= numSessions - 1) {
@@ -696,8 +696,8 @@ export function StartingPointPractice({
         setCanContinue(false);
         setTimeout(function () {
           setCanContinue(true);
-          // }, 60000);
-        }, 1000);
+        }, 45000);
+        // }, 1000);
       }
     },
     [breakDialogRef.current, setCanContinue],

@@ -7,7 +7,18 @@ import { PieceStage, SpotStage } from "./ui/stages";
 import { InternalNav } from "./ui/internal-nav";
 import { EditRemindersSummary, RemindersSummary } from "./ui/prompts";
 import { BackToPiece } from "./ui/links";
+import { PracticeSpotDisplayWrapper } from "./practice/practice-spot-display";
 
+try {
+  register(
+    PracticeSpotDisplayWrapper,
+    "practice-spot-display",
+    ["spotjson", "pieceid", "piecetitle"],
+    { shadow: false },
+  );
+} catch (err) {
+  console.log(err);
+}
 try {
   register(PracticeToolNav, "practice-tool-nav", ["activepath"], {
     shadow: false,
