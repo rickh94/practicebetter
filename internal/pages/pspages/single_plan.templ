@@ -152,7 +152,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 							<h2 class="text-xl font-bold text-center sm:text-3xl">
 								<pretty-date class="text-black" epoch={ strconv.FormatInt(planData.Date, 10) }></pretty-date>
 								if planData.IsActive {
-									<span class="text-violet-700">- Active</span>
+									<span class="text-violet-700 whitespace-nowrap">- Active</span>
 								}
 							</h2>
 						</div>

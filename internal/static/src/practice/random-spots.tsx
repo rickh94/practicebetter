@@ -23,6 +23,8 @@ import {
   HandRaisedIcon,
   HandThumbDownIcon,
   HandThumbUpIcon,
+  MinusCircleIcon,
+  PlusCircleIcon,
   StopCircleIcon,
 } from "@heroicons/react/24/solid";
 import Summary from "./summary";
@@ -207,6 +209,28 @@ function SingleSetupForm({
     submit();
   }, [submit, spots, numSessionsRef.current]);
 
+  const increaseSessions = useCallback(
+    function () {
+      const curr = parseInt(numSessionsRef.current?.value);
+      if (isNaN(curr) || curr < 1) {
+        numSessionsRef.current.value = "1";
+      }
+      numSessionsRef.current.value = (curr + 1).toString();
+    },
+    [numSessionsRef.current],
+  );
+
+  const decreaseSessions = useCallback(
+    function () {
+      const curr = parseInt(numSessionsRef.current?.value);
+      if (isNaN(curr) || curr < 1) {
+        numSessionsRef.current.value = "1";
+      }
+      numSessionsRef.current.value = (curr - 1).toString();
+    },
+    [numSessionsRef.current],
+  );
+
   return (
     <>
       <div className="flex w-full flex-col py-4">
@@ -235,6 +259,10 @@ function SingleSetupForm({
             minute breaks.
           </p>
           <div className="flex gap-2">
+            <BasicButton onClick={decreaseSessions}>
+              <MinusCircleIcon className="-ml-1 size-4" />
+              Decrease
+            </BasicButton>
             <input
               id="num-sessions"
               className="focusable w-20 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20"
@@ -243,6 +271,10 @@ function SingleSetupForm({
               defaultValue={`${numSessions}`}
               ref={numSessionsRef}
             />
+            <BasicButton onClick={increaseSessions}>
+              <PlusCircleIcon className="-ml-1 size-4" />
+              Increase
+            </BasicButton>
           </div>
         </div>
         <div className="col-span-full my-16 flex w-full items-center justify-center">
@@ -629,7 +661,7 @@ function SinglePractice({
             id={`${currentSpotIdx}-${counter}`}
           />
         </div>
-        <div className="flex w-full flex-col justify-center gap-2 px-4 pt-12 sm:flex-row-reverse sm:px-0">
+        <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 sm:flex-row-reverse sm:px-0">
           <BigHappyButton
             type="button"
             onClick={handleExcellent}
@@ -647,7 +679,7 @@ function SinglePractice({
             Poor
           </BigAngryButton>
         </div>
-        <div className="flex justify-center gap-4 pt-8">
+        <div className="flex justify-center gap-4 pb-12 pt-8">
           <BasicButton onClick={setup}>
             <ArrowLeftCircleIcon className="-ml-1 size-5" /> Back to setup
           </BasicButton>
