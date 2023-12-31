@@ -627,7 +627,7 @@ function SinglePractice({
         setCanContinue(false);
         setTimeout(function () {
           setCanContinue(true);
-        }, 60000);
+        }, 45000);
         // }, 1000);
       }
     },
