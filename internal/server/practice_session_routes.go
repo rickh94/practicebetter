@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"practicebetter/internal/db"
-	"practicebetter/internal/pages/pspages"
+	"practicebetter/internal/pages/planpages"
 	"strconv"
 )
 
@@ -36,5 +36,5 @@ func (s *Server) listPracticeSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	psData, err := json.Marshal(&ps)
-	s.HxRender(w, r, pspages.PSList(s, string(psData), pageNum, hasNext), "Practice Sessions")
+	s.HxRender(w, r, planpages.PSList(s, string(psData), pageNum, hasNext), "Practice Sessions")
 }

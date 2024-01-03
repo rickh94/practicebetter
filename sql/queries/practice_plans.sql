@@ -122,6 +122,35 @@ FROM practice_plan_spots
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plan_spots.practice_type = 'interleave' AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
 
+-- name: ListPracticePlanSpotsInCategory :many
+SELECT practice_plan_spots.completed,
+    spots.name,
+    spots.id,
+    spots.measures,
+    spots.piece_id,
+    spots.stage,
+    spots.stage_started,
+    spots.skip_days,
+    (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS piece_title
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = :practice_type
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+
+-- name: ListPracticePlanPiecesInCategory :many
+SELECT practice_plan_pieces.completed,
+    practice_plan_pieces.completed AS piece_completed,
+    pieces.title AS piece_title,
+    pieces.id AS piece_id,
+    pieces.composer AS piece_composer,
+    (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS piece_active_spots,
+    (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'random') AS piece_random_spots,
+    (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS piece_completed_spots
+FROM practice_plan_pieces
+INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id
+WHERE practice_plan_pieces.practice_type = :practice_type
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+
 -- name: GetPracticePlanIncompleteExtraRepeatSpots :many
 SELECT practice_plan_spots.*,
     spots.piece_id AS spot_piece_id
@@ -173,6 +202,19 @@ WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE pra
 UPDATE practice_plans
 SET practice_session_id = ?
 WHERE id = ? AND user_id = ?;
+
+-- name: DeletePracticePlanSpot :exec
+DELETE FROM practice_plan_spots
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+AND spot_id = :spot_id
+AND practice_type = :practice_type;
+
+-- name: DeletePracticePlanPiece :exec
+DELETE FROM practice_plan_pieces
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+AND piece_id = :piece_id
+AND practice_type = :practice_type;
+
 
 -- name: DeletePracticePlan :exec
 DELETE FROM practice_plans

@@ -1,4 +1,4 @@
-package pspages
+package planpages
 
 import "practicebetter/internal/components"
 import "strconv"
@@ -117,6 +117,10 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 					</button>
 				}
 				if planData.IsActive {
+					@components.HxLink("focusable action-button text-amber-800 bg-amber-700/10 hover:bg-amber-700/20","/library/plans/" + planData.ID + "/edit", "#main-content") {
+						@heroicons.IconPencilSolid("-ml-1 size-5")
+						Modify
+					}
 					<button
  						class="text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
  						hx-post={ "/library/plans/" + planData.ID + "/stop" }
@@ -168,7 +172,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						<section id="extra-repeat-spots" class="flex flex-col gap-2">
 							<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Extra Repeat Practice Spots</h3>
 							<p class="w-full text-sm">Repeat Practice these spots today</p>
-							<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+							<ul id="extra-repeat-spot-list" class="flex flex-col gap-2 w-full list-none">
 								for _, spot := range planData.ExtraRepeatSpots {
 									@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "extra_repeat", spot.PieceTitle, spot.Completed)
 								}
@@ -182,9 +186,9 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						<section id="random-spots-pieces" class="flex flex-col gap-2">
 							<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Practice Pieces</h3>
 							<p class="w-full text-sm">Random Practice the spots from these pieces.</p>
-							<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+							<ul id="random-piece-list" class="flex flex-col gap-2 w-full list-none">
 								for _, piece := range planData.RandomSpotsPieces {
-									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.RandomSpots, piece.Completed, "random_single", planData.Intensity, planData.IsActive)
+									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.RandomSpots, piece.Completed, "random_spots", planData.Intensity, planData.IsActive)
 								}
 							</ul>
 						</section>
@@ -193,7 +197,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						<section id="starting-point-pieces" class="flex flex-col gap-2">
 							<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Starting Point Pieces</h3>
 							<p class="w-full text-sm">Practice these pieces using the random starting points.</p>
-							<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+							<ul id="starting-point-piece-list" class="flex flex-col gap-2 w-full list-none">
 								for _, piece := range planData.RandomStartPieces {
 									@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, 0, piece.Completed, "starting_point", planData.Intensity, planData.IsActive)
 								}
@@ -204,7 +208,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						<section id="new-spots" class="flex flex-col gap-2">
 							<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">New Spots</h3>
 							<p class="w-full text-sm">Get started on some new spots. Don’t feel like you need to get to all of them</p>
-							<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+							<ul id="new-spot-list" class="flex flex-col gap-2 w-full list-none">
 								for _, spot := range planData.NewSpots {
 									@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "repeat", spot.PieceTitle, spot.Completed)
 								}
@@ -221,15 +225,11 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 	<section id="interleave-days-spots" class="flex flex-col gap-2">
 		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Infrequent Spots</h3>
 		<p class="w-full text-sm">Play these spots at least once today</p>
-		if len(interleaveDaysSpots) > 0 {
-			<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-				for _, spot := range interleaveDaysSpots {
-					@components.InterleaveSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, spot.Completed)
-				}
-			</ul>
-		} else {
-			<p class="w-full text-sm">No Infrequent Spots</p>
-		}
+		<ul id="interleave-days-spot-list" class="flex flex-col gap-2 w-full list-none">
+			for _, spot := range interleaveDaysSpots {
+				@components.InterleaveSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, spot.Completed)
+			}
+		</ul>
 		if active && len(interleaveDaysSpots) > 0 {
 			if allCompleted {
 				<div
@@ -261,15 +261,11 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
 			<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
 		}
-		if len(interleaveSpots) > 0 {
-			<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-				for _, spot := range interleaveSpots {
-					@components.InterleaveSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
-				}
-			</ul>
-		} else {
-			<p class="w-full text-sm">No Interleave Spots</p>
-		}
+		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+			for _, spot := range interleaveSpots {
+				@components.InterleaveSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
+			}
+		</ul>
 		if active && len(interleaveSpots) > 0 {
 			if allCompleted {
 				<div

@@ -434,6 +434,241 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 	return items, nil
 }
 
+const listPieceSpotsInStage = `-- name: ListPieceSpotsInStage :many
+SELECT
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    pieces.title AS piece_title
+FROM spots
+INNER JOIN pieces ON pieces.id = spots.piece_id
+WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?1 AND pieces.id = ?2 LIMIT 1)
+AND spots.stage = ?3
+ORDER BY spots.idx
+`
+
+type ListPieceSpotsInStageParams struct {
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
+	Stage   string `json:"stage"`
+}
+
+type ListPieceSpotsInStageRow struct {
+	ID             string         `json:"id"`
+	PieceID        string         `json:"pieceId"`
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	Measures       sql.NullString `json:"measures"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	StageStarted   sql.NullInt64  `json:"stageStarted"`
+	SkipDays       int64          `json:"skipDays"`
+	Priority       int64          `json:"priority"`
+	PieceTitle     string         `json:"pieceTitle"`
+}
+
+func (q *Queries) ListPieceSpotsInStage(ctx context.Context, arg ListPieceSpotsInStageParams) ([]ListPieceSpotsInStageRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPieceSpotsInStage, arg.UserID, arg.PieceID, arg.Stage)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPieceSpotsInStageRow
+	for rows.Next() {
+		var i ListPieceSpotsInStageRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PieceID,
+			&i.Name,
+			&i.Idx,
+			&i.Stage,
+			&i.Measures,
+			&i.AudioPromptUrl,
+			&i.ImagePromptUrl,
+			&i.NotesPrompt,
+			&i.TextPrompt,
+			&i.CurrentTempo,
+			&i.LastPracticed,
+			&i.StageStarted,
+			&i.SkipDays,
+			&i.Priority,
+			&i.PieceTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPieceSpotsInStageForPlan = `-- name: ListPieceSpotsInStageForPlan :many
+SELECT
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    pieces.title AS piece_title
+FROM spots
+INNER JOIN pieces ON pieces.id = spots.piece_id
+WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?1 AND pieces.id = ?2 LIMIT 1)
+AND spots.stage = ?3
+AND spots.id NOT IN (SELECT practice_plan_spots.spot_id FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = ?4)
+ORDER BY spots.idx
+`
+
+type ListPieceSpotsInStageForPlanParams struct {
+	UserID  string `json:"userId"`
+	PieceID string `json:"pieceId"`
+	Stage   string `json:"stage"`
+	PlanID  string `json:"planId"`
+}
+
+type ListPieceSpotsInStageForPlanRow struct {
+	ID             string         `json:"id"`
+	PieceID        string         `json:"pieceId"`
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	Measures       sql.NullString `json:"measures"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	StageStarted   sql.NullInt64  `json:"stageStarted"`
+	SkipDays       int64          `json:"skipDays"`
+	Priority       int64          `json:"priority"`
+	PieceTitle     string         `json:"pieceTitle"`
+}
+
+func (q *Queries) ListPieceSpotsInStageForPlan(ctx context.Context, arg ListPieceSpotsInStageForPlanParams) ([]ListPieceSpotsInStageForPlanRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPieceSpotsInStageForPlan,
+		arg.UserID,
+		arg.PieceID,
+		arg.Stage,
+		arg.PlanID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPieceSpotsInStageForPlanRow
+	for rows.Next() {
+		var i ListPieceSpotsInStageForPlanRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PieceID,
+			&i.Name,
+			&i.Idx,
+			&i.Stage,
+			&i.Measures,
+			&i.AudioPromptUrl,
+			&i.ImagePromptUrl,
+			&i.NotesPrompt,
+			&i.TextPrompt,
+			&i.CurrentTempo,
+			&i.LastPracticed,
+			&i.StageStarted,
+			&i.SkipDays,
+			&i.Priority,
+			&i.PieceTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSpotsForPlanStage = `-- name: ListSpotsForPlanStage :many
+SELECT
+    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    pieces.title AS piece_title
+FROM spots
+INNER JOIN pieces on pieces.id = spots.piece_id
+WHERE pieces.user_id = ?1 AND spots.stage = ?2
+AND spots.id NOT IN (SELECT practice_plan_spots.spot_id FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = ?3)
+ORDER BY spots.last_practiced DESC
+`
+
+type ListSpotsForPlanStageParams struct {
+	UserID string `json:"userId"`
+	Stage  string `json:"stage"`
+	PlanID string `json:"planId"`
+}
+
+type ListSpotsForPlanStageRow struct {
+	ID             string         `json:"id"`
+	PieceID        string         `json:"pieceId"`
+	Name           string         `json:"name"`
+	Idx            int64          `json:"idx"`
+	Stage          string         `json:"stage"`
+	Measures       sql.NullString `json:"measures"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	StageStarted   sql.NullInt64  `json:"stageStarted"`
+	SkipDays       int64          `json:"skipDays"`
+	Priority       int64          `json:"priority"`
+	PieceTitle     string         `json:"pieceTitle"`
+}
+
+func (q *Queries) ListSpotsForPlanStage(ctx context.Context, arg ListSpotsForPlanStageParams) ([]ListSpotsForPlanStageRow, error) {
+	rows, err := q.db.QueryContext(ctx, listSpotsForPlanStage, arg.UserID, arg.Stage, arg.PlanID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSpotsForPlanStageRow
+	for rows.Next() {
+		var i ListSpotsForPlanStageRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.PieceID,
+			&i.Name,
+			&i.Idx,
+			&i.Stage,
+			&i.Measures,
+			&i.AudioPromptUrl,
+			&i.ImagePromptUrl,
+			&i.NotesPrompt,
+			&i.TextPrompt,
+			&i.CurrentTempo,
+			&i.LastPracticed,
+			&i.StageStarted,
+			&i.SkipDays,
+			&i.Priority,
+			&i.PieceTitle,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const promoteSpotToCompleted = `-- name: PromoteSpotToCompleted :exec
 UPDATE spots
 SET

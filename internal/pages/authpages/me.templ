@@ -79,7 +79,7 @@ templ UserInfo(user db.User, csrf string) {
  				hx-headers={ components.HxCsrfHeader(csrf) }
  				hx-swap="outerHTML transition:true"
  				hx-target="#user-info"
- 				class="flex flex-grow gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+ 				class="w-full text-yellow-800 action-button bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
 			>
 				@heroicons.IconPencilSolid("-ml-1 w-5 h-5")
 				Edit
@@ -160,7 +160,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
 			<div class="flex flex-row-reverse gap-4 pt-4 pb-0 w-full">
 				<button
  					type="submit"
- 					class="flex flex-grow gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+ 					class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
 				>
 					@heroicons.IconCheckSolid("-ml-1 w-5 h-5")
 					Save
@@ -170,7 +170,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
  					hx-headers={ components.HxCsrfHeader(csrf) }
  					hx-swap="outerHTML transition:true"
  					hx-target="#user-info"
- 					class="flex flex-grow gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+ 					class="text-yellow-800 action-button bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
 				>
 					@heroicons.IconXMarkSolid("-ml-1 w-5 h-5")
 					Cancel
@@ -196,34 +196,34 @@ templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf st
 					</p>
 				</div>
 				<dl class="border-t divide-y divide-neutral-700 border-neutral-700">
-					<div class="py-3 px-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
+					<div class="grid grid-cols-2 gap-4 py-2 px-0">
 						<dt class="text-sm font-medium leading-6 text-neutral-900">
 							Number of Passkeys
 						</dt>
-						<dd class="mt-1 text-sm leading-6 sm:mt-0 text-neutral-700" id="passkey-count">
+						<dd class="mt-0 text-sm leading-6 text-neutral-700" id="passkey-count">
 							{ credentialCount }
 						</dd>
 					</div>
-					<div class="py-2 px-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
-						<dt class="flex items-center text-sm font-medium leading-6 text-neutral-900">
+					<div class="py-2 sm:gap-4 sm:px-0">
+						<dt class="sr-only">
 							<span>Register a Passkey</span>
 						</dt>
-						<dd class="mt-1 text-sm leading-6 sm:mt-0 text-neutral-700">
+						<dd class="mt-1 text-sm leading-6 text-neutral-700">
 							<button
  								type="button"
  								onclick={ startRegistration(creationOptions, csrf) }
- 								class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+ 								class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
 							>
 								@heroicons.IconFingerPrintSolid("-ml-1 size-5")
-								Register Passkey
+								Register a Passkey
 							</button>
 						</dd>
 					</div>
-					<div class="py-2 px-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:px-0">
-						<dt class="flex items-center text-sm font-medium leading-6 text-neutral-900">
+					<div class="py-2 sm:gap-4 sm:px-0">
+						<dt class="sr-only">
 							<span>Delete Your Passkeys</span>
 						</dt>
-						<dd class="mt-1 text-sm leading-6 sm:mt-0 text-neutral-700">
+						<dd class="mt-1 w-full text-sm leading-6 text-neutral-700">
 							<button
  								type="button"
  								hx-post="/auth/passkey/delete"
@@ -231,10 +231,10 @@ templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf st
  								hx-swap="none"
  								hx-confirm="Are you sure you want to delete all your passkeys?"
  								hx-on::after-request={ deletePasskeys() }
- 								class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-red-800 rounded-xl transition duration-200 bg-red-700/10 hover:bg-red-700/20 focusable"
+ 								class="w-full text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
 							>
-								@heroicons.IconTrashSolid("-ml-1 w-5 h-5")
-								Delete Passkeys
+								@heroicons.IconTrashSolid("-ml-1 size-5")
+								Delete All Passkeys
 							</button>
 						</dd>
 					</div>

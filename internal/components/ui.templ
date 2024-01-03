@@ -85,7 +85,7 @@ templ RedButton(buttonType string, onClick templ.ComponentScript) {
 templ BasicButton(class string, buttonType string) {
 	<button
  		type={ buttonType }
- 		class={ "focusable flex items-center justify-center gap-1 rounded-xl px-4 py-2 font-semibold transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20", class }
+ 		class={ "focusable action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20", class }
 	>
 		{ children... }
 	</button>
@@ -98,7 +98,7 @@ templ BasicButtonLink(href, hxTarget, hxSwap  string) {
  		hx-target={ hxTarget }
  		hx-push-url="true"
  		hx-swap={ hxSwap + " transition:true" }
- 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+ 		class="action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
 	>
 		{ children... }
 	</a>
@@ -215,7 +215,7 @@ templ PieceCard(pieceID string, title string, composer string, activeSpots int64
 			</div>
 			<div class="flex flex-grow-0 items-center">
 				<div class="sr-only">Click to view</div>
-				@icons.NoteSheetIcon("size-10 -mr-1")
+				@icons.NoteSheetIcon("size-10 -mr-2")
 			</div>
 		}
 	</li>
@@ -239,8 +239,8 @@ func getPracticeUrl(completed, isActive bool, pieceID, practiceType, intensity s
 		return "/library/pieces/" + pieceID
 	}
 	switch practiceType {
-	case "random_single":
-		return "/library/pieces/" + pieceID + "/practice/random-single?resume=true&skipSetup=true&numSessions=" + getSessionsFromIntensity(intensity)
+	case "random_spots":
+		return "/library/pieces/" + pieceID + "/practice/random?resume=true&skipSetup=true&numSessions=" + getSessionsFromIntensity(intensity)
 	case "starting_point":
 		return "/library/pieces/" + pieceID + "/practice/starting-point?resume=true&skipSetup=true&numSessions=" + getSessionsFromIntensity(intensity)
 
@@ -249,7 +249,7 @@ func getPracticeUrl(completed, isActive bool, pieceID, practiceType, intensity s
 	}
 }
 
-const pieceCardClass = "focusable flex rounded-xl px-6 py-4 text-neutral-700"
+const pieceCardClass = "focusable flex rounded-xl px-6 py-4 text-neutral-700 transition-all duration-200"
 
 func getPracticePlanPieceCardClass(completed bool) string {
 	if completed {
@@ -269,7 +269,7 @@ templ PracticePlanPieceCard(pieceID string, title string, composer string, activ
 						—{ " " }{ composer }
 					</span>
 				</div>
-				if practiceType == "random_single" {
+				if practiceType == "random_spots" {
 					<div>Random Spots: { strconv.FormatInt(activeSpots, 10) }</div>
 				}
 				if completed {
@@ -290,7 +290,7 @@ templ PracticePlanPieceCard(pieceID string, title string, composer string, activ
 					@icons.RandomBoxesIcon("size-10 -mr-2")
 				} else {
 					<span class="sr-only">Click to view</span>
-					@icons.NoteSheetIcon("size-10 -mr-1")
+					@icons.NoteSheetIcon("size-10 -mr-2")
 				}
 			</div>
 		}
@@ -348,24 +348,20 @@ templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, s
 					</div>
 				}
 			</div>
+			<div class="mr-3 size-6"></div>
 			if practiced || stage == "completed" {
-				<div class="mr-3 size-6"></div>
 				@heroicons.IconCheckCircleSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-green-900")
 				<span class="sr-only">Completed</span>
 			} else if stage == "extra_repeat" || stage == "repeat" {
-				<div class="mr-3 size-6"></div>
 				@icons.RepeatIcon("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
 				<span class="sr-only">Click to view</span>
 			} else if stage == "random" {
-				<div class="mr-3 size-6"></div>
 				@icons.ShuffleIcon("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
 				<span class="sr-only">Click to view</span>
 			} else if stage == "interleave" {
-				<div class="mr-3 size-6"></div>
 				@heroicons.IconBookmarkSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
 				<span class="sr-only">Click to view</span>
 			} else if stage == "interleave_days" {
-				<div class="mr-3 size-6"></div>
 				@heroicons.IconCalendarDaysSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
 				<span class="sr-only">Click to view</span>
 			}

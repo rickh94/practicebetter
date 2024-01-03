@@ -1,0 +1,238 @@
+package planpages
+
+import "practicebetter/internal/components"
+import "practicebetter/internal/heroicons"
+import "strconv"
+import "practicebetter/internal/icons"
+
+templ AddSpotWizard(practiceType string, planID string, id string, title string) {
+	<button
+ 		type="button"
+ 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+ 		hx-get={ "/library/plans/" + planID + "/spots/" + practiceType + "/add" }
+ 		hx-target={ "#" + id + "-chooser" }
+ 		hx-swap="innerHTML"
+ 		hx-on::after-request={ components.ShowModal(id) }
+	>
+		@heroicons.IconPlusCircleSolid("-ml-1 size-5")
+		Add Spots
+	</button>
+	<dialog id={ id } aria-labelledby={ id + "-modal-title" } class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
+		<header class="flex-shrink-0 p-4 mt-2 max-w-2xl text-left">
+			<h3 id={ id + "-modal-title" } class="text-2xl font-semibold leading-6 text-neutral-900">{ title }</h3>
+			<p class="text-sm">
+				Click on the spots below to add them to your practice plan.
+			</p>
+		</header>
+		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id={ id + "-chooser" }></div>
+		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
+			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal(id) }>
+				@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+				Done
+			</button>
+		</div>
+	</dialog>
+}
+
+templ AddSpotFormList(spots []PracticePlanSpot, planID string, practiceType string, csrf string) {
+	<ul id="add-spot-list" class="grid overflow-y-scroll grid-cols-1 gap-2 w-full list-none lg:grid-cols-2 max-h-[70svh]">
+		for _, spot := range spots {
+			@AddSpotItem(spot, planID, practiceType, csrf)
+		}
+	</ul>
+	if len(spots) == 0 {
+		<p class="text-center">No Spots Available</p>
+	}
+}
+
+templ AddSpotItem(spot PracticePlanSpot, planID string, practiceType string, csrf string) {
+	<li id={ "add-spot-" + spot.ID } class={ "block transition-all duration-200 spot-card" }>
+		<form
+ 			hx-put={ "/library/plans/" + planID + "/spots/" + practiceType }
+ 			hx-target={ "#" + practiceType + "-list" }
+ 			hx-swap="outerHTML"
+ 			action="#"
+ 			method="post"
+ 			hx-on::after-request={ removeAddedItem("add-spot-" + spot.ID) }
+ 			id={ "add-spot-" + spot.ID + "-label" }
+		>
+			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+			<input type="hidden" name="add-spots" value={ spot.ID }/>
+			<button
+ 				type="submit"
+ 				class="flex relative justify-start py-2 px-4 w-full h-full text-left rounded-xl border border-green-800 transition-all duration-200 cursor-pointer bg-green-500/10 delete-spot add-spot hover:bg-green-500/20 focusable"
+			>
+				<div class="flex flex-col flex-grow overflow-x-clip">
+					<h3 class="text-lg font-bold truncate">
+						{ spot.Name }
+						<span class="text-neutral-700">
+							- { spot.PieceTitle }
+						</span>
+					</h3>
+					<span class="font-bold text-green-800 checked-hide">
+						Click to Add
+					</span>
+					<div class="text-sm">
+						<h4 class="text-sm">
+							Measures
+						</h4>
+						<p class="font-semibold">
+							if spot.Measures == "" {
+								No Measures
+							} else {
+								{ spot.Measures }
+							}
+						</p>
+					</div>
+				</div>
+				<div class="mr-3 size-6"></div>
+			</button>
+		</form>
+	</li>
+}
+
+templ AddNewSpotWizard(planID string, title string, listID string) {
+	<button
+ 		type="button"
+ 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+ 		hx-get={ "/library/plans/" + planID + "/spots/new/add/pieces" }
+ 		hx-target={ "#add-new-spots-chooser" }
+ 		hx-swap="innerHTML"
+ 		hx-on::after-request={ components.ShowModal("add-new-spots-dialog") }
+	>
+		@heroicons.IconPlusCircleSolid("-ml-1 size-5")
+		Add Spots
+	</button>
+	<dialog id="add-new-spots-dialog" aria-labelledby="add-new-spots-modal-title" class="flex max-h-[75svh] overflow-y-clip flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
+		<header class="overflow-y-hidden flex-shrink-0 p-4 mt-2 max-w-2xl max-h-20 text-center sm:text-left">
+			<h3 id="add-new-spots-modal-title" class="text-2xl font-semibold leading-6 text-neutral-900">{ title }</h3>
+		</header>
+		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id="add-new-spots-chooser"></div>
+		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
+			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal("add-new-spots-dialog") }>
+				@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+				Done
+			</button>
+		</div>
+	</dialog>
+}
+
+// TODO: make this a one click add button, no complex form
+
+templ AddNewSpotItem(spot PracticePlanSpot, planID string, csrf string) {
+	<li id={ "add-spot-" + spot.ID } class={ "block transition-all duration-200 spot-card" }>
+		<form
+ 			hx-put={ "/library/plans/" + planID + "/spots/new" }
+ 			hx-target="#new-spot-list"
+ 			hx-swap="outerHTML"
+ 			action="#"
+ 			method="post"
+ 			hx-on::after-request={ removeAddedItem("add-spot-" + spot.ID) }
+ 			id={ "add-spot-" + spot.ID + "-label" }
+		>
+			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+			<input type="hidden" name="add-spots" value={ spot.ID }/>
+			<button
+ 				type="submit"
+ 				class="flex relative justify-start py-2 px-4 w-full h-full text-left rounded-xl border border-green-800 transition-all duration-200 cursor-pointer bg-green-500/10 delete-spot add-spot hover:bg-green-500/20 focusable"
+			>
+				<div class="flex flex-col flex-grow overflow-x-clip">
+					<h3 class="text-lg font-bold truncate">
+						{ spot.Name }
+						<span class="text-neutral-700">
+							- { spot.PieceTitle }
+						</span>
+					</h3>
+					<span class="font-bold text-green-800 checked-hide">
+						Click to Add
+					</span>
+					<div class="text-sm">
+						<h4 class="text-sm">
+							Measures
+						</h4>
+						<p class="font-semibold">
+							if spot.Measures == "" {
+								No Measures
+							} else {
+								{ spot.Measures }
+							}
+						</p>
+					</div>
+				</div>
+				<div class="mr-3 size-6"></div>
+			</button>
+		</form>
+	</li>
+}
+
+type NewSpotPiece struct {
+	Title         string
+	ID            string
+	NewSpotsCount int64
+	Composer      string
+}
+
+templ AddNewSpotPieceList(pieces []NewSpotPiece, planID string) {
+	<div id="new-spot-chooser">
+		<div id="piece-chooser" class="flex flex-col gap-2 w-full max-w-full">
+			<p>Click a piece to choose new spots from that piece</p>
+			<ul id="new-spot-piece-list" class="grid grid-cols-1 gap-2 w-full max-w-full list-none sm:grid-cols-2 overflow-x-clip">
+				for _, piece := range pieces {
+					<li>
+						<button
+ 							type="button"
+ 							class="flex items-center py-4 px-6 w-full h-full text-left rounded-xl cursor-pointer bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable"
+ 							hx-get={ "/library/plans/" + planID + "/spots/new/add/pieces/" + piece.ID }
+ 							hx-target="#piece-chooser"
+ 							hx-swap="outerHTML transition:true"
+						>
+							<div class="flex flex-col flex-1 flex-grow gap-1">
+								<div>
+									<strong class="text-xl font-bold">{ piece.Title }</strong>
+									<span class="whitespace-nowrap">
+										—{ " " }{ piece.Composer }
+									</span>
+								</div>
+								<div>New Spots: { strconv.FormatInt(piece.NewSpotsCount, 10) }</div>
+							</div>
+							<div class="flex flex-grow-0 items-center">
+								<span class="sr-only">Click to view</span>
+								@icons.NoteSheetIcon("size-10 -mr-2")
+							</div>
+						</button>
+					</li>
+				}
+			</ul>
+		</div>
+		if len(pieces) == 0 {
+			<p class="text-neutral-700">No matching pieces found.</p>
+		}
+	</div>
+}
+
+templ AddNewSpotFormList(spots []PracticePlanSpot, csrf string, pieceTitle string, planID string) {
+	<div id="spot-chooser">
+		<div class="flex flex-col gap-2 py-2 w-full sm:flex-row sm:items-center">
+			<button
+ 				class="flex-shrink-0 text-xl action-button bg-neutral-900/10 text-neutral-800 hover:bg-neutral-900/20 focusable"
+ 				hx-get={ "/library/plans/" + planID + "/spots/new/add/pieces" }
+ 				hx-target="#spot-chooser"
+ 				hx-swap="outerHTML transition:true"
+			>
+				@heroicons.IconArrowLeftCircleSolid("size-6 -ml-1")
+				Back to Pieces
+			</button>
+			<h4 class="text-lg text-left truncate">
+				Spots from <strong class="font-bold">{ pieceTitle }</strong>
+			</h4>
+		</div>
+		<ul id="add-spot-list" class="grid overflow-y-scroll grid-cols-1 gap-2 w-full list-none lg:grid-cols-2">
+			for _, spot := range spots {
+				@AddNewSpotItem(spot, planID, csrf)
+			}
+		</ul>
+		if len(spots) == 0 {
+			<p class="text-sm">No new spots found.</p>
+		}
+	</div>
+}

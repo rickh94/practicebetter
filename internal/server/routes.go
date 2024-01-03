@@ -116,12 +116,24 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/plans", s.createPracticePlan)
 		r.Get("/plans/{planID}", s.singlePracticePlan)
 		r.Delete("/plans/{planID}", s.deletePracticePlan)
-		r.Post("/plans/{planID}/resume", s.resumePracticePlan)
-		r.Post("/plans/{planID}/stop", s.stopPracticePlan)
+
 		r.Get("/plans/{planID}/next", s.getNextPlanItem)
 		r.Get("/plans/{planID}/interleave", s.getInterleaveList)
+
 		r.Post("/plans/{planID}/infrequent/complete-all", s.completeInterleaveDaysPlan)
 		r.Post("/plans/{planID}/interleave/complete-all", s.completeInterleavePlan)
+		r.Post("/plans/{planID}/resume", s.resumePracticePlan)
+		r.Post("/plans/{planID}/stop", s.stopPracticePlan)
+		r.Get("/plans/{planID}/edit", s.editPracticePlan)
+		r.Delete("/plans/{planID}/spots/{practiceType}/{spotID}", s.deleteSpotFromPracticePlan)
+		r.Delete("/plans/{planID}/pieces/{practiceType}/{pieceID}", s.deletePieceFromPracticePlan)
+		r.Get("/plans/{planID}/spots/{practiceType}/add", s.getSpotsForPracticePlan)
+		r.Get("/plans/{planID}/spots/new/add/pieces", s.getNewSpotPiecesForPracticePlan)
+		r.Get("/plans/{planID}/spots/new/add/pieces/{pieceID}", s.getNewSpotsForPracticePlan)
+		r.Put("/plans/{planID}/spots/{practiceType}", s.addSpotsToPracticePlan)
+
+		r.Get("/plans/{planID}/pieces/{practiceType}/add", s.getPiecesForPracticePlan)
+		r.Put("/plans/{planID}/pieces/{practiceType}", s.addPiecesToPracticePlan)
 	})
 
 	return r

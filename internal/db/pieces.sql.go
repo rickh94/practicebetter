@@ -496,6 +496,62 @@ func (q *Queries) GetPieceWithoutSpots(ctx context.Context, arg GetPieceWithoutS
 	return i, err
 }
 
+const listActivePiecesWithCompletedSpotsForPlan = `-- name: ListActivePiecesWithCompletedSpotsForPlan :many
+SELECT
+    id,
+    title,
+    composer,
+    last_practiced,
+    (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS completed_spot_count
+FROM pieces
+WHERE user_id = ?1
+AND stage = 'active'
+AND completed_spot_count > 5
+AND id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = ?2)
+`
+
+type ListActivePiecesWithCompletedSpotsForPlanParams struct {
+	UserID string `json:"userId"`
+	PlanID string `json:"planId"`
+}
+
+type ListActivePiecesWithCompletedSpotsForPlanRow struct {
+	ID                 string         `json:"id"`
+	Title              string         `json:"title"`
+	Composer           sql.NullString `json:"composer"`
+	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
+	CompletedSpotCount int64          `json:"completedSpotCount"`
+}
+
+func (q *Queries) ListActivePiecesWithCompletedSpotsForPlan(ctx context.Context, arg ListActivePiecesWithCompletedSpotsForPlanParams) ([]ListActivePiecesWithCompletedSpotsForPlanRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActivePiecesWithCompletedSpotsForPlan, arg.UserID, arg.PlanID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActivePiecesWithCompletedSpotsForPlanRow
+	for rows.Next() {
+		var i ListActivePiecesWithCompletedSpotsForPlanRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Composer,
+			&i.LastPracticed,
+			&i.CompletedSpotCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listActiveUserPieces = `-- name: ListActiveUserPieces :many
 SELECT
     id,
@@ -640,6 +696,126 @@ func (q *Queries) ListPaginatedUserPieces(ctx context.Context, arg ListPaginated
 			&i.Composer,
 			&i.CompletedSpots,
 			&i.ActiveSpots,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPiecesWithNewSpotsForPlan = `-- name: ListPiecesWithNewSpotsForPlan :many
+SELECT
+    id,
+    title,
+    composer,
+    (SELECT COUNT(spots.id)
+        FROM spots
+        WHERE spots.piece_id = pieces.id
+        AND spots.stage == 'repeat'
+    AND spots.id NOT IN (SELECT practice_plan_spots.spot_id
+            FROM practice_plan_spots
+            WHERE practice_plan_spots.practice_plan_id = ?1)) AS new_spots_count
+FROM pieces
+WHERE user_id = ?2 AND stage = 'active' AND new_spots_count > 0
+`
+
+type ListPiecesWithNewSpotsForPlanParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+type ListPiecesWithNewSpotsForPlanRow struct {
+	ID            string         `json:"id"`
+	Title         string         `json:"title"`
+	Composer      sql.NullString `json:"composer"`
+	NewSpotsCount int64          `json:"newSpotsCount"`
+}
+
+func (q *Queries) ListPiecesWithNewSpotsForPlan(ctx context.Context, arg ListPiecesWithNewSpotsForPlanParams) ([]ListPiecesWithNewSpotsForPlanRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPiecesWithNewSpotsForPlan, arg.PlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPiecesWithNewSpotsForPlanRow
+	for rows.Next() {
+		var i ListPiecesWithNewSpotsForPlanRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Composer,
+			&i.NewSpotsCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRandomSpotPiecesForPlan = `-- name: ListRandomSpotPiecesForPlan :many
+SELECT
+    pieces.id, pieces.title, pieces.description, pieces.composer, pieces.measures, pieces.beats_per_measure, pieces.goal_tempo, pieces.user_id, pieces.last_practiced, pieces.stage,
+    (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'random') AS random_spot_count
+FROM pieces
+WHERE user_id = ?1
+AND random_spot_count > 0
+AND pieces.id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = ?2)
+`
+
+type ListRandomSpotPiecesForPlanParams struct {
+	UserID string `json:"userId"`
+	PlanID string `json:"planId"`
+}
+
+type ListRandomSpotPiecesForPlanRow struct {
+	ID              string         `json:"id"`
+	Title           string         `json:"title"`
+	Description     sql.NullString `json:"description"`
+	Composer        sql.NullString `json:"composer"`
+	Measures        sql.NullInt64  `json:"measures"`
+	BeatsPerMeasure sql.NullInt64  `json:"beatsPerMeasure"`
+	GoalTempo       sql.NullInt64  `json:"goalTempo"`
+	UserID          string         `json:"userId"`
+	LastPracticed   sql.NullInt64  `json:"lastPracticed"`
+	Stage           string         `json:"stage"`
+	RandomSpotCount int64          `json:"randomSpotCount"`
+}
+
+func (q *Queries) ListRandomSpotPiecesForPlan(ctx context.Context, arg ListRandomSpotPiecesForPlanParams) ([]ListRandomSpotPiecesForPlanRow, error) {
+	rows, err := q.db.QueryContext(ctx, listRandomSpotPiecesForPlan, arg.UserID, arg.PlanID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRandomSpotPiecesForPlanRow
+	for rows.Next() {
+		var i ListRandomSpotPiecesForPlanRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.Composer,
+			&i.Measures,
+			&i.BeatsPerMeasure,
+			&i.GoalTempo,
+			&i.UserID,
+			&i.LastPracticed,
+			&i.Stage,
+			&i.RandomSpotCount,
 		); err != nil {
 			return nil, err
 		}

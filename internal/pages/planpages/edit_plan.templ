@@ -1,0 +1,245 @@
+package planpages
+
+import "practicebetter/internal/components"
+import "strconv"
+import "practicebetter/internal/heroicons"
+
+script removeAddedItem(id string) {
+	const el = document.getElementById(id);
+	el.className = "text-xl font-bold text-green-800";
+	el.innerText = "Added!"
+	setTimeout(() => {
+		el.remove();
+	}, 1000);
+}
+
+templ EditPracticePlanPage(planData PracticePlanData, csrf string) {
+	<title>Edit Practice Plan | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Modify Practice Plan") , components.AccountLink())) {
+		@components.BreadcrumbContainer() {
+			@components.BreadcrumbWithDates([]components.BreadcrumbWithDatesInfo{
+					{ Label: "Library", Href: "/library", Active: false, IsDate: false },
+					{ Label: "Practice Plans", Href: "/library/plans", Active: false, IsDate: false },
+					{ Label: strconv.FormatInt(planData.Date, 10), Href: "/library/plans/"+planData.ID, Active: false, IsDate: true },
+					{ Label: "Modify", Href: "/library/plans/"+planData.ID+"/edit", Active: true, IsDate: false },
+				})
+			@components.ActionButtonContainer() {
+				@components.HxLink("text-sky-800 action-button bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/plans/"+planData.ID, "#main-content") {
+					@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+					Done
+				}
+			}
+		}
+		@components.NormalContainer() {
+			<div class="flex flex-col flex-grow gap-0 p-0 min-h-full text-black bg-white rounded shadow shadow-black/20">
+				@editPracticePlanPageContent(planData, csrf)
+			</div>
+		}
+	}
+}
+
+templ EditExtraRepeatSpotList(spots []PracticePlanSpot, planID string, csrf string) {
+	<ul id="extra_repeat-list" class="flex flex-col gap-2 w-full max-w-full list-none overflow-x-clip">
+		for _, spot := range spots {
+			if spot.Completed {
+				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "extra_repeat", spot.PieceTitle, spot.Completed)
+			} else {
+				@DeleteSpotCard(spot.ID, spot.Name, spot.Measures, "extra_repeat", spot.PieceTitle, planID, csrf, "extra_repeat")
+			}
+		}
+	</ul>
+}
+
+templ EditStartingPointList(pieces []PracticePlanPiece, isActive bool, planID string, csrf string) {
+	<ul id="starting_point-list" class="flex flex-col gap-2 w-full list-none">
+		for _, piece := range pieces {
+			if piece.Completed {
+				@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, 0, piece.Completed, "starting_point", "normal", isActive)
+			} else {
+				@DeletePracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.Completed, "starting_point", planID, csrf)
+			}
+		}
+	</ul>
+}
+
+templ EditRandomPieceList(pieces []PracticePlanPiece, isActive bool, planID string, csrf string) {
+	<ul id="random_spots-list" class="flex flex-col gap-2 w-full list-none">
+		for _, piece := range pieces {
+			if piece.Completed {
+				@components.PracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.RandomSpots, piece.Completed, "random_spots", "normal", isActive)
+			} else {
+				@DeletePracticePlanPieceCard(piece.ID, piece.Title, piece.Composer, piece.Completed, "random_spots", planID, csrf)
+			}
+		}
+	</ul>
+}
+
+templ editPracticePlanPageContent(planData PracticePlanData, csrf string) {
+	<div class="grid grid-cols-1 gap-4 p-4 w-full sm:grid-cols-2 lg:grid-cols-3">
+		<header class="flex flex-col col-span-full justify-center items-center pb-4 w-full">
+			<div class="py-2 px-4 text-center border-b-2 border-black sm:px-8">
+				<h2 class="text-xl font-bold text-center sm:text-3xl">
+					<pretty-date class="text-black" epoch={ strconv.FormatInt(planData.Date, 10) }></pretty-date>
+					if planData.IsActive {
+						<span class="text-violet-700 whitespace-nowrap">- Active</span>
+					}
+				</h2>
+			</div>
+			<p class="text-sm">Click items to delete them. Click the add button in a category to add items. Click save when you're done.</p>
+		</header>
+		@EditPracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)
+		<section id="extra-repeat-spots" class="flex flex-col gap-2 max-w-full overflow-x-clip">
+			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Extra Repeat Practice Spots</h3>
+			<p class="w-full text-sm">Repeat Practice these spots today</p>
+			@EditExtraRepeatSpotList(planData.ExtraRepeatSpots, planData.ID, csrf)
+			@AddSpotWizard("extra_repeat", planData.ID, "add-extra-repeat-spots", "Add Extra Repeat Practice Spots")
+		</section>
+		@EditPracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted, planData.IsActive, true)
+		<section id="random-spots-pieces" class="flex flex-col gap-2">
+			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Spot Pieces</h3>
+			<p class="w-full text-sm">Random Practice the spots from these pieces.</p>
+			@EditRandomPieceList(planData.RandomSpotsPieces, planData.IsActive, planData.ID, csrf)
+			@AddPieceWizard("random_spots", planData.ID, "add-random-spots-pieces", "Add Random Spot Pieces")
+		</section>
+		<section id="starting-point-pieces" class="flex flex-col gap-2">
+			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Random Starting Point Pieces</h3>
+			<p class="w-full text-sm">Practice these pieces using the random starting points.</p>
+			@EditStartingPointList(planData.RandomStartPieces, planData.IsActive, planData.ID, csrf)
+			@AddPieceWizard("starting_point", planData.ID, "add-random-start-pieces", "Add Random Starting Point Pieces")
+		</section>
+		<section id="new-spots" class="flex flex-col gap-2">
+			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">New Spots</h3>
+			<p class="w-full text-sm">Get started on some new spots. Don’t feel like you need to get to all of them</p>
+			@EditNewSpotList(planData.NewSpots, planData.ID, csrf)
+			@AddNewSpotWizard(planData.ID, "Add New Spots", "new-spot-list")
+		</section>
+		<div class="flex flex-row-reverse flex-wrap col-span-full">
+			@components.HxLink("text-sky-800 action-button bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/plans/"+planData.ID, "#main-content") {
+				@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+				Done
+			}
+		</div>
+	</div>
+}
+
+templ EditNewSpotList(spots []PracticePlanSpot, planID, csrf string) {
+	<ul id="new-list" class="flex flex-col gap-2 w-full list-none">
+		for _, spot := range spots {
+			if spot.Completed {
+				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "repeat", spot.PieceTitle, spot.Completed)
+			} else {
+				@DeleteSpotCard(spot.ID, spot.Name, spot.Measures, "repeat", spot.PieceTitle, planID, csrf, "new")
+			}
+		}
+	</ul>
+}
+
+templ DeleteSpotCard(spotID, name, measures, stage, pieceTitle, planID, csrf, practiceType string) {
+	<li id={ "spot-" + practiceType + "-" + spotID }>
+		<button
+ 			id={ "delete-spot-" + spotID }
+ 			class="flex relative py-2 px-4 w-full max-w-full h-full text-left rounded-xl border border-red-800 transition-all duration-200 cursor-pointer bg-red-500/10 delete-spot hover:bg-red-500/20 focusable"
+ 			hx-delete={ "/library/plans/" + planID + "/spots/" + practiceType + "/" + spotID }
+ 			hx-target={ "#spot-" + practiceType + "-" + spotID }
+ 			hx-swap="delete"
+ 			hx-confirm={ "Are you sure you want to remove spot \"" + name + "\" from your practice plan?" }
+ 			hx-headers={ components.HxCsrfHeader(csrf) }
+		>
+			<div class="flex flex-col flex-grow overflow-x-clip">
+				<h3 class="text-lg font-bold truncate">
+					{ name }
+					<span class="text-neutral-700">
+						- { pieceTitle }
+					</span>
+				</h3>
+				<span class="font-bold text-red-700">
+					Click to Delete
+				</span>
+				<div class="text-sm">
+					<h4 class="text-sm">
+						Measures
+					</h4>
+					<p class="font-semibold">
+						if measures == "" {
+							No Measures
+						} else {
+							{ measures }
+						}
+					</p>
+				</div>
+			</div>
+			<div class="mr-3 size-6"></div>
+			@heroicons.IconXCircleSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-red-800")
+		</button>
+	</li>
+}
+
+templ DeletePracticePlanPieceCard(pieceID string, title string, composer string, completed bool, practiceType string, planID string, csrf string) {
+	<li id={ "piece-" + practiceType + "-" + pieceID }>
+		<button
+ 			class="flex items-center py-4 px-6 w-full h-full text-left rounded-xl cursor-pointer bg-red-700/10 text-neutral-700 hover:bg-red-700/20 focusable"
+ 			hx-delete={ "/library/plans/" + planID + "/pieces/" + practiceType + "/" + pieceID }
+ 			hx-target={ "#piece-" + practiceType + "-" + pieceID }
+ 			hx-swap="delete"
+ 			hx-confirm={ "Are you sure you want to remove Piece \"" + title + "\" from your practice plan?" }
+ 			hx-headers={ components.HxCsrfHeader(csrf) }
+		>
+			<div class="flex flex-col flex-1 flex-grow gap-1">
+				<div>
+					<strong class="text-xl font-bold">{ title }</strong>
+					<span class="whitespace-nowrap">
+						—{ " " }{ composer }
+					</span>
+				</div>
+				<div class="font-bold text-red-800">Click to Delete</div>
+			</div>
+			<div class="flex flex-grow-0 items-center">
+				@heroicons.IconXCircleSolid("size-10 -mr-2 text-red-800")
+			</div>
+		</button>
+	</li>
+}
+
+templ EditInterleaveDaysSpotList(interleaveDaysSpots []PracticePlanSpot, planID string, csrf string) {
+	<ul id="interleave_days-list" class="flex flex-col gap-2 w-full list-none">
+		for _, spot := range interleaveDaysSpots {
+			if spot.Completed {
+				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, spot.Completed)
+			} else {
+				@DeleteSpotCard(spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, planID, csrf, "interleave_days")
+			}
+		}
+	</ul>
+}
+
+templ EditPracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool) {
+	<section id="interleave-days-spots" class="flex flex-col gap-2">
+		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Infrequent Spots</h3>
+		<p class="w-full text-sm">Play these spots at least once today</p>
+		@EditInterleaveDaysSpotList(interleaveDaysSpots, planID, csrf)
+		@AddSpotWizard("interleave_days", planID, "add-infrequent-spots", "Add Infrequent Spots")
+	</section>
+}
+
+templ  EditInterleaveSpotList(spots []PracticePlanSpot, planID string, csrf string) {
+	<ul id="interleave-list" class="flex flex-col gap-2 w-full list-none">
+		for _, spot := range spots {
+			if spot.Completed {
+				@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
+			} else {
+				@DeleteSpotCard(spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, planID, csrf, "interleave")
+			}
+		}
+	</ul>
+}
+
+templ EditPracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool, showHeading bool) {
+	<section id="interleave-spots" class="flex flex-col gap-2">
+		if showHeading {
+			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
+			<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
+		}
+		@EditInterleaveSpotList(interleaveSpots, planID, csrf)
+		@AddSpotWizard("interleave", planID, "add-interleave-spots", "Add Interleave Spots")
+	</section>
+}

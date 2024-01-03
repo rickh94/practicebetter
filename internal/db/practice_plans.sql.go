@@ -185,6 +185,54 @@ func (q *Queries) DeletePracticePlan(ctx context.Context, arg DeletePracticePlan
 	return err
 }
 
+const deletePracticePlanPiece = `-- name: DeletePracticePlanPiece :exec
+DELETE FROM practice_plan_pieces
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+AND piece_id = ?3
+AND practice_type = ?4
+`
+
+type DeletePracticePlanPieceParams struct {
+	PlanID       string `json:"planId"`
+	UserID       string `json:"userId"`
+	PieceID      string `json:"pieceId"`
+	PracticeType string `json:"practiceType"`
+}
+
+func (q *Queries) DeletePracticePlanPiece(ctx context.Context, arg DeletePracticePlanPieceParams) error {
+	_, err := q.db.ExecContext(ctx, deletePracticePlanPiece,
+		arg.PlanID,
+		arg.UserID,
+		arg.PieceID,
+		arg.PracticeType,
+	)
+	return err
+}
+
+const deletePracticePlanSpot = `-- name: DeletePracticePlanSpot :exec
+DELETE FROM practice_plan_spots
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+AND spot_id = ?3
+AND practice_type = ?4
+`
+
+type DeletePracticePlanSpotParams struct {
+	PlanID       string `json:"planId"`
+	UserID       string `json:"userId"`
+	SpotID       string `json:"spotId"`
+	PracticeType string `json:"practiceType"`
+}
+
+func (q *Queries) DeletePracticePlanSpot(ctx context.Context, arg DeletePracticePlanSpotParams) error {
+	_, err := q.db.ExecContext(ctx, deletePracticePlanSpot,
+		arg.PlanID,
+		arg.UserID,
+		arg.SpotID,
+		arg.PracticeType,
+	)
+	return err
+}
+
 const getPracticePlan = `-- name: GetPracticePlan :one
 SELECT id, user_id, intensity, date, completed, practice_session_id
 FROM practice_plans
@@ -793,6 +841,137 @@ func (q *Queries) ListPaginatedPracticePlans(ctx context.Context, arg ListPagina
 			&i.InterleaveSpotsCount,
 			&i.InterleaveDaysSpotsCount,
 			&i.PiecesCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPracticePlanPiecesInCategory = `-- name: ListPracticePlanPiecesInCategory :many
+SELECT practice_plan_pieces.completed,
+    practice_plan_pieces.completed AS piece_completed,
+    pieces.title AS piece_title,
+    pieces.id AS piece_id,
+    pieces.composer AS piece_composer,
+    (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS piece_active_spots,
+    (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'random') AS piece_random_spots,
+    (SELECT COUNT(id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS piece_completed_spots
+FROM practice_plan_pieces
+INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id
+WHERE practice_plan_pieces.practice_type = ?1
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?2 AND practice_plans.user_id = ?3)
+`
+
+type ListPracticePlanPiecesInCategoryParams struct {
+	PracticeType string `json:"practiceType"`
+	PlanID       string `json:"planId"`
+	UserID       string `json:"userId"`
+}
+
+type ListPracticePlanPiecesInCategoryRow struct {
+	Completed           bool           `json:"completed"`
+	PieceCompleted      bool           `json:"pieceCompleted"`
+	PieceTitle          string         `json:"pieceTitle"`
+	PieceID             string         `json:"pieceId"`
+	PieceComposer       sql.NullString `json:"pieceComposer"`
+	PieceActiveSpots    int64          `json:"pieceActiveSpots"`
+	PieceRandomSpots    int64          `json:"pieceRandomSpots"`
+	PieceCompletedSpots int64          `json:"pieceCompletedSpots"`
+}
+
+func (q *Queries) ListPracticePlanPiecesInCategory(ctx context.Context, arg ListPracticePlanPiecesInCategoryParams) ([]ListPracticePlanPiecesInCategoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPracticePlanPiecesInCategory, arg.PracticeType, arg.PlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPracticePlanPiecesInCategoryRow
+	for rows.Next() {
+		var i ListPracticePlanPiecesInCategoryRow
+		if err := rows.Scan(
+			&i.Completed,
+			&i.PieceCompleted,
+			&i.PieceTitle,
+			&i.PieceID,
+			&i.PieceComposer,
+			&i.PieceActiveSpots,
+			&i.PieceRandomSpots,
+			&i.PieceCompletedSpots,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPracticePlanSpotsInCategory = `-- name: ListPracticePlanSpotsInCategory :many
+SELECT practice_plan_spots.completed,
+    spots.name,
+    spots.id,
+    spots.measures,
+    spots.piece_id,
+    spots.stage,
+    spots.stage_started,
+    spots.skip_days,
+    (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS piece_title
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = ?1
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?2 AND practice_plans.user_id = ?3)
+`
+
+type ListPracticePlanSpotsInCategoryParams struct {
+	PracticeType string `json:"practiceType"`
+	PlanID       string `json:"planId"`
+	UserID       string `json:"userId"`
+}
+
+type ListPracticePlanSpotsInCategoryRow struct {
+	Completed    bool           `json:"completed"`
+	Name         string         `json:"name"`
+	ID           string         `json:"id"`
+	Measures     sql.NullString `json:"measures"`
+	PieceID      string         `json:"pieceId"`
+	Stage        string         `json:"stage"`
+	StageStarted sql.NullInt64  `json:"stageStarted"`
+	SkipDays     int64          `json:"skipDays"`
+	PieceTitle   string         `json:"pieceTitle"`
+}
+
+func (q *Queries) ListPracticePlanSpotsInCategory(ctx context.Context, arg ListPracticePlanSpotsInCategoryParams) ([]ListPracticePlanSpotsInCategoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPracticePlanSpotsInCategory, arg.PracticeType, arg.PlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPracticePlanSpotsInCategoryRow
+	for rows.Next() {
+		var i ListPracticePlanSpotsInCategoryRow
+		if err := rows.Scan(
+			&i.Completed,
+			&i.Name,
+			&i.ID,
+			&i.Measures,
+			&i.PieceID,
+			&i.Stage,
+			&i.StageStarted,
+			&i.SkipDays,
+			&i.PieceTitle,
 		); err != nil {
 			return nil, err
 		}

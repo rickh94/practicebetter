@@ -28,6 +28,27 @@ INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
 ORDER BY spots.idx;
 
+-- name: ListPieceSpotsInStage :many
+SELECT
+    spots.*,
+    pieces.title AS piece_title
+FROM spots
+INNER JOIN pieces ON pieces.id = spots.piece_id
+WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
+AND spots.stage = :stage
+ORDER BY spots.idx;
+
+-- name: ListPieceSpotsInStageForPlan :many
+SELECT
+    spots.*,
+    pieces.title AS piece_title
+FROM spots
+INNER JOIN pieces ON pieces.id = spots.piece_id
+WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
+AND spots.stage = :stage
+AND spots.id NOT IN (SELECT practice_plan_spots.spot_id FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = :plan_id)
+ORDER BY spots.idx;
+
 -- name: ListHighPrioritySpots :many
 SELECT
     spots.*,
@@ -36,6 +57,17 @@ FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE pieces.user_id = :user_id AND spots.priority < 0
 ORDER BY spots.priority;
+
+-- name: ListSpotsForPlanStage :many
+SELECT
+    spots.*,
+    pieces.title AS piece_title
+FROM spots
+INNER JOIN pieces on pieces.id = spots.piece_id
+WHERE pieces.user_id = :user_id AND spots.stage = :stage
+AND spots.id NOT IN (SELECT practice_plan_spots.spot_id FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = :plan_id)
+ORDER BY spots.last_practiced DESC;
+
 
 -- name: GetSpot :one
 SELECT

@@ -137,6 +137,10 @@ dialog {
   @apply translate-y-4 rounded-xl;
 }
 
+dialog:focus {
+  outline: none;
+}
+
 dialog[open] {
   opacity: 1;
   pointer-events: inherit;
@@ -395,4 +399,44 @@ progress[value]::-moz-progress-bar {
   .w-huge {
     width: min(80vw, 64rem);
   }
+}
+
+.checked-show {
+  @apply hidden;
+}
+
+.checked .checked-show {
+  @apply block;
+}
+
+.checked-hide {
+  @apply block;
+}
+
+.checked-hidden {
+  @apply block;
+}
+
+.checked .checked-hide {
+  @apply hidden;
+}
+
+.checked .checked-hidden {
+  @apply hidden;
+}
+
+.checked .cross {
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' preserveAspectRatio='none' viewBox='0 0 100 100'><path d='M100 0 L0 100 ' stroke='firebrick' stroke-width='2'/><path d='M0 0 L100 100 ' stroke='firebrick' stroke-width='2'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size:
+    100% 100%,
+    auto;
+  width: 100%;
+  height: 100%;
+  @apply absolute left-0 top-0 z-50 rounded-xl;
+}
+
+.edit-plan-chooser {
+  max-height: calc(75svh - 10rem);
 }

@@ -114,6 +114,28 @@ SELECT COUNT(*) FROM spots WHERE piece_id = ? AND stage = 'random';
 -- name: GetPieceWithoutSpots :one
 SELECT * FROM pieces WHERE id = ? AND user_id = ?;
 
+-- name: ListRandomSpotPiecesForPlan :many
+SELECT
+    pieces.*,
+    (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'random') AS random_spot_count
+FROM pieces
+WHERE user_id = :user_id
+AND random_spot_count > 0
+AND pieces.id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = :plan_id);
+
+-- name: ListActivePiecesWithCompletedSpotsForPlan :many
+SELECT
+    id,
+    title,
+    composer,
+    last_practiced,
+    (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS completed_spot_count
+FROM pieces
+WHERE user_id = :user_id
+AND stage = 'active'
+AND completed_spot_count > 5
+AND id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = :plan_id);
+
 -- name: ListRecentlyPracticedPieces :many
 SELECT
     id,
@@ -162,6 +184,21 @@ SELECT
     (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS active_spots
 FROM pieces
 WHERE user_id = ? AND stage = 'active';
+
+-- name: ListPiecesWithNewSpotsForPlan :many
+SELECT
+    id,
+    title,
+    composer,
+    (SELECT COUNT(spots.id)
+        FROM spots
+        WHERE spots.piece_id = pieces.id
+        AND spots.stage == 'repeat'
+    AND spots.id NOT IN (SELECT practice_plan_spots.spot_id
+            FROM practice_plan_spots
+            WHERE practice_plan_spots.practice_plan_id = :plan_id)) AS new_spots_count
+FROM pieces
+WHERE user_id = :user_id AND stage = 'active' AND new_spots_count > 0;
 
 
 -- name: UpdatePiece :one
