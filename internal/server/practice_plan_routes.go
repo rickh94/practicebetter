@@ -8,6 +8,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"practicebetter/internal/components"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/planpages"
 	"strconv"
@@ -1296,13 +1297,23 @@ func (s *Server) planList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		pageNum = 1
 	}
+	s.renderPlanListPage(w, r, user.ID, pageNum)
+}
+
+func (s *Server) renderPlanListPage(w http.ResponseWriter, r *http.Request, userID string, pageNum int) {
 	queries := db.New(s.DB)
 	plans, err := queries.ListPaginatedPracticePlans(r.Context(), db.ListPaginatedPracticePlansParams{
-		UserID: user.ID,
+		UserID: userID,
 		Limit:  piecesPerPage,
 		Offset: int64((pageNum - 1) * piecesPerPage),
 	})
-	totalPlans, err := queries.CountUserPracticePlans(r.Context(), user.ID)
+	if err != nil {
+		log.Default().Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	log.Default().Printf("plans: %d", len(plans))
+	totalPlans, err := queries.CountUserPracticePlans(r.Context(), userID)
 	if err != nil {
 		log.Default().Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -1314,8 +1325,22 @@ func (s *Server) planList(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
+
+	planInfo := make([]components.PracticePlanCardInfo, 0, len(plans))
+	for _, p := range plans {
+		nextPlanInfo := components.PracticePlanCardInfo{
+			ID:             p.ID,
+			Date:           p.Date,
+			CompletedItems: p.CompletedSpotsCount + p.CompletedPiecesCount,
+			TotalItems:     p.PiecesCount + p.SpotsCount,
+			PieceTitles:    pieceTitlesForPlanCard(p.PieceTitles, p.SpotPieceTitles),
+		}
+
+		planInfo = append(planInfo, nextPlanInfo)
+	}
+	log.Default().Printf("planInfo: %d", len(planInfo))
 	w.WriteHeader(http.StatusOK)
-	s.HxRender(w, r, planpages.PlanList(plans, pageNum, totalPages), "Pieces")
+	s.HxRender(w, r, planpages.PlanList(planInfo, pageNum, totalPages), "Your Practice Plans")
 }
 
 func (s *Server) deletePracticePlan(w http.ResponseWriter, r *http.Request) {
@@ -1341,25 +1366,8 @@ func (s *Server) deletePracticePlan(w http.ResponseWriter, r *http.Request) {
 	})
 	htmx.PushURL(r, "/library/plans")
 
-	plans, err := queries.ListPaginatedPracticePlans(r.Context(), db.ListPaginatedPracticePlansParams{
-		UserID: user.ID,
-		Limit:  piecesPerPage,
-		Offset: 0,
-	})
-	totalPlans, err := queries.CountUserPracticePlans(r.Context(), user.ID)
-	if err != nil {
-		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	totalPages := int(math.Ceil(float64(totalPlans) / float64(plansPerPage)))
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Something went wrong", http.StatusInternalServerError)
-		return
-	}
 	// refresh user from database in case the active plan was deleted
-	user, err = queries.GetUserByID(r.Context(), user.ID)
+	user, err := queries.GetUserByID(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -1370,7 +1378,7 @@ func (s *Server) deletePracticePlan(w http.ResponseWriter, r *http.Request) {
 		ctx = context.WithValue(ctx, "activePracticePlanID", "")
 	}
 	w.WriteHeader(http.StatusOK)
-	s.HxRender(w, r.WithContext(ctx), planpages.PlanList(plans, 1, totalPages), "Pieces")
+	s.renderPlanListPage(w, r.WithContext(ctx), user.ID, 1)
 }
 
 func (s *Server) resumePracticePlan(w http.ResponseWriter, r *http.Request) {

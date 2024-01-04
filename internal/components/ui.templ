@@ -467,35 +467,42 @@ templ PracticeToolNav(activepath string) {
 	<practice-tool-nav activepath={ activepath }></practice-tool-nav>
 }
 
-templ PracticePlanCard(planID string, date int64, newSpots int64, repeatSpots int64, interleaveSpots int64, interleaveDaysSpots int64, pieces int64) {
-	@HxLink("flex flex-col gap-4 p-4 text-black bg-white rounded-lg shadow shadow-black/20 focusable hover:bg-violet-200/80", "/library/plans/"+planID, "#main-content") {
-		<h3 class="pb-1 text-xl font-bold text-center text-black border-b-2 border-black">
-			<pretty-date class="text-black" epoch={ strconv.FormatInt(date, 10) }></pretty-date>
-			if planID == GetActivePracticePlan(ctx) {
-				<span class="text-violet-700">- Active</span>
-			}
-		</h3>
-		<dl class="text-sm md:text-base columns-2">
-			<div class="flex gap-1">
-				<dt class="font-medium">New Spots:{ " " }</dt>
-				<dd>{ strconv.FormatInt(newSpots, 10) }</dd>
-			</div>
-			<div class="flex gap-1">
-				<dt class="font-medium">Extra Repeat Spots:{ " " }</dt>
-				<dd>{ strconv.FormatInt(repeatSpots, 10) }</dd>
-			</div>
-			<div class="flex gap-1">
-				<dt class="font-medium">Interleave Spots:{ " " }</dt>
-				<dd>{ strconv.FormatInt(interleaveSpots, 10) }</dd>
-			</div>
-			<div class="flex gap-1">
-				<dt class="font-medium">Infrequent Spots:{ " " }</dt>
-				<dd>{ strconv.FormatInt(interleaveDaysSpots, 10) }</dd>
-			</div>
-			<div class="flex gap-1">
-				<dt class="font-medium">Pieces:{ " " }</dt>
-				<dd>{ strconv.FormatInt(pieces, 10) }</dd>
-			</div>
-		</dl>
+type PracticePlanCardInfo struct {
+	ID             string
+	Date           int64
+	CompletedItems int64
+	TotalItems     int64
+	PieceTitles    []string
+}
+
+templ PracticePlanCard(planInfo PracticePlanCardInfo) {
+	@HxLink("flex flex-col gap-2 p-4 text-black bg-white rounded-lg shadow shadow-black/20 focusable hover:bg-violet-200/80", "/library/plans/"+planInfo.ID, "#main-content") {
+		<div class="flex flex-col gap-1 px-6 w-full">
+			<h3 class="pb-1 text-xl font-bold text-center text-black">
+				<pretty-date class="text-black" epoch={ strconv.FormatInt(planInfo.Date, 10) }></pretty-date>
+				if planInfo.ID == GetActivePracticePlan(ctx) {
+					<span class="text-violet-700">- Active</span>
+				}
+			</h3>
+			<label id="progress-label" class="sr-only">Plan Progress</label>
+			<progress
+ 				value={ strconv.FormatInt(planInfo.CompletedItems, 10) }
+ 				max={ strconv.FormatInt(planInfo.TotalItems, 10) }
+ 				class="m-0 w-full progress-rounded progress-violet-600 progress-bg-violet-200"
+ 				aria-labelledby="progress-label"
+			>{ strconv.FormatInt(planInfo.CompletedItems, 10) }/{ strconv.FormatInt(planInfo.TotalItems, 10) }</progress>
+		</div>
+		<div class="flex flex-col">
+			<h4 class="w-full font-bold text-black underline">
+				Pieces
+			</h4>
+			<ul class="grid grid-cols-1 gap-1 font-medium list-none md:text-base xs:grid-cols-2 text-neutral-800">
+				for _, pieceTitle := range planInfo.PieceTitles {
+					<li>
+						{ pieceTitle }
+					</li>
+				}
+			</ul>
+		</div>
 	}
 }

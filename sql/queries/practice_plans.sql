@@ -81,10 +81,12 @@ ORDER BY practice_plan_spots.idx;
 -- name: GetPracticePlanWithTodo :one
 SELECT
     practice_plans.*,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND NOT practice_plan_spots.completed) AS incomplete_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND NOT practice_plan_pieces.completed) AS incomplete_pieces_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed) AS completed_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed) AS completed_pieces_count
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_pieces INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id WHERE practice_plan_pieces.practice_plan_id = practice_plans.id), '') AS piece_titles,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_spots INNER JOIN spots ON spots.id = practice_plan_spots.spot_id INNER JOIN pieces ON pieces.id = spots.piece_id WHERE practice_plan_spots.practice_plan_id = practice_plans.id), '') AS spot_piece_titles
 FROM practice_plans
 WHERE practice_plans.id = ? AND practice_plans.user_id = ?
 LIMIT 1;
@@ -92,11 +94,12 @@ LIMIT 1;
 -- name: ListRecentPracticePlans :many
 SELECT
     practice_plans.*,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'new') AS new_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'extra_repeat') AS repeat_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'interleave') AS interleave_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'interleave_days') AS interleave_days_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_pieces INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id WHERE practice_plan_pieces.practice_plan_id = practice_plans.id), '') AS piece_titles,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_spots INNER JOIN spots ON spots.id = practice_plan_spots.spot_id INNER JOIN pieces ON pieces.id = spots.piece_id WHERE practice_plan_spots.practice_plan_id = practice_plans.id), '') AS spot_piece_titles
 FROM practice_plans
 WHERE practice_plans.id != ? AND practice_plans.user_id = ?
 ORDER BY practice_plans.date DESC
@@ -105,11 +108,12 @@ LIMIT 3;
 -- name: ListPaginatedPracticePlans :many
 SELECT
     practice_plans.*,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'new') AS new_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'extra_repeat') AS repeat_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'interleave') AS interleave_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'interleave_days') AS interleave_days_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_pieces INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id WHERE practice_plan_pieces.practice_plan_id = practice_plans.id), '') AS piece_titles,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_spots INNER JOIN spots ON spots.id = practice_plan_spots.spot_id INNER JOIN pieces ON pieces.id = spots.piece_id WHERE practice_plan_spots.practice_plan_id = practice_plans.id), '') AS spot_piece_titles
 FROM practice_plans
 WHERE practice_plans.user_id = ?
 ORDER BY practice_plans.date DESC

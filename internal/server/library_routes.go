@@ -10,8 +10,10 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"practicebetter/internal/components"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
+	"strings"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gorilla/csrf"
@@ -27,29 +29,28 @@ func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not get pieces", http.StatusInternalServerError)
 		return
 	}
-	/*
-		practiceSessionRows, err := queries.ListRecentPracticeSessions(r.Context(), user.ID)
-		if err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not get practice sessions", http.StatusInternalServerError)
-			return
-		}
-		data, err := json.Marshal(practiceSessionRows)
-	*/
-	var plan db.GetPracticePlanWithTodoRow
+
 	hasPlan := false
 	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
+	var activePlan components.PracticePlanCardInfo
 	if ok {
-		plan, err = queries.GetPracticePlanWithTodo(r.Context(), db.GetPracticePlanWithTodoParams{
+		p, err := queries.GetPracticePlanWithTodo(r.Context(), db.GetPracticePlanWithTodoParams{
 			ID:     activePracticePlanID,
 			UserID: user.ID,
 		})
-		if err == nil {
-			hasPlan = true
-		} else {
+
+		if err != nil {
 			log.Default().Println(err)
+		} else {
+			hasPlan = true
+			activePlan.ID = p.ID
+			activePlan.Date = p.Date
+			activePlan.CompletedItems = p.CompletedSpotsCount + p.CompletedPiecesCount
+			activePlan.TotalItems = p.PiecesCount + p.SpotsCount
+			activePlan.PieceTitles = pieceTitlesForPlanCard(p.PieceTitles, p.SpotPieceTitles)
 		}
 	}
+
 	recentPracticePlans, err := queries.ListRecentPracticePlans(r.Context(), db.ListRecentPracticePlansParams{
 		ID:     activePracticePlanID,
 		UserID: user.ID,
@@ -59,7 +60,19 @@ func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not get practice plans", http.StatusInternalServerError)
 		return
 	}
-	s.HxRender(w, r, librarypages.Dashboard(s, pieces, hasPlan, &plan, recentPracticePlans), "Library")
+	recentPlanInfo := make([]components.PracticePlanCardInfo, 0, len(recentPracticePlans))
+	for _, p := range recentPracticePlans {
+		nextPlanInfo := components.PracticePlanCardInfo{
+			ID:             p.ID,
+			Date:           p.Date,
+			CompletedItems: p.CompletedSpotsCount + p.CompletedPiecesCount,
+			TotalItems:     p.PiecesCount + p.SpotsCount,
+			PieceTitles:    pieceTitlesForPlanCard(p.PieceTitles, p.SpotPieceTitles),
+		}
+		recentPlanInfo = append(recentPlanInfo, nextPlanInfo)
+	}
+
+	s.HxRender(w, r, librarypages.Dashboard(s, pieces, hasPlan, activePlan, recentPlanInfo), "Library")
 }
 
 type PieceFormData struct {
@@ -309,4 +322,30 @@ func makeSpotFormDataFromSpot(row db.GetSpotRow) SpotFormData {
 	return spot
 }
 
-// TODO: maybe add render or redirect function
+func pieceTitlesForPlanCard(pieceTitlesIn interface{}, spotPieceTitlesIn interface{}) []string {
+	pieceTitles, ok := pieceTitlesIn.(string)
+	if !ok {
+		pieceTitles = ""
+	}
+	spotPieceTitles, ok := spotPieceTitlesIn.(string)
+	if !ok {
+		spotPieceTitles = ""
+	}
+	seenPieceTitles := make(map[string]struct{}, 0)
+	uniquePieceTitlesList := make([]string, 0, len(pieceTitles))
+	for _, pieceTitle := range strings.Split(strings.Trim(pieceTitles, "@"), "@,") {
+		if _, ok := seenPieceTitles[pieceTitle]; ok || pieceTitle == "" {
+			continue
+		}
+		uniquePieceTitlesList = append(uniquePieceTitlesList, pieceTitle)
+		seenPieceTitles[pieceTitle] = struct{}{}
+	}
+	for _, pieceTitle := range strings.Split(strings.Trim(spotPieceTitles, "@"), "@,") {
+		if _, ok := seenPieceTitles[pieceTitle]; ok || pieceTitle == "" {
+			continue
+		}
+		uniquePieceTitlesList = append(uniquePieceTitlesList, pieceTitle)
+		seenPieceTitles[pieceTitle] = struct{}{}
+	}
+	return uniquePieceTitlesList
+}

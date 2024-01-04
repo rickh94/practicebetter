@@ -867,10 +867,12 @@ func (q *Queries) GetPracticePlanWithSpots(ctx context.Context, arg GetPracticeP
 const getPracticePlanWithTodo = `-- name: GetPracticePlanWithTodo :one
 SELECT
     practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_session_id,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND NOT practice_plan_spots.completed) AS incomplete_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND NOT practice_plan_pieces.completed) AS incomplete_pieces_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed) AS completed_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed) AS completed_pieces_count
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_pieces INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id WHERE practice_plan_pieces.practice_plan_id = practice_plans.id), '') AS piece_titles,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_spots INNER JOIN spots ON spots.id = practice_plan_spots.spot_id INNER JOIN pieces ON pieces.id = spots.piece_id WHERE practice_plan_spots.practice_plan_id = practice_plans.id), '') AS spot_piece_titles
 FROM practice_plans
 WHERE practice_plans.id = ? AND practice_plans.user_id = ?
 LIMIT 1
@@ -882,16 +884,18 @@ type GetPracticePlanWithTodoParams struct {
 }
 
 type GetPracticePlanWithTodoRow struct {
-	ID                    string         `json:"id"`
-	UserID                string         `json:"userId"`
-	Intensity             string         `json:"intensity"`
-	Date                  int64          `json:"date"`
-	Completed             bool           `json:"completed"`
-	PracticeSessionID     sql.NullString `json:"practiceSessionId"`
-	IncompleteSpotsCount  int64          `json:"incompleteSpotsCount"`
-	IncompletePiecesCount int64          `json:"incompletePiecesCount"`
-	CompletedSpotsCount   int64          `json:"completedSpotsCount"`
-	CompletedPiecesCount  int64          `json:"completedPiecesCount"`
+	ID                   string         `json:"id"`
+	UserID               string         `json:"userId"`
+	Intensity            string         `json:"intensity"`
+	Date                 int64          `json:"date"`
+	Completed            bool           `json:"completed"`
+	PracticeSessionID    sql.NullString `json:"practiceSessionId"`
+	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
+	SpotsCount           int64          `json:"spotsCount"`
+	CompletedPiecesCount int64          `json:"completedPiecesCount"`
+	PiecesCount          int64          `json:"piecesCount"`
+	PieceTitles          interface{}    `json:"pieceTitles"`
+	SpotPieceTitles      interface{}    `json:"spotPieceTitles"`
 }
 
 func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePlanWithTodoParams) (GetPracticePlanWithTodoRow, error) {
@@ -904,10 +908,12 @@ func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePl
 		&i.Date,
 		&i.Completed,
 		&i.PracticeSessionID,
-		&i.IncompleteSpotsCount,
-		&i.IncompletePiecesCount,
 		&i.CompletedSpotsCount,
+		&i.SpotsCount,
 		&i.CompletedPiecesCount,
+		&i.PiecesCount,
+		&i.PieceTitles,
+		&i.SpotPieceTitles,
 	)
 	return i, err
 }
@@ -915,11 +921,12 @@ func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePl
 const listPaginatedPracticePlans = `-- name: ListPaginatedPracticePlans :many
 SELECT
     practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_session_id,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'new') AS new_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'extra_repeat') AS repeat_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'interleave') AS interleave_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'interleave_days') AS interleave_days_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_pieces INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id WHERE practice_plan_pieces.practice_plan_id = practice_plans.id), '') AS piece_titles,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_spots INNER JOIN spots ON spots.id = practice_plan_spots.spot_id INNER JOIN pieces ON pieces.id = spots.piece_id WHERE practice_plan_spots.practice_plan_id = practice_plans.id), '') AS spot_piece_titles
 FROM practice_plans
 WHERE practice_plans.user_id = ?
 ORDER BY practice_plans.date DESC
@@ -933,17 +940,18 @@ type ListPaginatedPracticePlansParams struct {
 }
 
 type ListPaginatedPracticePlansRow struct {
-	ID                       string         `json:"id"`
-	UserID                   string         `json:"userId"`
-	Intensity                string         `json:"intensity"`
-	Date                     int64          `json:"date"`
-	Completed                bool           `json:"completed"`
-	PracticeSessionID        sql.NullString `json:"practiceSessionId"`
-	NewSpotsCount            int64          `json:"newSpotsCount"`
-	RepeatSpotsCount         int64          `json:"repeatSpotsCount"`
-	InterleaveSpotsCount     int64          `json:"interleaveSpotsCount"`
-	InterleaveDaysSpotsCount int64          `json:"interleaveDaysSpotsCount"`
-	PiecesCount              int64          `json:"piecesCount"`
+	ID                   string         `json:"id"`
+	UserID               string         `json:"userId"`
+	Intensity            string         `json:"intensity"`
+	Date                 int64          `json:"date"`
+	Completed            bool           `json:"completed"`
+	PracticeSessionID    sql.NullString `json:"practiceSessionId"`
+	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
+	SpotsCount           int64          `json:"spotsCount"`
+	CompletedPiecesCount int64          `json:"completedPiecesCount"`
+	PiecesCount          int64          `json:"piecesCount"`
+	PieceTitles          interface{}    `json:"pieceTitles"`
+	SpotPieceTitles      interface{}    `json:"spotPieceTitles"`
 }
 
 func (q *Queries) ListPaginatedPracticePlans(ctx context.Context, arg ListPaginatedPracticePlansParams) ([]ListPaginatedPracticePlansRow, error) {
@@ -962,11 +970,12 @@ func (q *Queries) ListPaginatedPracticePlans(ctx context.Context, arg ListPagina
 			&i.Date,
 			&i.Completed,
 			&i.PracticeSessionID,
-			&i.NewSpotsCount,
-			&i.RepeatSpotsCount,
-			&i.InterleaveSpotsCount,
-			&i.InterleaveDaysSpotsCount,
+			&i.CompletedSpotsCount,
+			&i.SpotsCount,
+			&i.CompletedPiecesCount,
 			&i.PiecesCount,
+			&i.PieceTitles,
+			&i.SpotPieceTitles,
 		); err != nil {
 			return nil, err
 		}
@@ -1117,11 +1126,12 @@ func (q *Queries) ListPracticePlanSpotsInCategory(ctx context.Context, arg ListP
 const listRecentPracticePlans = `-- name: ListRecentPracticePlans :many
 SELECT
     practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_session_id,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'new') AS new_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'extra_repeat') AS repeat_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'interleave') AS interleave_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.practice_type = 'interleave_days') AS interleave_days_spots_count,
-    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
+    (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
+    (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_pieces INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id WHERE practice_plan_pieces.practice_plan_id = practice_plans.id), '') AS piece_titles,
+    IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_spots INNER JOIN spots ON spots.id = practice_plan_spots.spot_id INNER JOIN pieces ON pieces.id = spots.piece_id WHERE practice_plan_spots.practice_plan_id = practice_plans.id), '') AS spot_piece_titles
 FROM practice_plans
 WHERE practice_plans.id != ? AND practice_plans.user_id = ?
 ORDER BY practice_plans.date DESC
@@ -1134,17 +1144,18 @@ type ListRecentPracticePlansParams struct {
 }
 
 type ListRecentPracticePlansRow struct {
-	ID                       string         `json:"id"`
-	UserID                   string         `json:"userId"`
-	Intensity                string         `json:"intensity"`
-	Date                     int64          `json:"date"`
-	Completed                bool           `json:"completed"`
-	PracticeSessionID        sql.NullString `json:"practiceSessionId"`
-	NewSpotsCount            int64          `json:"newSpotsCount"`
-	RepeatSpotsCount         int64          `json:"repeatSpotsCount"`
-	InterleaveSpotsCount     int64          `json:"interleaveSpotsCount"`
-	InterleaveDaysSpotsCount int64          `json:"interleaveDaysSpotsCount"`
-	PiecesCount              int64          `json:"piecesCount"`
+	ID                   string         `json:"id"`
+	UserID               string         `json:"userId"`
+	Intensity            string         `json:"intensity"`
+	Date                 int64          `json:"date"`
+	Completed            bool           `json:"completed"`
+	PracticeSessionID    sql.NullString `json:"practiceSessionId"`
+	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
+	SpotsCount           int64          `json:"spotsCount"`
+	CompletedPiecesCount int64          `json:"completedPiecesCount"`
+	PiecesCount          int64          `json:"piecesCount"`
+	PieceTitles          interface{}    `json:"pieceTitles"`
+	SpotPieceTitles      interface{}    `json:"spotPieceTitles"`
 }
 
 func (q *Queries) ListRecentPracticePlans(ctx context.Context, arg ListRecentPracticePlansParams) ([]ListRecentPracticePlansRow, error) {
@@ -1163,11 +1174,12 @@ func (q *Queries) ListRecentPracticePlans(ctx context.Context, arg ListRecentPra
 			&i.Date,
 			&i.Completed,
 			&i.PracticeSessionID,
-			&i.NewSpotsCount,
-			&i.RepeatSpotsCount,
-			&i.InterleaveSpotsCount,
-			&i.InterleaveDaysSpotsCount,
+			&i.CompletedSpotsCount,
+			&i.SpotsCount,
+			&i.CompletedPiecesCount,
 			&i.PiecesCount,
+			&i.PieceTitles,
+			&i.SpotPieceTitles,
 		); err != nil {
 			return nil, err
 		}

@@ -359,8 +359,20 @@ details[open] summary > .summary-icon {
   --progress-background: #e5e5e5; /* the background color */
 }
 
+.progress-bg-neutral-800 {
+  --progress-background: #262626; /* the background color */
+}
+
+.progress-bg-violet-200 {
+  --progress-background: #ddd6fe; /* the background color */
+}
+
 .progress-bg-white {
   --progress-background: #ffffff; /* the background color */
+}
+
+.progress-bg-black {
+  --progress-background: #000000; /* the background color */
 }
 
 .progress-rounded-top {
@@ -383,8 +395,8 @@ progress[value] {
   background: var(--progress-background);
   border-top-left-radius: var(--progress-border-top-left-radius);
   border-top-right-radius: var(--progress-border-top-right-radius);
-  border-bottom-right-radius: var(--progress-border-top-right-radius);
-  border-bottom-left-radius: var(--progress-border-top-left-radius);
+  border-bottom-right-radius: var(--progress-border-bottom-right-radius);
+  border-bottom-left-radius: var(--progress-border-bottom-left-radius);
   @apply h-1;
 }
 
@@ -392,24 +404,24 @@ progress[value]::-webkit-progress-bar {
   background: var(--progress-background);
   border-top-left-radius: var(--progress-border-top-left-radius);
   border-top-right-radius: var(--progress-border-top-right-radius);
-  border-bottom-right-radius: var(--progress-border-top-right-radius);
-  border-bottom-left-radius: var(--progress-border-top-left-radius);
+  border-bottom-right-radius: var(--progress-border-bottom-right-radius);
+  border-bottom-left-radius: var(--progress-border-bottom-left-radius);
   @apply h-1;
 }
 progress[value]::-webkit-progress-value {
   background: var(--progress-color);
   border-top-left-radius: var(--progress-border-top-left-radius);
   border-top-right-radius: var(--progress-border-top-right-radius);
-  border-bottom-right-radius: var(--progress-border-top-right-radius);
-  border-bottom-left-radius: var(--progress-border-top-left-radius);
+  border-bottom-right-radius: var(--progress-border-bottom-right-radius);
+  border-bottom-left-radius: var(--progress-border-bottom-left-radius);
   @apply h-1;
 }
 progress[value]::-moz-progress-bar {
   background: var(--progress-color);
   border-top-left-radius: var(--progress-border-top-left-radius);
   border-top-right-radius: var(--progress-border-top-right-radius);
-  border-bottom-right-radius: var(--progress-border-top-right-radius);
-  border-bottom-left-radius: var(--progress-border-top-left-radius);
+  border-bottom-right-radius: var(--progress-border-bottom-right-radius);
+  border-bottom-left-radius: var(--progress-border-bottom-left-radius);
   @apply h-1;
 }
 
