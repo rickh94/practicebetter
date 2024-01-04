@@ -14,14 +14,14 @@ script removeAddedItem(id string) {
 }
 
 templ EditPracticePlanPage(planData PracticePlanData, csrf string) {
-	<title>Edit Practice Plan | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Modify Practice Plan") , components.MaybePracticePlan())) {
+	<title>Customize Practice Plan | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Customize Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.BreadcrumbWithDates([]components.BreadcrumbWithDatesInfo{
 					{ Label: "Library", Href: "/library", Active: false, IsDate: false },
 					{ Label: "Practice Plans", Href: "/library/plans", Active: false, IsDate: false },
 					{ Label: strconv.FormatInt(planData.Date, 10), Href: "/library/plans/"+planData.ID, Active: false, IsDate: true },
-					{ Label: "Modify", Href: "/library/plans/"+planData.ID+"/edit", Active: true, IsDate: false },
+					{ Label: "Customize", Href: "/library/plans/"+planData.ID+"/edit", Active: true, IsDate: false },
 				})
 			@components.ActionButtonContainer() {
 				@components.HxLink("text-sky-800 action-button bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/plans/"+planData.ID, "#main-content") {
@@ -85,7 +85,7 @@ templ editPracticePlanPageContent(planData PracticePlanData, csrf string) {
 					}
 				</h2>
 			</div>
-			<p class="text-sm">Click items to delete them. Click the add button in a category to add items. Click save when you're done.</p>
+			<p class="py-2 text-sm">Click items to delete them. Click the add button in a category to add items. Click save when you're done.</p>
 		</header>
 		@EditPracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)
 		<section id="extra-repeat-spots" class="flex flex-col gap-2 max-w-full overflow-x-clip">

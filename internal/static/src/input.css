@@ -276,6 +276,26 @@ details[open] summary > .summary-icon {
   @apply bg-green-700/10;
 }
 
+.practice-radio-option.checked {
+  @apply shadow;
+}
+
+.practice-radio-option.checked > .icon {
+  @apply visible;
+}
+
+.practice-radio-option.checked > .radio-border {
+  @apply border-black;
+}
+
+.practice-radio-option > .radio-border {
+  @apply border-neutral-800/10;
+}
+
+.practice-radio-option > .icon {
+  @apply invisible;
+}
+
 .check-option.checked {
   @apply bg-neutral-700/20 shadow;
 }

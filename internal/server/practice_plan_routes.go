@@ -329,7 +329,6 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	htmx.PushURL(r, "/library/plans/"+newPlan.ID)
 	if err := s.SM.RenewToken(r.Context()); err != nil {
 		log.Default().Println(err)
 		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
@@ -342,9 +341,17 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx := context.WithValue(r.Context(), "activePracticePlanID", newPlan.ID)
-	ctx = context.WithValue(ctx, "user", user)
-	s.renderPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
+	if r.FormValue("customize") == "on" {
+		htmx.PushURL(r, "/library/plans/"+newPlan.ID+"/edit")
+		ctx := context.WithValue(r.Context(), "activePracticePlanID", newPlan.ID)
+		ctx = context.WithValue(ctx, "user", user)
+		s.renderEditPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
+	} else {
+		htmx.PushURL(r, "/library/plans/"+newPlan.ID)
+		ctx := context.WithValue(r.Context(), "activePracticePlanID", newPlan.ID)
+		ctx = context.WithValue(ctx, "user", user)
+		s.renderPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
+	}
 }
 
 func (s *Server) singlePracticePlan(w http.ResponseWriter, r *http.Request) {
@@ -501,7 +508,6 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 	}
 
 	token := csrf.Token(r)
-	// ctx := context.WithValue(r.Context(), "activePracticePlanID", activePracticePlanID)
 	s.HxRender(w, r, planpages.PracticePlanPage(planData, token), "Practice Plan")
 }
 
@@ -509,12 +515,16 @@ func (s *Server) editPracticePlan(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
 	planID := chi.URLParam(r, "planID")
 
+	s.renderEditPracticePlanPage(w, r, planID, user.ID)
+}
+
+func (s *Server) renderEditPracticePlanPage(w http.ResponseWriter, r *http.Request, planID string, userID string) {
 	queries := db.New(s.DB)
 	totalItems := 0
 	completedItems := 0
 	planPieces, err := queries.GetPracticePlanWithPieces(r.Context(), db.GetPracticePlanWithPiecesParams{
 		ID:     planID,
-		UserID: user.ID,
+		UserID: userID,
 	})
 	if err != nil {
 		log.Default().Println(err)
@@ -523,7 +533,7 @@ func (s *Server) editPracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	planSpots, err := queries.GetPracticePlanWithSpots(r.Context(), db.GetPracticePlanWithSpotsParams{
 		ID:     planID,
-		UserID: user.ID,
+		UserID: userID,
 	})
 
 	if err != nil {
@@ -540,7 +550,7 @@ func (s *Server) editPracticePlan(w http.ResponseWriter, r *http.Request) {
 	if len(planPieces) == 0 {
 		plan, err := queries.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
 			ID:     planID,
-			UserID: user.ID,
+			UserID: userID,
 		})
 		if err != nil {
 			log.Default().Println(err)
@@ -608,7 +618,7 @@ func (s *Server) editPracticePlan(w http.ResponseWriter, r *http.Request) {
 				spot.DaysSinceStarted = 0
 				err := queries.FixSpotStageStarted(r.Context(), db.FixSpotStageStartedParams{
 					SpotID: row.SpotID.String,
-					UserID: user.ID,
+					UserID: userID,
 				})
 				if err != nil {
 					log.Default().Println(err)
@@ -646,8 +656,7 @@ func (s *Server) editPracticePlan(w http.ResponseWriter, r *http.Request) {
 	planData.CompletedItems = completedItems
 
 	token := csrf.Token(r)
-	// ctx := context.WithValue(r.Context(), "activePracticePlanID", activePracticePlanID)
-	s.HxRender(w, r, planpages.EditPracticePlanPage(planData, token), "Practice Plan")
+	s.HxRender(w, r, planpages.EditPracticePlanPage(planData, token), "Customize Practice Plan")
 }
 
 /*
