@@ -1,7 +1,10 @@
 import {
+  CheckCircleIcon,
   CheckIcon,
   Cog6ToothIcon,
+  MinusCircleIcon,
   MusicalNoteIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/solid";
 import { cn, type PracticeSummaryItem } from "../common";
 import {
@@ -209,41 +212,11 @@ export default function Summary({
         </header>
         <div className="prose prose-sm prose-neutral mt-2 text-left">
           Based on your practicing, here are some recommendations for your
-          spots. Click the <XMarkIcon className="inline size-5 text-red-500" />{" "}
-          to prevent the change and keep the spot in Random practicing.
+          spots. Click the{" "}
+          <MinusCircleIcon className="inline size-4 text-red-500" /> to prevent
+          the change and keep the spot in Random practicing.
         </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <div className="flex flex-col gap-2 rounded-xl bg-sky-500/10 p-2">
-            <h4 className="text-center text-lg font-bold">Promote Spots</h4>
-            <p className="text-sm text-neutral-800">
-              These spots are going really well, we can move them on to
-              interleaved practicing!{" "}
-            </p>
-            {promotionSpots.length > 0 ? (
-              <ul
-                className="flex list-none flex-col gap-2"
-                ref={promotionListParent}
-              >
-                {promotionSpots.map((item) => (
-                  <li
-                    key={item.id}
-                    className="flex items-center justify-between"
-                  >
-                    {item.name}
-                    <button
-                      onClick={() => removePromotionSpot(item.id)}
-                      className="focusable rounded-xl px-2 py-1 text-red-500 hover:bg-red-500/10"
-                    >
-                      <XMarkIcon className="inline size-5 text-red-500" />
-                      <span className="sr-only">Remove</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No spots to promote today</p>
-            )}
-          </div>
+        <div className="flex flex-col-reverse gap-2  sm:grid sm:grid-cols-2">
           <div className="flex flex-col gap-2 rounded-xl bg-amber-500/10 p-2">
             <h4 className="text-center text-lg font-bold">Demote Spots</h4>
             <p className="text-sm text-neutral-800">
@@ -263,9 +236,9 @@ export default function Summary({
                     {item.name}
                     <button
                       onClick={() => removeDemotionSpot(item.id)}
-                      className="focusable rounded-xl px-2 py-1 text-red-500 hover:bg-red-500/10"
+                      className="focusable rounded-xl py-1 pl-2 text-red-500 hover:bg-red-500/10"
                     >
-                      <XMarkIcon className="inline size-5 text-red-500" />
+                      <MinusCircleIcon className="inline size-5 text-red-500" />
                       <span className="sr-only">Remove</span>
                     </button>
                   </li>
@@ -275,24 +248,55 @@ export default function Summary({
               <p>No spots to demote today</p>
             )}
           </div>
+          <div className="flex flex-col gap-2 rounded-xl bg-sky-500/10 p-2">
+            <h4 className="text-center text-lg font-bold">Promote Spots</h4>
+            <p className="text-sm text-neutral-800">
+              These spots are going really well, we can move them on to
+              interleaved practicing!{" "}
+            </p>
+            {promotionSpots.length > 0 ? (
+              <ul
+                className="flex list-none flex-col gap-2"
+                ref={promotionListParent}
+              >
+                {promotionSpots.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between"
+                  >
+                    {item.name}
+                    <button
+                      onClick={() => removePromotionSpot(item.id)}
+                      className="focusable rounded-xl py-1 pl-2 text-red-500 hover:bg-red-500/10"
+                    >
+                      <MinusCircleIcon className="inline size-5 text-red-500" />
+                      <span className="sr-only">Remove</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No spots to promote today</p>
+            )}
+          </div>
         </div>
-        <div className="mt-2 flex w-full flex-col-reverse gap-2 sm:flex-row-reverse sm:gap-2">
-          <HappyButton
-            grow
-            onClick={savePromotions}
-            className="h-14 w-full text-lg"
-          >
-            <CheckIcon className="-ml-1 size-6" />
-            Accept
-          </HappyButton>
+        <div className="mt-2 flex w-full flex-col-reverse gap-2 xs:grid xs:grid-cols-2">
           <AngryButton
             grow
             onClick={rejectPromotions}
             className="h-14 w-full text-lg"
           >
-            <XMarkIcon className="-ml-1 size-6" />
-            Reject
+            <XCircleIcon className="-ml-1 size-6" />
+            Reject All
           </AngryButton>
+          <HappyButton
+            grow
+            onClick={savePromotions}
+            className="h-14 w-full text-lg"
+          >
+            <CheckCircleIcon className="-ml-1 size-6" />
+            Accept
+          </HappyButton>
         </div>
       </dialog>
       <div className="flex w-full flex-col justify-center gap-x-8 gap-y-2 px-4 pt-4 sm:flex-row sm:gap-x-6 sm:px-0">

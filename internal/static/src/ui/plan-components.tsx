@@ -17,8 +17,8 @@ export function NextPlanItem({ planid }: { planid?: string }) {
         className="focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20"
         onClick={openDialog}
       >
-        <ArrowRightCircleIcon className="-ml-1 size-5" />
         Go On
+        <ArrowRightCircleIcon className="-mr-1 size-5" />
       </button>
       <dialog
         ref={dialogRef}

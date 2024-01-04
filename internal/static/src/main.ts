@@ -157,7 +157,7 @@ export function showAlert(
         <div class="flex flex-shrink-0 ml-4">
           <button
             type="button"
-            class="inline-flex text-red-700 hover:text-red-500 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none"
+            class="inline-flex hover:text-red-800 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none text-red-800/50"
             onclick="document.dispatchEvent(new CustomEvent('CloseAlert', { detail: { id: '${toastId}' } }))"
           >
             <span class="sr-only">Close</span>
