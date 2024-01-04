@@ -42,8 +42,8 @@ export function PracticeSpotDisplay({
         <span
           className={cn("text-pretty", {
             "text-xl": spot.name.length > 20,
-            "text-3xl": spot.name.length < 20 && spot.name.length > 10,
-            "text-5xl": spot.name.length < 10,
+            "text-3xl": spot.name.length <= 20 && spot.name.length > 10,
+            "text-4xl": spot.name.length <= 10,
           })}
         >
           {spot.name ?? "Something went wrong"}
