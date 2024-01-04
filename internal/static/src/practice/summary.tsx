@@ -143,6 +143,14 @@ export default function Summary({
     [setPromotionSpots],
   );
 
+  /*
+   * Spot Promotion/Demotion rules
+   * - just three excellents, recommend promotion beyond day four
+   * - always evict after five net excellents (minus poor)
+   * - after day five, demote if no excellents
+   * - always evict after three poors
+   * - after day three, demote after three poors
+   */
   useEffect(
     function () {
       if (hasSetup) {
@@ -156,7 +164,7 @@ export default function Summary({
           item.excellent > 2 &&
           item.poor === 0 &&
           item.fine < 2 &&
-          item.day > 3
+          item.day > 4
         ) {
           promote.push(item);
         } else if (item.poor > 2 || (item.excellent === 0 && item.day > 6)) {

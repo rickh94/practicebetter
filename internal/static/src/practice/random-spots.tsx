@@ -288,14 +288,6 @@ function SingleSetupForm({
 }
 
 // TODO: add events to keep you from moving on while the reminders form is open
-/*
- * Spot Promotion/Demotion rules
- * - just five excellents, recommend promotion beyond day three
- * - always evict after five net excellents (minus poor)
- * - after day five, demote if no excellents
- * - always evict after three poors
- * - after day three, demote after three poors
- */
 
 function hash(s: string) {
   for (var i = 0, h = 0xdeadbeef; i < s.length; i++)
