@@ -168,15 +168,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 						@PracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)
 					}
 					if len(planData.ExtraRepeatSpots) > 0 {
-						<section id="extra-repeat-spots" class="flex flex-col gap-2">
-							<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Extra Repeat Practice Spots</h3>
-							<p class="w-full text-sm">Repeat Practice these spots today</p>
-							<ul id="extra-repeat-spot-list" class="flex flex-col gap-2 w-full list-none">
-								for _, spot := range planData.ExtraRepeatSpots {
-									@components.PracticePlanSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "extra_repeat", spot.PieceTitle, spot.Completed)
-								}
-							</ul>
-						</section>
+						@PracticePlanExtraRepeatSpots(planData.ExtraRepeatSpots, planData.ID, csrf)
 					}
 					if len(planData.InterleaveSpots) > 0 {
 						@PracticePlanInterleaveSpots(planData.InterleaveSpots, planData.ID, csrf, planData.InterleaveSpotsCompleted, planData.IsActive, true)

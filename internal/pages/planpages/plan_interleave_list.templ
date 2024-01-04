@@ -4,12 +4,12 @@ import "practicebetter/internal/components"
 import "practicebetter/internal/heroicons"
 import "strconv"
 
-script showNext(i int) {
+script interleaveShowNext(i int) {
 	document.querySelector(`[data-interleave-page="${i}"]`).classList.add('hidden');
 	document.querySelector(`[data-interleave-page="${i+1}"]`).classList.remove('hidden');
 }
 
-script showPrev(i int) {
+script interleaveShowPrev(i int) {
 	document.querySelector(`[data-interleave-page="${i}"]`).classList.add('hidden');
 	document.querySelector(`[data-interleave-page="${i-1}"]`).classList.remove('hidden');
 }
@@ -39,7 +39,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 					<div class="flex justify-between w-full">
 						if i != 0 {
 							<button
- 								onClick={ showPrev(i) }
+ 								onClick={ interleaveShowPrev(i) }
  								type="button"
  								class="action-button text-neutral-800 bg-neutral-700/10 hover:bg-neutral-700/20 focusable"
 							>
@@ -51,7 +51,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 						}
 						if (i+1)*4 < len(interleaveSpots) {
 							<button
- 								onClick={ showNext(i) }
+ 								onClick={ interleaveShowNext(i) }
  								type="button"
  								class="action-button text-neutral-800 bg-neutral-700/10 hover:bg-neutral-700/20 focusable"
 							>
