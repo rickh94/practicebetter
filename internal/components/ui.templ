@@ -123,7 +123,7 @@ type BreadcrumbInfo struct {
 // TODO: maybe create dropdown with all the links
 
 templ BreadcrumbWrapper() {
-	<nav aria-label="Breadcrumb" class="hidden flex-grow-0 sm:flex">
+	<nav aria-label="Breadcrumb" class="hidden flex-grow-0 md:flex">
 		<ul class="flex flex-grow-0 flex-shrink justify-around items-center py-2 px-4 text-sm rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
 			{ children... }
 		</ul>
@@ -137,7 +137,7 @@ templ Breadcrumb(bc []BreadcrumbInfo) {
 		}
 	}
 	if len(bc) > 1 {
-		<nav aria-label="Breadcrumb" class="flex flex-grow-0 sm:hidden">
+		<nav aria-label="Breadcrumb" class="flex flex-grow-0 md:hidden">
 			@HxLink("focusable action-button text-xl  bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
 				@heroicons.IconChevronLeftSolid("-ml-1 size-5")
 				{ bc[len(bc)-2].Label }
@@ -387,7 +387,7 @@ templ PracticePlanSpotCard(pieceID, spotID, name, measures, stage string, pieceT
 }
 
 templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool) {
-	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration-200 spot-card" }>
+	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration-200 spot-card overflow-x-clip" }>
 		if practiced {
 			@HxLink(getSpotCardClass(practiced, stage), "/library/pieces"+pieceID+"/spots/"+spotID, "#main-content") {
 				@InterleaveSpotItem(name, pieceTitle, measures, stage, practiced)
@@ -403,10 +403,10 @@ templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTit
 				@InterleaveSpotItem(name, pieceTitle, measures, stage, practiced)
 			</button>
 			<dialog id={ spotID + "-interleave" } aria-labelledby="interleave-form-modal-title" class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none">
-				<div id={ spotID + "-interleave-practice" } class="p-0 w-huge">
+				<div id={ spotID + "-interleave-practice" } class="p-0 w-huge overflow-x-clip">
 					Loading Interleave Spot...
 				</div>
-				<div class="p-0 mt-4 w-full bg-white rounded-xl border sm:w-96 border-neutral-500">
+				<div class="p-0 mt-4 w-full bg-white rounded-xl border sm:w-96 border-neutral-500 overflow-x-clip">
 					<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ CloseModal(spotID + "-interleave") }>
 						@heroicons.IconCheckCircleSolid("-ml-1 size-5")
 						Done

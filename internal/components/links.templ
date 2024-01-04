@@ -5,6 +5,14 @@ import "practicebetter/internal/db"
 
 const navClasses = "flex text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable"
 
+templ HomeOrInternalNav() {
+	if u, ok := ctx.Value("user").(db.User); ok && u.ID != "" {
+		@InternalNav()
+	} else {
+		@BackHomeLink()
+	}
+}
+
 templ HxLink(class string, href string, target string) {
 	<a
  		class={ class }
@@ -57,12 +65,15 @@ func getCurrentPath(ctx context.Context) string {
 templ MaybePracticePlan() {
 	if GetActivePracticePlan(ctx) != "" {
 		@HxLink("flex text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
-			Practice Plan
+			<span>
+				<span class="hidden xs:inline">Practice</span> Plan
+			</span>
 			@heroicons.IconClipboardDocumentCheckSolid("-mr-1 size-5")
 		}
 	} else {
 		@HxLink("flex text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
-			Start Practicing
+			<span class="hidden xs:inline">Start Practicing</span>
+			<span class="xs:hidden">Practice</span>
 			@heroicons.IconDocumentCheckSolid("-mr-1 size-5")
 		}
 	}
@@ -76,13 +87,5 @@ templ LogoutLink() {
 	@HxLink(navClasses, "/auth/logout", "#main-content") {
 		Logout
 		@heroicons.IconUserMinusSolid("-mr-1 size-5")
-	}
-}
-
-templ HomeOrInternalNav() {
-	if u, ok := ctx.Value("user").(db.User); ok && u.ID != "" {
-		@InternalNav()
-	} else {
-		@BackHomeLink()
 	}
 }

@@ -121,12 +121,12 @@ export function BreakDialog({
   return (
     <dialog
       ref={dialogRef}
-      aria-labelledby="resume-title"
+      aria-labelledby="break-title"
       className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
     >
       <header className="mt-2 text-center sm:text-left">
         <h3
-          id="resume-title"
+          id="break-title"
           className="text-2xl font-semibold leading-6 text-neutral-900"
         >
           Time for a Break

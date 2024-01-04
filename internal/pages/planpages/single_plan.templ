@@ -261,7 +261,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
 			<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
 		}
-		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none overflow-x-clip">
 			for _, spot := range interleaveSpots {
 				@components.InterleaveSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
 			}
