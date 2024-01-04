@@ -123,7 +123,7 @@ templ AddNewSpotItem(spot PracticePlanSpot, planID string, csrf string) {
 	<li id={ "add-spot-" + spot.ID } class={ "block transition-all duration-200 spot-card" }>
 		<form
  			hx-put={ "/library/plans/" + planID + "/spots/new" }
- 			hx-target="#new-spot-list"
+ 			hx-target="#new-list"
  			hx-swap="outerHTML"
  			action="#"
  			method="post"
