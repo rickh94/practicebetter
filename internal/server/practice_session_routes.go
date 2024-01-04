@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/planpages"
