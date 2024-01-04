@@ -10,7 +10,7 @@ import "practicebetter/internal/heroicons"
 
 templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 	<title>Create Piece | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Piece") , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Piece") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

@@ -28,7 +28,7 @@ script hideOtherSpots() {
 
 templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 	<title>{ piece[0].Title } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(piece[0].Title) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(piece[0].Title) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
@@ -75,7 +75,7 @@ templ PiecePracticeRepeatPage(piece []db.GetPieceWithIncompleteSpotsRow) {
 
 templ PieceRepeatPracticeNoSpotsPage(pieceTitle string, pieceID string) {
 	<title>{ pieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(pieceTitle) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(pieceTitle) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

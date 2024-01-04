@@ -10,7 +10,7 @@ import "practicebetter/internal/heroicons"
 
 templ PSList(s pages.ServerUtil,  practiceSessions string, page int, hasNext bool) {
 	<title>Practice Sessions | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Practice Sessions") , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Practice Sessions") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

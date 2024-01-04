@@ -79,7 +79,7 @@ templ StageReadMoreDialog() {
 
 templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 	<title>{ spot.Name } - { spot.PieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(spot.Name + " - " + spot.PieceTitle) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(spot.Name + " - " + spot.PieceTitle) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

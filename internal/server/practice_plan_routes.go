@@ -29,7 +29,7 @@ func (s *Server) createPracticePlanForm(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces), "Create Practice Agenda")
+	s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces), "Create Practice Plan")
 }
 
 // TODO: possibly change back to new spots period and calculate spots per piece each time using type casting and rounding to get the right number

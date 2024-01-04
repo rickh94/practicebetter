@@ -27,8 +27,8 @@ script toggleChecked(id string) {
 // TODO: add read about practice types/video
 
 templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListActiveUserPiecesRow) {
-	<title>Create Practice Agenda | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Practice Plan") , components.AccountLink())) {
+	<title>Create Practice Plan | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

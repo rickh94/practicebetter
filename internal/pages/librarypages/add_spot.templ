@@ -7,7 +7,7 @@ import "strconv"
 
 templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, pieceTitle string,  spots []db.ListPieceSpotsRow) {
 	<title>{ pieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Add Spot - " + pieceTitle) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Add Spot - " + pieceTitle) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

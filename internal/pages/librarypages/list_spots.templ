@@ -25,7 +25,7 @@ type ListSpotsInfo struct {
 
 templ ListSpots(s pages.ServerUtil, csrf string, info ListSpotsInfo) {
 	<title>{ info.PieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(info.PieceTitle) , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(info.PieceTitle) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

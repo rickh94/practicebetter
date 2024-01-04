@@ -4,13 +4,12 @@ import {
   XMarkIcon,
   ClipboardDocumentListIcon,
   RectangleStackIcon,
-  ClipboardDocumentCheckIcon,
+  UserCircleIcon,
 } from "@heroicons/react/24/solid";
 import { CrossFadeContentFast } from "../ui/transitions";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "preact/jsx-runtime";
 import { Link } from "./links";
-import { useMemo } from "preact/hooks";
 import { NoteSheetIcon, PlayListIcon } from "./icons";
 
 const navItemIconClasses = "ml-1 size-5" as const;
@@ -22,39 +21,33 @@ export function InternalNav({
   activeplanid: string;
   activepath: string;
 }) {
-  const links: NavItem[] = useMemo(() => {
-    const linkList: NavItem[] = [
-      {
-        href: "/library",
-        label: "Library",
-        icon: <RectangleStackIcon className={navItemIconClasses} />,
-      } as const,
-      {
-        href: "/library/plans",
-        label: "Practice Plans",
-        icon: <ClipboardDocumentListIcon className={navItemIconClasses} />,
-      } as const,
-      {
-        href: "/library/pieces",
-        label: "Pieces",
-        icon: <NoteSheetIcon className={navItemIconClasses} />,
-      } as const,
-      {
-        href: "/practice",
-        label: "Practice Tools",
-        icon: <PlayListIcon className={navItemIconClasses} />,
-      } as const,
-    ];
-    if (activeplanid) {
-      linkList.unshift({
-        href: `/library/plans/${activeplanid}`,
-        label: "Current Practice Plan",
-        icon: <ClipboardDocumentCheckIcon className={navItemIconClasses} />,
-        highlight: true,
-      });
-    }
-    return linkList;
-  }, [activeplanid]);
+  const links: NavItem[] = [
+    {
+      href: "/library",
+      label: "Library",
+      icon: <RectangleStackIcon className={navItemIconClasses} />,
+    } as const,
+    {
+      href: "/library/plans",
+      label: "Practice Plans",
+      icon: <ClipboardDocumentListIcon className={navItemIconClasses} />,
+    } as const,
+    {
+      href: "/library/pieces",
+      label: "Pieces",
+      icon: <NoteSheetIcon className={navItemIconClasses} />,
+    } as const,
+    {
+      href: "/practice",
+      label: "Practice Tools",
+      icon: <PlayListIcon className={navItemIconClasses} />,
+    } as const,
+    {
+      href: "/auth/me",
+      label: "Account",
+      icon: <UserCircleIcon className={navItemIconClasses} />,
+    } as const,
+  ];
 
   return (
     <>
@@ -80,10 +73,7 @@ export function InternalNav({
                     <>
                       <div className="sr-only">Close Nav Menu</div>
                       <XMarkIcon
-                        className={cn(
-                          "-ml-2 size-6",
-                          activeplanid ? "text-violet-900" : "text-neutral-800",
-                        )}
+                        className="-ml-2 size-6 text-neutral-800"
                         aria-hidden="true"
                       />
                     </>
@@ -91,32 +81,14 @@ export function InternalNav({
                     <>
                       <div className="sr-only">Open Nav Menu</div>
                       <Bars3CenterLeftIcon
-                        className={cn(
-                          "-ml-2 size-6",
-                          activeplanid ? "text-violet-900" : "text-neutral-800",
-                        )}
+                        className="-ml-2 size-6 text-neutral-800"
                         aria-hidden="true"
                       />
                     </>
                   )
                 }
               />
-              <span
-                className={cn(
-                  "font-medium",
-                  activeplanid ? "text-violet-900" : "text-neutral-800",
-                )}
-              >
-                Menu
-              </span>
-              <span
-                className={cn(
-                  "font-medium",
-                  activeplanid ? "hidden text-violet-900 sm:inline" : "hidden",
-                )}
-              >
-                - Practicing
-              </span>
+              <span className="font-medium text-neutral-800">Menu</span>
             </>
           )}
         </Menu.Button>

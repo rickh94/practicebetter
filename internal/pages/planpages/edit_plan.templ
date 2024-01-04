@@ -15,7 +15,7 @@ script removeAddedItem(id string) {
 
 templ EditPracticePlanPage(planData PracticePlanData, csrf string) {
 	<title>Edit Practice Plan | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Modify Practice Plan") , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Modify Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.BreadcrumbWithDates([]components.BreadcrumbWithDatesInfo{
 					{ Label: "Library", Href: "/library", Active: false, IsDate: false },

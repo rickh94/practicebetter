@@ -9,7 +9,7 @@ import "practicebetter/internal/heroicons"
 
 templ PlanList(plans []db.ListPaginatedPracticePlansRow, page int, totalPages int) {
 	<title>Pieces | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Your Plans") , components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Your Plans") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },

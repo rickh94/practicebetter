@@ -183,7 +183,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
 // TODO: add ability to edit user profile
 
 templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf string, credentialCount string) {
-	@components.SingleColumnLayout(components.TwoButtonBar(components.LibraryLink(), components.HeadingText("User Info") ,components.LogoutLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("User Info") ,components.LogoutLink())) {
 		@components.TwoColumnContainer() {
 			@UserInfo(user, csrf)
 			<div class="p-4 rounded-xl bg-neutral-700/5">

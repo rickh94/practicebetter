@@ -6,7 +6,7 @@ import "practicebetter/internal/db"
 
 templ EditSpot(s pages.ServerUtil, spot db.GetSpotRow, spotData string, csrf string) {
 	<title>{ spot.Name } | { spot.PieceTitle } | Practice Better</title>
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(spot.Name + " - " + spot.PieceTitle), components.AccountLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(spot.Name + " - " + spot.PieceTitle), components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
 					{ Label: "Library", Href: "/library", Active: false },
