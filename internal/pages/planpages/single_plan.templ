@@ -253,156 +253,11 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 	</section>
 }
 
-const completeInterleaveFormId = "complete-interleave-form"
-
-templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool, showHeading bool) {
-	<section id="interleave-spots" class="flex flex-col gap-2">
-		if showHeading {
-			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
-			<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
-		}
-		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none overflow-x-clip">
-			for _, spot := range interleaveSpots {
-				@components.InterleaveSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave", spot.PieceTitle, spot.Completed)
-			}
-		</ul>
-		if active && len(interleaveSpots) > 0 {
-			if allCompleted {
-				<div
- 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"
-				>
-					@heroicons.IconCheckCircleSolid("-ml-1 size-5")
-					Completed
-				</div>
-			} else {
-				<button
- 					onClick={ components.ShowModal(completeInterleaveFormId) }
- 					type="button"
- 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
-				>
-					@heroicons.IconCheckCircleOutline("-ml-1 size-5")
-					Complete
-				</button>
-				@CompleteInterleaveForm(planID, csrf, interleaveSpots)
-			}
-		}
-	</section>
-}
-
-// TODO: add icons on larger (or all) screens.
-
-templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpot) {
-	<dialog id={ completeInterleaveFormId } aria-labelledby="interleave-form-modal-title" class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
-		<header class="p-4 mt-2 max-w-lg text-center sm:text-left">
-			<h3 id="interleave-form-modal-title" class="text-2xl font-semibold leading-6 text-neutral-900">Evaluate Interleave Spots</h3>
-			<p class="text-sm">Evaluate how well you think you did on each spot below. Only click excellent if you were able to play correctly the first time</p>
-		</header>
-		<form
- 			hx-post={ "/library/plans/" + planID + "/interleave/complete-all" }
- 			hx-headers={ components.HxCsrfHeader(csrf) }
- 			hx-target="#interleave-spots"
- 			hx-swap="outerHTML transition:true"
- 			hx-on::after-request={ components.CloseModal(completeInterleaveFormId) }
- 			class="flex flex-col gap-2 p-4 w-full max-w-lg"
-		>
-			<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
-				for _, spot := range spots {
-					<li class="flex flex-wrap gap-4 justify-between items-center" id={ "quality-" + spot.ID }>
-						<span class="flex flex-wrap items-center">
-							{ spot.Name }
-							if spot.Measures != "" {
-								- { spot.Measures }
-							}
-						</span>
-						<span class="flex gap-1">
-							<label for={ spot.ID + ".quality.poor" } class="flex relative py-3 pr-2 pl-4 text-red-800 rounded-xl cursor-pointer quality-option poor-radio-option focusable" id={ spot.ID + ".quality.poor" + "-label" }>
-								<input
- 									type="radio"
- 									name={ spot.ID + ".quality" }
- 									id={ spot.ID + ".quality.poor" }
- 									value="poor"
- 									class="sr-only"
- 									aria-labelledby={ spot.ID + ".quality.poor" + "-label" }
- 									onchange={ changeSelectedQuality(spot.ID, "poor") }
-								/>
-								<span class="flex flex-1 gap-1 items-center">
-									@heroicons.IconHandThumbDownSolid("-ml-1 size-5 text-red-800/80")
-									<span class="font-medium">
-										Poor
-									</span>
-								</span>
-								@heroicons.IconCheckCircleSolid("ml-3 size-5 text-red-800 icon")
-								<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
-							</label>
-							<label for={ spot.ID + ".quality.fine" } class="flex relative py-3 pr-2 pl-4 rounded-xl cursor-pointer quality-option fine-radio-option text-sky-800 checked focusable" id={ spot.ID + ".quality.fine" + "-label" }>
-								<input
- 									type="radio"
- 									name={ spot.ID + ".quality" }
- 									id={ spot.ID + ".quality.fine" }
- 									value="fine"
- 									class="sr-only"
- 									checked
- 									aria-labelledby={ spot.ID + ".quality.fine" + "-label" }
- 									onchange={ changeSelectedQuality(spot.ID, "fine") }
-								/>
-								<span class="flex flex-1 gap-1 items-center">
-									@heroicons.IconHandRaisedSolid("-ml-1 size-5 text-sky-800/80")
-									<span class="font-medium">
-										Fine
-									</span>
-								</span>
-								@heroicons.IconCheckCircleSolid("ml-3 size-5 text-sky-800 icon")
-								<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
-							</label>
-							<label for={ spot.ID + ".quality.excellent" } class="flex relative py-3 pr-2 pl-4 text-green-800 rounded-xl cursor-pointer quality-option excellent-radio-option focusable" id={ spot.ID + ".quality.excellent" + "-label" }>
-								<input
- 									type="radio"
- 									name={ spot.ID + ".quality" }
- 									id={ spot.ID + ".quality.excellent" }
- 									value="excellent"
- 									class="sr-only"
- 									aria-labelledby={ spot.ID + ".quality.excellent" + "-label" }
- 									onchange={ changeSelectedQuality(spot.ID, "excellent") }
-								/>
-								<span class="flex flex-1 gap-1 items-center">
-									@heroicons.IconHandThumbUpSolid("-ml-1 size-5 text-green-800/80")
-									<span class="font-medium">
-										Excellent
-									</span>
-								</span>
-								@heroicons.IconCheckCircleSolid("ml-3 size-5 text-green-800 icon")
-								<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
-							</label>
-						</span>
-					</li>
-				}
-			</ul>
-			<section class="flex flex-wrap gap-2 mt-4 w-full">
-				<button
- 					onclick={ components.CloseModal(completeInterleaveFormId) }
- 					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
- 					type="button"
-				>
-					@heroicons.IconXCircleSolid("-ml-1 size-5 text-red-800")
-					Close
-				</button>
-				<button
- 					class="flex-grow text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
- 					type="submit"
-				>
-					@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800")
-					Complete
-				</button>
-			</section>
-		</form>
-	</dialog>
-}
-
 const completeInterleaveDaysFormId = "complete-interleave-days-form"
 
 templ CompleteInterleaveDaysForm(planID string, csrf string, spots []PracticePlanSpot) {
 	<dialog id={ completeInterleaveDaysFormId } aria-labelledby="interleave-days-form-modal-title" class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
-		<header class="p-4 mt-2 max-w-lg text-center sm:text-left">
+		<header class="p-4 mt-2 text-left sm:max-w-lg">
 			<h3 id="interleave-days-form-modal-title" class="text-2xl font-semibold leading-6 text-neutral-900">Evaluate Infrequent Spots</h3>
 			<p class="text-sm">Evaluate how well you think you did on each spot below.</p>
 			<p class="text-sm">When you have been playing a spot for a long time, you may get the option to choose “Completed” and stop it from coming up again.</p>
@@ -413,18 +268,20 @@ templ CompleteInterleaveDaysForm(planID string, csrf string, spots []PracticePla
  			hx-target="#interleave-days-spots"
  			hx-swap="outerHTML transition:true"
  			hx-on::after-request={ components.CloseModal(completeInterleaveDaysFormId) }
- 			class="flex flex-col gap-2 p-4 w-full max-w-lg"
+ 			class="flex flex-col gap-2 p-4 w-full sm:max-w-lg"
 		>
-			<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none">
+			<ul id="evaluate-interleave-days-spot-list" class="flex flex-col gap-4 w-full list-none">
 				for _, spot := range spots {
-					<li class="flex flex-wrap gap-4 justify-between items-center" id={ "quality-" + spot.ID }>
-						<span class="flex flex-wrap items-center">
-							{ spot.Name }
+					<li class="flex flex-col flex-wrap gap-1 justify-between items-center sm:flex-row" id={ "quality-" + spot.ID }>
+						<span class="flex flex-wrap items-center w-full text-left sm:w-auto">
+							<strong class="font-bold">
+								{ spot.Name }
+							</strong>
 							if spot.Measures != "" {
 								- { spot.Measures }
 							}
 						</span>
-						<span class="flex gap-1">
+						<span class="flex flex-col flex-wrap gap-2 w-full sm:w-auto xs:flex-row">
 							<label for={ spot.ID + ".quality.poor" } class="flex relative py-3 pr-2 pl-4 text-red-800 rounded-xl cursor-pointer quality-option poor-radio-option focusable" id={ spot.ID + ".quality.poor" + "-label" }>
 								<input
  									type="radio"
@@ -509,21 +366,21 @@ templ CompleteInterleaveDaysForm(planID string, csrf string, spots []PracticePla
 					</li>
 				}
 			</ul>
-			<section class="flex flex-wrap gap-2 mt-4 w-full">
+			<section class="flex flex-col-reverse gap-2 mt-4 w-full xs:grid xs:grid-cols-2">
 				<button
  					onclick={ components.CloseModal(completeInterleaveDaysFormId) }
  					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
  					type="button"
 				>
 					@heroicons.IconXCircleSolid("-ml-1 size-5 text-red-800")
-					Close
+					Cancel
 				</button>
 				<button
  					class="flex-grow text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
  					type="submit"
 				>
 					@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800")
-					Complete
+					Save
 				</button>
 			</section>
 		</form>

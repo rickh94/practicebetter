@@ -226,11 +226,80 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// randomize the order of all the things
+	planPieces, err := qtx.GetPracticePlanWithPieces(r.Context(), db.GetPracticePlanWithPiecesParams{
+		ID:     newPlan.ID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	planSpots, err := qtx.GetPracticePlanWithSpots(r.Context(), db.GetPracticePlanWithSpotsParams{
+		ID:     newPlan.ID,
+		UserID: user.ID,
+	})
+	rand.Shuffle(len(planPieces), func(i, j int) {
+		planPieces[i], planPieces[j] = planPieces[j], planPieces[i]
+	})
+	rand.Shuffle(len(planSpots), func(i, j int) {
+		planSpots[i], planSpots[j] = planSpots[j], planSpots[i]
+	})
+
+	for i, row := range planPieces {
+		if !row.PieceID.Valid {
+			continue
+		}
+		err := qtx.UpdatePlanPieceIdx(r.Context(), db.UpdatePlanPieceIdxParams{
+			Idx:          int64(i),
+			PlanID:       newPlan.ID,
+			UserID:       user.ID,
+			PieceID:      row.PieceID.String,
+			PracticeType: row.PiecePracticeType,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Failed to insert plan into database",
+				Title:    "Database Error",
+				Variant:  "error",
+				Duration: 3000,
+			})
+			http.Error(w, "Database Error", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	for i, row := range planSpots {
+		if !row.SpotID.Valid {
+			continue
+		}
+		err := qtx.UpdatePlanSpotIdx(r.Context(), db.UpdatePlanSpotIdxParams{
+			Idx:    int64(i),
+			PlanID: newPlan.ID,
+			UserID: user.ID,
+			SpotID: row.SpotID.String,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Failed to insert plan into database",
+				Title:    "Database Error",
+				Variant:  "error",
+				Duration: 3000,
+			})
+			http.Error(w, "Database Error", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	s.SetActivePracticePlanID(r.Context(), newPlan.ID, user.ID)
 	// update user (with newly added practice plan id) and practice plan manually before continuing
 	user, err = queries.GetUserByID(r.Context(), user.ID)
@@ -295,7 +364,6 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 
 	var planData planpages.PracticePlanData
 	planData.ID = planID
-	planData.IsActive = planID == activePracticePlanID
 	planData.IsActive = planID == activePracticePlanID
 	if len(planPieces) == 0 {
 		plan, err := queries.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
@@ -404,6 +472,12 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 	}
 	planData.TotalItems = totalItems
 	planData.CompletedItems = completedItems
+
+	if planData.IsActive {
+		rand.Shuffle(len(planData.InterleaveSpots), func(i, j int) {
+			planData.InterleaveSpots[i], planData.InterleaveSpots[j] = planData.InterleaveSpots[j], planData.InterleaveSpots[i]
+		})
+	}
 
 	token := csrf.Token(r)
 	// ctx := context.WithValue(r.Context(), "activePracticePlanID", activePracticePlanID)
@@ -1166,6 +1240,9 @@ func (s *Server) getInterleaveList(w http.ResponseWriter, r *http.Request) {
 			PieceTitle: interleaveSpot.SpotPieceTitle,
 		})
 	}
+	rand.Shuffle(len(spotInfo), func(i, j int) {
+		spotInfo[i], spotInfo[j] = spotInfo[j], spotInfo[i]
+	})
 
 	token := csrf.Token(r)
 
@@ -1756,15 +1833,24 @@ func (s *Server) addSpotsToPracticePlan(w http.ResponseWriter, r *http.Request) 
 
 	r.ParseForm()
 
-	for _, spotID := range r.Form["add-spots"] {
-		_, err := queries.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
+	maxIdxRes, err := queries.GetMaxSpotIdx(r.Context(), db.GetMaxSpotIdxParams{
+		PlanID: planID,
+		UserID: user.ID,
+	})
+	maxIdx, ok := maxIdxRes.(int64)
+	if err != nil || !ok {
+		maxIdx = 0
+	}
+	for i, spotID := range r.Form["add-spots"] {
+		_, err := queries.CreatePracticePlanSpotWithIdx(r.Context(), db.CreatePracticePlanSpotWithIdxParams{
 			PracticePlanID: planID,
 			SpotID:         spotID,
 			PracticeType:   practiceType,
+			Idx:            maxIdx + int64(i) + 1,
 		})
 		if err != nil {
 			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-				Message:  "There was an error creating the spot",
+				Message:  "There was an error adding the spot",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
@@ -1969,11 +2055,21 @@ func (s *Server) addPiecesToPracticePlan(w http.ResponseWriter, r *http.Request)
 
 	r.ParseForm()
 
-	for _, pieceID := range r.Form["add-pieces"] {
-		_, err := queries.CreatePracticePlanPiece(r.Context(), db.CreatePracticePlanPieceParams{
+	maxIdxRes, err := queries.GetMaxPieceIdx(r.Context(), db.GetMaxPieceIdxParams{
+		PlanID: planID,
+		UserID: user.ID,
+	})
+	maxIdx, ok := maxIdxRes.(int64)
+	if err != nil || !ok {
+		maxIdx = 0
+	}
+
+	for i, pieceID := range r.Form["add-pieces"] {
+		_, err := queries.CreatePracticePlanPieceWithIdx(r.Context(), db.CreatePracticePlanPieceWithIdxParams{
 			PracticePlanID: planID,
 			PieceID:        pieceID,
 			PracticeType:   practiceType,
+			Idx:            maxIdx + int64(i) + 1,
 		})
 		if err != nil {
 			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{

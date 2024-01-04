@@ -16,12 +16,30 @@ INSERT INTO practice_plan_spots (
 ) VALUES (?, ?, ?)
 RETURNING *;
 
+-- name: CreatePracticePlanSpotWithIdx :one
+INSERT INTO practice_plan_spots (
+    practice_plan_id,
+    spot_id,
+    practice_type,
+    idx
+) VALUES (?, ?, ?, ?)
+RETURNING *;
+
 -- name: CreatePracticePlanPiece :one
 INSERT INTO practice_plan_pieces (
     practice_plan_id,
     piece_id,
     practice_type
 ) VALUES (?, ?, ?)
+RETURNING *;
+
+-- name: CreatePracticePlanPieceWithIdx :one
+INSERT INTO practice_plan_pieces (
+    practice_plan_id,
+    piece_id,
+    practice_type,
+    idx
+) VALUES (?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetPracticePlanWithPieces :many
@@ -38,7 +56,8 @@ SELECT
 FROM practice_plans
 INNER JOIN practice_plan_pieces ON practice_plans.id = practice_plan_pieces.practice_plan_id
 LEFT JOIN pieces ON practice_plan_pieces.piece_id = pieces.id
-WHERE practice_plans.id = ? AND practice_plans.user_id = ?;
+WHERE practice_plans.id = ? AND practice_plans.user_id = ?
+ORDER BY practice_plan_pieces.idx;
 
 -- name: GetPracticePlanWithSpots :many
 SELECT
@@ -56,7 +75,8 @@ SELECT
 FROM practice_plans
 INNER JOIN practice_plan_spots ON practice_plans.id = practice_plan_spots.practice_plan_id
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
-WHERE practice_plans.id = ? AND practice_plans.user_id = ?;
+WHERE practice_plans.id = ? AND practice_plans.user_id = ?
+ORDER BY practice_plan_spots.idx;
 
 -- name: GetPracticePlanWithTodo :one
 SELECT
@@ -66,7 +86,8 @@ SELECT
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed) AS completed_spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed) AS completed_pieces_count
 FROM practice_plans
-WHERE practice_plans.id = ? AND practice_plans.user_id = ?;
+WHERE practice_plans.id = ? AND practice_plans.user_id = ?
+LIMIT 1;
 
 -- name: ListRecentPracticePlans :many
 SELECT
@@ -108,7 +129,8 @@ SELECT practice_plan_spots.*,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS spot_piece_title
 FROM practice_plan_spots
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
-WHERE practice_plan_spots.practice_type = 'interleave_days' AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+WHERE practice_plan_spots.practice_type = 'interleave_days' AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_spots.idx;
 
 -- name: GetPracticePlanInterleaveSpots :many
 SELECT practice_plan_spots.*,
@@ -120,7 +142,8 @@ SELECT practice_plan_spots.*,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS spot_piece_title
 FROM practice_plan_spots
 LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
-WHERE practice_plan_spots.practice_type = 'interleave' AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+WHERE practice_plan_spots.practice_type = 'interleave' AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_spots.idx;
 
 -- name: ListPracticePlanSpotsInCategory :many
 SELECT practice_plan_spots.completed,
@@ -135,7 +158,8 @@ SELECT practice_plan_spots.completed,
 FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plan_spots.practice_type = :practice_type
-AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_spots.idx;
 
 -- name: ListPracticePlanPiecesInCategory :many
 SELECT practice_plan_pieces.completed,
@@ -149,7 +173,8 @@ SELECT practice_plan_pieces.completed,
 FROM practice_plan_pieces
 INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id
 WHERE practice_plan_pieces.practice_type = :practice_type
-AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_pieces.idx;
 
 -- name: GetPracticePlanIncompleteExtraRepeatSpots :many
 SELECT practice_plan_spots.*,
@@ -158,21 +183,24 @@ FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plan_spots.practice_type = 'extra_repeat'
 AND practice_plan_spots.completed = false
-AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_spots.idx;
 
 -- name: GetPracticePlanIncompleteRandomPieces :many
 SELECT *
 FROM practice_plan_pieces
 WHERE practice_plan_pieces.practice_type = 'random_spots'
 AND practice_plan_pieces.completed = false
-AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_pieces.idx;
 
 -- name: GetPracticePlanIncompleteStartingPointPieces :many
 SELECT *
 FROM practice_plan_pieces
 WHERE practice_plan_pieces.practice_type = 'starting_point'
 AND practice_plan_pieces.completed = false
-AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+AND practice_plan_pieces.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_pieces.idx;
 
 -- name: GetPracticePlanIncompleteNewSpots :many
 SELECT practice_plan_spots.*,
@@ -181,12 +209,34 @@ FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plan_spots.practice_type = 'new'
 AND practice_plan_spots.completed = false
-AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_spots.idx;
 
 -- name: GetPracticePlan :one
 SELECT *
 FROM practice_plans
 WHERE id = ? AND user_id = ?;
+
+-- name: UpdatePlanPieceIdx :exec
+UPDATE practice_plan_pieces
+SET idx = ?
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+AND piece_id = ?
+AND practice_type = ?;
+
+-- name: UpdatePlanSpotIdx :exec
+UPDATE practice_plan_spots
+SET idx = ?
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+AND spot_id = ?;
+
+-- name: GetMaxSpotIdx :one
+SELECT MAX(idx) FROM practice_plan_spots
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
+
+-- name: GetMaxPieceIdx :one
+SELECT MAX(idx) FROM practice_plan_pieces
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id);
 
 -- name: CompletePracticePlanSpot :exec
 UPDATE practice_plan_spots
@@ -214,7 +264,6 @@ DELETE FROM practice_plan_pieces
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
 AND piece_id = :piece_id
 AND practice_type = :practice_type;
-
 
 -- name: DeletePracticePlan :exec
 DELETE FROM practice_plans

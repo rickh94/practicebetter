@@ -92,7 +92,6 @@ func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
 	}
 	currentTempo := sql.NullInt64{Valid: false}
 	currentTempoVal := r.FormValue("currentTempo")
-	log.Default().Println(currentTempoVal)
 	if currentTempoVal != "" && currentTempoVal != "null" {
 		currentTempoInt, err := strconv.Atoi(currentTempoVal)
 		if err != nil {
@@ -201,7 +200,6 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 	}
 	currentTempo := sql.NullInt64{Valid: false}
 	currentTempoVal := r.FormValue("currentTempo")
-	log.Default().Println(currentTempoVal)
 	if currentTempoVal != "" && currentTempoVal != "null" {
 		currentTempoInt, err := strconv.Atoi(currentTempoVal)
 		if err != nil {
@@ -340,7 +338,6 @@ func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {
-	log.Default().Println("get repeat practice spot")
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
 	user := r.Context().Value("user").(db.User)

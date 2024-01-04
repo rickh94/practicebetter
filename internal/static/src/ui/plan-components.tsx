@@ -25,17 +25,17 @@ export function NextPlanItem({ planid }: { planid?: string }) {
         aria-labelledby="practice-next-title"
         className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
       >
-        <header className="mt-2 text-center sm:text-left">
+        <header className="flex h-8 flex-shrink-0 text-left">
           <h3
             id="practice-next-title"
-            className="text-2xl font-semibold leading-6 text-neutral-900"
+            className="inline-block text-2xl font-semibold leading-6 text-neutral-900"
           >
             Next Practice Item
           </h3>
         </header>
-        <div className="mt-2 flex w-full flex-col gap-2 text-left text-neutral-700 sm:w-[32rem]">
-          <p>What to do next?</p>
-          <ul className="list-disc py-2 pl-4">
+        <div className="mt-2 flex w-full flex-shrink-0 flex-col gap-2 text-left text-neutral-700 sm:w-[32rem]">
+          <p className="inline-block">What to do next?</p>
+          <ul className="block list-disc py-2 pl-4">
             <li>Practice your interleave spots</li>
             <li>Take a short break</li>
             <li>Go on to the next item</li>
@@ -43,7 +43,7 @@ export function NextPlanItem({ planid }: { planid?: string }) {
           </ul>
           <InterleaveSpotsList planid={planid} />
         </div>
-        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 ">
+        <div className="grid w-full grid-cols-1 gap-2 xs:grid-cols-2">
           <BackToPlan grow planid={planid} />
           <Link
             className="focusable action-button flex-grow bg-green-700/10 text-green-800 hover:bg-green-700/20"

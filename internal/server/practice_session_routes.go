@@ -16,7 +16,6 @@ func (s *Server) listPracticeSessions(w http.ResponseWriter, r *http.Request) {
 		page = "1"
 	}
 	pageNum, err := strconv.Atoi(page)
-	log.Default().Println(pageNum)
 
 	queries := db.New(s.DB)
 	ps, err := queries.ListPracticeSessions(r.Context(), db.ListPracticeSessionsParams{

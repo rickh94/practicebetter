@@ -146,6 +146,7 @@ CREATE TABLE practice_plan_spots (
     spot_id TEXT NOT NULL,
     practice_type TEXT NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT 0,
+    idx INTEGER NOT NULL DEFAULT 0,
     CHECK (practice_type IN ('new', 'extra_repeat', 'interleave', 'interleave_days')),
     PRIMARY KEY (practice_plan_id, spot_id),
     CONSTRAINT plan FOREIGN KEY (practice_plan_id) REFERENCES practice_plans (
@@ -163,6 +164,7 @@ CREATE TABLE practice_plan_pieces (
     practice_type TEXT NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT 0,
     sessions INTEGER NOT NULL DEFAULT 1,
+    idx INTEGER NOT NULL DEFAULT 0,
     CHECK (practice_type IN ('random_spots', 'starting_point')),
     PRIMARY KEY (practice_plan_id, piece_id, practice_type),
     CONSTRAINT plan FOREIGN KEY (practice_plan_id) REFERENCES practice_plans (

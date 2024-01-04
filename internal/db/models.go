@@ -52,6 +52,7 @@ type PracticePlanPiece struct {
 	PracticeType   string `json:"practiceType"`
 	Completed      bool   `json:"completed"`
 	Sessions       int64  `json:"sessions"`
+	Idx            int64  `json:"idx"`
 }
 
 type PracticePlanSpot struct {
@@ -59,6 +60,7 @@ type PracticePlanSpot struct {
 	SpotID         string `json:"spotId"`
 	PracticeType   string `json:"practiceType"`
 	Completed      bool   `json:"completed"`
+	Idx            int64  `json:"idx"`
 }
 
 type PracticeSession struct {

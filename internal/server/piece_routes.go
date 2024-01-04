@@ -355,8 +355,6 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 
 	m, err := strconv.Atoi(r.Form.Get("measures"))
 	measures := sql.NullInt64{Int64: int64(m), Valid: true}
-	log.Default().Println(m)
-	log.Default().Println(measures)
 	if err != nil {
 		measures = sql.NullInt64{Valid: false}
 	}
@@ -617,7 +615,6 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 			}
 		}
 
-		log.Default().Println(spot)
 		if spot.Promote {
 			if err := qtx.PromoteSpotToInterleave(r.Context(), db.PromoteSpotToInterleaveParams{
 				SpotID:  spot.ID,

@@ -127,9 +127,8 @@ body {
 dialog {
   pointer-events: none;
   opacity: 0;
-  transition: all 0.3s;
   overflow: hidden;
-  @apply translate-y-4 rounded-xl;
+  @apply h-0 w-0 translate-y-4 rounded-xl transition-opacity transition-transform duration-300;
 }
 
 dialog:focus {
@@ -139,13 +138,13 @@ dialog:focus {
 dialog[open] {
   opacity: 1;
   width: calc(100vw - 1rem);
+  max-height: calc(100svh - 4.5rem);
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  position: fixed;
+  bottom: 0;
   margin-bottom: 3.5rem;
   pointer-events: inherit;
-  overflow: show;
+  overflow-y: auto;
   @apply h-max translate-y-0 scale-100;
 }
 
@@ -153,8 +152,6 @@ dialog[open]::backdrop {
   animation: backdrop-fade 0.3s ease forwards;
   height: 100dvh;
   width: 100vw;
-  overflow-y: scroll;
-  -webkit-overflow-scrolling: touch;
 }
 
 dialog.close::backdrop {
@@ -174,7 +171,7 @@ dialog.close::backdrop {
 @media screen(sm) {
   dialog {
     overflow: hidden;
-    @apply translate-y-0 scale-95;
+    @apply h-0 w-0 translate-y-0 scale-95 transition-opacity transition-transform duration-300;
   }
 
   dialog[open] {
@@ -183,6 +180,7 @@ dialog.close::backdrop {
     @apply h-max translate-y-0 scale-100;
     margin-block: auto;
     margin-inline: auto;
+    overflow-y: auto;
   }
 }
 
