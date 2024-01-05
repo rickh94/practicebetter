@@ -44,6 +44,18 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	r.Get("/", s.index)
 	r.Get("/about", s.about)
+	r.Get("/browserconfig.xml", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+    <msapplication>
+        <tile>
+            <square150x150logo src="/static/img/mstile-150x150.png"/>
+            <TileColor>#ffefce</TileColor>
+        </tile>
+    </msapplication>
+</browserconfig>
+`))
+	})
 	r.With(s.MaybeUser).With(s.MaybePracticePlan).Route("/practice", func(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			s.Redirect(w, r, "/practice/random-single")
