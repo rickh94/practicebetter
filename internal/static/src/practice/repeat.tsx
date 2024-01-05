@@ -149,7 +149,7 @@ export function Repeat({
       }
       setMode("break_fail");
     },
-    [setMode],
+    [setMode, pieceid, csrf, startTime, spot, spot?.id],
   );
 
   return (
@@ -312,7 +312,7 @@ function RepeatPractice({
         </div>
         <div className="flex w-full flex-col items-center pt-4 sm:mx-auto sm:max-w-xl">
           <h2 className="text-center text-3xl font-semibold">How did it go?</h2>
-          <div className="flex w-full flex-col justify-center gap-2 px-4 pt-8 sm:flex-row-reverse sm:px-0">
+          <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 xs:flex-row-reverse xs:px-0">
             <BigHappyButton
               disabled={!waitedLongEnough}
               onClick={succeed}

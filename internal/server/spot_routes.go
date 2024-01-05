@@ -476,7 +476,6 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	// TODO: consider more about whether this should require success
 	if activePracticePlanID != "" {
 		if err := qtx.CompletePracticePlanSpot(r.Context(), db.CompletePracticePlanSpotParams{
 			UserID: user.ID,

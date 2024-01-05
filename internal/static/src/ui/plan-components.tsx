@@ -23,7 +23,7 @@ export function NextPlanItem({ planid }: { planid?: string }) {
       <dialog
         ref={dialogRef}
         aria-labelledby="practice-next-title"
-        className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
+        className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-2 text-left sm:max-w-xl"
       >
         <header className="flex h-8 flex-shrink-0 text-left">
           <h3
@@ -33,9 +33,9 @@ export function NextPlanItem({ planid }: { planid?: string }) {
             Next Practice Item
           </h3>
         </header>
-        <div className="mt-2 flex w-full flex-shrink-0 flex-col gap-2 text-left text-neutral-700 sm:w-[32rem]">
+        <div className="flex w-full flex-shrink-0 flex-col gap-2 text-left text-neutral-700 sm:w-[32rem]">
           <p className="inline-block">What to do next?</p>
-          <ul className="block list-disc py-2 pl-4">
+          <ul className="block list-disc pl-4">
             <li>Practice your interleave spots</li>
             <li>Take a short break</li>
             <li>Go on to the next item</li>

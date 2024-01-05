@@ -78,12 +78,14 @@ export function BreakDialog({
   onDone,
   planid,
   canContinue,
+  length = "30 second",
 }: {
   dialogRef: Ref<HTMLDialogElement>;
   onContinue: () => void;
   onDone: () => void;
   planid?: string;
   canContinue: boolean;
+  length?: string;
 }) {
   const closeDialog = useCallback(
     function () {
@@ -129,13 +131,13 @@ export function BreakDialog({
           id="break-title"
           className="text-2xl font-semibold leading-6 text-neutral-900"
         >
-          Time for a Break
+          Time for a {length} Break
         </h3>
       </header>
       <div className="mt-2 flex w-full flex-col gap-2 text-left text-neutral-700 sm:w-auto">
         <p>
-          It’s been five minutes, time for a short break. Let your mind and
-          hands relax.
+          You have been practicing for a while. Give your body and mind a short
+          break, then continue.
         </p>
         {!!planid && (
           <>

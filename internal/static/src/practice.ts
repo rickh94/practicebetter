@@ -134,7 +134,7 @@ document.addEventListener(
 
 async function handleFinishedRepeatPracticingEvent(e: CustomEvent) {
   const { durationMinutes, csrf, endpoint, success, toStage } = e.detail;
-  if (!durationMinutes || !csrf || !endpoint || !toStage) {
+  if (!durationMinutes || !csrf || !endpoint) {
     console.error("event missing data");
     return;
   }
