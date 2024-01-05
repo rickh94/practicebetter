@@ -36,25 +36,16 @@ templ Head(s *Server, title string) {
 			}
 		}
 		<link rel="stylesheet" href={ s.StaticUrl("css/main.css") }/>
-		<link
- 			rel="apple-touch-icon"
- 			sizes="180x180"
- 			href={ s.StaticUrl("img/apple-touch-icon.png") }
-		/>
-		<link
- 			rel="icon"
- 			type="image/png"
- 			sizes="32x32"
- 			href={ s.StaticUrl("img/favicon-32x32.png") }
-		/>
-		<link
- 			rel="icon"
- 			type="image/png"
- 			sizes="16x16"
- 			href={ s.StaticUrl("img/favicon-16x16.png") }
-		/>
-		<link rel="icon" href={ s.StaticUrl("img/favicon.ico") }/>
-		<link rel="manifest" href={ s.StaticUrl("img/site.webmanifest") }/>
+		<link rel="icon" type="image/svg+xml" href={ s.StaticUrl("img/favicon.svg") }/>
+		<link rel="apple-touch-icon" sizes="180x180" href={ s.StaticUrl("img/apple-touch-icon.png") }/>
+		<link rel="icon" type="image/png" sizes="32x32" href={ s.StaticUrl("img/favicon-32x32.png") }/>
+		<link rel="icon" type="image/png" sizes="16x16" href={ s.StaticUrl("img/favicon-16x16.png") }/>
+		<link rel="manifest" href={ s.StaticUrl("/site.webmanifest") }/>
+		<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#262626"/>
+		<meta name="msapplication-TileColor" content="#ffefce"/>
+		<meta name="theme-color" content="#ffefce"/>
+		<meta name="apple-mobile-web-app-title" content="Practice Better"/>
+		<meta name="application-name" content="Practice Better"/>
 		<meta property="og:title" content="Practice Better"/>
 		<meta property="og:description" content="Organize your music practicing to be more effective and prevent bad habits."/>
 		<meta property="og:url" content="https://practicebetter.rickhenry.dev"/>
