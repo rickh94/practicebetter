@@ -2170,3 +2170,107 @@ func (s *Server) addPiecesToPracticePlan(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "Invalid practice type", http.StatusBadRequest)
 	}
 }
+
+func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value("user").(db.User)
+	planID := chi.URLParam(r, "planID")
+
+	s.renderPracticePlanPage(w, r, planID, user.ID)
+
+	tx, err := s.DB.Begin()
+	if err != nil {
+		log.Default().Printf("Database error: %v\n", err)
+		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+	queries := db.New(s.DB)
+	qtx := queries.WithTx(tx)
+
+	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
+	if ok && planID == activePracticePlanID {
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "You cannot duplicate an active practice plan",
+			Title:    "Not Active",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, "Cannot duplicate active plan", http.StatusBadRequest)
+		return
+	}
+
+	planPieces, err := qtx.GetPracticePlanWithPieces(r.Context(), db.GetPracticePlanWithPiecesParams{
+		ID:     planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	planSpots, err := qtx.GetPracticePlanWithSpots(r.Context(), db.GetPracticePlanWithSpotsParams{
+		ID:     planID,
+		UserID: user.ID,
+	})
+
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	practiceSessionID := cuid2.Generate()
+	if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
+		ID:              practiceSessionID,
+		UserID:          user.ID,
+		DurationMinutes: 0,
+		Date:            time.Now().Unix(),
+	}); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not create practice session", http.StatusInternalServerError)
+		return
+	}
+
+	newPlan, err := qtx.CreatePracticePlan(r.Context(), db.CreatePracticePlanParams{
+		ID:                cuid2.Generate(),
+		UserID:            user.ID,
+		Intensity:         r.FormValue("intensity"),
+		PracticeSessionID: sql.NullString{Valid: true, String: practiceSessionID},
+	})
+	if err != nil {
+		log.Default().Printf("Database error: %v\n", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for _, piece := range planPieces {
+		if !piece.PieceID.Valid {
+			continue
+		}
+		_, err := qtx.CreatePracticePlanPiece(r.Context(), db.CreatePracticePlanPieceParams{
+			PracticePlanID: newPlan.ID,
+			PieceID:        piece.PieceID.String,
+			PracticeType:   piece.PiecePracticeType,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	for _, spot := range planSpots {
+		if !spot.SpotID.Valid {
+			continue
+		}
+		_, err := qtx.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
+			PracticePlanID: newPlan.ID,
+			SpotID:         spot.SpotID.String,
+			PracticeType:   spot.SpotPracticeType,
+		})
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+}

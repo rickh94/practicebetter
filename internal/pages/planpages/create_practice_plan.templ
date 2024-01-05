@@ -86,9 +86,9 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 		}
 	</section>
 	<section id="customize" class="flex col-span-full justify-end pt-4 w-full">
-		<label class="flex gap-2 items-center px-2 font-medium accent-neutral-800">
+		<label class="flex gap-2 items-center px-2 font-medium accent-neutral-800 focusable">
 			<span class="text-neutral-800">Customize after creating</span>
-			<input type="checkbox" name="customize"/>
+			<input type="checkbox" name="customize" class="focus:outline-none"/>
 		</label>
 	</section>
 	<div class="flex flex-row-reverse col-span-full gap-4 justify-start py-4">

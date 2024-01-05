@@ -178,7 +178,7 @@ templ BreadcrumbItem(label string, href string, active bool, isLast bool, isDate
  		class={ "flex items-center max-w-[12rem]", templ.KV("text-neutral-900", active), templ.KV("text-neutral-900/50", !active) }
  		aria-current?={ active }
 	>
-		@HxLink("truncate", href, "#main-content") {
+		@HxLink("truncate focusable rounded-xl p-1", href, "#main-content") {
 			if isDate {
 				<number-date epoch={ label }></number-date>
 			} else {

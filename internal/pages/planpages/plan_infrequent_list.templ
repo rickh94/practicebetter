@@ -1,0 +1,103 @@
+package planpages
+
+import "practicebetter/internal/components"
+import "practicebetter/internal/heroicons"
+
+script changeSelectedQuality(id, value string) {
+	for (const el of document.querySelectorAll(`#quality-${id} .quality-option`)) {
+		if (el.id === `${id}.quality.${value}-label`) {
+			el.classList.add('checked');
+		} else {
+			el.classList.remove('checked');
+		}
+	}
+}
+
+templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, planID string, csrf string, allCompleted bool, active bool) {
+	<section id="interleave-days-spots" class="flex flex-col gap-2">
+		<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Infrequent Spots</h3>
+		<p class="w-full text-sm">Play these spots at least once today</p>
+		<ul id="interleave-days-spot-list" class="flex flex-col gap-2 w-full list-none">
+			for _, spot := range interleaveDaysSpots {
+				@components.InterleaveSpotCard(spot.PieceID, spot.ID, spot.Name, spot.Measures, "interleave_days", spot.PieceTitle, spot.Completed)
+			}
+		</ul>
+		if active && len(interleaveDaysSpots) > 0 {
+			if allCompleted {
+				<div
+ 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"
+				>
+					@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+					Completed
+				</div>
+			} else {
+				<button
+ 					onClick={ components.ShowModal(completeInterleaveDaysFormId) }
+ 					type="button"
+ 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+				>
+					@heroicons.IconCheckCircleOutline("-ml-1 size-5")
+					Complete
+				</button>
+				@CompleteInterleaveDaysForm(planID, csrf, interleaveDaysSpots)
+			}
+		}
+	</section>
+}
+
+const completeInterleaveDaysFormId = "complete-interleave-days-form"
+
+templ CompleteInterleaveDaysForm(planID string, csrf string, spots []PracticePlanSpot) {
+	<dialog id={ completeInterleaveDaysFormId } aria-labelledby="interleave-days-form-modal-title" class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
+		<header class="p-4 mt-2 text-left sm:max-w-lg">
+			<h3 id="interleave-days-form-modal-title" class="text-2xl font-semibold leading-6 text-neutral-900">Evaluate Infrequent Spots</h3>
+			<p class="text-sm">Evaluate how well you think you did on each spot below.</p>
+			<p class="text-sm">When you have been playing a spot for a long time, you may get the option to choose “Completed” and stop it from coming up again.</p>
+		</header>
+		<form
+ 			hx-post={ "/library/plans/" + planID + "/infrequent/complete-all" }
+ 			hx-headers={ components.HxCsrfHeader(csrf) }
+ 			hx-target="#interleave-days-spots"
+ 			hx-swap="outerHTML transition:true"
+ 			hx-on::after-request={ components.CloseModal(completeInterleaveDaysFormId) }
+ 			class="flex flex-col gap-2 p-4 w-full sm:max-w-lg"
+		>
+			<ul id="evaluate-interleave-days-spot-list" class="flex flex-col gap-4 w-full list-none">
+				for _, spot := range spots {
+					@CompleteInfrequentSpotItem(spot)
+				}
+			</ul>
+			<section class="flex flex-col-reverse gap-2 mt-4 w-full xs:grid xs:grid-cols-2">
+				<button
+ 					onclick={ components.CloseModal(completeInterleaveDaysFormId) }
+ 					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
+ 					type="button"
+				>
+					@heroicons.IconXCircleSolid("-ml-1 size-5 text-red-800")
+					Cancel
+				</button>
+				<button
+ 					class="flex-grow text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 					type="submit"
+				>
+					@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800")
+					Save
+				</button>
+			</section>
+		</form>
+	</dialog>
+}
+
+templ CompleteInfrequentSpotItem(spot PracticePlanSpot) {
+	<li class="flex flex-col flex-wrap gap-1 justify-between items-center" id={ "quality-" + spot.ID }>
+		<span class="w-full text-left">
+			<strong class="font-bold">
+				{ spot.Name }
+			</strong>
+			<span class="text-neutral-700">
+				- { spot.PieceTitle }
+			</span>
+		</span>
+		@CompleteSpotRadioOptions(spot, spot.SkipDays > 6 && spot.DaysSinceStarted > 20)
+	</li>
+}

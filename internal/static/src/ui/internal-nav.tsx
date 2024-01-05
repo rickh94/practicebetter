@@ -103,7 +103,7 @@ export function InternalNav({
         >
           <Menu.Items
             // @ts-ignore
-            className="absolute left-0 z-50 mt-2 w-64 origin-top-left rounded-lg bg-white shadow-lg  ring-1 ring-black ring-opacity-5 backdrop-blur focus:outline-none"
+            className="absolute left-0 z-50 mt-2 w-64 origin-top-left rounded-lg bg-white shadow-lg  ring-1 ring-black ring-opacity-5"
             as="nav"
           >
             <ul className="flex flex-col gap-0">
@@ -113,7 +113,7 @@ export function InternalNav({
                   as="li"
                   // @ts-ignore
                   className={cn(
-                    "w-full text-lg first:rounded-t-lg last:rounded-b-lg",
+                    "focusable w-full text-lg first:rounded-t-lg last:rounded-b-lg focus:bg-green-800",
                     highlight
                       ? {
                           "bg-violet-700/30 font-bold text-violet-800":
@@ -132,7 +132,7 @@ export function InternalNav({
                   <Link
                     href={href}
                     target="#main-content"
-                    className="flex h-full w-full items-center gap-2 px-2 py-3"
+                    className="focusable flex h-full w-full items-center gap-2 px-2 py-3"
                   >
                     {icon}
                     {label}

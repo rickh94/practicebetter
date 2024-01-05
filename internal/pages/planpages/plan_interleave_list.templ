@@ -104,76 +104,7 @@ templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpo
 		>
 			<ul id="evaluate-interleave-spot-list" class="flex flex-col gap-4 w-full list-none">
 				for _, spot := range spots {
-					<li class="flex flex-col flex-wrap gap-1 justify-between items-center w-full sm:flex-row" id={ "quality-" + spot.ID }>
-						<span class="flex flex-wrap items-center w-full text-left sm:w-auto">
-							<strong class="font-bold">
-								{ spot.Name }
-							</strong>
-							if spot.Measures != "" {
-								- { spot.Measures }
-							}
-						</span>
-						<span class="flex flex-col flex-wrap gap-2 w-full sm:w-auto xs:flex-row">
-							<label for={ spot.ID + ".quality.poor" } class="flex relative py-3 pr-2 pl-4 text-red-800 rounded-xl cursor-pointer quality-option poor-radio-option focusable" id={ spot.ID + ".quality.poor" + "-label" }>
-								<input
- 									type="radio"
- 									name={ spot.ID + ".quality" }
- 									id={ spot.ID + ".quality.poor" }
- 									value="poor"
- 									class="sr-only"
- 									aria-labelledby={ spot.ID + ".quality.poor" + "-label" }
- 									onchange={ changeSelectedQuality(spot.ID, "poor") }
-								/>
-								<span class="flex flex-1 gap-1 items-center">
-									@heroicons.IconHandThumbDownSolid("-ml-1 size-5 text-red-800/80")
-									<span class="font-medium">
-										Poor
-									</span>
-								</span>
-								@heroicons.IconCheckCircleSolid("ml-3 size-5 text-red-800 icon")
-								<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
-							</label>
-							<label for={ spot.ID + ".quality.fine" } class="flex relative py-3 pr-2 pl-4 rounded-xl cursor-pointer quality-option fine-radio-option text-sky-800 checked focusable" id={ spot.ID + ".quality.fine" + "-label" }>
-								<input
- 									type="radio"
- 									name={ spot.ID + ".quality" }
- 									id={ spot.ID + ".quality.fine" }
- 									value="fine"
- 									class="sr-only"
- 									checked
- 									aria-labelledby={ spot.ID + ".quality.fine" + "-label" }
- 									onchange={ changeSelectedQuality(spot.ID, "fine") }
-								/>
-								<span class="flex flex-1 gap-1 items-center">
-									@heroicons.IconHandRaisedSolid("-ml-1 size-5 text-sky-800/80")
-									<span class="font-medium">
-										Fine
-									</span>
-								</span>
-								@heroicons.IconCheckCircleSolid("ml-3 size-5 text-sky-800 icon")
-								<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
-							</label>
-							<label for={ spot.ID + ".quality.excellent" } class="flex relative py-3 pr-2 pl-4 text-green-800 rounded-xl cursor-pointer quality-option excellent-radio-option focusable" id={ spot.ID + ".quality.excellent" + "-label" }>
-								<input
- 									type="radio"
- 									name={ spot.ID + ".quality" }
- 									id={ spot.ID + ".quality.excellent" }
- 									value="excellent"
- 									class="sr-only"
- 									aria-labelledby={ spot.ID + ".quality.excellent" + "-label" }
- 									onchange={ changeSelectedQuality(spot.ID, "excellent") }
-								/>
-								<span class="flex flex-1 gap-1 items-center">
-									@heroicons.IconHandThumbUpSolid("-ml-1 size-5 text-green-800/80")
-									<span class="font-medium">
-										Excellent
-									</span>
-								</span>
-								@heroicons.IconCheckCircleSolid("ml-3 size-5 text-green-800 icon")
-								<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
-							</label>
-						</span>
-					</li>
+					@CompleteInterleaveSpotItem(spot)
 				}
 			</ul>
 			<section class="flex flex-col-reverse gap-2 mt-4 w-full xs:grid xs:grid-cols-2">
@@ -195,4 +126,103 @@ templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpo
 			</section>
 		</form>
 	</dialog>
+}
+
+templ CompleteInterleaveSpotItem(spot PracticePlanSpot) {
+	<li class="flex flex-col flex-wrap gap-1 justify-start items-start w-full" id={ "quality-" + spot.ID }>
+		<span class="w-full text-left">
+			<strong class="font-bold">
+				{ spot.Name }{ " " }
+			</strong>
+			<span class="text-neutral-700">
+				- { spot.PieceTitle }
+			</span>
+			@CompleteSpotRadioOptions(spot, false)
+		</span>
+	</li>
+}
+
+templ CompleteSpotRadioOptions(spot PracticePlanSpot, showCompleted bool) {
+	<span class="flex flex-col flex-wrap gap-2 w-full xs:flex-row">
+		<label for={ spot.ID + ".quality.poor" } class="flex relative flex-grow items-center py-3 pr-2 pl-4 text-red-800 rounded-xl cursor-pointer quality-option poor-radio-option focusable" id={ spot.ID + ".quality.poor" + "-label" }>
+			<input
+ 				type="radio"
+ 				name={ spot.ID + ".quality" }
+ 				id={ spot.ID + ".quality.poor" }
+ 				value="poor"
+ 				class="sr-only"
+ 				aria-labelledby={ spot.ID + ".quality.poor" + "-label" }
+ 				onchange={ changeSelectedQuality(spot.ID, "poor") }
+			/>
+			<span class="flex flex-1 gap-1 items-center">
+				@heroicons.IconHandThumbDownSolid("-ml-1 size-5 text-red-800/80")
+				<span class="font-medium">
+					Poor
+				</span>
+			</span>
+			@heroicons.IconCheckCircleSolid("ml-3 size-5 text-red-800 icon")
+			<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+		</label>
+		<label for={ spot.ID + ".quality.fine" } class="flex relative flex-grow items-center py-3 pr-2 pl-4 rounded-xl cursor-pointer quality-option fine-radio-option text-sky-800 checked focusable" id={ spot.ID + ".quality.fine" + "-label" }>
+			<input
+ 				type="radio"
+ 				name={ spot.ID + ".quality" }
+ 				id={ spot.ID + ".quality.fine" }
+ 				value="fine"
+ 				class="sr-only"
+ 				checked
+ 				aria-labelledby={ spot.ID + ".quality.fine" + "-label" }
+ 				onchange={ changeSelectedQuality(spot.ID, "fine") }
+			/>
+			<span class="flex flex-1 gap-1 items-center">
+				@heroicons.IconHandRaisedSolid("-ml-1 size-5 text-sky-800/80")
+				<span class="font-medium">
+					Fine
+				</span>
+			</span>
+			@heroicons.IconCheckCircleSolid("ml-3 size-5 text-sky-800 icon")
+			<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+		</label>
+		if showCompleted {
+			<label for={ spot.ID + ".quality.completed" } class="flex relative flex-grow items-center py-3 pr-2 pl-4 text-green-800 rounded-xl cursor-pointer quality-option excellent-radio-option focusable" id={ spot.ID + ".quality.completed" + "-label" }>
+				<input
+ 					type="radio"
+ 					name={ spot.ID + ".quality" }
+ 					id={ spot.ID + ".quality.completed" }
+ 					value="completed"
+ 					class="sr-only"
+ 					aria-labelledby={ spot.ID + ".quality.completed" + "-label" }
+ 					onchange={ changeSelectedQuality(spot.ID, "completed") }
+				/>
+				<span class="flex flex-1 gap-1 items-center">
+					@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800/80")
+					<span class="font-medium">
+						Complete
+					</span>
+				</span>
+				@heroicons.IconCheckCircleSolid("ml-3 size-5 text-green-800 icon")
+				<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+			</label>
+		} else {
+			<label for={ spot.ID + ".quality.excellent" } class="flex relative flex-grow items-center py-3 pr-2 pl-4 text-green-800 rounded-xl cursor-pointer quality-option excellent-radio-option focusable" id={ spot.ID + ".quality.excellent" + "-label" }>
+				<input
+ 					type="radio"
+ 					name={ spot.ID + ".quality" }
+ 					id={ spot.ID + ".quality.excellent" }
+ 					value="excellent"
+ 					class="sr-only"
+ 					aria-labelledby={ spot.ID + ".quality.excellent" + "-label" }
+ 					onchange={ changeSelectedQuality(spot.ID, "excellent") }
+				/>
+				<span class="flex flex-1 gap-1 items-center">
+					@heroicons.IconHandThumbUpSolid("-ml-1 size-5 text-green-800/80")
+					<span class="font-medium">
+						Excellent
+					</span>
+				</span>
+				@heroicons.IconCheckCircleSolid("ml-3 size-5 text-green-800 icon")
+				<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+			</label>
+		}
+	</span>
 }
