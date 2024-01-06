@@ -5,7 +5,7 @@ go 1.21.0
 toolchain go1.21.5
 
 require (
-	github.com/a-h/templ v0.2.501
+	github.com/a-h/templ v0.2.513
 	github.com/alexedwards/scs/redisstore v0.0.0-20231113091146-cef4b05350c8
 	github.com/alexedwards/scs/v2 v2.7.0
 	github.com/benbjohnson/hashfs v0.2.1
