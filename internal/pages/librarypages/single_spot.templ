@@ -90,7 +90,7 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 				})
 			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ spot.PieceID }></back-to-piece>
-				@components.HxLink("focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/practice/repeat", "#main-content") {
+				@components.HxLink("focusable action-button bg-violet-700/10 text-violet-800 hover:bg-violet-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/practice/repeat", "#main-content") {
 					@icons.RepeatIcon("-ml-1 size-5")
 					Practice
 				}

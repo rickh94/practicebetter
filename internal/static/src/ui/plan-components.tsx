@@ -71,7 +71,7 @@ export function InterleaveSpotsList({ planid }: { planid?: string }) {
   return (
     <details className="my-1 w-full">
       <summary className="focusable flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50 focus:outline-none">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 focus:outline-none">
           <BookmarkIcon className="-ml-1 size-5" />
           Interleave Spots
         </div>

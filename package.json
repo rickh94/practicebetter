@@ -23,9 +23,9 @@
   },
   "dependencies": {
     "@formkit/auto-animate": "^0.8.1",
-    "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
     "@hookform/resolvers": "^3.3.2",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
     "abcjs": "^6.2.3",
     "chart.js": "^4.4.0",
     "clsx": "^2.0.0",
@@ -35,9 +35,12 @@
     "preact": "^10.13.1",
     "preact-custom-element": "^4.3.0",
     "react": "npm:@preact/compat@latest",
+    "react-aria-components": "^1.0.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "npm:@preact/compat@latest",
     "react-hook-form": "^7.48.2",
+    "tailwindcss-animate": "^1.0.7",
+    "tailwindcss-react-aria-components": "^1.0.0",
     "yup": "^1.3.2"
   },
   "overrides": {

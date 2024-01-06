@@ -131,12 +131,9 @@ templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpo
 templ CompleteInterleaveSpotItem(spot PracticePlanSpot) {
 	<li class="flex flex-col flex-wrap gap-1 justify-start items-start w-full" id={ "quality-" + spot.ID }>
 		<span class="w-full text-left">
-			<strong class="font-bold">
-				{ spot.Name }{ " " }
-			</strong>
-			<span class="text-neutral-700">
-				- { spot.PieceTitle }
-			</span>
+			<div>
+				@components.SpotCardHeading(spot.Name, spot.PieceTitle, true)
+			</div>
 			@CompleteSpotRadioOptions(spot, false)
 		</span>
 	</li>

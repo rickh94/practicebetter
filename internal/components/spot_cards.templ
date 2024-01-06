@@ -1,0 +1,162 @@
+package components
+
+import "practicebetter/internal/heroicons"
+import "practicebetter/internal/icons"
+
+const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-neutral-800 hover:text-black transition-all duration-200"
+
+func getSpotCardClass(completed bool, stage string) string {
+	if completed {
+		return baseSpotCardClass + " bg-green-500/50 border-green-800"
+	} else {
+
+		return baseSpotCardClass + " " + getStageColor(stage) + " border-neutral-800"
+	}
+}
+
+templ SpotCardHeading(name, pieceTitle string, showTitle bool) {
+	if showTitle {
+		<h3 class="text-sm italic text-neutral-900 truncate">
+			{ pieceTitle }
+		</h3>
+	}
+	<h4 class="text-lg font-bold truncate">
+		{ name }
+	</h4>
+}
+
+templ SpotMeasures(measures string) {
+	<div class="text-sm">
+		<h4 class="text-sm">
+			Measures
+		</h4>
+		<p class="font-semibold">
+			if measures == "" {
+				No Measures
+			} else {
+				{ measures }
+			}
+		</p>
+	</div>
+}
+
+templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, showTitle bool, pieceTitle string, hidden bool, showStage bool) {
+	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration-200 spot-card", templ.KV("hidden", hidden) }>
+		@HxLink(getSpotCardClass(practiced, stage), href, "#main-content") {
+			<div class="flex flex-col flex-grow overflow-x-clip">
+				@SpotCardHeading(name, pieceTitle, showTitle)
+				if practiced {
+					<div class="text-sm font-bold">
+						Completed
+					</div>
+				}
+				@SpotMeasures(measures)
+				if showStage {
+					<div class="text-sm whitespace-break-spaces">
+						<h4 class="text-sm">
+							Stage
+						</h4>
+						<p>
+							<spot-stage class="font-semibold" stage={ stage }></spot-stage>
+						</p>
+					</div>
+				}
+			</div>
+			<div class="mr-3 size-6"></div>
+			if practiced || stage == "completed" {
+				@heroicons.IconCheckCircleSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-green-900")
+				<span class="sr-only">Completed</span>
+			} else if stage == "extra_repeat" || stage == "repeat" {
+				@icons.RepeatIcon("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="sr-only">Click to view</span>
+			} else if stage == "random" {
+				@icons.ShuffleIcon("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="sr-only">Click to view</span>
+			} else if stage == "interleave" {
+				@heroicons.IconBookmarkSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="sr-only">Click to view</span>
+			} else if stage == "interleave_days" {
+				@heroicons.IconCalendarDaysSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="sr-only">Click to view</span>
+			}
+			<span class="sr-only">Click to view spot</span>
+		}
+	</li>
+}
+
+templ SmallSpotCard(pieceID, spotID, name, measures, stage string) {
+	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID, false, false, "", false, true)
+}
+
+templ PracticeSpotCard(pieceID, spotID, name, measures, stage string, hidden bool) {
+	@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", false, false, "", hidden, true)
+}
+
+templ PracticePlanSpotCard(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool) {
+	if stage == "extra_repeat" || stage == "repeat" {
+		@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID+"/practice/repeat", practiced, true, pieceTitle, false, false)
+	} else {
+		@BaseSpotCard(spotID, name, measures, stage, "/library/pieces/"+pieceID+"/spots/"+spotID, practiced, true, pieceTitle, false, false)
+	}
+}
+
+templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool) {
+	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration-200 spot-card overflow-hidden" }>
+		if practiced {
+			@HxLink(getSpotCardClass(practiced, stage), "/library/pieces"+pieceID+"/spots/"+spotID, "#main-content") {
+				@InterleaveSpotItem(name, pieceTitle, measures, stage, practiced)
+			}
+		} else {
+			<button
+ 				class={ getSpotCardClass(practiced, stage), "w-full h-full" }
+ 				hx-get={ "/library/pieces/" + pieceID + "/spots/" + spotID + "/practice/display" }
+ 				hx-target={ "#" + spotID + "-interleave-practice" }
+ 				hx-swap="innerHTML transition:true"
+ 				hx-on::after-request={ ShowModal(spotID + "-interleave") }
+			>
+				@InterleaveSpotItem(name, pieceTitle, measures, stage, practiced)
+			</button>
+			<dialog id={ spotID + "-interleave" } aria-labelledby="interleave-form-modal-title" class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none">
+				<div id={ spotID + "-interleave-practice" } class="p-0 w-huge overflow-x-clip">
+					<span class="p-4 bg-white rounded-xl">
+						Loading Interleave Spot...
+					</span>
+				</div>
+				<div class="p-0 mt-4 w-full bg-white rounded-xl border sm:mx-auto sm:w-96 border-neutral-500 overflow-x-clip">
+					<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ CloseModal(spotID + "-interleave") }>
+						@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+						Done
+					</button>
+				</div>
+			</dialog>
+		}
+	</li>
+}
+
+// TODO: make this nice
+
+templ InterleaveSpotItem(name, pieceTitle, measures, stage string, practiced bool) {
+	<div class="flex flex-col flex-grow items-start text-left overflow-x-clip">
+		@SpotCardHeading(name, pieceTitle, true)
+		if practiced {
+			<div class="text-sm font-bold">
+				Completed
+			</div>
+		}
+		@SpotMeasures(measures)
+	</div>
+	if practiced {
+		<div class="mr-3 size-6"></div>
+		@heroicons.IconCheckCircleSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-green-900")
+		<span class="sr-only">Completed</span>
+	} else if stage == "interleave" {
+		<div class="mr-3 size-6"></div>
+		@heroicons.IconBookmarkSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+		<span class="sr-only">Click to view</span>
+	} else if stage == "interleave_days" {
+		<div class="mr-3 size-6"></div>
+		@heroicons.IconCalendarDaysSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+		<span class="sr-only">Click to view</span>
+	}
+	<span class="sr-only">Click to view spot</span>
+}

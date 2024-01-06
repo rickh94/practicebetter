@@ -1,15 +1,11 @@
 import { cn } from "../common";
-import { XMarkIcon } from "@heroicons/react/24/solid";
-import { CrossFadeContentFast } from "../ui/transitions";
-import { Menu, Transition } from "@headlessui/react";
-import { Fragment } from "preact/jsx-runtime";
-import { Link } from "./links";
 import {
   PlayListIcon,
   RandomBoxesIcon,
   RepeatIcon,
   ShuffleIcon,
 } from "./icons";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 
 const links = new Map<string, { label: string; icon: preact.JSX.Element }>([
   [
@@ -34,94 +30,68 @@ const links = new Map<string, { label: string; icon: preact.JSX.Element }>([
   ],
 ]);
 
+function processLinks() {
+  document.querySelectorAll("a[data-radix-collection-item]").forEach((el) => {
+    // @ts-ignore
+    if (htmx) {
+      console.log("processing");
+      // @ts-ignore
+      htmx.process(el);
+    }
+  });
+}
+
 export function PracticeToolNav({ activepath }: { activepath: string }) {
   return (
-    <>
-      {/*
-      // @ts-ignore */}
-      <Menu as="div" className="relative inline-block text-left">
-        {/*
-        // @ts-ignore */}
-        <Menu.Button className="focusable inline-flex h-14 w-full items-center justify-center gap-x-1.5 rounded-xl bg-neutral-700/10 px-6 py-4 shadow-sm hover:bg-neutral-700/20">
-          {({ open }) => (
-            <>
-              <CrossFadeContentFast
-                id={open ? "open" : "closed"}
-                component={
-                  open ? (
-                    <>
-                      <div className="sr-only">Close Practice Tools Menu</div>
-                      <XMarkIcon
-                        className="-ml-2 size-6 text-neutral-800"
-                        aria-hidden="true"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <div className="sr-only">Open Practice Tools Menu</div>
-                      <PlayListIcon
-                        className="-ml-2 size-6 text-neutral-800"
-                        aria-hidden="true"
-                      />
-                    </>
-                  )
-                }
-              />
-              {links.get(activepath) ? (
-                <h1 className="text-xl font-semibold tracking-tight text-neutral-800 sm:text-2xl">
-                  {links.get(activepath).label}
-                </h1>
-              ) : (
-                <span className="font-semibold text-neutral-700">
-                  Practice Tools
-                </span>
-              )}
-            </>
+    <DropdownMenu.Root onOpenChange={processLinks}>
+      <DropdownMenu.Trigger asChild>
+        <button className="focusable inline-flex h-14 w-full items-center justify-center gap-x-1.5 rounded-xl bg-neutral-700/10 px-6 py-4 shadow-sm hover:bg-neutral-700/20">
+          <div className="sr-only">Open Practice Tools Menu</div>
+          <PlayListIcon
+            className="-ml-2 size-6 text-neutral-800"
+            aria-hidden="true"
+          />
+
+          {links.get(activepath) ? (
+            <h1 className="text-xl font-semibold tracking-tight text-neutral-800 sm:text-2xl">
+              {links.get(activepath).label}
+            </h1>
+          ) : (
+            <span className="font-semibold text-neutral-700">
+              Practice Tools
+            </span>
           )}
-        </Menu.Button>
-        <Transition
-          as={Fragment}
-          enter="transition ease-out duration-100"
-          enterFrom="transform opacity-0 scale-95"
-          enterTo="transform opacity-100 scale-100"
-          leave="transition ease-in duration-75"
-          leaveFrom="transform opacity-100 scale-100"
-          leaveTo="transform opacity-0 scale-95"
+        </button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          side="bottom"
+          align="start"
+          sideOffset={5}
+          className="w-64 origin-top-left rounded-lg bg-white shadow-lg duration-200 animate-in fade-in zoom-in-95 focus-within:outline-none focus:outline-none"
         >
-          <Menu.Items
-            // @ts-ignore
-            className="absolute left-0 z-50 mt-2 w-64 origin-top-left rounded-lg bg-[#fffaf0]/90 shadow-lg  ring-1 ring-black ring-opacity-5 backdrop-blur focus:outline-none"
-            as="nav"
-          >
-            <ul className="flex flex-col gap-0">
-              {[...links.entries()].map(([href, info]) => (
-                <Menu.Item
-                  key={href}
-                  as="li"
-                  // @ts-ignore
-                  className={cn(
-                    "w-full text-lg text-neutral-800 first:rounded-t-lg last:rounded-b-lg",
-                    {
-                      "bg-neutral-700/10 font-bold": href === activepath,
-                      "font-medium hover:bg-neutral-800/10":
-                        href !== activepath,
-                    },
-                  )}
-                >
-                  <Link
-                    href={href}
-                    target="#main-content"
-                    className="flex h-full w-full items-center gap-1 px-2 py-3"
-                  >
-                    {info.icon}
-                    {info.label}
-                  </Link>
-                </Menu.Item>
-              ))}
-            </ul>
-          </Menu.Items>
-        </Transition>
-      </Menu>
-    </>
+          {[...links.entries()].map(([href, info]) => (
+            <DropdownMenu.Item asChild>
+              <a
+                href={href}
+                onClick={(e) => e.preventDefault()}
+                hx-get={href}
+                hx-swap="outerHTML transition:true"
+                hx-push-url="true"
+                hx-target="#main-content"
+                className={cn(
+                  "flex w-full items-center gap-1 px-2 py-3 text-lg text-neutral-800 first:rounded-t-lg last:rounded-b-lg focus:outline-none",
+                  activepath === href
+                    ? "bg-neutral-700/10 font-bold"
+                    : "font-medium hover:bg-neutral-800/10 focus-visible:bg-neutral-800/10",
+                )}
+              >
+                {info.icon} {info.label}
+              </a>
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   );
 }

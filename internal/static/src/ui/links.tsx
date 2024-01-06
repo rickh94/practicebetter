@@ -1,10 +1,6 @@
 import { ReactNode, useEffect, useRef } from "preact/compat";
 import { cn } from "../common";
-import {
-  ArrowLeftIcon,
-  ChevronDoubleRightIcon,
-  ClipboardDocumentCheckIcon,
-} from "@heroicons/react/24/solid";
+import { ClipboardDocumentCheckIcon } from "@heroicons/react/24/solid";
 import { NoteSheetIcon } from "./icons";
 
 export const topNavClasses =

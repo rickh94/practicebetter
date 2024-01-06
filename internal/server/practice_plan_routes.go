@@ -1312,7 +1312,6 @@ func (s *Server) renderPlanListPage(w http.ResponseWriter, r *http.Request, user
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	log.Default().Printf("plans: %d", len(plans))
 	totalPlans, err := queries.CountUserPracticePlans(r.Context(), userID)
 	if err != nil {
 		log.Default().Println(err)
@@ -1338,7 +1337,6 @@ func (s *Server) renderPlanListPage(w http.ResponseWriter, r *http.Request, user
 
 		planInfo = append(planInfo, nextPlanInfo)
 	}
-	log.Default().Printf("planInfo: %d", len(planInfo))
 	w.WriteHeader(http.StatusOK)
 	s.HxRender(w, r, planpages.PlanList(planInfo, pageNum, totalPages), "Your Practice Plans")
 }
