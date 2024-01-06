@@ -1,5 +1,6 @@
 import { BackToPlan, Link } from "./links";
 import { useCallback, useEffect, useRef } from "preact/hooks";
+import * as htmx from "htmx.org";
 
 export function NextPlanItem({ planid }: { planid?: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -64,7 +65,6 @@ export function InterleaveSpotsList({ planid }: { planid?: string }) {
 
   useEffect(() => {
     if (interleaveSpotsRef.current) {
-      // @ts-ignore
       htmx.process(interleaveSpotsRef.current);
     }
   }, [interleaveSpotsRef.current]);

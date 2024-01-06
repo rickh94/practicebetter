@@ -478,7 +478,6 @@ function SinglePractice({
   const nextSpot = useCallback(
     function (nextSkipSpotIds: string[]) {
       setCounter((curr) => curr + 1);
-      // addSpotRep(spots[currentSpotIdx]?.id);
       if (nextSkipSpotIds.length >= spots.length) {
         document.dispatchEvent(
           new CustomEvent("ShowAlert", {

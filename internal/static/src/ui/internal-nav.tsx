@@ -1,6 +1,7 @@
 import { NavItem, cn } from "../common";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { NoteSheetIcon, PlayListIcon } from "./icons";
+import * as htmx from "htmx.org";
 
 const navItemIconClasses = "ml-1 size-5" as const;
 
@@ -63,12 +64,7 @@ export function InternalNav({
 
   function processLinks() {
     document.querySelectorAll("a[data-radix-collection-item]").forEach((el) => {
-      // @ts-ignore
-      if (htmx) {
-        console.log("processing");
-        // @ts-ignore
-        htmx.process(el);
-      }
+      htmx.process(el);
     });
   }
 

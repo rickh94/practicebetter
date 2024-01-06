@@ -78,18 +78,6 @@ func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	queries := db.New(s.DB)
 	r.ParseForm()
-	idx, err := strconv.Atoi(r.FormValue("idx"))
-	if err != nil {
-		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Invalid index",
-			Title:    "Error",
-			Variant:  "error",
-			Duration: 3000,
-		})
-		http.Error(w, "Invalid index", http.StatusBadRequest)
-		return
-	}
 	currentTempo := sql.NullInt64{Valid: false}
 	currentTempoVal := r.FormValue("currentTempo")
 	if currentTempoVal != "" && currentTempoVal != "null" {
@@ -119,7 +107,6 @@ func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
 		PieceID:        pieceID,
 		ID:             cuid2.Generate(),
 		Name:           r.FormValue("name"),
-		Idx:            int64(idx),
 		Stage:          r.FormValue("stage"),
 		AudioPromptUrl: r.FormValue("audioPromptUrl"),
 		ImagePromptUrl: r.FormValue("imagePromptUrl"),
@@ -186,18 +173,6 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
 	queries := db.New(s.DB)
 	r.ParseForm()
-	idx, err := strconv.Atoi(r.FormValue("idx"))
-	if err != nil {
-		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Invalid index",
-			Title:    "Error",
-			Variant:  "error",
-			Duration: 3000,
-		})
-		http.Error(w, "Invalid index", http.StatusBadRequest)
-		return
-	}
 	currentTempo := sql.NullInt64{Valid: false}
 	currentTempoVal := r.FormValue("currentTempo")
 	if currentTempoVal != "" && currentTempoVal != "null" {
@@ -246,7 +221,6 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 	}
 	err = queries.UpdateSpot(r.Context(), db.UpdateSpotParams{
 		Name:           r.FormValue("name"),
-		Idx:            int64(idx),
 		Stage:          r.FormValue("stage"),
 		StageStarted:   sql.NullInt64{Int64: stageStarted, Valid: true},
 		AudioPromptUrl: r.FormValue("audioPromptUrl"),
@@ -366,7 +340,6 @@ func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {
 	spotData := SpotFormData{
 		ID:             &spot.ID,
 		Name:           spot.Name,
-		Idx:            &spot.Idx,
 		Stage:          spot.Stage,
 		AudioPromptUrl: spot.AudioPromptUrl,
 		ImagePromptUrl: spot.ImagePromptUrl,

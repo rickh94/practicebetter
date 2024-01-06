@@ -3,7 +3,6 @@ INSERT INTO spots (
     piece_id,
     id,
     name,
-    idx,
     stage,
     audio_prompt_url,
     image_prompt_url,
@@ -14,7 +13,7 @@ INSERT INTO spots (
     stage_started
 ) VALUES (
     (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1),
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?, ?,
     unixepoch('now')
 )
 RETURNING *;
@@ -26,7 +25,7 @@ SELECT
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
-ORDER BY spots.idx;
+ORDER BY spots.last_practiced DESC;
 
 -- name: ListPieceSpotsInStage :many
 SELECT
@@ -36,7 +35,7 @@ FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
 AND spots.stage = :stage
-ORDER BY spots.idx;
+ORDER BY spots.last_practiced DESC;
 
 -- name: ListPieceSpotsInStageForPlan :many
 SELECT
@@ -47,7 +46,7 @@ INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
 AND spots.stage = :stage
 AND spots.id NOT IN (SELECT practice_plan_spots.spot_id FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = :plan_id)
-ORDER BY spots.idx;
+ORDER BY spots.last_practiced DESC;
 
 -- name: ListHighPrioritySpots :many
 SELECT
@@ -90,7 +89,6 @@ LIMIT 1;
 UPDATE spots
 SET
     name = ?,
-    idx = ?,
     stage = ?,
     stage_started = ?,
     audio_prompt_url = ?,

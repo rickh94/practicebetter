@@ -5,7 +5,7 @@ import (
 	"github.com/benbjohnson/hashfs"
 )
 
-//go:embed css/* js/* out/* fonts/* img/*
+//go:embed dist/* img/*
 var static embed.FS
 
 var HashStatic = hashfs.NewFS(static)

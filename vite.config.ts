@@ -1,24 +1,32 @@
 import { defineConfig } from "vite";
+import autoprefixer from "autoprefixer";
+import tailwindcss from "tailwindcss";
 import preact from "@preact/preset-vite";
 
 export default defineConfig({
   plugins: [preact()],
+  base: "/static/dist",
+  root: "internal/static",
   build: {
-    outDir: "internal/static/out",
+    outDir: "dist",
     lib: {
       entry: {
-        main: "internal/static/src/main.ts",
-        practice: "internal/static/src/practice.ts",
-        about: "internal/static/src/about.ts",
-        "notes-display": "internal/static/src/notes-display.ts",
-        "practice-menu": "internal/static/src/practice-menu.ts",
-        "add-spot": "internal/static/src/add-spot.ts",
-        "edit-spot": "internal/static/src/edit-spot.ts",
-        prompts: "internal/static/src/prompts.ts",
-        "spot-breakdown": "internal/static/src/spot-breakdown.ts",
+        main: "src/main.ts",
+        practice: "src/practice.ts",
+        about: "src/about.ts",
+        "notes-display": "src/notes-display.ts",
+        "practice-menu": "src/practice-menu.ts",
+        "add-spot": "src/add-spot.ts",
+        "edit-spot": "src/edit-spot.ts",
+        prompts: "src/prompts.ts",
+        "spot-breakdown": "src/spot-breakdown.ts",
       },
-      name: "musiclib",
       formats: ["es"],
+    },
+  },
+  css: {
+    postcss: {
+      plugins: [autoprefixer, tailwindcss],
     },
   },
   define: {

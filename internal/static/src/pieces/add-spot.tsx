@@ -3,7 +3,9 @@ import { useForm } from "react-hook-form";
 import { SpotFormData, spotFormData } from "../validators";
 import SpotFormFields from "./spot-form";
 import { useCallback, useEffect, useState } from "preact/hooks";
+import * as htmx from "htmx.org";
 
+// TODO: remove spot idx
 export function AddSpotForm({
   pieceid,
   csrf,
@@ -14,9 +16,6 @@ export function AddSpotForm({
   initialspotcount: string;
 }) {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [nextSpotIdx, setNextSpotIdx] = useState(
-    parseInt(initialspotcount) + 1 || 1,
-  );
   const {
     handleSubmit,
     formState,
@@ -31,7 +30,6 @@ export function AddSpotForm({
     resolver: yupResolver(spotFormData),
     defaultValues: {
       name: "",
-      idx: nextSpotIdx,
       measures: "",
       audioPromptUrl: "",
       textPrompt: "",
@@ -44,7 +42,6 @@ export function AddSpotForm({
   async function onSubmit(data: SpotFormData, e: Event) {
     e.preventDefault();
     setIsUpdating(true);
-    // @ts-ignore
     await htmx.ajax("POST", `/library/pieces/${pieceid}/spots`, {
       values: data,
       target: "#spot-list",
@@ -53,22 +50,24 @@ export function AddSpotForm({
         "X-CSRF-Token": csrf,
       },
     });
-    reset(
-      {
-        name: "",
-        idx: nextSpotIdx + 1,
-        measures: "",
-        audioPromptUrl: "",
-        textPrompt: "",
-        notesPrompt: "",
-        imagePromptUrl: "",
-        stage: "repeat",
-      },
-      { keepDirty: false },
-    );
+    reset({
+      name: "",
+      measures: "",
+      audioPromptUrl: "",
+      textPrompt: "",
+      notesPrompt: "",
+      imagePromptUrl: "",
+      stage: "repeat",
+    });
     setIsUpdating(false);
-    document.getElementById("spot-count").textContent = `(${nextSpotIdx})`;
-    setNextSpotIdx(nextSpotIdx + 1);
+    const spotsCountElement = document.getElementById("spot-count");
+    const spotsCount = parseInt(spotsCountElement.dataset.spotCount ?? "0");
+    if (isNaN(spotsCount)) {
+      document.getElementById("spot-count").textContent = "(error)";
+    } else {
+      spotsCountElement.textContent = `(${spotsCount + 1})`;
+      spotsCountElement.dataset.spotCount = `${spotsCount + 1}`;
+    }
   }
 
   const onBeforeUnload = useCallback(function (e: BeforeUnloadEvent) {

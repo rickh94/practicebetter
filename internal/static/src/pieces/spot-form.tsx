@@ -98,27 +98,8 @@ export default function SpotFormFields({
           </div>
         )}
       </div>
-      <div className="flex gap-2">
-        <div className="flex w-1/2 flex-col">
-          <label
-            className="text-sm font-medium leading-6 text-neutral-900"
-            htmlFor="idx"
-          >
-            Spot Order
-          </label>
-          <input
-            type="number"
-            id="idx"
-            {...register("idx", { valueAsNumber: true })}
-            className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
-          />
-          {formState.errors.idx && (
-            <p className="text-xs text-red-400">
-              {formState.errors.idx.message}
-            </p>
-          )}
-        </div>
-        <div className="flex w-1/2 flex-col">
+      <div className="flex w-full gap-2">
+        <div className="flex flex-grow flex-col">
           <label
             className="text-sm font-medium leading-6 text-neutral-900"
             htmlFor="measures"
@@ -136,12 +117,13 @@ export default function SpotFormFields({
             </p>
           )}
         </div>
-        <div className="flex w-1/2 flex-col">
+        <div className="flex flex-grow flex-col">
           <label
             className="text-sm font-medium leading-6 text-neutral-900"
             htmlFor="current-tempo"
           >
-            Curr Tempo
+            <span className="hidden xs:inline">Current </span>
+            Tempo
           </label>
           <input
             {...register("currentTempo", { valueAsNumber: true })}

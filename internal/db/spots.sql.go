@@ -16,7 +16,6 @@ INSERT INTO spots (
     piece_id,
     id,
     name,
-    idx,
     stage,
     audio_prompt_url,
     image_prompt_url,
@@ -27,10 +26,10 @@ INSERT INTO spots (
     stage_started
 ) VALUES (
     (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1),
-    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+    ?, ?, ?, ?, ?, ?, ?, ?, ?,
     unixepoch('now')
 )
-RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
 `
 
 type CreateSpotParams struct {
@@ -38,7 +37,6 @@ type CreateSpotParams struct {
 	PieceID        string         `json:"pieceId"`
 	ID             string         `json:"id"`
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`
 	ImagePromptUrl string         `json:"imagePromptUrl"`
@@ -54,7 +52,6 @@ func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, e
 		arg.PieceID,
 		arg.ID,
 		arg.Name,
-		arg.Idx,
 		arg.Stage,
 		arg.AudioPromptUrl,
 		arg.ImagePromptUrl,
@@ -68,7 +65,6 @@ func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, e
 		&i.ID,
 		&i.PieceID,
 		&i.Name,
-		&i.Idx,
 		&i.Stage,
 		&i.Measures,
 		&i.AudioPromptUrl,
@@ -208,7 +204,7 @@ func (q *Queries) FixSpotStageStarted(ctx context.Context, arg FixSpotStageStart
 
 const getSpot = `-- name: GetSpot :one
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -225,7 +221,6 @@ type GetSpotRow struct {
 	ID             string         `json:"id"`
 	PieceID        string         `json:"pieceId"`
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	Measures       sql.NullString `json:"measures"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`
@@ -247,7 +242,6 @@ func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (GetSpotRow, e
 		&i.ID,
 		&i.PieceID,
 		&i.Name,
-		&i.Idx,
 		&i.Stage,
 		&i.Measures,
 		&i.AudioPromptUrl,
@@ -293,7 +287,7 @@ func (q *Queries) GetSpotStageStarted(ctx context.Context, arg GetSpotStageStart
 
 const listHighPrioritySpots = `-- name: ListHighPrioritySpots :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -305,7 +299,6 @@ type ListHighPrioritySpotsRow struct {
 	ID             string         `json:"id"`
 	PieceID        string         `json:"pieceId"`
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	Measures       sql.NullString `json:"measures"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`
@@ -333,7 +326,6 @@ func (q *Queries) ListHighPrioritySpots(ctx context.Context, userID string) ([]L
 			&i.ID,
 			&i.PieceID,
 			&i.Name,
-			&i.Idx,
 			&i.Stage,
 			&i.Measures,
 			&i.AudioPromptUrl,
@@ -362,12 +354,12 @@ func (q *Queries) ListHighPrioritySpots(ctx context.Context, userID string) ([]L
 
 const listPieceSpots = `-- name: ListPieceSpots :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?1 AND pieces.id = ?2 LIMIT 1)
-ORDER BY spots.idx
+ORDER BY spots.last_practiced DESC
 `
 
 type ListPieceSpotsParams struct {
@@ -379,7 +371,6 @@ type ListPieceSpotsRow struct {
 	ID             string         `json:"id"`
 	PieceID        string         `json:"pieceId"`
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	Measures       sql.NullString `json:"measures"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`
@@ -407,7 +398,6 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 			&i.ID,
 			&i.PieceID,
 			&i.Name,
-			&i.Idx,
 			&i.Stage,
 			&i.Measures,
 			&i.AudioPromptUrl,
@@ -436,13 +426,13 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 
 const listPieceSpotsInStage = `-- name: ListPieceSpotsInStage :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?1 AND pieces.id = ?2 LIMIT 1)
 AND spots.stage = ?3
-ORDER BY spots.idx
+ORDER BY spots.last_practiced DESC
 `
 
 type ListPieceSpotsInStageParams struct {
@@ -455,7 +445,6 @@ type ListPieceSpotsInStageRow struct {
 	ID             string         `json:"id"`
 	PieceID        string         `json:"pieceId"`
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	Measures       sql.NullString `json:"measures"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`
@@ -483,7 +472,6 @@ func (q *Queries) ListPieceSpotsInStage(ctx context.Context, arg ListPieceSpotsI
 			&i.ID,
 			&i.PieceID,
 			&i.Name,
-			&i.Idx,
 			&i.Stage,
 			&i.Measures,
 			&i.AudioPromptUrl,
@@ -512,14 +500,14 @@ func (q *Queries) ListPieceSpotsInStage(ctx context.Context, arg ListPieceSpotsI
 
 const listPieceSpotsInStageForPlan = `-- name: ListPieceSpotsInStageForPlan :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
 WHERE piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?1 AND pieces.id = ?2 LIMIT 1)
 AND spots.stage = ?3
 AND spots.id NOT IN (SELECT practice_plan_spots.spot_id FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = ?4)
-ORDER BY spots.idx
+ORDER BY spots.last_practiced DESC
 `
 
 type ListPieceSpotsInStageForPlanParams struct {
@@ -533,7 +521,6 @@ type ListPieceSpotsInStageForPlanRow struct {
 	ID             string         `json:"id"`
 	PieceID        string         `json:"pieceId"`
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	Measures       sql.NullString `json:"measures"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`
@@ -566,7 +553,6 @@ func (q *Queries) ListPieceSpotsInStageForPlan(ctx context.Context, arg ListPiec
 			&i.ID,
 			&i.PieceID,
 			&i.Name,
-			&i.Idx,
 			&i.Stage,
 			&i.Measures,
 			&i.AudioPromptUrl,
@@ -595,7 +581,7 @@ func (q *Queries) ListPieceSpotsInStageForPlan(ctx context.Context, arg ListPiec
 
 const listSpotsForPlanStage = `-- name: ListSpotsForPlanStage :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.idx, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces on pieces.id = spots.piece_id
@@ -614,7 +600,6 @@ type ListSpotsForPlanStageRow struct {
 	ID             string         `json:"id"`
 	PieceID        string         `json:"pieceId"`
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	Measures       sql.NullString `json:"measures"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`
@@ -642,7 +627,6 @@ func (q *Queries) ListSpotsForPlanStage(ctx context.Context, arg ListSpotsForPla
 			&i.ID,
 			&i.PieceID,
 			&i.Name,
-			&i.Idx,
 			&i.Stage,
 			&i.Measures,
 			&i.AudioPromptUrl,
@@ -773,7 +757,6 @@ const updateSpot = `-- name: UpdateSpot :exec
 UPDATE spots
 SET
     name = ?,
-    idx = ?,
     stage = ?,
     stage_started = ?,
     audio_prompt_url = ?,
@@ -787,7 +770,6 @@ WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.use
 
 type UpdateSpotParams struct {
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`
@@ -804,7 +786,6 @@ type UpdateSpotParams struct {
 func (q *Queries) UpdateSpot(ctx context.Context, arg UpdateSpotParams) error {
 	_, err := q.db.ExecContext(ctx, updateSpot,
 		arg.Name,
-		arg.Idx,
 		arg.Stage,
 		arg.StageStarted,
 		arg.AudioPromptUrl,
@@ -883,7 +864,7 @@ UPDATE spots
 SET
     text_prompt = ?
 WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
-RETURNING id, piece_id, name, idx, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
 `
 
 type UpdateTextPromptParams struct {
@@ -905,7 +886,6 @@ func (q *Queries) UpdateTextPrompt(ctx context.Context, arg UpdateTextPromptPara
 		&i.ID,
 		&i.PieceID,
 		&i.Name,
-		&i.Idx,
 		&i.Stage,
 		&i.Measures,
 		&i.AudioPromptUrl,

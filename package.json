@@ -2,8 +2,8 @@
   "name": "musiclib",
   "type": "module",
   "scripts": {
-    "build": "vite build --minify 'esbuild' -m prod --sourcemap false && tailwindcss -i ./internal/static/src/input.css -o ./internal/static/css/main.css -m",
-    "build:dev": "vite build --minify false -m dev --sourcemap 'inline'  && tailwindcss -i ./internal/static/src/input.css -o ./internal/static/css/main.css -m"
+    "build": "vite build --minify 'esbuild' -m prod --sourcemap false",
+    "build:dev": "vite build --minify false -m dev --sourcemap 'inline'"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.8.1",
@@ -28,6 +28,8 @@
     "@iconify/tailwind": "^0.1.4",
     "@iconify/utils": "^2.1.14",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@simplewebauthn/browser": "^8.3.4",
+    "@simplewebauthn/typescript-types": "^8.3.4",
     "abcjs": "^6.2.3",
     "chart.js": "^4.4.1",
     "clsx": "^2.1.0",

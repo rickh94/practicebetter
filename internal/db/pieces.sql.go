@@ -112,7 +112,6 @@ SELECT
     pieces.stage,
     spots.id AS spot_id,
     spots.name AS spot_name,
-    spots.idx AS spot_idx,
     spots.stage AS spot_stage,
     spots.audio_prompt_url AS spot_audio_prompt_url,
     spots.image_prompt_url AS spot_image_prompt_url,
@@ -144,7 +143,6 @@ type GetPieceByIDRow struct {
 	Stage              string         `json:"stage"`
 	SpotID             sql.NullString `json:"spotId"`
 	SpotName           sql.NullString `json:"spotName"`
-	SpotIdx            sql.NullInt64  `json:"spotIdx"`
 	SpotStage          sql.NullString `json:"spotStage"`
 	SpotAudioPromptUrl sql.NullString `json:"spotAudioPromptUrl"`
 	SpotImagePromptUrl sql.NullString `json:"spotImagePromptUrl"`
@@ -176,7 +174,6 @@ func (q *Queries) GetPieceByID(ctx context.Context, arg GetPieceByIDParams) ([]G
 			&i.Stage,
 			&i.SpotID,
 			&i.SpotName,
-			&i.SpotIdx,
 			&i.SpotStage,
 			&i.SpotAudioPromptUrl,
 			&i.SpotImagePromptUrl,
@@ -211,7 +208,6 @@ SELECT
     pieces.last_practiced,
     spots.id AS spot_id,
     spots.name AS spot_name,
-    spots.idx AS spot_idx,
     spots.stage AS spot_stage,
     spots.last_practiced AS spot_last_practiced,
     spots.skip_days AS spot_skip_days
@@ -236,7 +232,6 @@ type GetPieceForPlanRow struct {
 	LastPracticed     sql.NullInt64  `json:"lastPracticed"`
 	SpotID            sql.NullString `json:"spotId"`
 	SpotName          sql.NullString `json:"spotName"`
-	SpotIdx           sql.NullInt64  `json:"spotIdx"`
 	SpotStage         sql.NullString `json:"spotStage"`
 	SpotLastPracticed sql.NullInt64  `json:"spotLastPracticed"`
 	SpotSkipDays      sql.NullInt64  `json:"spotSkipDays"`
@@ -262,7 +257,6 @@ func (q *Queries) GetPieceForPlan(ctx context.Context, arg GetPieceForPlanParams
 			&i.LastPracticed,
 			&i.SpotID,
 			&i.SpotName,
-			&i.SpotIdx,
 			&i.SpotStage,
 			&i.SpotLastPracticed,
 			&i.SpotSkipDays,
@@ -292,7 +286,6 @@ SELECT
     pieces.last_practiced,
     spots.id AS spot_id,
     spots.name AS spot_name,
-    spots.idx AS spot_idx,
     spots.stage AS spot_stage,
     spots.audio_prompt_url AS spot_audio_prompt_url,
     spots.image_prompt_url AS spot_image_prompt_url,
@@ -321,7 +314,6 @@ type GetPieceWithIncompleteSpotsRow struct {
 	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
 	SpotID             string         `json:"spotId"`
 	SpotName           string         `json:"spotName"`
-	SpotIdx            int64          `json:"spotIdx"`
 	SpotStage          string         `json:"spotStage"`
 	SpotAudioPromptUrl string         `json:"spotAudioPromptUrl"`
 	SpotImagePromptUrl string         `json:"spotImagePromptUrl"`
@@ -351,7 +343,6 @@ func (q *Queries) GetPieceWithIncompleteSpots(ctx context.Context, arg GetPieceW
 			&i.LastPracticed,
 			&i.SpotID,
 			&i.SpotName,
-			&i.SpotIdx,
 			&i.SpotStage,
 			&i.SpotAudioPromptUrl,
 			&i.SpotImagePromptUrl,
@@ -385,7 +376,6 @@ SELECT
     pieces.last_practiced,
     spots.id AS spot_id,
     spots.name AS spot_name,
-    spots.idx AS spot_idx,
     spots.stage AS spot_stage,
     spots.audio_prompt_url AS spot_audio_prompt_url,
     spots.image_prompt_url AS spot_image_prompt_url,
@@ -415,7 +405,6 @@ type GetPieceWithRandomSpotsRow struct {
 	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
 	SpotID             string         `json:"spotId"`
 	SpotName           string         `json:"spotName"`
-	SpotIdx            int64          `json:"spotIdx"`
 	SpotStage          string         `json:"spotStage"`
 	SpotAudioPromptUrl string         `json:"spotAudioPromptUrl"`
 	SpotImagePromptUrl string         `json:"spotImagePromptUrl"`
@@ -446,7 +435,6 @@ func (q *Queries) GetPieceWithRandomSpots(ctx context.Context, arg GetPieceWithR
 			&i.LastPracticed,
 			&i.SpotID,
 			&i.SpotName,
-			&i.SpotIdx,
 			&i.SpotStage,
 			&i.SpotAudioPromptUrl,
 			&i.SpotImagePromptUrl,

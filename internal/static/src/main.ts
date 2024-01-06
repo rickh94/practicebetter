@@ -8,6 +8,13 @@ import { InternalNav } from "./ui/internal-nav";
 import { EditRemindersSummary, RemindersSummary } from "./ui/prompts";
 import { BackToPiece } from "./ui/links";
 import { PracticeSpotDisplayWrapper } from "./practice/practice-spot-display";
+import "./input.css";
+import "htmx.org";
+import * as SimpleWebAuthnBrowser from "@simplewebauthn/browser";
+import {
+  PublicKeyCredentialRequestOptionsJSON,
+  PublicKeyCredentialCreationOptionsJSON,
+} from "@simplewebauthn/typescript-types";
 
 try {
   register(
@@ -356,3 +363,138 @@ document.addEventListener("htmx:afterSwap", (event: CustomEvent) => {
     window.scrollTo(0, 0);
   }
 });
+
+globalThis.startPasskeyAuth = function (
+  publicKey: PublicKeyCredentialRequestOptionsJSON,
+  csrf: string,
+  nextLoc: string,
+) {
+  SimpleWebAuthnBrowser.startAuthentication(publicKey)
+    .then((attResp) => {
+      fetch("/auth/passkey/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+        },
+        body: JSON.stringify(attResp),
+      })
+        .then((res) => res.json())
+        .then((res) => {
+          if (res.status == "ok") {
+            window.location.href = nextLoc;
+          } else {
+            console.log(res);
+            document.dispatchEvent(
+              new CustomEvent("ShowAlert", {
+                detail: {
+                  message: "Could not login",
+                  title: "Error",
+                  variant: "error",
+                  duration: 3000,
+                },
+              }),
+            );
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          document.dispatchEvent(
+            new CustomEvent("ShowAlert", {
+              detail: {
+                message: "Could not login",
+                title: "Error",
+                variant: "error",
+                duration: 3000,
+              },
+            }),
+          );
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+      document.dispatchEvent(
+        new CustomEvent("ShowAlert", {
+          detail: {
+            message: "Could not login",
+            title: "Error",
+            variant: "error",
+            duration: 3000,
+          },
+        }),
+      );
+    });
+};
+
+globalThis.startPasskeyRegistration = function (
+  publicKey: PublicKeyCredentialCreationOptionsJSON,
+  csrf: string,
+) {
+  SimpleWebAuthnBrowser.startRegistration(publicKey)
+    .then((attResp) => {
+      fetch("/auth/passkey/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+        },
+        body: JSON.stringify(attResp),
+      })
+        .then((res) => {
+          console.log(res);
+          if (res.ok) {
+            document.dispatchEvent(
+              new CustomEvent("ShowAlert", {
+                detail: {
+                  message: "Use your passkey to login in the future!",
+                  title: "Passkey Registered",
+                  variant: "success",
+                  duration: 3000,
+                },
+              }),
+            );
+            document.getElementById("passkey-count").innerHTML = (
+              parseInt(document.getElementById("passkey-count").innerHTML) + 1
+            ).toString();
+          } else {
+            console.log(res);
+            document.dispatchEvent(
+              new CustomEvent("ShowAlert", {
+                detail: {
+                  message: "Could not register your new passkey",
+                  title: "Getistration Error",
+                  variant: "error",
+                  duration: 3000,
+                },
+              }),
+            );
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          document.dispatchEvent(
+            new CustomEvent("ShowAlert", {
+              detail: {
+                message: "Could not regsiter your passkey",
+                title: "Error",
+                variant: "error",
+                duration: 3000,
+              },
+            }),
+          );
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+      document.dispatchEvent(
+        new CustomEvent("ShowAlert", {
+          detail: {
+            message: "Could not register your passkey",
+            title: "Error",
+            variant: "error",
+            duration: 3000,
+          },
+        }),
+      );
+    });
+};

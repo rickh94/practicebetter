@@ -5,6 +5,7 @@ import {
   ShuffleIcon,
 } from "./icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as htmx from "htmx.org";
 
 export function PracticeMenu({ pieceid }: { pieceid: string }) {
   const links = [
@@ -27,12 +28,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
 
   function processLinks() {
     document.querySelectorAll("a[data-radix-collection-item]").forEach((el) => {
-      // @ts-ignore
-      if (htmx) {
-        console.log("processing");
-        // @ts-ignore
-        htmx.process(el);
-      }
+      htmx.process(el);
     });
   }
 

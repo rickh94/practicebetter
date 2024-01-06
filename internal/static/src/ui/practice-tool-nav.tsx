@@ -6,6 +6,7 @@ import {
   ShuffleIcon,
 } from "./icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import * as htmx from "htmx.org";
 
 const links = new Map<string, { label: string; icon: preact.JSX.Element }>([
   [
@@ -32,12 +33,7 @@ const links = new Map<string, { label: string; icon: preact.JSX.Element }>([
 
 function processLinks() {
   document.querySelectorAll("a[data-radix-collection-item]").forEach((el) => {
-    // @ts-ignore
-    if (htmx) {
-      console.log("processing");
-      // @ts-ignore
-      htmx.process(el);
-    }
+    htmx.process(el);
   });
 }
 

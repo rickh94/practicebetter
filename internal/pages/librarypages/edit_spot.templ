@@ -27,6 +27,6 @@ templ EditSpot(s pages.ServerUtil, spot db.GetSpotRow, spotData string, csrf str
 				<edit-spot-form pieceid={ spot.PieceID } csrf={ csrf } spotData={ spotData } spotid={ spot.ID }></edit-spot-form>
 			</div>
 		}
-		<script type="module" src={ s.StaticUrl("out/edit-spot.js") }></script>
+		<script type="module" src={ s.StaticUrl("dist/edit-spot.js") }></script>
 	}
 }

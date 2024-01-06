@@ -24,7 +24,6 @@ export const pieceStage = yup.string().oneOf(pieceStages);
 export const basicSpot = yup.object({
   id: yup.string().nullable().optional(),
   name: yup.string().min(1, "Too Short"),
-  idx: yup.number().nullable().optional(),
   stage: spotStage.default("repeat"),
   measures: yup.string().default("").optional(),
   audioPromptUrl: yup.string().nullable().optional(),

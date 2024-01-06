@@ -16,8 +16,7 @@ RUN go mod download
 COPY . .
 RUN rm -rf internal/static/out
 RUN mkdir -p internal/static/out
-COPY --from=bunbuilder /app/internal/static/css/main.css ./internal/static/css/main.css
-COPY --from=bunbuilder /app/internal/static/out/* ./internal/static/out
+COPY --from=bunbuilder /app/internal/static/dist/* ./internal/static/dist
 RUN templ generate && \
 CGO_ENABLED=1 GOOS=linux go build -o /practicebetter cmd/main.go
 

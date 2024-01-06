@@ -50,7 +50,7 @@ templ ListSpots(s pages.ServerUtil, csrf string, info ListSpotsInfo) {
 				@ListSpotsColumn("Completed Spots", info.CompletedSpots, info.PieceID)
 			</div>
 		}
-		<script type="module" src={ s.StaticUrl("out/practice-menu.js") }></script>
+		<script type="module" src={ s.StaticUrl("dist/practice-menu.js") }></script>
 	}
 }
 

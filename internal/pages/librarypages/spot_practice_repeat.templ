@@ -28,6 +28,6 @@ templ SpotPracticeRepeatPage(s pages.ServerUtil, spot db.GetSpotRow, csrf string
  				planid={ components.GetActivePracticePlan(ctx) }
 			></repeat-practice>
 		}
-		<script type="module" src={ s.StaticUrl("out/practice.js") }></script>
+		<script type="module" src={ s.StaticUrl("dist/practice.js") }></script>
 	}
 }

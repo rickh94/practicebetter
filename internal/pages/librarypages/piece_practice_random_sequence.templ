@@ -21,6 +21,6 @@ templ PiecePracticeRandomSequencePage(s pages.ServerUtil, csrf string, piece []d
 		@components.NormalContainer() {
 			<sequence-spots class="w-full" initialspots={ spotsData } pieceid={ piece[0].ID } csrf={ csrf }></sequence-spots>
 		}
-		<script type="module" src={ s.StaticUrl("out/practice.js") }></script>
+		<script type="module" src={ s.StaticUrl("dist/practice.js") }></script>
 	}
 }

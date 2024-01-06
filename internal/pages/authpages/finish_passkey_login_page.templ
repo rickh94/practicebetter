@@ -6,22 +6,7 @@ import "practicebetter/internal/components"
 // TODO: maybe switch to using htmx for the ajax
 
 script startLogin(loginOptions *protocol.CredentialAssertion, csrf string, nextLoc string) {
-  SimpleWebAuthnBrowser.startAuthentication(loginOptions.publicKey).then(attResp => {
-    fetch('/auth/passkey/login', {
-      method: 'POST',
-      headers: {
-	'Content-Type': 'application/json',
-	'X-CSRF-TOKEN': csrf,
-      },
-      body: JSON.stringify(attResp),
-    }).then(res => res.json()).then(res => {
-	if (res.status == "ok") {
-		window.location.href = nextLoc;
-	} else {
-		console.log(res);
-	}
-    }).catch(err => console.log(err));
-  }).catch(err => console.log(err));
+	globalThis.startPasskeyAuth(loginOptions.publicKey, csrf, nextLoc)
 }
 
 templ FinishPasskeyLoginPage(loginOptions *protocol.CredentialAssertion, csrf string, nextLoc string) {

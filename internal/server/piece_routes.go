@@ -477,11 +477,9 @@ func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Req
 		// row is a moving pointer, directly referencing underlying data is unreliable when
 		// the pointer moves (the spots all ended up with the last spot's id). Need to make copies of the data to point to
 		spotID := row.SpotID
-		spotIdx := row.SpotIdx
 		spots = append(spots, SpotFormData{
 			ID:             &spotID,
 			Name:           row.SpotName,
-			Idx:            &spotIdx,
 			Stage:          row.SpotStage,
 			AudioPromptUrl: row.SpotAudioPromptUrl,
 			ImagePromptUrl: row.SpotImagePromptUrl,

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { SpotFormData, spotFormData } from "../validators";
 import SpotFormFields from "./spot-form";
 import { useState } from "preact/hooks";
+import * as htmx from "htmx.org";
 
 export function EditSpotForm({
   pieceid,
@@ -25,7 +26,6 @@ export function EditSpotForm({
         const spot: SpotFormData = JSON.parse(spotdata);
         return {
           name: spot.name ?? "",
-          idx: spot.idx ?? 1,
           measures: spot.measures ?? "",
           audioPromptUrl: spot.audioPromptUrl ?? "",
           textPrompt: spot.textPrompt ?? "",
@@ -39,7 +39,6 @@ export function EditSpotForm({
   async function onSubmit(data: SpotFormData, e: Event) {
     e.preventDefault();
     setIsUpdating(true);
-    // @ts-ignore
     await htmx.ajax("PUT", `/library/pieces/${pieceid}/spots/${spotid}`, {
       values: data,
       target: "#main-content",

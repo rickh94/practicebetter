@@ -80,7 +80,6 @@ type Spot struct {
 	ID             string         `json:"id"`
 	PieceID        string         `json:"pieceId"`
 	Name           string         `json:"name"`
-	Idx            int64          `json:"idx"`
 	Stage          string         `json:"stage"`
 	Measures       sql.NullString `json:"measures"`
 	AudioPromptUrl string         `json:"audioPromptUrl"`

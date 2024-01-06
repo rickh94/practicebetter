@@ -60,7 +60,6 @@ CREATE TABLE spots (
     id TEXT NOT NULL,
     piece_id TEXT NOT NULL,
     name TEXT NOT NULL,
-    idx INTEGER NOT NULL,
     stage TEXT NOT NULL DEFAULT 'repeat',
     measures TEXT,
     audio_prompt_url TEXT NOT NULL DEFAULT '',

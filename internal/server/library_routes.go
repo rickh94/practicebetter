@@ -89,7 +89,6 @@ type PieceFormData struct {
 type SpotFormData struct {
 	ID             *string `json:"id,omitempty"`
 	Name           string  `json:"name"`
-	Idx            *int64  `json:"idx,omitempty"`
 	Stage          string  `json:"stage"`
 	Measures       *string `json:"measures,omitempty"`
 	AudioPromptUrl string  `json:"audioPromptUrl,omitempty"`
@@ -105,9 +104,6 @@ func makeSpotFormDataFromRow(row db.GetPieceByIDRow) SpotFormData {
 	spot.ID = &row.SpotID.String
 	if row.SpotName.Valid {
 		spot.Name = row.SpotName.String
-	}
-	if row.SpotIdx.Valid {
-		spot.Idx = &row.SpotIdx.Int64
 	}
 	if row.SpotStage.Valid {
 		spot.Stage = row.SpotStage.String
@@ -307,7 +303,6 @@ func makeSpotFormDataFromSpot(row db.GetSpotRow) SpotFormData {
 	var spot SpotFormData
 	spot.ID = &row.ID
 	spot.Name = row.Name
-	spot.Idx = &row.Idx
 	spot.Stage = row.Stage
 	spot.TextPrompt = row.TextPrompt
 	spot.AudioPromptUrl = row.AudioPromptUrl

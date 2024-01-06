@@ -5,32 +5,7 @@ import "practicebetter/internal/db"
 import "practicebetter/internal/components"
 
 script startRegistration(creationOptions *protocol.CredentialCreation, csrf string) {
-  SimpleWebAuthnBrowser.startRegistration(creationOptions.publicKey).then(attResp => {
-    console.log(attResp);
-    fetch('/auth/passkey/register', {
-      method: 'POST',
-      headers: {
-	'Content-Type': 'application/json',
-	'X-CSRF-TOKEN': csrf
-      },
-      body: JSON.stringify(attResp),
-    }).then(res => {
-      console.log(res)
-      if (res.ok) {
-	      document.dispatchEvent(new CustomEvent("ShowAlert", {
-		  detail: {
-		    message: "Use your passkey to login in the future!",
-		    title: "Passkey Registered",
-		    variant: "success",
-		    duration: 3000,
-		  }
-	      }));
-	      document.getElementById("passkey-count").innerHTML = (parseInt(document.getElementById("passkey-count").innerHTML) + 1).toString();
-      } else {
-	      showAlert("Could not register your new passkey. Try again later", "Registration Failed!", "error", 3000);
-      }
-    }).catch(err => console.log(err));
-  }).catch(err => console.log(err));
+	globalThis.startPasskeyRegistration(creationOptions.publicKey, csrf)
 }
 
 script deletePasskeys() {

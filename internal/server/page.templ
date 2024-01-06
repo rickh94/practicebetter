@@ -35,7 +35,7 @@ templ Head(s *Server, title string) {
 				<title>{ title } | Practice Better</title>
 			}
 		}
-		<link rel="stylesheet" href={ s.StaticUrl("css/main.css") }/>
+		<link rel="stylesheet" href={ s.StaticUrl("dist/style.css") }/>
 		<link rel="icon" type="image/svg+xml" href={ s.StaticUrl("img/favicon.svg") }/>
 		<link rel="apple-touch-icon" sizes="180x180" href={ s.StaticUrl("img/apple-touch-icon.png") }/>
 		<link rel="icon" type="image/png" sizes="32x32" href={ s.StaticUrl("img/favicon-32x32.png") }/>
@@ -126,8 +126,6 @@ templ Body(s *Server) {
 			<div class="fixed bottom-0 z-50 w-screen h-2 hazard-background"></div>
 			<div class="w-screen"></div>
 		}
-		<script src={ s.StaticUrl("js/webauthn-browser.min.js") } defer></script>
-		<script type="module" src={ s.StaticUrl("out/main.js") }></script>
-		<script src={ s.StaticUrl("js/htmx.min.js") }></script>
+		<script type="module" src={ s.StaticUrl("dist/main.js") }></script>
 	</body>
 }

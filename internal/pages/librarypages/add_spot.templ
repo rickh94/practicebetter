@@ -36,7 +36,7 @@ templ AddSpotPage(s pages.ServerUtil, csrf string, pieceID string, pieceTitle st
 			</div>
 			@AddSpotsSpotList(spots)
 		}
-		<script type="module" src={ s.StaticUrl("out/add-spot.js") }></script>
+		<script type="module" src={ s.StaticUrl("dist/add-spot.js") }></script>
 	}
 }
 
@@ -45,7 +45,7 @@ templ AddSpotsSpotList(spots []db.ListPieceSpotsRow) {
 		<div class="flex flex-col pb-2">
 			<h2 class="text-2xl font-bold text-center" id="spots-list-title">
 				Spots
-				<span id="spot-count">
+				<span data-spot-count={ strconv.Itoa(len(spots)) } id="spot-count" class="inline p-0">
 					({ strconv.Itoa(len(spots)) })
 				</span>
 			</h2>
