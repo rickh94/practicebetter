@@ -1,7 +1,6 @@
 package planpages
 
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 import "strconv"
 
 script interleaveShowNext(i int) {
@@ -43,7 +42,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
  								type="button"
  								class="action-button text-neutral-800 bg-neutral-700/10 hover:bg-neutral-700/20 focusable"
 							>
-								@heroicons.IconChevronLeftSolid("-ml-1 size-5")
+								<span class="-ml-1 size-5 icon-[heroicons--chevron-left-solid]" aria-hidden="true"></span>
 								Previous
 							</button>
 						} else {
@@ -56,7 +55,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
  								class="action-button text-neutral-800 bg-neutral-700/10 hover:bg-neutral-700/20 focusable"
 							>
 								Next
-								@heroicons.IconChevronRightSolid("-mr-1 size-5")
+								<span class="-mr-1 size-5 icon-[heroicons--chevron-right-solid]" aria-hidden="true"></span>
 							</button>
 						}
 					</div>
@@ -68,7 +67,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 				<div
  					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"
 				>
-					@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 					Completed
 				</div>
 			} else {
@@ -77,7 +76,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
  					type="button"
  					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
 				>
-					@heroicons.IconCheckCircleOutline("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 					Complete
 				</button>
 				@CompleteInterleaveForm(planID, csrf, interleaveSpots)
@@ -113,14 +112,14 @@ templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpo
  					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
  					type="button"
 				>
-					@heroicons.IconXCircleSolid("-ml-1 size-5 text-red-800")
+					<span class="-ml1 size-5 icon-[heroicons--x-circle-solid]" aria-hidden="true"></span>
 					Cancel
 				</button>
 				<button
  					class="flex-grow text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
  					type="submit"
 				>
-					@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800")
+					<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 					Save
 				</button>
 			</section>
@@ -152,12 +151,12 @@ templ CompleteSpotRadioOptions(spot PracticePlanSpot, showCompleted bool) {
  				onchange={ changeSelectedQuality(spot.ID, "poor") }
 			/>
 			<span class="flex flex-1 gap-1 items-center">
-				@heroicons.IconHandThumbDownSolid("-ml-1 size-5 text-red-800/80")
+				<span class="-ml-1 size-5 text-red-800/80 icon-[heroicons--hand-thumb-down-solid]" aria-hidden="true"></span>
 				<span class="font-medium">
 					Poor
 				</span>
 			</span>
-			@heroicons.IconCheckCircleSolid("ml-3 size-5 text-red-800 icon")
+			<span class="ml-3 text-red-800 size-5 icon icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 			<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 		</label>
 		<label for={ spot.ID + ".quality.fine" } class="flex relative flex-grow items-center py-3 pr-2 pl-4 rounded-xl cursor-pointer quality-option fine-radio-option text-sky-800 checked focusable" id={ spot.ID + ".quality.fine" + "-label" }>
@@ -172,12 +171,12 @@ templ CompleteSpotRadioOptions(spot PracticePlanSpot, showCompleted bool) {
  				onchange={ changeSelectedQuality(spot.ID, "fine") }
 			/>
 			<span class="flex flex-1 gap-1 items-center">
-				@heroicons.IconHandRaisedSolid("-ml-1 size-5 text-sky-800/80")
+				<span class="-ml-1 size-5 text-sky-800/80 icon-[heroicons--hand-raised-solid]" aria-hidden="true"></span>
 				<span class="font-medium">
 					Fine
 				</span>
 			</span>
-			@heroicons.IconCheckCircleSolid("ml-3 size-5 text-sky-800 icon")
+			<span class="ml-3 text-sky-800 size-5 icon icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 			<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 		</label>
 		if showCompleted {
@@ -192,12 +191,12 @@ templ CompleteSpotRadioOptions(spot PracticePlanSpot, showCompleted bool) {
  					onchange={ changeSelectedQuality(spot.ID, "completed") }
 				/>
 				<span class="flex flex-1 gap-1 items-center">
-					@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800/80")
+					<span class="-ml-1 text-green-800/80 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 					<span class="font-medium">
 						Complete
 					</span>
 				</span>
-				@heroicons.IconCheckCircleSolid("ml-3 size-5 text-green-800 icon")
+				<span class="ml-3 text-green-800 size-5 icon icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 				<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 			</label>
 		} else {
@@ -212,12 +211,12 @@ templ CompleteSpotRadioOptions(spot PracticePlanSpot, showCompleted bool) {
  					onchange={ changeSelectedQuality(spot.ID, "excellent") }
 				/>
 				<span class="flex flex-1 gap-1 items-center">
-					@heroicons.IconHandThumbUpSolid("-ml-1 size-5 text-green-800/80")
+					<span class="-ml-1 size-5 text-green-800/80 icon-[heroicons--hand-thumb-up-solid]" aria-hidden="true"></span>
 					<span class="font-medium">
 						Excellent
 					</span>
 				</span>
-				@heroicons.IconCheckCircleSolid("ml-3 size-5 text-green-800 icon")
+				<span class="ml-3 text-green-800 size-5 icon icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 				<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 			</label>
 		}

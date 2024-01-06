@@ -4,7 +4,6 @@ package planpages
 import "practicebetter/internal/pages"
 import "practicebetter/internal/components"
 import "strconv"
-import "practicebetter/internal/heroicons"
 
 // TODO: make no pages thing look right
 
@@ -24,7 +23,7 @@ templ PSList(s pages.ServerUtil,  practiceSessions string, page int, hasNext boo
 			<div class="flex flex-grow-0 justify-between items-center py-4 px-4 w-full sm:max-w-5xl sm:max-auto">
 				if page > 1 {
 					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", "/library/practice-sessions?page=" + strconv.Itoa(page-1), "#main-content") {
-						@heroicons.IconChevronLeftSolid("-ml-1 size-5")
+						<span class="-ml-1 size-5 icon-[heroicons--chevron-left-solid]" aria-hidden="true"></span>
 						Newer
 					}
 				} else {
@@ -33,7 +32,7 @@ templ PSList(s pages.ServerUtil,  practiceSessions string, page int, hasNext boo
 				if hasNext {
 					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", "/library/practice-sessions?page=" + strconv.Itoa(page+1), "#main-content") {
 						Older
-						@heroicons.IconChevronRightSolid("-ml-1 size-5")
+						<span class="-mr-1 size-5 icon-[heroicons--chevron-right-solid]" aria-hidden="true"></span>
 					}
 				} else {
 					<span class="py-2 px-4 h-full text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No Older Sessions</span>

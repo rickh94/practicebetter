@@ -1,7 +1,6 @@
 package librarypages
 
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 import "practicebetter/internal/db"
 import "database/sql"
 import "practicebetter/internal/pages"
@@ -20,7 +19,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 					@components.PracticePlanCard(activePracticePlan)
 				} else {
 					@components.HxLink("flex gap-2 justify-center items-center py-6 px-6 text-2xl font-semibold text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
-						@heroicons.IconDocumentCheckSolid("-ml-2 size-8")
+						<span class="-mr-1 size-8 icon-[solar--clipboard-add-bold]" aria-hidden="true"></span>
 						Start Practicing
 					}
 				}
@@ -30,7 +29,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 						@components.PracticePlanCard(plan)
 					}
 					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans", "#main-content") {
-						@heroicons.IconViewColumnsSolid("-ml-1 size-6")
+						<span class="-ml-1 size-6 icon-[heroicons--view-columns-solid]" aria-hidden="true"></span>
 						All Practice Plans
 					}
 				</div>
@@ -39,11 +38,11 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 				@LibraryPieceList(pieces)
 				<div class="flex flex-col gap-4 w-full sm:flex-row">
 					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-sky-700 rounded-xl bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/pieces", "#main-content") {
-						@heroicons.IconViewColumnsSolid("-ml-1 size-5")
+						<span class="-ml-1 size-6 icon-[heroicons--view-columns-solid]" aria-hidden="true"></span>
 						All Pieces
 					}
 					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-green-700 rounded-xl bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/create", "#main-content") {
-						@heroicons.IconDocumentPlusSolid("-ml-1 size-5")
+						<span class="-ml-1 size-5 icon-[heroicons--document-plus-solid]" aria-hidden="true"></span>
 						New Piece
 					}
 				</div>
@@ -51,18 +50,6 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 		}
 	}
 }
-
-/*
-
-	<div class="hidden flex-col gap-2 p-4 w-full rounded-xl md:block bg-neutral-700/10">
-		<h3 class="text-2xl font-bold col-span">Recent Practice Sessions</h3>
-		<past-practice-display sessions={ practiceSessions } background="true"></past-practice-display>
-		@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-amber-700 rounded-xl bg-amber-700/10 hover:bg-amber-700/20 focusable", "/library/practice-sessions", "#main-content") {
-			@heroicons.IconViewColumnsSolid("-ml-1 size-6")
-			All Practice Sessions
-		}
-	</div>
-*/
 
 func composerOrDefault(composer sql.NullString) string {
 	if composer.Valid {

@@ -1,4 +1,5 @@
 const defaultTheme = require("tailwindcss/defaultTheme");
+const { addDynamicIconSelectors } = require("@iconify/tailwind");
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -16,5 +17,14 @@ export default {
     },
     extend: {},
   },
-  plugins: [require("@tailwindcss/typography"), require("tailwindcss-animate")],
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("tailwindcss-animate"),
+
+    addDynamicIconSelectors({
+      iconSets: {
+        custom: "./internal/static/icons.json",
+      },
+    }),
+  ],
 };

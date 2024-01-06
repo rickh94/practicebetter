@@ -14,8 +14,6 @@ import {
   AddReminders,
   AddNotesPrompt,
 } from "./add-prompts";
-import { FolderPlusIcon, ChevronLeftIcon } from "@heroicons/react/24/solid";
-import { SpotStageIcon } from "../ui/stages";
 
 export default function SpotFormFields({
   formState,
@@ -190,15 +188,22 @@ export default function SpotFormFields({
         </div>
       </div>
       <div
-        className="flex flex-row-reverse justify-start gap-4 pt-4"
+        className="flex flex-row-reverse justify-start gap-2 pt-4"
         id="spot-form-button-row"
       >
         <HappyButton type="submit">
-          <FolderPlusIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--arrow-down-tray-solid] -ml-1 size-5"
+            aria-hidden="true"
+          />
           {isUpdating ? "Saving..." : "Save"}
         </HappyButton>
         <WarningLink href={backTo}>
-          <ChevronLeftIcon className="-ml-1 size-5" /> Go Back
+          <span
+            className="icon-[heroicons--arrow-left-circle-solid] -ml-1 size-5"
+            aria-hidden="true"
+          />
+          Go Back
         </WarningLink>
       </div>
     </div>

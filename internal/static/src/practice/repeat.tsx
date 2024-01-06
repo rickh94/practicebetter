@@ -1,10 +1,3 @@
-import {
-  ArrowPathIcon,
-  ArrowUpRightIcon,
-  BookOpenIcon,
-  CheckIcon,
-  HandThumbDownIcon,
-} from "@heroicons/react/24/solid";
 import { AnimatePresence, motion } from "framer-motion";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { RepeatPrepareText } from "./repeat-prepare-text";
@@ -24,11 +17,6 @@ import {
   Link,
   WarningLink,
 } from "../ui/links";
-import {
-  HandThumbUpIcon,
-  ListBulletIcon,
-  MusicalNoteIcon,
-} from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { PracticeSpotDisplay } from "./practice-spot-display";
 import { NextPlanItem } from "../ui/plan-components";
@@ -318,7 +306,7 @@ function RepeatPractice({
               onClick={succeed}
               className="sm:gap-2"
             >
-              <HandThumbUpIcon className="-ml-1 size-6" />
+              <span className="icons-[heroicons--hand-thumb-up-solid] -ml-1 size-6" />
               <span>Correct</span>
             </BigHappyButton>
             <BigAngryButton
@@ -326,7 +314,7 @@ function RepeatPractice({
               onClick={fail}
               className="sm:gap-2"
             >
-              <HandThumbDownIcon className="-ml-1 size-6" />
+              <span className="icons-[heroicons--hand-thumb-down-solid] -ml-1 size-6" />
               <span>Mistake</span>
             </BigAngryButton>
           </div>
@@ -345,7 +333,7 @@ function RepeatPractice({
         <div className="mx-auto flex w-full max-w-lg flex-wrap items-center justify-center">
           <WarningButton onClick={onFail}>
             <span>Move On</span>
-            <ArrowUpRightIcon className="-ml-1 size-6" />{" "}
+            <span className="icon-[heroicons--arrow-up-right-solid] -ml-1 size-6" />
           </WarningButton>
         </div>
       </div>
@@ -386,7 +374,7 @@ function PracticeListItem({
           exit="exit"
           variants={variants}
         >
-          <CheckIcon className="size-6 sm:size-8" />{" "}
+          <span className="icon-[heroicons--check-solid] size-6 sm:size-8" />
           <span className="sr-only">Checked</span>
         </motion.li>
       ) : (
@@ -488,7 +476,7 @@ function RepeatBreakSuccess({
             onClick={handleRandom}
             className="h-14 w-full text-lg"
           >
-            <CheckIcon className="-ml-1 size-6" />
+            <span className="icon-[custom--shuffle] -ml-1 size-6"></span>
             Random
           </HappyButton>
           <SkyButton
@@ -496,7 +484,7 @@ function RepeatBreakSuccess({
             onClick={handleMoreRepeat}
             className="h-14 w-full text-lg"
           >
-            <ArrowPathIcon className="-ml-1 size-6" />
+            <span className="icon-[custom--repeat] -ml-1 size-6"></span>
             More Repeat
           </SkyButton>
         </div>
@@ -620,11 +608,17 @@ function RepeatFinishedActionButtons({
       <>
         <BackToPiece pieceid={pieceid} />
         <WarningLink href={`/library/pieces/${pieceid}/practice/random-single`}>
-          <MusicalNoteIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[custom--shuffle] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
           Try Random Practicing
         </WarningLink>
         <HappyLink href={`/library/pieces/${pieceid}/practice/repeat`}>
-          <ListBulletIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[custom--repeat] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
           Practice Another Spot
         </HappyLink>
       </>
@@ -636,15 +630,24 @@ function RepeatFinishedActionButtons({
         className="focusable action-button bg-sky-700/10 text-sky-800 hover:bg-sky-700/20"
         href="/library"
       >
-        <BookOpenIcon className="-ml-1 size-5" />
+        <span
+          className="icon-[solar--music-note-slider-bold-duotone] -ml-1 size-5"
+          aria-hidden="true"
+        />
         Library
       </Link>
       <WarningLink href="/practice/random-single">
-        <MusicalNoteIcon className="-ml-1 size-5" />
+        <span
+          className="icon-[custom--shuffle] -ml-1 size-5"
+          aria-hidden="true"
+        ></span>
         Try Random Practicing
       </WarningLink>
       <HappyButton onClick={restart}>
-        <MusicalNoteIcon className="-ml-1 size-5" />
+        <span
+          className="icon-[custom--repeat] -ml-1 size-5"
+          aria-hidden="true"
+        ></span>
         Practice Another Spot
       </HappyButton>
     </>

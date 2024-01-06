@@ -2,7 +2,6 @@ package planpages
 
 import "practicebetter/internal/components"
 import "strconv"
-import "practicebetter/internal/heroicons"
 
 script removeAddedItem(id string) {
 	const el = document.getElementById(id);
@@ -25,7 +24,7 @@ templ EditPracticePlanPage(planData PracticePlanData, csrf string) {
 				})
 			@components.ActionButtonContainer() {
 				@components.HxLink("text-sky-800 action-button bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/plans/"+planData.ID, "#main-content") {
-					@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 					Done
 				}
 			}
@@ -115,7 +114,7 @@ templ editPracticePlanPageContent(planData PracticePlanData, csrf string) {
 		</section>
 		<div class="flex flex-row-reverse flex-wrap col-span-full">
 			@components.HxLink("text-sky-800 action-button bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/plans/"+planData.ID, "#main-content") {
-				@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+				<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 				Done
 			}
 		</div>
@@ -164,7 +163,7 @@ templ DeleteSpotCard(spotID, name, measures, stage, pieceTitle, planID, csrf, pr
 				</div>
 			</div>
 			<div class="mr-3 size-6"></div>
-			@heroicons.IconXCircleSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-red-800")
+			<span class="absolute right-0 top-1/2 mr-3 text-red-800 transform -translate-y-1/2 size-6 icon-[heroicons--x-circle-solid]"></span>
 		</button>
 	</li>
 }
@@ -189,7 +188,7 @@ templ DeletePracticePlanPieceCard(pieceID string, title string, composer string,
 				<div class="font-bold text-red-800">Click to Delete</div>
 			</div>
 			<div class="flex flex-grow-0 items-center">
-				@heroicons.IconXCircleSolid("size-10 -mr-2 text-red-800")
+				<span class="-mr-2 text-red-800 size-10 icon-[heroicons--x-circle-solid]"></span>
 			</div>
 		</button>
 	</li>

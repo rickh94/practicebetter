@@ -1,7 +1,6 @@
 package planpages
 
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 
 script changeSelectedQuality(id, value string) {
 	for (const el of document.querySelectorAll(`#quality-${id} .quality-option`)) {
@@ -27,7 +26,7 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 				<div
  					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"
 				>
-					@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 					Completed
 				</div>
 			} else {
@@ -36,7 +35,7 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
  					type="button"
  					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
 				>
-					@heroicons.IconCheckCircleOutline("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--check-circle]" aria-hidden="true"></span>
 					Complete
 				</button>
 				@CompleteInterleaveDaysForm(planID, csrf, interleaveDaysSpots)
@@ -73,14 +72,14 @@ templ CompleteInterleaveDaysForm(planID string, csrf string, spots []PracticePla
  					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
  					type="button"
 				>
-					@heroicons.IconXCircleSolid("-ml-1 size-5 text-red-800")
+					<span class="-ml-1 text-red-800 size-5 icon-[heroicons--x-circle-solid]" aria-hidden="true"></span>
 					Cancel
 				</button>
 				<button
  					class="flex-grow text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
  					type="submit"
 				>
-					@heroicons.IconCheckCircleSolid("-ml-1 size-5 text-green-800")
+					<span class="-ml-1 text-green-800 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 					Save
 				</button>
 			</section>

@@ -1,11 +1,3 @@
-import {
-  CheckCircleIcon,
-  CheckIcon,
-  Cog6ToothIcon,
-  MinusCircleIcon,
-  MusicalNoteIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/solid";
 import { cn, type PracticeSummaryItem } from "../common";
 import {
   AngryButton,
@@ -15,7 +7,6 @@ import {
 } from "../ui/buttons";
 import { BackToPiece, BackToPlan } from "../ui/links";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useAutoAnimate } from "@formkit/auto-animate/preact";
 import { NextPlanItem } from "../ui/plan-components";
 
@@ -213,8 +204,11 @@ export default function Summary({
         <div className="prose prose-sm prose-neutral mt-2 text-left">
           Based on your practicing, here are some recommendations for your
           spots. Click the{" "}
-          <MinusCircleIcon className="inline size-4 text-red-500" /> to prevent
-          the change and keep the spot in Random practicing.
+          <span
+            className="icon-[heroicons--minus-circle-solid] inline size-5 text-red-500"
+            aria-hidden="true"
+          />{" "}
+          to prevent the change and keep the spot in Random practicing.
         </div>
         <div className="flex flex-col-reverse gap-2  sm:grid sm:grid-cols-2">
           <div className="flex flex-col gap-2 rounded-xl bg-amber-500/10 p-2">
@@ -238,7 +232,10 @@ export default function Summary({
                       onClick={() => removeDemotionSpot(item.id)}
                       className="focusable rounded-xl py-1 pl-2 text-red-500 hover:bg-red-500/10"
                     >
-                      <MinusCircleIcon className="inline size-5 text-red-500" />
+                      <span
+                        className="icon-[heroicons--minus-circle-solid] inline size-5 text-red-500"
+                        aria-hidden="true"
+                      />
                       <span className="sr-only">Remove</span>
                     </button>
                   </li>
@@ -269,7 +266,10 @@ export default function Summary({
                       onClick={() => removePromotionSpot(item.id)}
                       className="focusable rounded-xl py-1 pl-2 text-red-500 hover:bg-red-500/10"
                     >
-                      <MinusCircleIcon className="inline size-5 text-red-500" />
+                      <span
+                        className="icon-[heroicons--minus-circle-solid] inline size-5 text-red-500"
+                        aria-hidden="true"
+                      />
                       <span className="sr-only">Remove</span>
                     </button>
                   </li>
@@ -286,7 +286,10 @@ export default function Summary({
             onClick={rejectPromotions}
             className="h-14 w-full text-lg"
           >
-            <XCircleIcon className="-ml-1 size-6" />
+            <span
+              className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+              aria-hidden="true"
+            />
             Reject All
           </AngryButton>
           <HappyButton
@@ -294,7 +297,10 @@ export default function Summary({
             onClick={savePromotions}
             className="h-14 w-full text-lg"
           >
-            <CheckCircleIcon className="-ml-1 size-6" />
+            <span
+              className="icon-[heroicons--check-circle-solid] -ml-1 size-6"
+              aria-hidden="true"
+            />
             Accept
           </HappyButton>
         </div>
@@ -432,11 +438,17 @@ export function SummaryActions({
     return (
       <>
         <WarningButton onClick={setup}>
-          <Cog6ToothIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--cog-6-tooth-solid] -ml-1 size-5"
+            aria-hidden="true"
+          />
           Back to Setup
         </WarningButton>
         <VioletButton onClick={practice}>
-          <MusicalNoteIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--musical-note-solid] -ml-1 size-5"
+            aria-hidden="true"
+          />
           Practice More
         </VioletButton>
         {pieceid && <BackToPiece pieceid={pieceid} />}

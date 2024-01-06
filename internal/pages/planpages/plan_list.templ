@@ -2,7 +2,6 @@ package planpages
 
 import "practicebetter/internal/components"
 import "strconv"
-import "practicebetter/internal/heroicons"
 
 // TODO: add create piece link
 
@@ -16,7 +15,7 @@ templ PlanList(plans []components.PracticePlanCardInfo, page int, totalPages int
 				})
 			@components.ActionButtonContainer() {
 				@components.HxLink("flex gap-2 justify-center items-center py-3 px-6 font-medium text-center text-green-700 rounded-xl bg-green-700/10 hover:bg-green-700/20 focusable", "/library/plans/create", "#main-content") {
-					@heroicons.IconDocumentPlusSolid("-ml-1 size-6")
+					<span class="-ml-1 size-6 icon-[solar--clipboard-add-bold]" aria-hidden="true"></span>
 					New Plan
 				}
 			}
@@ -29,7 +28,7 @@ templ PlanList(plans []components.PracticePlanCardInfo, page int, totalPages int
 		<div class="flex flex-grow-0 justify-between items-center px-4 pt-4 pb-8 w-full sm:mx-auto sm:max-w-5xl">
 			if page > 1 {
 				@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  "/library/plans?page=" + strconv.Itoa(page-1), "#main-content") {
-					@heroicons.IconChevronLeftSolid("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--chevron-left-solid]" aria-hidden="true"></span>
 					Previous
 				}
 			} else {
@@ -60,7 +59,7 @@ templ PlanList(plans []components.PracticePlanCardInfo, page int, totalPages int
 			if page < totalPages {
 				@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  "/library/plans?page=" + strconv.Itoa(page+1), "#main-content") {
 					Next Page
-					@heroicons.IconChevronRightSolid("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--chevron-right-solid]" aria-hidden="true"></span>
 				}
 			} else {
 				<span class="py-2 px-4 h-full text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No More Pages</span>

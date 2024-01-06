@@ -1,8 +1,3 @@
-import {
-  ArrowRightCircleIcon,
-  BookmarkIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/24/solid";
 import { BackToPlan, Link } from "./links";
 import { useCallback, useEffect, useRef } from "preact/hooks";
 
@@ -18,7 +13,10 @@ export function NextPlanItem({ planid }: { planid?: string }) {
         onClick={openDialog}
       >
         Go On
-        <ArrowRightCircleIcon className="-mr-1 size-5" />
+        <span
+          className="icon-[heroicons--arrow-right-circle-solid] -mr-1 size-5"
+          aria-hidden="true"
+        />
       </button>
       <dialog
         ref={dialogRef}
@@ -50,7 +48,10 @@ export function NextPlanItem({ planid }: { planid?: string }) {
             href={`/library/plans/${planid}/next`}
           >
             Go On
-            <ArrowRightCircleIcon className="-mr-1 size-5" />
+            <span
+              className="icon-[heroicons--arrow-right-circle-solid] -mr-1 size-5"
+              aria-hidden="true"
+            />
           </Link>
         </div>
       </dialog>

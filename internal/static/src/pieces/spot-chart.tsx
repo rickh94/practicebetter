@@ -8,7 +8,6 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { ChartPieIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 
 ChartJS.register(
   ArcElement,
@@ -80,12 +79,18 @@ export default function SpotChart({
       <details className="flex w-full flex-col rounded-xl bg-neutral-700/5 p-4 md:hidden">
         <summary className="flex w-full cursor-pointer items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <ChartPieIcon className="size-5" />
+            <span
+              className="icon-[heroicons--chart-pie-solid] size-5"
+              aria-hidden="true"
+            ></span>
             <h4 className="text-center text-xl font-bold">
               Spots Progress Chart
             </h4>
           </div>
-          <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+          <span
+            className="summary-icon icon-[heroicons--chevron-right-solid] size-5 transition-transform"
+            aria-hidden="true"
+          ></span>
         </summary>
         <div className="mx-auto max-w-md">
           <Doughnut options={options} data={data} />

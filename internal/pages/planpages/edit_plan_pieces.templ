@@ -1,7 +1,6 @@
 package planpages
 
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 import "strconv"
 
 templ AddPieceWizard(practiceType string, planID string, id string, title string) {
@@ -13,7 +12,7 @@ templ AddPieceWizard(practiceType string, planID string, id string, title string
  		hx-swap="innerHTML"
  		hx-on::after-request={ components.ShowModal(id) }
 	>
-		@heroicons.IconPlusCircleSolid("-ml-1 size-5")
+		<span class="-ml-1 size-5 icon-[heroicons--plus-circle-solid]"></span>
 		Add Pieces
 	</button>
 	<dialog id={ id } aria-labelledby={ id + "-modal-title" } class="flex max-h-[75svh] overflow-y-clip flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
@@ -24,7 +23,7 @@ templ AddPieceWizard(practiceType string, planID string, id string, title string
 		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id={ id + "-chooser" }></div>
 		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
 			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal(id) }>
-				@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+				<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]"></span>
 				Done
 			</button>
 		</div>
@@ -64,7 +63,7 @@ templ AddPieceItem(piece PracticePlanPiece, planID string, csrf string, practice
 					</span>
 				</div>
 				<div class="flex flex-grow-0 items-center">
-					@heroicons.IconPlusCircleSolid("size-10 -mr-2 text-green-900")
+					<span class="-mr-2 size-10 icon-[heroicons--plus-circle-solid]" aria-hidden="true"></span>
 				</div>
 			</button>
 		</form>

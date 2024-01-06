@@ -1,6 +1,5 @@
 package components
 
-import "practicebetter/internal/heroicons"
 import "practicebetter/internal/db"
 
 const navClasses = "flex text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable"
@@ -28,7 +27,7 @@ templ HxLink(class string, href string, target string) {
 
 templ BackHomeLink() {
 	@HxLink(navClasses, "/", "#main-content") {
-		@heroicons.IconHomeSolid("-ml-1 size-5")
+		<span class="-ml-1 size-5 icon-[heroicons--home-solid]"></span>
 		Back Home
 	}
 }
@@ -36,14 +35,14 @@ templ BackHomeLink() {
 templ AccountLink() {
 	@HxLink(navClasses, "/auth/me", "#main-content") {
 		Account
-		@heroicons.IconUserCircleSolid("-mr-1 size-5")
+		<span class="-mr-1 size-5 icon-[heroicons--user-circle-solid]"></span>
 	}
 }
 
 templ LoginLink() {
 	@HxLink(navClasses, "/auth/login", "#main-content") {
 		Login
-		@heroicons.IconUserPlusSolid("-mr-1 size-5")
+		<span class="-mr-1 size-5 icon-[heroicons--arrow-right-end-on-rectangle-solid]"></span>
 	}
 }
 
@@ -53,7 +52,7 @@ func GetActivePracticePlan(ctx context.Context) string {
 
 templ LibraryLink() {
 	@HxLink(navClasses, "/library", "#main-content") {
-		@heroicons.IconBookOpenSolid("-ml-1 size-5")
+		<span class="-ml-1 size-5 icon-[solar--music-note-slider-bold-duotone]"></span>
 		Library
 	}
 }
@@ -64,17 +63,17 @@ func getCurrentPath(ctx context.Context) string {
 
 templ MaybePracticePlan() {
 	if GetActivePracticePlan(ctx) != "" {
-		@HxLink("flex text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
+		@HxLink("flex text-base gap-2 items-center py-4 px-6 h-14 flex-shrink-0 font-semibold rounded-xl transition-all duration-200 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
 			<span>
 				<span class="hidden xs:inline">Practice</span> Plan
 			</span>
-			@heroicons.IconClipboardDocumentCheckSolid("-mr-1 size-5")
+			<span class="-mr-1 size-5 icon-[solar--clipboard-check-bold]" aria-hidden="true"></span>
 		}
 	} else {
-		@HxLink("flex text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
+		@HxLink("flex text-base gap-2 items-center flex-shrink-0 py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
 			<span class="hidden xs:inline">Start Practicing</span>
 			<span class="xs:hidden">Practice</span>
-			@heroicons.IconDocumentCheckSolid("-mr-1 size-5")
+			<span class="-mr-1 size-5 icon-[solar--clipboard-add-bold]" aria-hidden="true"></span>
 		}
 	}
 }
@@ -86,6 +85,6 @@ templ InternalNav() {
 templ LogoutLink() {
 	@HxLink(navClasses, "/auth/logout", "#main-content") {
 		Logout
-		@heroicons.IconUserMinusSolid("-mr-1 size-5")
+		<span class="-mr-1 size-6 icon-[heroicons--arrow-right-start-on-rectangle-solid]"></span>
 	}
 }

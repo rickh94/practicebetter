@@ -7,11 +7,6 @@ import {
 } from "../ui/buttons";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { cn, uniqueID } from "../common";
-import {
-  ArrowLeftCircleIcon,
-  StopCircleIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/solid";
 import dayjs from "dayjs";
 import { BreakDialog, ResumeDialog } from "./practice-dialogs";
 import { SummaryActions } from "./summary";
@@ -487,7 +482,10 @@ export function StartingPointSetupForm({
               }}
               type="button"
             >
-              <XMarkIcon className="-ml-1 size-5" />
+              <span
+                className="icon-[heroicons--x-mark-solid] -ml-1 size-5"
+                aria-hidden="true"
+              />
               Clear
             </BasicButton>
           </div>
@@ -772,10 +770,17 @@ export function StartingPointPractice({
         </div>
         <div className="flex flex-wrap justify-center gap-2 pt-8">
           <BasicButton onClick={setup} type="button">
-            <ArrowLeftCircleIcon className="-ml-1 size-5" /> Back to setup
+            <span
+              className="icon-[heroicons--arrow-left-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            />{" "}
+            Back to setup
           </BasicButton>
           <WarningButton onClick={handleDone}>
-            <StopCircleIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--stop-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
             Finish
           </WarningButton>
         </div>
@@ -848,7 +853,7 @@ export function Summary({
                 Measures Practiced
               </h2>
             </div>
-            <div className="balanced pt-1">
+            <div className="text-balance pt-1">
               {measuresPracticed.map(([start, end], idx) => (
                 <>
                   <span

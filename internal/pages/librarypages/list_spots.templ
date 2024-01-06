@@ -1,7 +1,6 @@
 package librarypages
 
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 import "practicebetter/internal/pages"
 import "strconv"
 
@@ -36,7 +35,7 @@ templ ListSpots(s pages.ServerUtil, csrf string, info ListSpotsInfo) {
 			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ info.PieceID }></back-to-piece>
 				@components.HxLink("focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20", "/library/pieces/" + info.PieceID + "/spots/add", "#main-content") {
-					@heroicons.IconPlusSolid("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--plus-solid]" aria-hidden="true"></span>
 					Add Spots
 				}
 			}
@@ -72,22 +71,3 @@ templ ListSpotsColumn(name string, spots []ListSpotsSpot, pieceID string) {
 		</ul>
 	</div>
 }
-
-/*
-
-				<practice-menu pieceid={ info.PieceID } class="h-12 min-w-[7.25rem]"></practice-menu>
-					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
-						@heroicons.IconPlusSolid("-ml-1 size-6")
-						Add Spots
-					}
-
-	<li>
-		@components.HxLink("focusable flex h-full items-center justify-between rounded-xl border border-dashed border-neutral-500 bg-white/50 px-4 py-6 text-neutral-700 hover:bg-white/90 hover:text-black", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
-			<div class="flex flex-col flex-grow justify-center items-center h-full">
-				<h3 class="text-lg font-bold">Add Spots</h3>
-			</div>
-			@heroicons.IconArrowTopRightOnSquareSolid("-mr-1 size-6")
-			<span class="sr-only">Click to create spot</span>
-		}
-	</li>
-*/

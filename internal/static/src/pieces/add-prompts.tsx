@@ -8,17 +8,6 @@ import {
   HappyButton,
   WarningButton,
 } from "../ui/buttons";
-import {
-  SpeakerWaveIcon,
-  ArrowPathIcon,
-  PhotoIcon,
-  MusicalNoteIcon,
-  XMarkIcon,
-  ChatBubbleBottomCenterTextIcon,
-  CloudArrowUpIcon,
-  TrashIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/24/solid";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
 // TODO: this might be possible without custom elements
@@ -121,10 +110,16 @@ export function AddAudioPrompt({
         {audioPromptUrl ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckCircleIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            />
           </>
         ) : (
-          <SpeakerWaveIcon className="-ml-1 size-5" />
+          <span
+            className="-ml icon-[heroicons--speaker-wave-solid] size-5"
+            aria-hidden="true"
+          />
         )}
         Audio
       </ColorlessButton>
@@ -157,11 +152,17 @@ export function AddAudioPrompt({
             </div>
             <div class="mt-4 flex w-full gap-2">
               <WarningButton grow type="button" onClick={close}>
-                <XMarkIcon className="-ml-1 size-6" />
+                <span
+                  className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+                  aria-hidden="true"
+                ></span>
                 Close
               </WarningButton>
               <AngryButton grow type="button" onClick={() => save("")}>
-                <TrashIcon className="-ml-1 size-6" />
+                <span
+                  className="icon-[heroicons--trash-solid] -ml-1 size-6"
+                  aria-hidden="true"
+                ></span>
                 Remove File
               </AngryButton>
             </div>
@@ -195,7 +196,10 @@ export function AddAudioPrompt({
                 type="button"
                 onClick={close}
               >
-                <XMarkIcon className="-ml-1 size-6" />
+                <span
+                  className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+                  aria-hidden="true"
+                ></span>
                 Close
               </WarningButton>
               <HappyButton
@@ -205,9 +209,15 @@ export function AddAudioPrompt({
                 onClick={handleSubmit}
               >
                 {isUploading ? (
-                  <ArrowPathIcon className="-ml-1 size-6" />
+                  <span
+                    className="icon-[heroicons--arrow-path-solid] -ml-1 size-6"
+                    aria-hidden="true"
+                  ></span>
                 ) : (
-                  <CloudArrowUpIcon className="-ml-1 size-6" />
+                  <span
+                    className="icon-[heroicons--cloud-arrow-up-solid] -ml-1 size-6"
+                    aria-hidden="true"
+                  ></span>
                 )}
                 {isUploading ? "Please Wait..." : "Upload"}
               </HappyButton>
@@ -317,10 +327,16 @@ export function AddImagePrompt({
         {imagePromptUrl ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckCircleIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
           </>
         ) : (
-          <PhotoIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--photo-solid] size-5"
+            aria-hidden="true"
+          ></span>
         )}
         Image
       </ColorlessButton>
@@ -354,11 +370,17 @@ export function AddImagePrompt({
             </div>
             <div class="mt-4 flex w-full gap-2">
               <WarningButton grow type="button" onClick={close}>
-                <XMarkIcon className="-ml-1 size-6" />
+                <span
+                  className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+                  aria-hidden="true"
+                ></span>
                 Close
               </WarningButton>
               <AngryButton grow type="button" onClick={() => save("")}>
-                <TrashIcon className="-ml-1 size-6" />
+                <span
+                  className="icon-[heroicons--trash-solid] -ml-1 size-6"
+                  aria-hidden="true"
+                ></span>
                 Remove File
               </AngryButton>
             </div>
@@ -393,7 +415,10 @@ export function AddImagePrompt({
                 type="button"
                 onClick={close}
               >
-                <XMarkIcon className="-ml-1 size-6" />
+                <span
+                  className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+                  aria-hidden="true"
+                ></span>
                 Close
               </WarningButton>
               <HappyButton
@@ -403,9 +428,15 @@ export function AddImagePrompt({
                 onClick={handleSubmit}
               >
                 {isUploading ? (
-                  <ArrowPathIcon className="-ml-1 size-6" />
+                  <span
+                    className="icon-[heroicons--arrow-path-solid] -ml-1 size-6"
+                    aria-hidden="true"
+                  ></span>
                 ) : (
-                  <CloudArrowUpIcon className="-ml-1 size-6" />
+                  <span
+                    className="icon-[heroicons--cloud-arrow-up-solid] -ml-1 size-6"
+                    aria-hidden="true"
+                  ></span>
                 )}
                 {isUploading ? "Please Wait..." : "Upload"}
               </HappyButton>
@@ -464,10 +495,16 @@ export function AddReminders({
         {!!textPrompt ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckCircleIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--check-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
           </>
         ) : (
-          <ChatBubbleBottomCenterTextIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--chat-bubble-bottom-center-text-solid] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
         )}
         Reminders
       </ColorlessButton>
@@ -501,7 +538,10 @@ export function AddReminders({
           />
         </div>
         <HappyButton grow onClick={close} className="mt-4 w-full">
-          <CheckCircleIcon className="-ml-1 size-6" />
+          <span
+            className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
           Done
         </HappyButton>
       </dialog>
@@ -557,10 +597,16 @@ export function AddNotesPrompt({
         {notesPrompt ? (
           <>
             <span className="sr-only">Checked</span>
-            <CheckCircleIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
           </>
         ) : (
-          <MusicalNoteIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--musical-note-solid] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
         )}
         Notes
       </ColorlessButton>
@@ -619,7 +665,10 @@ export function AddNotesPrompt({
           </Suspense>
         </div>
         <HappyButton grow onClick={close} className="mt-4 w-full">
-          <CheckCircleIcon className="-ml-1 size-6" />
+          <span
+            className="icon-[heroicons--check-circle-solid] -ml-1 size-6"
+            aria-hidden="true"
+          ></span>
           Done
         </HappyButton>
       </dialog>

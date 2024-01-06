@@ -1,12 +1,3 @@
-import {
-  ChevronRightIcon,
-  MusicalNoteIcon,
-  XMarkIcon,
-  ChatBubbleBottomCenterTextIcon,
-  PencilIcon,
-  PhotoIcon,
-  SpeakerWaveIcon,
-} from "@heroicons/react/24/solid";
 import { Suspense, lazy } from "preact/compat";
 import { useCallback, useRef } from "preact/hooks";
 import { Link } from "./links";
@@ -22,10 +13,16 @@ export function AudioPromptSummary({ url }: { url: string }) {
     <details>
       <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-yellow-500/50 py-2 pl-4 pr-2 font-semibold text-yellow-800 transition duration-200 hover:bg-yellow-300/50">
         <div className="flex items-center gap-2">
-          <SpeakerWaveIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--speaker-wave-solid] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
           Audio Prompt
         </div>
-        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+        <span
+          className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
+          aria-hidden="true"
+        />
       </summary>
       <audio controls className="my-1 w-full py-1">
         <source src={url} type="audio/mpeg" />
@@ -62,10 +59,16 @@ export function ImagePromptSummary({ url }: { url: string }) {
       <details>
         <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50">
           <div className="flex items-center gap-2">
-            <PhotoIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--photo-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
             Image Prompt
           </div>
-          <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+          <span
+            className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
+            aria-hidden="true"
+          />
         </summary>
         <button onClick={showBig} className="m-0 p-0">
           <figure className="my-2 w-full">
@@ -105,10 +108,13 @@ export function NotesPromptSummary({ notes }: { notes: string }) {
     <details>
       <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-sky-500/50 py-2 pl-4 pr-2 font-semibold text-sky-800 transition duration-200 hover:bg-sky-300/50">
         <div className="flex items-center gap-2">
-          <MusicalNoteIcon className="-ml-1 size-5" />
+          <span className="icon-[heroicons--musical-note-solid] size-5" />
           Notes Prompt
         </div>
-        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+        <span
+          className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
+          aria-hidden="true"
+        />
       </summary>
       <div className="min-h-[6rem] w-full">
         <Suspense fallback={<div className="my-2">Loading Notes...</div>}>
@@ -149,10 +155,16 @@ export function RemindersSummary({
     <details open id={`reminder-details-${pieceid}-${spotid}`}>
       <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-300/50">
         <div className="flex items-center gap-2">
-          <ChatBubbleBottomCenterTextIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--chat-bubble-bottom-center-text-solid] -ml-1 size-5"
+            aria-hidden="true"
+          />
           Reminders
         </div>
-        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+        <span
+          className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
+          aria-hidden="true"
+        />
       </summary>
       <div
         className="flex flex-col py-1 sm:min-h-12 sm:flex-row"
@@ -168,7 +180,10 @@ export function RemindersSummary({
             href={`/library/pieces/${pieceid}/spots/${spotid}/reminders/edit`}
             target={`#${targetId}`}
           >
-            <PencilIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--pencil-solid] -ml-1 size-5"
+              aria-hidden="true"
+            />
             Edit
           </Link>
         )}
@@ -196,10 +211,16 @@ export function EditRemindersSummary({
     <details open>
       <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-300/50">
         <div className="flex items-center gap-2">
-          <ChatBubbleBottomCenterTextIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--chat-bubble-bottom-center-text-solid] -ml-1 size-5"
+            aria-hidden="true"
+          />
           Reminders
         </div>
-        <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+        <span
+          className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
+          aria-hidden="true"
+        />
       </summary>
       <form
         className="flex flex-col gap-2 py-1 sm:flex-row"
@@ -226,7 +247,10 @@ export function EditRemindersSummary({
             className="focusable flex items-center justify-center gap-1 rounded-xl bg-lime-700/10 px-6 py-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-700/20"
             type="submit"
           >
-            <PencilIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--arrow-down-tray-solid] -ml-1 size-5"
+              aria-hidden="true"
+            />
             Save
           </button>
           <Link
@@ -235,7 +259,10 @@ export function EditRemindersSummary({
             href={`/library/pieces/${pieceid}/spots/${spotid}/reminders`}
             target={`#${id}`}
           >
-            <XMarkIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--x-mark-solid] -ml-1 size-5"
+              aria-hidden="true"
+            />
             Cancel
           </Link>
         </div>

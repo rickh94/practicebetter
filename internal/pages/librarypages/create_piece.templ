@@ -2,7 +2,6 @@ package librarypages
 
 import "practicebetter/internal/pages"
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 
 // TODO: display field errors
 // TODO: validation for number fields
@@ -64,11 +63,11 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 				</div>
 				<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
 					<button type="submit" class="flex gap-1 justify-center items-center px-6 h-12 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable">
-						@heroicons.IconDocumentPlusSolid("-ml-1 inline size-5")
+						<span class="-ml-1 size-5 icon-[heroicons--arrow-down-tray-solid]" aria-hidden="true"></span>
 						Save
 					</button>
 					@components.HxLink("flex gap-1 justify-center items-center px-6 h-12 font-semibold text-red-800 rounded-xl transition duration-200 bg-red-700/10 hover:bg-red-700/20 focusable", "/library/pieces", "#main-content") {
-						@heroicons.IconXMarkSolid("-ml-1 inline size-5")
+						<span class="-ml-1 size-5 icon-[heroicons--x-mark-solid]" aria-hidden="true"></span>
 						Cancel
 					}
 				</div>

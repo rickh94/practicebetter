@@ -1,10 +1,4 @@
 import { NavItem, cn } from "../common";
-import {
-  Bars3CenterLeftIcon,
-  ClipboardDocumentListIcon,
-  RectangleStackIcon,
-  UserCircleIcon,
-} from "@heroicons/react/24/solid";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { NoteSheetIcon, PlayListIcon } from "./icons";
 
@@ -21,12 +15,26 @@ export function InternalNav({
     {
       href: "/library",
       label: "Library",
-      icon: <RectangleStackIcon className={navItemIconClasses} />,
+      icon: (
+        <span
+          className={cn(
+            "icon-[solar--music-note-slider-bold-duotone]",
+            navItemIconClasses,
+          )}
+        />
+      ),
     } as const,
     {
       href: "/library/plans",
       label: "Practice Plans",
-      icon: <ClipboardDocumentListIcon className={navItemIconClasses} />,
+      icon: (
+        <span
+          className={cn(
+            "icon-[solar--clipboard-list-bold]",
+            navItemIconClasses,
+          )}
+        />
+      ),
     } as const,
     {
       href: "/library/pieces",
@@ -41,7 +49,15 @@ export function InternalNav({
     {
       href: "/auth/me",
       label: "Account",
-      icon: <UserCircleIcon className={navItemIconClasses} />,
+      icon: (
+        <span
+          className={cn(
+            "icon-[heroicons--user-circle-solid]",
+            navItemIconClasses,
+          )}
+          aria-hidden="true"
+        />
+      ),
     } as const,
   ];
 
@@ -64,8 +80,8 @@ export function InternalNav({
           aria-label="Customise options"
         >
           <div className="sr-only">Open Nav Menu</div>
-          <Bars3CenterLeftIcon
-            className="-ml-2 size-6 text-neutral-800"
+          <span
+            className="icon-[heroicons--bars-3-center-left-solid] -ml-2 size-6 text-neutral-800"
             aria-hidden="true"
           />
           <span className="font-medium text-neutral-800">Menu</span>
@@ -106,95 +122,3 @@ export function InternalNav({
     </DropdownMenu.Root>
   );
 }
-
-/*
- *
-      <Menu as="nav" className="relative inline-block text-left">
-        <Menu.Button
-          className={cn(
-            "focusable inline-flex h-14 w-full items-center justify-center gap-x-1.5 rounded-xl px-6 py-4 shadow-sm transition duration-200",
-            activeplanid
-              ? "bg-violet-700/30 hover:bg-violet-700/40"
-              : "bg-neutral-700/10 hover:bg-neutral-700/20",
-          )}
-        >
-          {({ open }) => (
-            <>
-              <CrossFadeContentFast
-                id={open ? "open" : "closed"}
-                component={
-                  open ? (
-                    <>
-                      <div className="sr-only">Close Nav Menu</div>
-                      <XMarkIcon
-                        className="-ml-2 size-6 text-neutral-800"
-                        aria-hidden="true"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <div className="sr-only">Open Nav Menu</div>
-                      <Bars3CenterLeftIcon
-                        className="-ml-2 size-6 text-neutral-800"
-                        aria-hidden="true"
-                      />
-                    </>
-                  )
-                }
-              />
-              <span className="font-medium text-neutral-800">Menu</span>
-            </>
-          )}
-        </Menu.Button>
-        <Transition
-          as={Fragment}
-          enter="transition ease-out duration-100"
-          enterFrom="transform opacity-0 scale-95"
-          enterTo="transform opacity-100 scale-100"
-          leave="transition ease-in duration-75"
-          leaveFrom="transform opacity-100 scale-100"
-          leaveTo="transform opacity-0 scale-95"
-        >
-          <Menu.Items
-            // @ts-ignore
-            className="absolute left-0 z-50 mt-2 w-64 origin-top-left rounded-lg bg-white shadow-lg focus-within:outline-none focus:outline-none"
-            as="nav"
-          >
-            <ul className="flex flex-col gap-0">
-              {links.map(({ href, label, icon, highlight }) => (
-                <Menu.Item
-                  key={href}
-                  as="li"
-                  // @ts-ignore
-                  className={cn(
-                    "focusable w-full text-lg first:rounded-t-lg last:rounded-b-lg",
-                    highlight
-                      ? {
-                          "bg-violet-700/30 font-bold text-violet-800":
-                            href === activepath,
-                          "font-medium text-violet-800 hover:bg-violet-800/30":
-                            href !== activepath,
-                        }
-                      : {
-                          "bg-neutral-700/10 font-bold text-neutral-800":
-                            href === activepath,
-                          "font-medium text-neutral-800 hover:bg-neutral-800/10":
-                            href !== activepath,
-                        },
-                  )}
-                >
-                  <Link
-                    href={href}
-                    target="#main-content"
-                    className="focusable flex h-full w-full items-center gap-2 px-2 py-3"
-                  >
-                    {icon}
-                    {label}
-                  </Link>
-                </Menu.Item>
-              ))}
-            </ul>
-          </Menu.Items>
-        </Transition>
-      </Menu>
-*/

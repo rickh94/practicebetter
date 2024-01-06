@@ -3,7 +3,6 @@ package authpages
 import "github.com/go-webauthn/webauthn/protocol"
 import "practicebetter/internal/db"
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 
 script startRegistration(creationOptions *protocol.CredentialCreation, csrf string) {
   SimpleWebAuthnBrowser.startRegistration(creationOptions.publicKey).then(attResp => {
@@ -81,7 +80,7 @@ templ UserInfo(user db.User, csrf string) {
  				hx-target="#user-info"
  				class="w-full text-yellow-800 action-button bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
 			>
-				@heroicons.IconPencilSolid("-ml-1 w-5 h-5")
+				<span class="-ml-1 size-5 icon-[heroicons--pencil-solid]" aria-hidden="true"></span>
 				Edit
 			</button>
 		</div>
@@ -162,7 +161,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
  					type="submit"
  					class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
 				>
-					@heroicons.IconCheckSolid("-ml-1 w-5 h-5")
+					<span class="-ml-1 size-5 icon-[heroicons--arrow-down-tray-solid]" aria-hidden="true"></span>
 					Save
 				</button>
 				<button
@@ -172,7 +171,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
  					hx-target="#user-info"
  					class="text-yellow-800 action-button bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
 				>
-					@heroicons.IconXMarkSolid("-ml-1 w-5 h-5")
+					<span class="-ml-1 size-5 icon-[heroicons--x-mark-solid]" aria-hidden="true"></span>
 					Cancel
 				</button>
 			</div>
@@ -214,7 +213,7 @@ templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf st
  								onclick={ startRegistration(creationOptions, csrf) }
  								class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
 							>
-								@heroicons.IconFingerPrintSolid("-ml-1 size-5")
+								<span class="-ml-1 size-5 icon-[heroicons--finger-print-solid]" aria-hidden="true"></span>
 								Register a Passkey
 							</button>
 						</dd>
@@ -233,7 +232,7 @@ templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf st
  								hx-on::after-request={ deletePasskeys() }
  								class="w-full text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
 							>
-								@heroicons.IconTrashSolid("-ml-1 size-5")
+								<span class="-ml-1 size-5 icon-[heroicons--trash-solid]" aria-hidden="true"></span>
 								Delete All Passkeys
 							</button>
 						</dd>

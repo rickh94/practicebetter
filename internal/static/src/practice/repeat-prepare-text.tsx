@@ -1,5 +1,3 @@
-import { ChevronRightIcon } from "@heroicons/react/24/solid";
-
 export function RepeatPrepareText({ open = false }: { open?: boolean }) {
   return (
     <section id="repeat-prepare" className="w-full">
@@ -10,7 +8,7 @@ export function RepeatPrepareText({ open = false }: { open?: boolean }) {
         >
           <summary className="flex cursor-pointer items-center justify-between text-left text-2xl">
             Preparation
-            <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+            <span className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform" />
           </summary>
           <ul className="flex flex-grow flex-col justify-around text-lg">
             <li>
@@ -28,7 +26,7 @@ export function RepeatPrepareText({ open = false }: { open?: boolean }) {
         >
           <summary className="flex cursor-pointer items-center justify-between text-left text-2xl">
             How it works
-            <ChevronRightIcon className="summary-icon size-6 transition-transform" />
+            <span className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform" />
           </summary>
           <ul className="text-base">
             <li>The goal is to practice five times without a mistake.</li>

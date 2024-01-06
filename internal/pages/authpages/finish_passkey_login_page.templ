@@ -2,7 +2,6 @@ package authpages
 
 import "github.com/go-webauthn/webauthn/protocol"
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 
 // TODO: maybe switch to using htmx for the ajax
 
@@ -38,14 +37,14 @@ templ FinishPasskeyLoginPage(loginOptions *protocol.CredentialAssertion, csrf st
 			</div>
 			@components.BasicButtonLink("/auth/code", "#main-content", "outerHTML") {
 				Get Login Code
-				@heroicons.IconHashtagSolid("-mr-1 size-6")
+				<span class="-mr-1 size-5 icon-[heroicons--hashtag-solid]" aria-hidden="true"></span>
 			}
 			<a
  				href={ templ.URL("/auth/forget") }
  				class="action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
 			>
 				Switch Account
-				@heroicons.IconUserMinusSolid("-mr-1 size-6")
+				<span class="-mr-1 size-6 icon-[heroicons--arrows-right-left-solid]" aria-hidden="true"></span>
 			</a>
 			<button class="hidden" onclick={ startLogin(loginOptions, csrf, nextLoc) } id="passkey"></button>
 		</div>

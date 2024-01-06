@@ -18,15 +18,6 @@ import {
   GiantBasicButton,
   WarningButton,
 } from "../ui/buttons";
-import {
-  ArrowLeftCircleIcon,
-  HandRaisedIcon,
-  HandThumbDownIcon,
-  HandThumbUpIcon,
-  MinusCircleIcon,
-  PlusCircleIcon,
-  StopCircleIcon,
-} from "@heroicons/react/24/solid";
 import Summary from "./summary";
 import { PracticeSpotDisplay } from "./practice-spot-display";
 import dayjs from "dayjs";
@@ -260,7 +251,10 @@ function SingleSetupForm({
           </p>
           <div className="flex gap-2">
             <BasicButton onClick={decreaseSessions}>
-              <MinusCircleIcon className="-ml-1 size-4" />
+              <span
+                className="icon-[heroicons--minus-circle-solid] -ml-1 size-4"
+                aria-hidden="true"
+              />
               Decrease
             </BasicButton>
             <input
@@ -272,7 +266,10 @@ function SingleSetupForm({
               ref={numSessionsRef}
             />
             <BasicButton onClick={increaseSessions}>
-              <PlusCircleIcon className="-ml-1 size-4" />
+              <span
+                className="icon-[heroicons--plus-circle-solid] -ml-1 size-4"
+                aria-hidden="true"
+              />
               Increase
             </BasicButton>
           </div>
@@ -659,24 +656,40 @@ function SinglePractice({
             onClick={handleExcellent}
             className="gap-2"
           >
-            <HandThumbUpIcon className="-ml-1 size-6" />
+            <span
+              className="icon-[heroicons--hand-thumb-up-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
             Excellent
           </BigHappyButton>
           <BigSkyButton type="button" onClick={handleFine} className="gap-2">
-            <HandRaisedIcon className="-mr-1 size-6" />
+            <span
+              className="icon-[heroicons--hand-raised-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
             Fine
           </BigSkyButton>
           <BigAngryButton type="button" onClick={handlePoor} className="gap-2">
-            <HandThumbDownIcon className="-mr-1 size-6" />
+            <span
+              className="icon-[heroicons--hand-thumb-down-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
             Poor
           </BigAngryButton>
         </div>
         <div className="flex justify-center gap-4 pb-12 pt-8">
           <BasicButton onClick={setup}>
-            <ArrowLeftCircleIcon className="-ml-1 size-5" /> Back to setup
+            <span
+              className="icon-[heroicons--arrow-left-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>{" "}
+            Back to setup
           </BasicButton>
           <WarningButton grow onClick={handleDone}>
-            <StopCircleIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--stop-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
             Finish
           </WarningButton>
         </div>

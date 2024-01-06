@@ -1,7 +1,6 @@
 package authpages
 
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 
 templ FinishCodeLoginPage(csrf string, nextLoc string) {
 	<title>Login | Practice Better</title>
@@ -26,14 +25,14 @@ templ FinishCodeLoginPage(csrf string, nextLoc string) {
 			<input type="text" inputmode="numeric" name="code" placeholder="123456" required class="py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-700 focusable focus:bg-neutral-700/20" autofocus/>
 			@components.BasicButton("", "submit") {
 				Complete Sign In
-				@heroicons.IconArrowRightCircleSolid("-mr-1 size-6")
+				<span class="-mr-1 size-6 icon-[heroicons--arrow-right-end-on-rectangle-solid]" aria-hidden="true"></span>
 			}
 			<a
  				href={ templ.URL("/auth/forget") }
  				class="action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
 			>
 				Switch Account
-				@heroicons.IconUserMinusSolid("-mr-1 size-6")
+				<span class="-mr-1 size-6 icon-[heroicons--arrows-right-left-solid]" aria-hidden="true"></span>
 			</a>
 		</form>
 	}

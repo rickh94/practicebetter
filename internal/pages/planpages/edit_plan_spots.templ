@@ -1,9 +1,7 @@
 package planpages
 
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 import "strconv"
-import "practicebetter/internal/icons"
 
 templ AddSpotWizard(practiceType string, planID string, id string, title string) {
 	<button
@@ -14,7 +12,7 @@ templ AddSpotWizard(practiceType string, planID string, id string, title string)
  		hx-swap="innerHTML"
  		hx-on::after-request={ components.ShowModal(id) }
 	>
-		@heroicons.IconPlusCircleSolid("-ml-1 size-5")
+		<span class="-ml-1 size-5 icon-[heroicons--plus-circle-solid]" aria-hidden="true"></span>
 		Add Spots
 	</button>
 	<dialog id={ id } aria-labelledby={ id + "-modal-title" } class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
@@ -27,7 +25,7 @@ templ AddSpotWizard(practiceType string, planID string, id string, title string)
 		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id={ id + "-chooser" }></div>
 		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
 			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal(id) }>
-				@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+				<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 				Done
 			</button>
 		</div>
@@ -100,7 +98,7 @@ templ AddNewSpotWizard(planID string, title string, listID string) {
  		hx-swap="innerHTML"
  		hx-on::after-request={ components.ShowModal("add-new-spots-dialog") }
 	>
-		@heroicons.IconPlusCircleSolid("-ml-1 size-5")
+		<span class="-ml-1 size-5 icon-[heroicons--plus-circle-solid]" aria-hidden="true"></span>
 		Add Spots
 	</button>
 	<dialog id="add-new-spots-dialog" aria-labelledby="add-new-spots-modal-title" class="flex max-h-[75svh] overflow-y-clip flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
@@ -110,7 +108,7 @@ templ AddNewSpotWizard(planID string, title string, listID string) {
 		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id="add-new-spots-chooser"></div>
 		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
 			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal("add-new-spots-dialog") }>
-				@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+				<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 				Done
 			</button>
 		</div>
@@ -192,7 +190,7 @@ templ AddNewSpotPieceList(pieces []NewSpotPiece, planID string) {
 							</div>
 							<div class="flex flex-grow-0 items-center">
 								<span class="sr-only">Click to view</span>
-								@icons.NoteSheetIcon("size-10 -mr-2")
+								<span class="-mr-2 size-10 icon-[custom--note-sheet]" aria-hidden="true"></span>
 							</div>
 						</button>
 					</li>
@@ -214,7 +212,7 @@ templ AddNewSpotFormList(spots []PracticePlanSpot, csrf string, pieceTitle strin
  				hx-target="#spot-chooser"
  				hx-swap="outerHTML transition:true"
 			>
-				@heroicons.IconArrowLeftCircleSolid("size-6 -ml-1")
+				<span class="-ml-1 size-6 icon-[heroicons--arrow-left-circle-solid]"></span>
 				Back to Pieces
 			</button>
 			<h4 class="text-lg text-left truncate">

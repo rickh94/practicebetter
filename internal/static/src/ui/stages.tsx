@@ -1,8 +1,3 @@
-import {
-  BookmarkIcon,
-  CalendarDaysIcon,
-  CheckCircleIcon,
-} from "@heroicons/react/20/solid";
 import { getPieceStageDisplayName, getStageDisplayName } from "../common";
 import { RepeatIcon, ShuffleIcon } from "./icons";
 
@@ -34,11 +29,26 @@ export function SpotStageIcon({ stage }: { stage: string }) {
     case "random":
       return <ShuffleIcon className="mx-1 inline size-4" />;
     case "interleave":
-      return <BookmarkIcon className="mx-1 inline size-4" />;
+      return (
+        <span
+          className="icon-[heroicons--bookmark-solid] mx-1 size-4"
+          aria-hidden="true"
+        />
+      );
     case "interleave_days":
-      return <CalendarDaysIcon className="mx-1 inline size-4" />;
+      return (
+        <span
+          className="icon-[heroicons--calendar-days-solid] mx-1 size-4"
+          aria-hidden="true"
+        />
+      );
     case "completed":
-      return <CheckCircleIcon className="mx-1 inline size-4" />;
+      return (
+        <span
+          className="icon-[heroicons--check-circle-solid] mx-1 size-4"
+          aria-hidden="true"
+        />
+      );
     default:
       return <></>;
   }

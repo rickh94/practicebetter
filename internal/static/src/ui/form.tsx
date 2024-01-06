@@ -1,4 +1,4 @@
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { cn } from "../common";
 
 export function RadioBox({
   text,
@@ -42,10 +42,11 @@ export function RadioBox({
           </span>
         </span>
       </span>
-      <CheckCircleIcon
-        className={`ml-1 size-5 text-neutral-800 ${
-          selected ? "" : " invisible"
-        }`}
+      <span
+        className={cn(
+          "icon-[heroicons--check-circle-solid] ml-1 size-5",
+          selected && "invisible",
+        )}
         aria-hidden="true"
       />
       <span

@@ -1,8 +1,5 @@
 package components
 
-import "practicebetter/internal/heroicons"
-import "practicebetter/internal/icons"
-
 const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-neutral-800 hover:text-black transition-all duration-200"
 
 func getSpotCardClass(completed bool, stage string) string {
@@ -64,19 +61,22 @@ templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, s
 			</div>
 			<div class="mr-3 size-6"></div>
 			if practiced || stage == "completed" {
-				@heroicons.IconCheckCircleSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-green-900")
+				<span
+ 					class="absolute right-0 top-1/2 mr-3 text-green-900 transform -translate-y-1/2 size-6 icon-[heroicons--check-circle-solid]"
+ 					aria-hidden="true"
+				></span>
 				<span class="sr-only">Completed</span>
 			} else if stage == "extra_repeat" || stage == "repeat" {
-				@icons.RepeatIcon("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[custom--repeat]" aria-hidden="true"></span>
 				<span class="sr-only">Click to view</span>
 			} else if stage == "random" {
-				@icons.ShuffleIcon("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[custom--shuffle]" aria-hidden="true"></span>
 				<span class="sr-only">Click to view</span>
 			} else if stage == "interleave" {
-				@heroicons.IconBookmarkSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[heroicons--bookmark-solid]" aria-hidden="true"></span>
 				<span class="sr-only">Click to view</span>
 			} else if stage == "interleave_days" {
-				@heroicons.IconCalendarDaysSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[heroicons--calendar-days-solid]" aria-hidden="true"></span>
 				<span class="sr-only">Click to view</span>
 			}
 			<span class="sr-only">Click to view spot</span>
@@ -123,8 +123,8 @@ templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTit
 					</span>
 				</div>
 				<div class="p-0 mt-4 w-full bg-white rounded-xl border sm:mx-auto sm:w-96 border-neutral-500 overflow-x-clip">
-					<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ CloseModal(spotID + "-interleave") }>
-						@heroicons.IconCheckCircleSolid("-ml-1 size-5")
+					<button class="w-full font-medium text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ CloseModal(spotID + "-interleave") }>
+						<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 						Done
 					</button>
 				</div>
@@ -146,16 +146,16 @@ templ InterleaveSpotItem(name, pieceTitle, measures, stage string, practiced boo
 		@SpotMeasures(measures)
 	</div>
 	if practiced {
-		<div class="mr-3 size-6"></div>
-		@heroicons.IconCheckCircleSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-green-900")
+		<span
+ 			class="absolute right-0 top-1/2 mr-3 text-green-900 transform -translate-y-1/2 size-6 icon-[heroicons--check-circle-solid]"
+ 			aria-hidden="true"
+		></span>
 		<span class="sr-only">Completed</span>
 	} else if stage == "interleave" {
-		<div class="mr-3 size-6"></div>
-		@heroicons.IconBookmarkSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+		<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[heroicons--bookmark-solid]" aria-hidden="true"></span>
 		<span class="sr-only">Click to view</span>
 	} else if stage == "interleave_days" {
-		<div class="mr-3 size-6"></div>
-		@heroicons.IconCalendarDaysSolid("size-6 mr-3 absolute right-0 top-1/2 transform -translate-y-1/2 text-black")
+		<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[heroicons--calendar-days-solid]" aria-hidden="true"></span>
 		<span class="sr-only">Click to view</span>
 	}
 	<span class="sr-only">Click to view spot</span>

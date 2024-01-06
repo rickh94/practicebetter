@@ -2,7 +2,6 @@ package librarypages
 
 import "practicebetter/internal/db"
 import "practicebetter/internal/components"
-import "practicebetter/internal/heroicons"
 import "practicebetter/internal/pages"
 import "strconv"
 
@@ -26,7 +25,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow, b
 				})
 			@components.ActionButtonContainer() {
 				@components.HxLink("focusable action-button bg-amber-700/10 text-amber-800 hover:bg-amber-700/20", "/library/pieces/" + piece[0].ID + "/edit", "#main-content") {
-					@heroicons.IconPencilSolid("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--pencil-solid]" aria-hidden="true"></span>
 					Edit
 				}
 				<practice-menu pieceid={ piece[0].ID } class="h-12 min-w-[7.25rem]"></practice-menu>
@@ -37,7 +36,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow, b
  					hx-confirm="Are you sure you want to delete this piece and all its spots?"
  					hx-target="#main-content"
 				>
-					@heroicons.IconTrashSolid("-ml-1 size-5")
+					<span class="-ml-1 size-5 icon-[heroicons--trash-solid]" aria-hidden="true"></span>
 					Delete Piece
 				</button>
 			}
@@ -139,11 +138,11 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow, b
 					</h2>
 					<div class="flex flex-wrap flex-grow gap-2 justify-end">
 						@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-orange-800 rounded-xl transition duration-200 bg-orange-700/10 hover:bg-orange-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots", "#main-content") {
-							@heroicons.IconViewColumnsSolid("-ml-1 size-6")
+							<span class="-ml-1 size-6 icon-[heroicons--view-columns-solid]" aria-hidden="true"></span>
 							All Spots
 						}
 						@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
-							@heroicons.IconPlusSolid("-ml-1 size-6")
+							<span class="-ml-1 size-6 icon-[heroicons--plus-solid]" aria-hidden="true"></span>
 							Add Spots
 						}
 					</div>
@@ -161,19 +160,6 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow, b
 		<script type="module" src={ s.StaticUrl("out/spot-breakdown.js") }></script>
 	}
 }
-
-/*
-
-	<li>
-		@components.HxLink("focusable flex h-full items-center justify-between rounded-xl border border-dashed border-neutral-500 bg-white/50 px-4 py-6 text-neutral-700 hover:bg-white/90 hover:text-black", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
-			<div class="flex flex-col flex-grow justify-center items-center h-full">
-				<h3 class="text-lg font-bold">Add Spots</h3>
-			</div>
-			@heroicons.IconArrowTopRightOnSquareSolid("-mr-1 size-6")
-			<span class="sr-only">Click to create spot</span>
-		}
-	</li>
-*/
 
 func getNumSpots(piece []db.GetPieceByIDRow) int {
 	if len(piece) > 1 {

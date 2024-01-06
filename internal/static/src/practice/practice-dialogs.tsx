@@ -1,8 +1,3 @@
-import {
-  CheckCircleIcon,
-  StopCircleIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/solid";
 import { Ref, useCallback } from "preact/hooks";
 import { HappyButton, AngryButton, WarningButton } from "../ui/buttons";
 import { InterleaveSpotsList } from "../ui/plan-components";
@@ -60,11 +55,17 @@ export function ResumeDialog({
       </div>
       <div className="mt-2 flex w-full flex-row-reverse flex-wrap gap-2 sm:gap-2">
         <HappyButton grow onClick={handleResume} className="text-lg">
-          <CheckCircleIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
           Resume
         </HappyButton>
         <AngryButton grow onClick={closeDialog} className="text-lg">
-          <XCircleIcon className="-ml-1 size-5" />
+          <span
+            className="icon-[heroicons--x-circle-solid] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
           Close
         </AngryButton>
       </div>
@@ -157,11 +158,17 @@ export function BreakDialog({
             className="text-lg"
             disabled={!canContinue}
           >
-            <CheckCircleIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
             Continue
           </HappyButton>
           <WarningButton grow onClick={handleDone}>
-            <StopCircleIcon className="-ml-1 size-5" />
+            <span
+              className="icon-[heroicons--stop-circle-solid] -ml-1 size-5"
+              aria-hidden="true"
+            ></span>
             Finish
           </WarningButton>
           {!!planid && <BackToPlan planid={planid} grow />}

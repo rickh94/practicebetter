@@ -3,8 +3,6 @@ package planpages
 import "practicebetter/internal/db"
 import "practicebetter/internal/components"
 import "practicebetter/internal/pages"
-import "practicebetter/internal/heroicons"
-import "practicebetter/internal/icons"
 
 script changeSelectedIntensity(value string) {
 	for (const el of document.querySelectorAll('#intensities .radio-option')) {
@@ -72,10 +70,10 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 		<section id="practicing-types" class="flex flex-col flex-grow flex-shrink-0 gap-2 w-full">
 			<span class="flex-shrink-0 text-lg whitespace-nowrap text-neutral-800">where I will practice: </span>
 			<div class="flex flex-col flex-wrap gap-2 xs:flex-row">
-				@practiceCheckbox(heroicons.IconBookmarkSolid("-ml-1 size-5"),"Interleave Spots", "practice_interleave", true)
-				@practiceCheckbox(icons.ShuffleIcon("-ml-1 size-5"),"Random Spots", "practice_random_single", true)
-				@practiceCheckbox(icons.RandomBoxesIcon("-ml-1 size-5"),"Random Starting Point", "practice_starting_point", false)
-				@practiceCheckbox(icons.RepeatIcon("-ml-1 size-5"),"New Spots", "practice_new", true)
+				@practiceCheckbox("icon-[heroicons--bookmark-solid]","Interleave Spots", "practice_interleave", true)
+				@practiceCheckbox("icon-[custom--shuffle]","Random Spots", "practice_random_single", true)
+				@practiceCheckbox("icon-[custom--random-boxes]","Random Starting Point", "practice_starting_point", false)
+				@practiceCheckbox("icon-[custom--repeat]","New Spots", "practice_new", true)
 			</div>
 		</section>
 	</div>
@@ -96,11 +94,11 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
  			type="submit"
  			class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
 		>
-			@heroicons.IconDocumentCheckSolid("-ml-1 size-5")
+			<span class="-ml-1 size-5 icon-[solar--clipboard-add-bold]" aria-hidden="true"></span>
 			Create
 		</button>
 		@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-yellow-800 rounded-xl transition duration-200 bg-yellow-700/10 hover:bg-yellow-700/20 focusable", "/library", "#main-content") {
-			@heroicons.IconChevronLeftSolid("-ml-1 size-5")
+			<span class="-ml-1 size-5 icon-[heroicons--arrow-left-circle-solid]" aria-hidden="true"></span>
 			Go Back
 		}
 	</div>
@@ -127,12 +125,12 @@ templ pieceCheckbox(text string, value string,  checked bool) {
 				{ text }
 			</span>
 		</span>
-		@heroicons.IconCheckCircleSolid("ml-3 size-5 text-neutral-800 icon")
+		<span class="ml-3 size-5 text-800 icon icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 	</label>
 }
 
-templ practiceCheckbox(icon templ.Component, text string, value string, checked bool) {
+templ practiceCheckbox(iconClass string, text string, value string, checked bool) {
 	<label
  		for={ value }
  		class={ "flex relative bg-white items-center py-3 pr-2 pl-4 rounded-xl cursor-pointer practice-radio-option focusable", templ.KV("checked", checked) }
@@ -148,12 +146,12 @@ templ practiceCheckbox(icon templ.Component, text string, value string, checked 
  			checked?={ checked }
 		/>
 		<span class="flex flex-1 gap-1 items-center">
-			@icon
+			<span class={ iconClass, "size-5 -ml-1" } aria-hidden="true"></span>
 			<span>
 				{ text }
 			</span>
 		</span>
-		@heroicons.IconCheckCircleSolid("ml-3 size-5 text-neutral-800 icon")
+		<span class="ml-3 size-5 text-800 icon icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
 		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 	</label>
 }
