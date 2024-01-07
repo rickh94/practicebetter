@@ -1,5 +1,5 @@
-const defaultTheme = require("tailwindcss/defaultTheme");
 const { addDynamicIconSelectors } = require("@iconify/tailwind");
+const defaultTheme = require("tailwindcss/defaultTheme");
 
 /** @type {import('tailwindcss').Config} */
 export default {

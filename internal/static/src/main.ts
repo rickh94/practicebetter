@@ -165,33 +165,13 @@ export function showAlert(
     "overflow-hidden w-full max-w-sm bg-white rounded-xl ring-1 ring-black ring-opacity-5 shadow-lg transition-transform pointer-events-auto text-neutral-800 border-neutral-800 shadow-neutral-800/20";
   toastDiv.id = toastId;
   toastDiv.classList.add("transform", "ease-out", "duration-300", "transition");
-  toastDiv.classList.add(
-    "translate-y-2",
-    "opacity-0",
-    "sm:translate-y-0",
-    "sm:translate-x-2",
-  );
+  toastDiv.classList.add("-translate-y-2", "opacity-0");
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      toastDiv.classList.remove(
-        "translate-y-2",
-        "opacity-0",
-        "sm:translate-y-0",
-        "sm:translate-x-2",
-      );
-      toastDiv.classList.add(
-        "translate-y-0",
-        "opacity-100",
-        "sm:translate-x-0",
-        "sm:translate-y-0",
-      );
+      toastDiv.classList.remove("-translate-y-2", "opacity-0");
+      toastDiv.classList.add("translate-y-0", "opacity-100");
       setTimeout(() => {
-        toastDiv.classList.remove(
-          "translate-y-0",
-          "opacity-100",
-          "sm:translate-x-0",
-          "sm:translate-y-0",
-        );
+        toastDiv.classList.remove("translate-y-0", "opacity-100");
         toastDiv.classList.remove(
           "transform",
           "ease-out",
@@ -215,18 +195,8 @@ export function showAlert(
 export function closeAlert(id: string) {
   const toastDiv = document.getElementById(id);
   if (!toastDiv) return;
-  toastDiv.classList.add("transform", "ease-in", "duration-300", "transition");
-  toastDiv.classList.add("opacity-100");
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      toastDiv.classList.remove("opacity-100");
-      toastDiv.classList.add("opacity-0");
-      setTimeout(() => {
-        toastDiv.remove();
-      }, 300);
-    });
-  });
+  toastDiv.remove();
 }
 
 function handleCloseAlertEvent(evt: CloseAlertEvent) {

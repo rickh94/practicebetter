@@ -2173,8 +2173,6 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
 	planID := chi.URLParam(r, "planID")
 
-	s.renderPracticePlanPage(w, r, planID, user.ID)
-
 	tx, err := s.DB.Begin()
 	if err != nil {
 		log.Default().Printf("Database error: %v\n", err)
@@ -2194,6 +2192,16 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 			Duration: 3000,
 		})
 		http.Error(w, "Cannot duplicate active plan", http.StatusBadRequest)
+		return
+	}
+
+	oldPlan, err := qtx.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
+		ID:     planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -2233,7 +2241,7 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 	newPlan, err := qtx.CreatePracticePlan(r.Context(), db.CreatePracticePlanParams{
 		ID:                cuid2.Generate(),
 		UserID:            user.ID,
-		Intensity:         r.FormValue("intensity"),
+		Intensity:         oldPlan.Intensity,
 		PracticeSessionID: sql.NullString{Valid: true, String: practiceSessionID},
 	})
 	if err != nil {
@@ -2271,4 +2279,30 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
+
+	if err := tx.Commit(); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	s.SetActivePracticePlanID(r.Context(), newPlan.ID, user.ID)
+	// update user (with newly added practice plan id) and practice plan manually before continuing
+	user, err = queries.GetUserByID(r.Context(), user.ID)
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	htmx.PushURL(r, "/library/plans/"+newPlan.ID)
+	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		Message:  "Your plan has been successfully duplicated",
+		Title:    "Duplicated",
+		Variant:  "success",
+		Duration: 3000,
+	})
+	ctx := context.WithValue(r.Context(), "activePracticePlanID", newPlan.ID)
+	ctx = context.WithValue(ctx, "user", user)
+	s.renderPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
 }

@@ -119,8 +119,8 @@ templ Body(s *Server) {
 		}
 		{ children... }
 		<!-- toast container -->
-		<div aria-live="assertive" class="flex fixed inset-0 z-50 items-end py-6 px-4 pointer-events-none sm:items-start sm:p-6">
-			<div class="flex flex-col items-center space-y-4 w-full sm:items-end" id="toast-container"></div>
+		<div aria-live="assertive" class="flex fixed inset-0 z-50 items-start py-6 px-4 pointer-events-none sm:items-start sm:p-6">
+			<div class="flex flex-col items-center space-y-4 w-full" id="toast-container"></div>
 		</div>
 		if s.Debug {
 			<div class="fixed bottom-0 z-50 w-screen h-2 hazard-background"></div>

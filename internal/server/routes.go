@@ -136,7 +136,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/plans/{planID}/interleave/complete-all", s.completeInterleavePlan)
 		r.Post("/plans/{planID}/resume", s.resumePracticePlan)
 		r.Post("/plans/{planID}/stop", s.stopPracticePlan)
+		r.Post("/plans/{planID}/duplicate", s.duplicatePracticePlan)
 		r.Get("/plans/{planID}/edit", s.editPracticePlan)
+
 		r.Delete("/plans/{planID}/spots/{practiceType}/{spotID}", s.deleteSpotFromPracticePlan)
 		r.Delete("/plans/{planID}/pieces/{practiceType}/{pieceID}", s.deletePieceFromPracticePlan)
 		r.Get("/plans/{planID}/spots/{practiceType}/add", s.getSpotsForPracticePlan)

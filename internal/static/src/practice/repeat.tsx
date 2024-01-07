@@ -306,7 +306,7 @@ function RepeatPractice({
               onClick={succeed}
               className="sm:gap-2"
             >
-              <span className="icons-[heroicons--hand-thumb-up-solid] -ml-1 size-6" />
+              <span className="icon-[heroicons--hand-thumb-up-solid] -ml-1 size-6" />
               <span>Correct</span>
             </BigHappyButton>
             <BigAngryButton
@@ -314,7 +314,7 @@ function RepeatPractice({
               onClick={fail}
               className="sm:gap-2"
             >
-              <span className="icons-[heroicons--hand-thumb-down-solid] -ml-1 size-6" />
+              <span className="icon-[heroicons--hand-thumb-down-solid] -ml-1 size-6" />
               <span>Mistake</span>
             </BigAngryButton>
           </div>
