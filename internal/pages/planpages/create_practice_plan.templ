@@ -36,7 +36,14 @@ templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListAc
 				})
 		}
 		@components.NormalContainer() {
-			<form class="flex flex-col" action="/library/plans" method="post" hx-post="/library/plans" hx-target="#main-content">
+			<form
+ 				class="flex flex-col"
+ 				action="/library/plans"
+ 				method="post"
+ 				hx-post="/library/plans"
+ 				hx-target="#main-content"
+ 				hx-swap="outerHTML transition:true"
+			>
 				@createPracticePlanFormFields(csrf, pieces)
 			</form>
 		}
