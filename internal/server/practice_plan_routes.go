@@ -1,6 +1,7 @@
 package server
 
 import (
+	"cmp"
 	"context"
 	"database/sql"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"practicebetter/internal/components"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/planpages"
+	"slices"
 	"strconv"
 	"time"
 
@@ -33,15 +35,23 @@ func (s *Server) createPracticePlanForm(w http.ResponseWriter, r *http.Request) 
 	s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces), "Create Practice Plan")
 }
 
-// TODO: possibly change back to new spots period and calculate spots per piece each time using type casting and rounding to get the right number
+// Consider making these configurable
 const (
-	LIGHT_NEW_SPOTS_PER_PIECE  = 0
-	MEDIUM_NEW_SPOTS_PER_PIECE = 2
-	HEAVY_NEW_SPOTS_PER_PIECE  = 3
+	LIGHT_MAX_NEW_SPOTS         = 0
+	MEDIUM_MAX_NEW_SPOTS        = 5
+	HEAVY_MAX_NEW_SPOTS         = 10
+	LIGHT_MAX_INFREQUENT_SPOTS  = 7
+	MEDIUM_MAX_INFREQUENT_SPOTS = 14
+	HEAVY_MAX_INFREQUENT_SPOTS  = 20
+	LIGHT_MAX_INTERLEAVE_SPOTS  = 8
+	MEDIUM_MAX_INTERLEAVE_SPOTS = 12
+	HEAVY_MAX_INTERLEAVE_SPOTS  = 20
 )
 
-// TODO: check that a piece has random spots before putting it in random spots practice
-// TODO: practice plans can generate with no spots or pieces leading to a not found
+type PotentialInfrequentSpot struct {
+	ID        string
+	TimeSince time.Duration
+}
 
 func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value("user").(db.User)
@@ -69,6 +79,22 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// We're going to carry forward failed new spots, so we need to get the new spots from the last plan that are
+	// still in the repeat practice stage
+	failedNewSpotIDs := make(map[string]struct{}, 0)
+	failedNewSpots, err := qtx.GetPracticePlanFailedNewSpots(r.Context(), db.GetPracticePlanFailedNewSpotsParams{
+		UserID:   user.ID,
+		PieceIDs: pieceIDs,
+	})
+	if err != nil {
+		log.Default().Println(err)
+	} else {
+		log.Default().Println("Found", len(failedNewSpots), "failed new spots")
+		for _, spot := range failedNewSpots {
+			failedNewSpotIDs[spot.SpotID] = struct{}{}
+		}
+	}
+
 	newPlan, err := qtx.CreatePracticePlan(r.Context(), db.CreatePracticePlanParams{
 		ID:                cuid2.Generate(),
 		UserID:            user.ID,
@@ -81,16 +107,12 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var numNewSpots int
-	if r.FormValue("practice_new") != "on" {
-		numNewSpots = 0
-	} else if r.FormValue("intensity") == "light" {
-		numNewSpots = LIGHT_NEW_SPOTS_PER_PIECE
-	} else if r.FormValue("intensity") == "medium" {
-		numNewSpots = MEDIUM_NEW_SPOTS_PER_PIECE
-	} else if r.FormValue("intensity") == "heavy" {
-		numNewSpots = HEAVY_NEW_SPOTS_PER_PIECE
-	}
+	maybeNewSpotIDs := make([]string, 0, len(pieceIDs)*10)
+	maybeInfrequentSpots := make([]PotentialInfrequentSpot, 0, len(pieceIDs)*10)
+	extraRepeatSpotIDs := make([]string, 0, len(pieceIDs)*10)
+	interleaveSpotIDs := make([]string, 0, len(pieceIDs)*10)
+	randomSpotPieceIDs := make([]string, 0, len(pieceIDs))
+	startingPointPieceIDs := make([]string, 0, len(pieceIDs))
 
 	for _, pieceID := range pieceIDs {
 		pieceRows, err := qtx.GetPieceForPlan(r.Context(), db.GetPieceForPlanParams{
@@ -103,44 +125,27 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		maybeNewSpotIDs := make([]string, 0, len(pieceRows)/2)
-		canRandomSpotsPractice := false
-		randomSpotCount := 0
-		extraRepeatSpotCount := 0
-		completedSpotCount := 0
-		var potentialInfrequentSpotIDs []string
+		pieceNewSpotIDs := make([]string, 0, len(pieceRows)/2)
+		pieceRandomSpotCount := 0
+		pieceExtraRepeatSpotCount := 0
+		pieceCompletedSpotCount := 0
 
 		for _, row := range pieceRows {
 			if !row.SpotStage.Valid || !row.SpotID.Valid {
 				continue
 			}
-			if row.SpotStage.String == "repeat" && r.FormValue("practice_new") == "on" {
-				maybeNewSpotIDs = append(maybeNewSpotIDs, row.SpotID.String)
-				// TODO: change more repeat to be extra repeat everywhere
-			} else if row.SpotStage.String == "extra_repeat" {
-				extraRepeatSpotCount++
-				_, err := qtx.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
-					PracticePlanID: newPlan.ID,
-					SpotID:         row.SpotID.String,
-					PracticeType:   "extra_repeat",
-				})
-				if err != nil {
-					log.Default().Printf("Database error: %v\n", err)
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
+			switch row.SpotStage.String {
+			case "repeat":
+				// we're going to combine the lists later, so make need to prevent duplicates
+				if _, ok := failedNewSpotIDs[row.SpotID.String]; !ok {
+					pieceNewSpotIDs = append(pieceNewSpotIDs, row.SpotID.String)
 				}
-			} else if row.SpotStage.String == "interleave" {
-				_, err := qtx.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
-					PracticePlanID: newPlan.ID,
-					SpotID:         row.SpotID.String,
-					PracticeType:   "interleave",
-				})
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			} else if row.SpotStage.String == "interleave_days" {
-				// if the spot doesn't have a last practiced date, or if it wasn't practiced yesterday (roughly)
+			case "extra_repeat":
+				extraRepeatSpotIDs = append(extraRepeatSpotIDs, row.SpotID.String)
+				pieceExtraRepeatSpotCount++
+			case "interleave":
+				interleaveSpotIDs = append(interleaveSpotIDs, row.SpotID.String)
+			case "interleave_days":
 				if !row.SpotSkipDays.Valid {
 					err := qtx.UpdateSpotSkipDays(r.Context(), db.UpdateSpotSkipDaysParams{
 						SkipDays: 1,
@@ -158,132 +163,124 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 				}
+
 				if !row.SpotLastPracticed.Valid || time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > time.Duration(row.SpotSkipDays.Int64)*24*time.Hour {
-					potentialInfrequentSpotIDs = append(potentialInfrequentSpotIDs, row.SpotID.String)
+					maybeInfrequentSpots = append(maybeInfrequentSpots, PotentialInfrequentSpot{
+						ID:        row.SpotID.String,
+						TimeSince: time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)),
+					})
 				}
-			} else if row.SpotStage.String == "random" {
-				canRandomSpotsPractice = true
-				randomSpotCount++
-			} else if row.SpotStage.String == "completed" {
-				completedSpotCount++
+			case "random":
+				pieceRandomSpotCount++
+			case "completed":
+				pieceCompletedSpotCount++
+			default:
+				continue
 			}
 		}
 
 		// Only new spots if there aren't too many extra repeat/random spots.
-		if extraRepeatSpotCount+randomSpotCount < 25 {
-			rand.Shuffle(len(maybeNewSpotIDs), func(i, j int) {
-				maybeNewSpotIDs[i], maybeNewSpotIDs[j] = maybeNewSpotIDs[j], maybeNewSpotIDs[i]
-			})
-			for i, spotID := range maybeNewSpotIDs {
-				if i >= numNewSpots {
-					break
-				}
-				_, err := qtx.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
-					PracticePlanID: newPlan.ID,
-					SpotID:         spotID,
-					PracticeType:   "new",
-				})
-				if err != nil {
-					log.Default().Println(err)
-					htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-						Message:  "Failed to add spot",
-						Title:    "Database Error",
-						Variant:  "error",
-						Duration: 3000,
-					})
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
+		if pieceExtraRepeatSpotCount+pieceRandomSpotCount < 25 {
+			maybeNewSpotIDs = append(maybeNewSpotIDs, pieceNewSpotIDs...)
 		}
 
-		rand.Shuffle(len(potentialInfrequentSpotIDs), func(i, j int) {
-			potentialInfrequentSpotIDs[i], potentialInfrequentSpotIDs[j] = potentialInfrequentSpotIDs[j], potentialInfrequentSpotIDs[i]
-		})
-		//TODO: un-hardcode this and use the intensity to set the value
-		for i, spotID := range potentialInfrequentSpotIDs {
-			if i > 7 {
-				break
-			}
-			_, err := qtx.CreatePracticePlanSpot(r.Context(), db.CreatePracticePlanSpotParams{
-				PracticePlanID: newPlan.ID,
-				SpotID:         spotID,
-				PracticeType:   "interleave_days",
-			})
-			if err != nil {
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-					Message:  "Failed to create Spot",
-					Title:    "Database Error",
-					Variant:  "error",
-					Duration: 3000,
-				})
-				http.Error(w, "Database Error", http.StatusInternalServerError)
-				return
-			}
+		if r.FormValue("practice_random_single") == "on" &&
+			pieceRandomSpotCount > 2 {
+			randomSpotPieceIDs = append(randomSpotPieceIDs, pieceID)
 		}
 
-		if r.FormValue("practice_random_single") == "on" && canRandomSpotsPractice {
-			_, err := qtx.CreatePracticePlanPiece(r.Context(), db.CreatePracticePlanPieceParams{
-				PracticePlanID: newPlan.ID,
-				PieceID:        pieceID,
-				PracticeType:   "random_spots",
-			})
-			if err != nil {
-				log.Default().Printf("Database error: %v\n", err)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		}
-		if r.FormValue("practice_starting_point") == "on" && completedSpotCount > 5 {
-			_, err := qtx.CreatePracticePlanPiece(r.Context(), db.CreatePracticePlanPieceParams{
-				PracticePlanID: newPlan.ID,
-				PieceID:        pieceID,
-				PracticeType:   "starting_point",
-			})
-			if err != nil {
-				log.Default().Printf("Database error: %v\n", err)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
+		if r.FormValue("practice_starting_point") == "on" &&
+			pieceCompletedSpotCount > 5 {
+			startingPointPieceIDs = append(startingPointPieceIDs, pieceID)
 		}
 	}
-
-	// randomize the order of all the things
-	planPieces, err := qtx.GetPracticePlanWithPieces(r.Context(), db.GetPracticePlanWithPiecesParams{
-		ID:     newPlan.ID,
-		UserID: user.ID,
-	})
-	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
+	var maxNewSpots int
+	var maxInfrequentSpots int
+	var maxInterleaveSpots int
+	switch r.FormValue("intensity") {
+	case "light":
+		maxNewSpots = LIGHT_MAX_NEW_SPOTS
+		maxInfrequentSpots = LIGHT_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = LIGHT_MAX_INTERLEAVE_SPOTS
+	case "medium":
+		maxNewSpots = MEDIUM_MAX_NEW_SPOTS
+		maxInfrequentSpots = MEDIUM_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = MEDIUM_MAX_INTERLEAVE_SPOTS
+	case "heavy":
+		maxNewSpots = HEAVY_MAX_NEW_SPOTS
+		maxInfrequentSpots = HEAVY_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = HEAVY_MAX_INTERLEAVE_SPOTS
 	}
-	planSpots, err := qtx.GetPracticePlanWithSpots(r.Context(), db.GetPracticePlanWithSpotsParams{
-		ID:     newPlan.ID,
-		UserID: user.ID,
-	})
-	rand.Shuffle(len(planPieces), func(i, j int) {
-		planPieces[i], planPieces[j] = planPieces[j], planPieces[i]
-	})
-	rand.Shuffle(len(planSpots), func(i, j int) {
-		planSpots[i], planSpots[j] = planSpots[j], planSpots[i]
-	})
 
-	for i, row := range planPieces {
-		if !row.PieceID.Valid {
-			continue
-		}
-		err := qtx.UpdatePlanPieceIdx(r.Context(), db.UpdatePlanPieceIdxParams{
-			Idx:          int64(i),
-			PlanID:       newPlan.ID,
-			UserID:       user.ID,
-			PieceID:      row.PieceID.String,
-			PracticeType: row.PiecePracticeType,
+	// Add Spots
+	// extra repeat
+	rand.Shuffle(len(extraRepeatSpotIDs), func(i, j int) {
+		extraRepeatSpotIDs[i], extraRepeatSpotIDs[j] = extraRepeatSpotIDs[j], extraRepeatSpotIDs[i]
+	})
+	for i, spotID := range extraRepeatSpotIDs {
+		_, err := qtx.CreatePracticePlanSpotWithIdx(r.Context(), db.CreatePracticePlanSpotWithIdxParams{
+			PracticePlanID: newPlan.ID,
+			SpotID:         spotID,
+			PracticeType:   "extra_repeat",
+			Idx:            int64(i),
 		})
 		if err != nil {
-			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-				Message:  "Failed to insert plan into database",
+				Message:  "Could not add extra repeat spot",
+				Title:    "Database Error",
+				Variant:  "error",
+				Duration: 3000,
+			})
+			return
+		}
+	}
+
+	// interleave
+	rand.Shuffle(len(interleaveSpotIDs), func(i, j int) {
+		interleaveSpotIDs[i], interleaveSpotIDs[j] = interleaveSpotIDs[j], interleaveSpotIDs[i]
+	})
+	for i, spotID := range interleaveSpotIDs {
+		if i >= maxInterleaveSpots {
+			break
+		}
+		_, err := qtx.CreatePracticePlanSpotWithIdx(r.Context(), db.CreatePracticePlanSpotWithIdxParams{
+			PracticePlanID: newPlan.ID,
+			SpotID:         spotID,
+			PracticeType:   "interleave",
+			Idx:            int64(i),
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Could not add interleave spot",
+				Title:    "Database Error",
+				Variant:  "error",
+				Duration: 3000,
+			})
+			return
+		}
+	}
+
+	// prioritize infrequent spots with the spots that are the lest recently practiced first
+	slices.SortFunc(maybeInfrequentSpots, func(a, b PotentialInfrequentSpot) int {
+		return cmp.Compare(b.TimeSince, a.TimeSince)
+	})
+
+	// infrequent spots
+	for i, spot := range maybeInfrequentSpots {
+		if i >= maxInfrequentSpots {
+			break
+		}
+		_, err := qtx.CreatePracticePlanSpotWithIdx(r.Context(), db.CreatePracticePlanSpotWithIdxParams{
+			PracticePlanID: newPlan.ID,
+			SpotID:         spot.ID,
+			PracticeType:   "interleave_days",
+			Idx:            int64(i),
+		})
+		if err != nil {
+			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Failed to create Spot",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
@@ -293,25 +290,81 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for i, row := range planSpots {
-		if !row.SpotID.Valid {
-			continue
+	// new spots
+	// Randomly select the new spots from new spots, but the spots from yesterday should go first and not be randomized
+	rand.Shuffle(len(maybeNewSpotIDs), func(i, j int) {
+		maybeNewSpotIDs[i], maybeNewSpotIDs[j] = maybeNewSpotIDs[j], maybeNewSpotIDs[i]
+	})
+	failedNewSpotIDList := make([]string, 0, len(failedNewSpots))
+	for spotID := range failedNewSpotIDs {
+		failedNewSpotIDList = append(failedNewSpotIDList, spotID)
+	}
+	maybeNewSpotIDs = append(failedNewSpotIDList, maybeNewSpotIDs...)
+	for i, spotID := range maybeNewSpotIDs {
+		if i >= maxNewSpots {
+			break
 		}
-		err := qtx.UpdatePlanSpotIdx(r.Context(), db.UpdatePlanSpotIdxParams{
-			Idx:    int64(i),
-			PlanID: newPlan.ID,
-			UserID: user.ID,
-			SpotID: row.SpotID.String,
+		_, err := qtx.CreatePracticePlanSpotWithIdx(r.Context(), db.CreatePracticePlanSpotWithIdxParams{
+			PracticePlanID: newPlan.ID,
+			SpotID:         spotID,
+			PracticeType:   "new",
+			Idx:            int64(i),
 		})
 		if err != nil {
 			log.Default().Println(err)
 			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-				Message:  "Failed to insert plan into database",
+				Message:  "Failed to add spot",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
 			})
-			http.Error(w, "Database Error", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// add pieces
+	// random spots pieces
+	rand.Shuffle(len(randomSpotPieceIDs), func(i, j int) {
+		randomSpotPieceIDs[i], randomSpotPieceIDs[j] = randomSpotPieceIDs[j], randomSpotPieceIDs[i]
+	})
+	for i, pieceID := range randomSpotPieceIDs {
+		_, err := qtx.CreatePracticePlanPieceWithIdx(r.Context(), db.CreatePracticePlanPieceWithIdxParams{
+			PracticePlanID: newPlan.ID,
+			PieceID:        pieceID,
+			PracticeType:   "random_spots",
+			Idx:            int64(i),
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Could not add random spot piece",
+				Title:    "Database Error",
+				Variant:  "error",
+				Duration: 3000,
+			})
+			return
+		}
+	}
+	// random starting point pieces
+	rand.Shuffle(len(startingPointPieceIDs), func(i, j int) {
+		startingPointPieceIDs[i], startingPointPieceIDs[j] = startingPointPieceIDs[j], startingPointPieceIDs[i]
+	})
+	for i, pieceID := range startingPointPieceIDs {
+		_, err := qtx.CreatePracticePlanPieceWithIdx(r.Context(), db.CreatePracticePlanPieceWithIdxParams{
+			PracticePlanID: newPlan.ID,
+			PieceID:        pieceID,
+			PracticeType:   "starting_point",
+			Idx:            int64(i),
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Could not add random starting point piece",
+				Title:    "Database Error",
+				Variant:  "error",
+				Duration: 3000,
+			})
 			return
 		}
 	}

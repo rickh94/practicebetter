@@ -216,10 +216,27 @@ AND practice_plan_spots.completed = false
 AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
 ORDER BY practice_plan_spots.idx;
 
+-- name: GetPracticePlanFailedNewSpots :many
+SELECT practice_plan_spots.*
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'new'
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.user_id = :user_id ORDER BY date DESC LIMIT 1)
+AND spots.stage = 'repeat'
+AND spots.piece_id IN (sqlc.slice('pieceIDs'))
+ORDER BY practice_plan_spots.idx;
+
 -- name: GetPracticePlan :one
 SELECT *
 FROM practice_plans
 WHERE id = ? AND user_id = ?;
+
+-- name: GetLatestPracticePlan :one
+SELECT *
+FROM practice_plans
+WHERE user_id = ?
+ORDER BY date DESC
+LIMIT 1;
 
 -- name: UpdatePlanPieceIdx :exec
 UPDATE practice_plan_pieces

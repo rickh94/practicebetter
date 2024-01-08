@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"strings"
 )
 
 const addPracticeSessionToPlan = `-- name: AddPracticeSessionToPlan :exec
@@ -306,6 +307,28 @@ func (q *Queries) DeletePracticePlanSpot(ctx context.Context, arg DeletePractice
 	return err
 }
 
+const getLatestPracticePlan = `-- name: GetLatestPracticePlan :one
+SELECT id, user_id, intensity, date, completed, practice_session_id
+FROM practice_plans
+WHERE user_id = ?
+ORDER BY date DESC
+LIMIT 1
+`
+
+func (q *Queries) GetLatestPracticePlan(ctx context.Context, userID string) (PracticePlan, error) {
+	row := q.db.QueryRowContext(ctx, getLatestPracticePlan, userID)
+	var i PracticePlan
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Intensity,
+		&i.Date,
+		&i.Completed,
+		&i.PracticeSessionID,
+	)
+	return i, err
+}
+
 const getMaxPieceIdx = `-- name: GetMaxPieceIdx :one
 SELECT MAX(idx) FROM practice_plan_pieces
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
@@ -363,6 +386,62 @@ func (q *Queries) GetPracticePlan(ctx context.Context, arg GetPracticePlanParams
 		&i.PracticeSessionID,
 	)
 	return i, err
+}
+
+const getPracticePlanFailedNewSpots = `-- name: GetPracticePlanFailedNewSpots :many
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.completed, practice_plan_spots.idx
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'new'
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.user_id = ?1 ORDER BY date DESC LIMIT 1)
+AND spots.stage = 'repeat'
+AND spots.piece_id IN (/*SLICE:pieceIDs*/?)
+ORDER BY practice_plan_spots.idx
+`
+
+type GetPracticePlanFailedNewSpotsParams struct {
+	UserID   string   `json:"userId"`
+	PieceIDs []string `json:"pieceIDs"`
+}
+
+func (q *Queries) GetPracticePlanFailedNewSpots(ctx context.Context, arg GetPracticePlanFailedNewSpotsParams) ([]PracticePlanSpot, error) {
+	query := getPracticePlanFailedNewSpots
+	var queryParams []interface{}
+	queryParams = append(queryParams, arg.UserID)
+	if len(arg.PieceIDs) > 0 {
+		for _, v := range arg.PieceIDs {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:pieceIDs*/?", strings.Repeat(",?", len(arg.PieceIDs))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:pieceIDs*/?", "NULL", 1)
+	}
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PracticePlanSpot
+	for rows.Next() {
+		var i PracticePlanSpot
+		if err := rows.Scan(
+			&i.PracticePlanID,
+			&i.SpotID,
+			&i.PracticeType,
+			&i.Completed,
+			&i.Idx,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPracticePlanIncompleteExtraRepeatSpots = `-- name: GetPracticePlanIncompleteExtraRepeatSpots :many
