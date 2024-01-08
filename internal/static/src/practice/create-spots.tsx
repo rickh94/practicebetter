@@ -69,7 +69,7 @@ export function CreateSpots({
                 <div>Delete All</div>
                 <span className="sr-only">Delete All Spots</span>
                 <span
-                  className="icon-[heroicons--trash-solid] -ml-1 size-4"
+                  className="icon-[heroicons--trash-solid] -mr-1 size-5"
                   aria-hidden="true"
                 />
               </AngryButton>
@@ -82,16 +82,15 @@ export function CreateSpots({
       </div>
       <ul className="col-span-full flex w-full flex-wrap gap-3" ref={parent}>
         {spots.map((spot) => (
-          <li key={spot.id} className="flex items-center rounded-xl p-0">
+          <li key={spot.id} className="flex h-10 items-center rounded-xl p-0">
             <div className="whitespace-nowrap rounded-l-xl border-neutral-800 bg-neutral-700/10 py-2 pl-3 pr-2">
               {spot.name}
             </div>
             <button
               onClick={() => deleteSpot(spot.id)}
-              className="rounded-r-xl border-red-800 bg-red-700/10 py-2.5 pl-2 pr-3 text-red-800 hover:bg-red-500/10 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-800 focus:ring-offset-1 focus:ring-offset-neutral-100"
+              className="flex h-10 items-center rounded-r-xl border-red-800 bg-red-700/10 px-3 text-red-800 hover:bg-red-500/10 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-800 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-100"
             >
               <span className="sr-only">Delete {spot.name}</span>
-
               <span
                 className="icon-[heroicons--trash-solid] -ml-1 size-4"
                 aria-hidden="true"

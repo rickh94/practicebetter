@@ -104,6 +104,7 @@ export function RandomSpots({
       // get initial sessions value from query param
       const urlParams = new URLSearchParams(window.location.search);
       const initialSessions = parseInt(urlParams.get("numSessions"));
+      console.log("initialSessions", initialSessions);
       if (initialSessions && typeof initialSessions === "number") {
         setNumSessions(initialSessions);
       }
@@ -116,7 +117,7 @@ export function RandomSpots({
         startPracticing();
       }
     },
-    [initialspots, setNumSessions, startPracticing],
+    [initialspots, setNumSessions, startPracticing, window.location.search],
   );
 
   return (
@@ -656,21 +657,21 @@ function SinglePractice({
             className="gap-2"
           >
             <span
-              className="icon-[heroicons--hand-thumb-up-solid] -ml-1 size-5"
+              className="icon-[heroicons--hand-thumb-up-solid] -ml-1 size-6"
               aria-hidden="true"
             ></span>
             Excellent
           </BigHappyButton>
           <BigSkyButton type="button" onClick={handleFine} className="gap-2">
             <span
-              className="icon-[heroicons--hand-raised-solid] -ml-1 size-5"
+              className="icon-[heroicons--hand-raised-solid] -ml-1 size-6"
               aria-hidden="true"
             ></span>
             Fine
           </BigSkyButton>
           <BigAngryButton type="button" onClick={handlePoor} className="gap-2">
             <span
-              className="icon-[heroicons--hand-thumb-down-solid] -ml-1 size-5"
+              className="icon-[heroicons--hand-thumb-down-solid] -ml-1 size-6"
               aria-hidden="true"
             ></span>
             Poor

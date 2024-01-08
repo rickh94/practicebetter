@@ -24,7 +24,7 @@ export function NextPlanItem({ planid }: { planid?: string }) {
         aria-labelledby="practice-next-title"
         className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-2 text-left sm:max-w-xl"
       >
-        <header className="flex h-8 flex-shrink-0 text-left">
+        <header className="flex h-8 flex-shrink-0 text-left sm:mt-2">
           <h3
             id="practice-next-title"
             className="inline-block text-2xl font-semibold leading-6 text-neutral-900"

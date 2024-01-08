@@ -232,7 +232,7 @@ func getSessionsFromIntensity(intensity string) string {
 	}
 }
 
-func getPracticeUrl(completed, isActive bool, pieceID, practiceType, intensity string) string {
+func GetPiecePracticeUrl(completed, isActive bool, pieceID, practiceType, intensity string) string {
 	if completed || !isActive {
 		return "/library/pieces/" + pieceID
 	}
@@ -259,7 +259,7 @@ func getPracticePlanPieceCardClass(completed bool) string {
 
 templ PracticePlanPieceCard(pieceID string, title string, composer string, activeSpots int64, completed bool, practiceType string, intensity string, isActive bool) {
 	<li>
-		@HxLink(getPracticePlanPieceCardClass(completed), getPracticeUrl(completed, isActive, pieceID, practiceType, intensity), "#main-content") {
+		@HxLink(getPracticePlanPieceCardClass(completed), GetPiecePracticeUrl(completed, isActive, pieceID, practiceType, intensity), "#main-content") {
 			<div class="flex flex-col flex-1 flex-grow gap-1">
 				<div>
 					<strong class="text-xl font-bold">{ title }</strong>

@@ -935,6 +935,21 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	plan, err := queries.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
+		ID:     planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get next plan item",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	extraRepeatSpots, err := queries.GetPracticePlanIncompleteExtraRepeatSpots(r.Context(), db.GetPracticePlanIncompleteExtraRepeatSpotsParams{
 		PlanID: planID,
 		UserID: user.ID,
@@ -971,9 +986,9 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(randomPieces) > 0 {
-		pieceID := randomPieces[0].PieceID
-		htmx.Redirect(r, "/library/pieces/"+pieceID+"/practice/random")
-		http.Redirect(w, r, "/library/pieces/"+pieceID+"/practice/random", http.StatusSeeOther)
+		url := components.GetPiecePracticeUrl(false, true, randomPieces[0].PieceID, "random_spots", plan.Intensity)
+		htmx.Redirect(r, url)
+		http.Redirect(w, r, url, http.StatusSeeOther)
 		return
 	}
 	startingPointPieces, err := queries.GetPracticePlanIncompleteStartingPointPieces(r.Context(), db.GetPracticePlanIncompleteStartingPointPiecesParams{
@@ -991,9 +1006,9 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(startingPointPieces) > 0 {
-		pieceID := startingPointPieces[0].PieceID
-		htmx.Redirect(r, "/library/pieces/"+pieceID+"/practice/starting-point")
-		http.Redirect(w, r, "/library/pieces/"+pieceID+"/practice/starting-point", http.StatusSeeOther)
+		url := components.GetPiecePracticeUrl(false, true, startingPointPieces[0].PieceID, "starting_point", plan.Intensity)
+		htmx.Redirect(r, url)
+		http.Redirect(w, r, url, http.StatusSeeOther)
 		return
 	}
 

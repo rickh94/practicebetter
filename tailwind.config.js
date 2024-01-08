@@ -8,6 +8,7 @@ export default {
     "./internal/static/**/*.js",
     "./internal/components/**/*.go",
     "./internal/static/src/**/*.{ts,tsx,html,css}",
+    "**/*.tsx",
     "./internal/static/src/*.{ts,tsx,html,css}",
   ],
   theme: {

@@ -204,10 +204,13 @@ export default function Summary({
         <div className="prose prose-sm prose-neutral mt-2 text-left">
           Based on your practicing, here are some recommendations for your
           spots. Click the{" "}
-          <span
-            className="icon-[heroicons--minus-circle-solid] inline size-5 text-red-500"
-            aria-hidden="true"
-          />{" "}
+          <span className="-mb-2 inline-flex w-4 items-center justify-center">
+            <span
+              className="icon-[heroicons--minus-circle-solid] size-4 text-red-500"
+              aria-hidden="true"
+            />
+            <span className="sr-only">Remove Button</span>
+          </span>{" "}
           to prevent the change and keep the spot in Random practicing.
         </div>
         <div className="flex flex-col-reverse gap-2  sm:grid sm:grid-cols-2">
@@ -230,10 +233,10 @@ export default function Summary({
                     {item.name}
                     <button
                       onClick={() => removeDemotionSpot(item.id)}
-                      className="focusable rounded-xl py-1 pl-2 text-red-500 hover:bg-red-500/10"
+                      className="focusable flex items-center justify-center rounded-full p-1 text-red-500 hover:bg-red-500/10 hover:text-red-700"
                     >
                       <span
-                        className="icon-[heroicons--minus-circle-solid] inline size-5 text-red-500"
+                        className="icon-[heroicons--minus-circle-solid] size-5"
                         aria-hidden="true"
                       />
                       <span className="sr-only">Remove</span>
@@ -264,10 +267,10 @@ export default function Summary({
                     {item.name}
                     <button
                       onClick={() => removePromotionSpot(item.id)}
-                      className="focusable rounded-xl py-1 pl-2 text-red-500 hover:bg-red-500/10"
+                      className="focusable flex items-center justify-center rounded-full p-1 text-red-500 hover:bg-red-500/10 hover:text-red-700"
                     >
                       <span
-                        className="icon-[heroicons--minus-circle-solid] inline size-5 text-red-500"
+                        className="icon-[heroicons--minus-circle-solid] size-5"
                         aria-hidden="true"
                       />
                       <span className="sr-only">Remove</span>
