@@ -289,7 +289,8 @@ function SingleSetupForm({
 // TODO: add events to keep you from moving on while the reminders form is open
 
 function hash(s: string) {
-  for (var i = 0, h = 0xdeadbeef; i < s.length; i++)
+  let h: number, i: number;
+  for (i = 0, h = 0xdeadbeef; i < s.length; i++)
     h = Math.imul(h ^ s.charCodeAt(i), 2654435761);
   return (h ^ (h >>> 16)) >>> 0;
 }
