@@ -375,7 +375,7 @@ function PracticeListItem({
           exit="exit"
           variants={variants}
         >
-          <span className="icon-[iconamoon--check-circle-1-thin] size-6 sm:size-8" />
+          <span className="icon-[iconamoon--check-bold] size-6 sm:size-8" />
           <span className="sr-only">Checked</span>
         </motion.li>
       ) : (

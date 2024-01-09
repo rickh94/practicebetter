@@ -37,7 +37,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 			<div class="flex flex-col gap-4">
 				@LibraryPieceList(pieces)
 				<div class="grid grid-cols-1 gap-2 w-full xs:grid-cols-2">
-					@components.HxLink("flex-grow action-button text-sky-700 bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/pieces", "#main-content") {
+					@components.HxLink("flex-grow action-button text-indigo-700 bg-indigo-700/10 hover:bg-indigo-700/20 focusable", "/library/pieces", "#main-content") {
 						<span class="-ml-1 size-8 icon-[custom--music-folder]" aria-hidden="true"></span>
 						All Pieces
 					}

@@ -63,7 +63,7 @@ func getCurrentPath(ctx context.Context) string {
 
 templ MaybePracticePlan() {
 	if GetActivePracticePlan(ctx) != "" {
-		@HxLink("action-button h-14 flex-shrink-0 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
+		@HxLink("action-button border border-black/20 rounded-lg h-14 flex-shrink-0 bg-white text-violet-800 shadow-sm shadow-black/20 hover:shadow hover:shadow-violet-400 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
 			<span>
 				<span class="hidden xs:inline">Practice</span> Plan
 			</span>

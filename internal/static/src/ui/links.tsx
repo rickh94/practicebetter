@@ -73,7 +73,7 @@ export function WarningLink({
     <Link
       href={href}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl bg-yellow-700/10 px-4 py-2 font-semibold text-yellow-800 transition duration-200 hover:bg-yellow-700/20",
+        "focusable action-button bg-yellow-700/10 text-yellow-800 hover:bg-yellow-700/20",
         grow && "flex-grow",
         className,
       )}

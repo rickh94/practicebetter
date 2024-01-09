@@ -135,9 +135,9 @@ templ Breadcrumb(bc []BreadcrumbInfo) {
 		}
 	}
 	if len(bc) > 1 {
-		<nav aria-label="Breadcrumb" class="flex flex-grow-0 md:hidden">
-			@HxLink("focusable action-button text-xl  bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
-				<span class="-mx-2 size-6 icon-[iconamoon--arrow-left-2-thin]" aria-hidden="true"></span>
+		<nav aria-label="Breadcrumb" class="flex flex-grow-0 md:hidden overflow-x-clip">
+			@HxLink("focusable action-button text-ellipsis text-xl bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
+				<span class="-mx-2 size-8 icon-[iconamoon--arrow-left-2-thin]" aria-hidden="true"></span>
 				{ bc[len(bc)-2].Label }
 			}
 		</nav>
@@ -158,8 +158,8 @@ templ BreadcrumbWithDates(bc []BreadcrumbWithDatesInfo) {
 		}
 	}
 	if len(bc) > 1 {
-		<nav aria-label="Breadcrumb" class="flex flex-grow-0 md:hidden">
-			@HxLink("focusable action-button text-xl  bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
+		<nav aria-label="Breadcrumb" class="flex flex-grow-0 md:hidden overflow-x-clip">
+			@HxLink("focusable action-button text-ellipsis text-xl bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
 				<span class="-mx-2 icon-[iconamoon--arrow-left-2-thin] size-8" aria-hidden="true"></span>
 				if bc[len(bc)-2].IsDate {
 					<number-date epoch={ bc[len(bc)-2].Label }></number-date>
@@ -191,27 +191,41 @@ templ BreadcrumbItem(label string, href string, active bool, isLast bool, isDate
 	}
 }
 
-// TODO: make actual link
+templ PieceCardHeading(title, composer string, completed bool) {
+	<div class={ templ.KV("text-indigo-950", !completed), templ.KV("text-green-950", completed) }>
+		<strong class="text-xl font-bold">{ title }</strong>
+	</div>
+	<div class={ templ.KV("text-indigo-800", !completed), templ.KV("text-green-800", completed), "whitespace-nowrap" }>
+		if composer != "" {
+			{ composer }
+		} else {
+			Unknown
+		}
+	</div>
+}
+
+const pieceCardClass = "focusable flex rounded-xl px-6 py-4 text-black transition-all duration-200 shadow-sm shadow-black/20"
+
+func getPieceCardClass(completed bool) string {
+	if completed {
+		return pieceCardClass + " bg-green-500/50"
+	} else {
+		return pieceCardClass + " bg-neutral-50 hover:shadow hover:shadow-indigo-400"
+	}
+}
 
 templ PieceCard(pieceID string, title string, composer string, activeSpots int64, completedSpots int64) {
 	<li>
-		@HxLink("focusable flex rounded-xl bg-neutral-700/10 px-6 py-4 text-neutral-700 hover:bg-neutral-700/20", "/library/pieces/"+pieceID, "#main-content") {
+		@HxLink(getPieceCardClass(false),
+			"/library/pieces/"+pieceID,
+			"#main-content",
+		) {
 			<div class="flex flex-col flex-1 flex-grow gap-1">
-				<div>
-					<strong class="text-xl font-bold">{ title }</strong>
-					<span class="whitespace-nowrap">
-						—{ " " }
-						if composer != "" {
-							{ composer }
-						} else {
-							Unknown
-						}
-					</span>
-				</div>
+				@PieceCardHeading(title, composer, false)
 				<div>Active Spots: { strconv.FormatInt(activeSpots, 10) }</div>
 				<div>Finished Spots: { strconv.FormatInt(completedSpots, 10) }</div>
 			</div>
-			<div class="flex flex-grow-0 items-center">
+			<div class="flex flex-grow-0 items-center text-indigo-900">
 				<div class="sr-only">Click to view</div>
 				<span class="-mr-2 size-12 icon-[custom--music-file]" aria-hidden="true"></span>
 			</div>
@@ -247,26 +261,11 @@ func GetPiecePracticeUrl(completed, isActive bool, pieceID, practiceType, intens
 	}
 }
 
-const pieceCardClass = "focusable flex rounded-xl px-6 py-4 text-neutral-700 transition-all duration-200"
-
-func getPracticePlanPieceCardClass(completed bool) string {
-	if completed {
-		return pieceCardClass + " bg-green-500/50"
-	} else {
-		return pieceCardClass + " bg-neutral-700/10 hover:bg-neutral-700/20"
-	}
-}
-
 templ PracticePlanPieceCard(pieceID string, title string, composer string, activeSpots int64, completed bool, practiceType string, intensity string, isActive bool) {
 	<li>
-		@HxLink(getPracticePlanPieceCardClass(completed), GetPiecePracticeUrl(completed, isActive, pieceID, practiceType, intensity), "#main-content") {
+		@HxLink(getPieceCardClass(completed), GetPiecePracticeUrl(completed, isActive, pieceID, practiceType, intensity), "#main-content") {
 			<div class="flex flex-col flex-1 flex-grow gap-1">
-				<div>
-					<strong class="text-xl font-bold">{ title }</strong>
-					<span class="whitespace-nowrap">
-						—{ " " }{ composer }
-					</span>
-				</div>
+				@PieceCardHeading(title, composer, completed)
 				if practiceType == "random_spots" {
 					<div>Random Spots: { strconv.FormatInt(activeSpots, 10) }</div>
 				}

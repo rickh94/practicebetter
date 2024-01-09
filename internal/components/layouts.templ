@@ -18,7 +18,7 @@ templ HeroLayout(nav templ.Component) {
 
 templ HeadingText(text string) {
 	<h1
- 		class={ "font-extrabold tracking-tight text-neutral-800 px-2", templ.KV("text-base truncate", len(text) >= 24), templ.KV("text-xl", len(text) < 24 && len(text) >= 18), templ.KV("text-3xl", len(text) < 18 && len(text) >= 12), templ.KV("text-5xl", len(text) < 12) }
+ 		class={ "font-extrabold tracking-tight text-neutral-800 px-2", templ.KV("text-base truncate mr-4", len(text) >= 24), templ.KV("text-xl", len(text) < 24 && len(text) >= 18), templ.KV("text-3xl", len(text) < 18 && len(text) >= 12), templ.KV("text-5xl", len(text) < 12) }
 	>
 		{ text }
 	</h1>
@@ -30,7 +30,7 @@ templ TwoButtonBar(left templ.Component, header templ.Component, right templ.Com
 			<div class="flex flex-grow-0 justify-start md:w-56">
 				@left
 			</div>
-			<header class="hidden flex-grow max-w-full text-center md:block overflow-x-clip" id="page-title">
+			<header class="hidden flex-grow text-center md:block overflow-x-clip" id="page-title">
 				@header
 			</header>
 			<div class="flex flex-grow-0 justify-end md:w-56">
