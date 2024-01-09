@@ -175,14 +175,14 @@ export default function SpotFormFields({
       >
         <HappyButton type="submit">
           <span
-            className="icon-[heroicons--arrow-down-tray-solid] -ml-1 size-5"
+            className="icon-[iconamoon--arrow-up-5-circle-thin] -ml-1 size-5"
             aria-hidden="true"
           />
           {isUpdating ? "Saving..." : "Save"}
         </HappyButton>
         <WarningLink href={backTo}>
           <span
-            className="icon-[heroicons--arrow-left-circle-solid] -ml-1 size-5"
+            className="icon-[iconamoon--arrow-left-5-circle-thin] -ml-1 size-5"
             aria-hidden="true"
           />
           Go Back

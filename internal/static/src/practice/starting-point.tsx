@@ -483,7 +483,7 @@ export function StartingPointSetupForm({
               type="button"
             >
               <span
-                className="icon-[heroicons--x-mark-solid] -ml-1 size-5"
+                className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-5"
                 aria-hidden="true"
               />
               Clear
@@ -513,8 +513,11 @@ export function StartingPointSetupForm({
             />
           </div>
         </div>
-        <div className="col-span-full my-16 flex w-full items-center justify-center">
-          <GiantBasicButton type="submit">Start Practicing</GiantBasicButton>
+        <div className="col-span-full my-8 flex w-full items-center justify-center">
+          <GiantBasicButton type="submit">
+            Start Practicing
+            <span className="icon-[iconamoon--player-play-thin] size-8" />
+          </GiantBasicButton>
         </div>
       </form>
     </>
@@ -771,14 +774,14 @@ export function StartingPointPractice({
         <div className="flex flex-wrap justify-center gap-2 pt-8">
           <BasicButton onClick={setup} type="button">
             <span
-              className="icon-[heroicons--arrow-left-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--arrow-left-5-circle-thin] -ml-1 size-5"
               aria-hidden="true"
             />{" "}
             Back to setup
           </BasicButton>
           <WarningButton onClick={handleDone}>
             <span
-              className="icon-[heroicons--stop-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--player-stop-thin] -ml-1 size-5"
               aria-hidden="true"
             ></span>
             Finish

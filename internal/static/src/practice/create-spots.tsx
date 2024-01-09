@@ -66,10 +66,10 @@ export function CreateSpots({
           <div>
             {spots.length > 0 && (
               <AngryButton onClick={() => clearSpots()}>
-                <div>Delete All</div>
-                <span className="sr-only">Delete All Spots</span>
+                <div>Remove All</div>
+                <span className="sr-only">Remove All Spots</span>
                 <span
-                  className="icon-[heroicons--trash-solid] -mr-1 size-5"
+                  className="icon-[iconamoon--sign-minus-circle-thin] -mr-2 size-5"
                   aria-hidden="true"
                 />
               </AngryButton>
@@ -92,7 +92,7 @@ export function CreateSpots({
             >
               <span className="sr-only">Delete {spot.name}</span>
               <span
-                className="icon-[heroicons--trash-solid] -ml-1 size-4"
+                className="icon-[iconamoon--sign-minus-circle-thin] size-5"
                 aria-hidden="true"
               />
             </button>
@@ -123,7 +123,7 @@ export function CreateSpots({
           />
           <BasicButton onClick={onAddSpot}>
             <span
-              className="icon-[heroicons--plus-circle-solid] -ml-1 size-4"
+              className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Add Spot
@@ -155,7 +155,7 @@ export function CreateSpots({
           />
           <BasicButton onClick={generateSomeSpots}>
             <span
-              className="icon-[heroicons--plus-circle-solid] -ml-1 size-4"
+              className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Add Spots

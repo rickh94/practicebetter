@@ -111,13 +111,13 @@ export function AddAudioPrompt({
           <>
             <span className="sr-only">Checked</span>
             <span
-              className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
               aria-hidden="true"
             />
           </>
         ) : (
           <span
-            className="-ml icon-[heroicons--speaker-wave-solid] size-5"
+            className="-ml icon-[iconamoon--volume-up-thin] size-5"
             aria-hidden="true"
           />
         )}
@@ -153,14 +153,14 @@ export function AddAudioPrompt({
             <div class="mt-4 flex w-full gap-2">
               <WarningButton grow type="button" onClick={close}>
                 <span
-                  className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+                  className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
                 ></span>
                 Close
               </WarningButton>
               <AngryButton grow type="button" onClick={() => save("")}>
                 <span
-                  className="icon-[heroicons--trash-solid] -ml-1 size-6"
+                  className="icon-[iconamoon--trash-thin] -ml-1 size-6"
                   aria-hidden="true"
                 ></span>
                 Remove File
@@ -197,7 +197,7 @@ export function AddAudioPrompt({
                 onClick={close}
               >
                 <span
-                  className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+                  className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
                 ></span>
                 Close
@@ -210,12 +210,12 @@ export function AddAudioPrompt({
               >
                 {isUploading ? (
                   <span
-                    className="icon-[heroicons--arrow-path-solid] -ml-1 size-6"
+                    className="icon-[ph--arrows-clockwise-thin] -ml-1 size-6"
                     aria-hidden="true"
                   ></span>
                 ) : (
                   <span
-                    className="icon-[heroicons--cloud-arrow-up-solid] -ml-1 size-6"
+                    className="icon-[iconamoon--cloud-upload-thin] -ml-1 size-6"
                     aria-hidden="true"
                   ></span>
                 )}
@@ -328,13 +328,13 @@ export function AddImagePrompt({
           <>
             <span className="sr-only">Checked</span>
             <span
-              className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
               aria-hidden="true"
             ></span>
           </>
         ) : (
           <span
-            className="icon-[heroicons--photo-solid] size-5"
+            className="icon-[iconamoon--file-image-thin] size-5"
             aria-hidden="true"
           ></span>
         )}
@@ -371,14 +371,14 @@ export function AddImagePrompt({
             <div class="mt-4 flex w-full gap-2">
               <WarningButton grow type="button" onClick={close}>
                 <span
-                  className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+                  className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
                 ></span>
                 Close
               </WarningButton>
               <AngryButton grow type="button" onClick={() => save("")}>
                 <span
-                  className="icon-[heroicons--trash-solid] -ml-1 size-6"
+                  className="icon-[iconamoon--trash-thin] -ml-1 size-6"
                   aria-hidden="true"
                 ></span>
                 Remove File
@@ -416,7 +416,7 @@ export function AddImagePrompt({
                 onClick={close}
               >
                 <span
-                  className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+                  className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
                 ></span>
                 Close
@@ -429,12 +429,12 @@ export function AddImagePrompt({
               >
                 {isUploading ? (
                   <span
-                    className="icon-[heroicons--arrow-path-solid] -ml-1 size-6"
+                    className="icon-[ph--arrows-clockwise] -ml-1 size-6"
                     aria-hidden="true"
                   ></span>
                 ) : (
                   <span
-                    className="icon-[heroicons--cloud-arrow-up-solid] -ml-1 size-6"
+                    className="icon-[iconamoon--cloud-upload-thin] -ml-1 size-6"
                     aria-hidden="true"
                   ></span>
                 )}
@@ -496,13 +496,13 @@ export function AddReminders({
           <>
             <span className="sr-only">Checked</span>
             <span
-              className="icon-[heroicons--check-solid] -ml-1 size-5"
+              className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
               aria-hidden="true"
             ></span>
           </>
         ) : (
           <span
-            className="icon-[heroicons--chat-bubble-bottom-center-text-solid] -ml-1 size-5"
+            className="icon-[ph--chat-centered-text-thin] -ml-1 size-5"
             aria-hidden="true"
           ></span>
         )}
@@ -539,7 +539,7 @@ export function AddReminders({
         </div>
         <HappyButton grow onClick={close} className="mt-4 w-full">
           <span
-            className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+            className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
             aria-hidden="true"
           ></span>
           Done
@@ -598,13 +598,13 @@ export function AddNotesPrompt({
           <>
             <span className="sr-only">Checked</span>
             <span
-              className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
               aria-hidden="true"
             ></span>
           </>
         ) : (
           <span
-            className="icon-[heroicons--musical-note-solid] -ml-1 size-5"
+            className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
             aria-hidden="true"
           ></span>
         )}
@@ -666,7 +666,7 @@ export function AddNotesPrompt({
         </div>
         <HappyButton grow onClick={close} className="mt-4 w-full">
           <span
-            className="icon-[heroicons--check-circle-solid] -ml-1 size-6"
+            className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-6"
             aria-hidden="true"
           ></span>
           Done

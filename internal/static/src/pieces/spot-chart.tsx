@@ -80,7 +80,7 @@ export default function SpotChart({
         <summary className="flex w-full cursor-pointer items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span
-              className="icon-[heroicons--chart-pie-solid] size-5"
+              className="icon-[heroicons--chart-pie] size-5"
               aria-hidden="true"
             ></span>
             <h4 className="text-center text-xl font-bold">
@@ -88,7 +88,7 @@ export default function SpotChart({
             </h4>
           </div>
           <span
-            className="summary-icon icon-[heroicons--chevron-right-solid] size-5 transition-transform"
+            className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform"
             aria-hidden="true"
           ></span>
         </summary>

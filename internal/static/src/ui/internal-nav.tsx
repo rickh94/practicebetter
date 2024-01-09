@@ -1,61 +1,38 @@
 import { NavItem, cn } from "../common";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { NoteSheetIcon, PlayListIcon } from "./icons";
+import { PlayListIcon } from "./icons";
 import * as htmx from "htmx.org";
 
 const navItemIconClasses = "ml-1 size-5" as const;
 
-export function InternalNav({
-  activeplanid,
-  activepath,
-}: {
-  activeplanid: string;
-  activepath: string;
-}) {
+export function InternalNav({ activepath }: { activepath: string }) {
   const links: NavItem[] = [
     {
       href: "/library",
       label: "Library",
-      icon: (
-        <span
-          className={cn(
-            "icon-[solar--music-note-slider-bold-duotone]",
-            navItemIconClasses,
-          )}
-        />
-      ),
+      icon: <span className="icon-[custom--music-note-screen] ml-1 size-6" />,
     } as const,
     {
       href: "/library/plans",
       label: "Practice Plans",
-      icon: (
-        <span
-          className={cn(
-            "icon-[solar--clipboard-list-bold]",
-            navItemIconClasses,
-          )}
-        />
-      ),
+      icon: <span className="icon-[iconamoon--calendar-2-thin] ml-1 size-6" />,
     } as const,
     {
       href: "/library/pieces",
       label: "Pieces",
-      icon: <NoteSheetIcon className={navItemIconClasses} />,
+      icon: <span className="icon-[custom--music-folder] ml-1 size-6" />,
     } as const,
     {
       href: "/practice",
       label: "Practice Tools",
-      icon: <PlayListIcon className={navItemIconClasses} />,
+      icon: <span className="icon-[iconamoon--playlist-thin] ml-1 size-6" />,
     } as const,
     {
       href: "/auth/me",
       label: "Account",
       icon: (
         <span
-          className={cn(
-            "icon-[heroicons--user-circle-solid]",
-            navItemIconClasses,
-          )}
+          className="icon-[iconamoon--profile-circle-thin] ml-1 size-6"
           aria-hidden="true"
         />
       ),
@@ -77,7 +54,7 @@ export function InternalNav({
         >
           <div className="sr-only">Open Nav Menu</div>
           <span
-            className="icon-[heroicons--bars-3-center-left-solid] -ml-2 size-6 text-neutral-800"
+            className="icon-[iconamoon--menu-burger-horizontal-thin] -ml-2 size-6 text-neutral-800"
             aria-hidden="true"
           />
           <span className="font-medium text-neutral-800">Menu</span>

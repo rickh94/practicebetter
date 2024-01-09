@@ -35,7 +35,7 @@ templ ListSpots(s pages.ServerUtil, csrf string, info ListSpotsInfo) {
 			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ info.PieceID }></back-to-piece>
 				@components.HxLink("focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20", "/library/pieces/" + info.PieceID + "/spots/add", "#main-content") {
-					<span class="-ml-1 size-5 icon-[heroicons--plus-solid]" aria-hidden="true"></span>
+					<span class="-ml-1 size-5 icon-[iconamoon--sign-plus-circle-thin]" aria-hidden="true"></span>
 					Add Spots
 				}
 			}

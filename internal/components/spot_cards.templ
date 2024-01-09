@@ -62,21 +62,21 @@ templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, s
 			<div class="mr-3 size-6"></div>
 			if practiced || stage == "completed" {
 				<span
- 					class="absolute right-0 top-1/2 mr-3 text-green-900 transform -translate-y-1/2 size-6 icon-[heroicons--check-circle-solid]"
+ 					class="absolute right-0 top-1/2 mr-3 text-green-900 transform -translate-y-1/2 size-6 icon-[iconamoon--check-circle-1-duotone]"
  					aria-hidden="true"
 				></span>
 				<span class="sr-only">Completed</span>
 			} else if stage == "extra_repeat" || stage == "repeat" {
-				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[custom--repeat]" aria-hidden="true"></span>
+				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[iconamoon--playlist-repeat-list-thin]" aria-hidden="true"></span>
 				<span class="sr-only">Click to view</span>
 			} else if stage == "random" {
-				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[custom--shuffle]" aria-hidden="true"></span>
+				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[iconamoon--playlist-shuffle-thin]" aria-hidden="true"></span>
 				<span class="sr-only">Click to view</span>
 			} else if stage == "interleave" {
-				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[heroicons--bookmark-solid]" aria-hidden="true"></span>
+				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[iconamoon--bookmark-thin]" aria-hidden="true"></span>
 				<span class="sr-only">Click to view</span>
 			} else if stage == "interleave_days" {
-				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[heroicons--calendar-days-solid]" aria-hidden="true"></span>
+				<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[iconamoon--calendar-1-thin]" aria-hidden="true"></span>
 				<span class="sr-only">Click to view</span>
 			}
 			<span class="sr-only">Click to view spot</span>
@@ -124,7 +124,7 @@ templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTit
 				</div>
 				<div class="p-0 mt-4 w-full bg-white rounded-xl border sm:mx-auto sm:w-96 border-neutral-500 overflow-x-clip">
 					<button class="w-full font-medium text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ CloseModal(spotID + "-interleave") }>
-						<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
+						<span class="-ml-1 size-5 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 						Done
 					</button>
 				</div>
@@ -147,15 +147,15 @@ templ InterleaveSpotItem(name, pieceTitle, measures, stage string, practiced boo
 	</div>
 	if practiced {
 		<span
- 			class="absolute right-0 top-1/2 mr-3 text-green-900 transform -translate-y-1/2 size-6 icon-[heroicons--check-circle-solid]"
+ 			class="absolute right-0 top-1/2 mr-3 text-green-900 transform -translate-y-1/2 size-6 icon-[iconamoon--check-circle-1-duotone]"
  			aria-hidden="true"
 		></span>
 		<span class="sr-only">Completed</span>
 	} else if stage == "interleave" {
-		<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[heroicons--bookmark-solid]" aria-hidden="true"></span>
+		<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[iconamoon--bookmark-thin]" aria-hidden="true"></span>
 		<span class="sr-only">Click to view</span>
 	} else if stage == "interleave_days" {
-		<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[heroicons--calendar-days-solid]" aria-hidden="true"></span>
+		<span class="absolute right-0 top-1/2 mr-3 text-black transform -translate-y-1/2 size-6 icon-[iconamoon--calendar-1-thin]" aria-hidden="true"></span>
 		<span class="sr-only">Click to view</span>
 	}
 	<span class="sr-only">Click to view spot</span>

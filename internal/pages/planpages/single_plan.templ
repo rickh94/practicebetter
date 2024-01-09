@@ -113,13 +113,13 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
  			hx-target="#main-content"
  			hx-swap="outerHTML transition:true"
 		>
-			<span class="-ml-1 size-5 icon-[solar--clipboard-check-bold]"></span>
+			<span class="-ml-1 size-6 icon-[custom--music-file-curly-pencil]"></span>
 			Resume Practicing
 		</button>
 	}
 	if planData.IsActive {
 		@components.HxLink("focusable action-button text-amber-800 bg-amber-700/10 hover:bg-amber-700/20","/library/plans/" + planData.ID + "/edit", "#main-content") {
-			<span class="-ml-1 size-5 icon-[heroicons--pencil-solid]" aria-hidden="true"></span>
+			<span class="-ml-1 size-6 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
 			Customize
 		}
 		if planData.CompletedItems == planData.TotalItems {
@@ -130,7 +130,7 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
  				hx-target="#main-content"
  				hx-swap="outerHTML transition:true"
 			>
-				<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
+				<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 				Finish Practicing
 			</button>
 		} else {
@@ -141,7 +141,7 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
  				hx-target="#main-content"
  				hx-swap="outerHTML transition:true"
 			>
-				<span class="-ml-1 size-5 icon-[heroicons--stop-circle-solid]" aria-hidden="true"></span>
+				<span class="-ml-1 size-6 icon-[iconamoon--player-stop-thin]" aria-hidden="true"></span>
 				Stop Practicing
 			</button>
 		}
@@ -153,7 +153,7 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
  			hx-target="#main-content"
  			hx-swap="outerHTML transition:true"
 		>
-			<span class="-ml-1 size-5 icon-[heroicons--document-duplicate-solid]" aria-hidden="true"></span>
+			<span class="-ml-1 size-6 icon-[iconamoon--copy-thin]" aria-hidden="true"></span>
 			Duplicate
 		</button>
 		<button
@@ -164,7 +164,7 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
  			hx-target="#main-content"
  			hx-swap="outerHTML transition:true"
 		>
-			<span class="-ml-1 size-5 icon-[heroicons--trash-solid]" aria-hidden="true"></span>
+			<span class="-ml-1 size-6 icon-[iconamoon--trash-thin]" aria-hidden="true"></span>
 			Delete Plan
 		</button>
 	}

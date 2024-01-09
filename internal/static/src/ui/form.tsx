@@ -44,7 +44,7 @@ export function RadioBox({
       </span>
       <span
         className={cn(
-          "icon-[heroicons--check-circle-solid] ml-1 size-5",
+          "icon-[iconamoon--check-circle-1-duotone] ml-1 size-5",
           selected && "invisible",
         )}
         aria-hidden="true"

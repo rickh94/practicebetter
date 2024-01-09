@@ -1,6 +1,5 @@
 import { ReactNode, useEffect, useRef } from "preact/compat";
 import { cn } from "../common";
-import { NoteSheetIcon } from "./icons";
 import * as htmx from "htmx.org";
 
 export const topNavClasses =
@@ -115,7 +114,10 @@ export function BackToPiece({ pieceid }: { pieceid: string }) {
       href={`/library/pieces/${pieceid}`}
       className="focusable action-button bg-sky-700/10 text-sky-800 hover:bg-sky-700/20"
     >
-      <NoteSheetIcon className="-ml-1 size-5" />
+      <span
+        className="icon-[custom--music-file] -mr-1 size-6"
+        aria-hidden="true"
+      ></span>
       Back to Piece
     </Link>
   );
@@ -137,7 +139,7 @@ export function BackToPlan({
       )}
     >
       <span
-        className="icon-[solar--clipboard-check-bold] -mr-1 size-5"
+        className="icon-[custom--music-file-curly] -mr-1 size-5"
         aria-hidden="true"
       ></span>
       Back to Plan

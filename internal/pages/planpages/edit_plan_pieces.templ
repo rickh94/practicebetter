@@ -6,13 +6,13 @@ import "strconv"
 templ AddPieceWizard(practiceType string, planID string, id string, title string) {
 	<button
  		type="button"
- 		class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable"
+ 		class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
  		hx-get={ "/library/plans/" + planID + "/pieces/" + practiceType + "/add" }
  		hx-target={ "#" + id + "-chooser" }
  		hx-swap="innerHTML"
  		hx-on::after-request={ components.ShowModal(id) }
 	>
-		<span class="-ml-1 size-5 icon-[heroicons--plus-circle-solid]"></span>
+		<span class="-ml-1 size-5 icon-[iconamoon--sign-plus-circle-thin]"></span>
 		Add Pieces
 	</button>
 	<dialog id={ id } aria-labelledby={ id + "-modal-title" } class="flex max-h-[75svh] overflow-y-clip flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left">
@@ -23,7 +23,7 @@ templ AddPieceWizard(practiceType string, planID string, id string, title string
 		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id={ id + "-chooser" }></div>
 		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
 			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal(id) }>
-				<span class="-ml-1 size-5 icon-[heroicons--check-circle-solid]"></span>
+				<span class="-ml-1 size-5 icon-[iconamoon--check-circle-1-thin]"></span>
 				Done
 			</button>
 		</div>
@@ -62,8 +62,8 @@ templ AddPieceItem(piece PracticePlanPiece, planID string, csrf string, practice
 						Click to Add
 					</span>
 				</div>
-				<div class="flex flex-grow-0 items-center">
-					<span class="-mr-2 size-10 icon-[heroicons--plus-circle-solid]" aria-hidden="true"></span>
+				<div class="flex flex-grow-0 items-center text-green-800">
+					<span class="-mr-2 size-8 icon-[iconamoon--sign-plus-circle-duotone]" aria-hidden="true"></span>
 				</div>
 			</button>
 		</form>

@@ -22,14 +22,14 @@ templ FinishPasskeyLoginPage(loginOptions *protocol.CredentialAssertion, csrf st
 			</div>
 			@components.BasicButtonLink("/auth/code", "#main-content", "outerHTML") {
 				Get Login Code
-				<span class="-mr-1 size-5 icon-[heroicons--hashtag-solid]" aria-hidden="true"></span>
+				<span class="-mr-1 size-5 icon-[ph--hash-thin]" aria-hidden="true"></span>
 			}
 			<a
  				href={ templ.URL("/auth/forget") }
  				class="action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
 			>
 				Switch Account
-				<span class="-mr-1 size-6 icon-[heroicons--arrows-right-left-solid]" aria-hidden="true"></span>
+				<span class="-mr-1 size-6 icon-[ph--arrows-left-right-thin]" aria-hidden="true"></span>
 			</a>
 			<button class="hidden" onclick={ startLogin(loginOptions, csrf, nextLoc) } id="passkey"></button>
 		</div>

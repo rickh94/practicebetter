@@ -19,7 +19,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 					@components.PracticePlanCard(activePracticePlan)
 				} else {
 					@components.HxLink("flex gap-2 justify-center items-center py-6 px-6 text-2xl font-semibold text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
-						<span class="-mr-1 size-8 icon-[solar--clipboard-add-bold]" aria-hidden="true"></span>
+						<span class="-mr-1 size-10 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>
 						Start Practicing
 					}
 				}
@@ -28,21 +28,21 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 					for _, plan := range recentPracticePlans {
 						@components.PracticePlanCard(plan)
 					}
-					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans", "#main-content") {
-						<span class="-ml-1 size-6 icon-[heroicons--view-columns-solid]" aria-hidden="true"></span>
-						All Practice Plans
+					@components.HxLink("flex flex-grow gap-1 justify-center items-center py-3 px-6 font-medium text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans", "#main-content") {
+						<span class="-ml-1 size-8 icon-[iconamoon--calendar-2-thin]" aria-hidden="true"></span>
+						Past Practice Plans
 					}
 				</div>
 			</div>
 			<div class="flex flex-col gap-4">
 				@LibraryPieceList(pieces)
-				<div class="flex flex-col gap-4 w-full sm:flex-row">
-					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-sky-700 rounded-xl bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/pieces", "#main-content") {
-						<span class="-ml-1 size-6 icon-[heroicons--view-columns-solid]" aria-hidden="true"></span>
+				<div class="grid grid-cols-1 gap-2 w-full xs:grid-cols-2">
+					@components.HxLink("flex-grow action-button text-sky-700 bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/pieces", "#main-content") {
+						<span class="-ml-1 size-8 icon-[custom--music-folder]" aria-hidden="true"></span>
 						All Pieces
 					}
-					@components.HxLink("flex flex-grow gap-2 justify-center items-center py-3 px-6 font-medium text-center text-green-700 rounded-xl bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/create", "#main-content") {
-						<span class="-ml-1 size-5 icon-[heroicons--document-plus-solid]" aria-hidden="true"></span>
+					@components.HxLink("flex-grow text-green-700 action-button bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/create", "#main-content") {
+						<span class="-ml-1 size-8 icon-[custom--music-note-edit]" aria-hidden="true"></span>
 						New Piece
 					}
 				</div>

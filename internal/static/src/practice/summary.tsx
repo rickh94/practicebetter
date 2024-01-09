@@ -206,7 +206,7 @@ export default function Summary({
           spots. Click the{" "}
           <span className="-mb-2 inline-flex w-4 items-center justify-center">
             <span
-              className="icon-[heroicons--minus-circle-solid] size-4 text-red-500"
+              className="icon-[iconamoon--sign-minus-circle-thin] size-4 text-red-500"
               aria-hidden="true"
             />
             <span className="sr-only">Remove Button</span>
@@ -236,7 +236,7 @@ export default function Summary({
                       className="focusable flex items-center justify-center rounded-full p-1 text-red-500 hover:bg-red-500/10 hover:text-red-700"
                     >
                       <span
-                        className="icon-[heroicons--minus-circle-solid] size-5"
+                        className="icon-[iconamoon--sign-minus-circle-thin] size-5"
                         aria-hidden="true"
                       />
                       <span className="sr-only">Remove</span>
@@ -270,7 +270,7 @@ export default function Summary({
                       className="focusable flex items-center justify-center rounded-full p-1 text-red-500 hover:bg-red-500/10 hover:text-red-700"
                     >
                       <span
-                        className="icon-[heroicons--minus-circle-solid] size-5"
+                        className="icon-[iconamoon--sign-minus-circle-thin] size-5"
                         aria-hidden="true"
                       />
                       <span className="sr-only">Remove</span>
@@ -290,7 +290,7 @@ export default function Summary({
             className="h-14 w-full text-lg"
           >
             <span
-              className="icon-[heroicons--x-circle-solid] -ml-1 size-6"
+              className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Reject All
@@ -301,7 +301,7 @@ export default function Summary({
             className="h-14 w-full text-lg"
           >
             <span
-              className="icon-[heroicons--check-circle-solid] -ml-1 size-6"
+              className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Accept
@@ -442,14 +442,14 @@ export function SummaryActions({
       <>
         <WarningButton onClick={setup}>
           <span
-            className="icon-[heroicons--cog-6-tooth-solid] -ml-1 size-5"
+            className="icon-[iconamoon--settings-thin] -ml-1 size-5"
             aria-hidden="true"
           />
           Back to Setup
         </WarningButton>
         <VioletButton onClick={practice}>
           <span
-            className="icon-[heroicons--musical-note-solid] -ml-1 size-5"
+            className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
             aria-hidden="true"
           />
           Practice More

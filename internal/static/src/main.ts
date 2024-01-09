@@ -78,7 +78,7 @@ try {
   console.log(err);
 }
 try {
-  register(InternalNav, "internal-nav", ["activeplanid", "activepath"], {
+  register(InternalNav, "internal-nav", ["activepath"], {
     shadow: false,
   });
 } catch (err) {
@@ -114,13 +114,13 @@ try {
 function getIcon(variant: AlertVariant) {
   switch (variant) {
     case "success":
-      return `<span class="text-green-500 size-6 icon-[heroicons--check-circle-solid]"></span>`;
+      return `<span class="text-green-500 size-6 icon-[iconamoon--check-circle-1-thin]"></span>`;
     case "error":
-      return `<span class="text-red-500 size-6 icon-[heroicons--x-circle-solid]"></span>`;
+      return `<span class="text-red-500 size-6 icon-[iconamoon--shield-no-thin]"></span>`;
     case "warning":
-      return `<span class="text-yellow-500 size-6 icon-[heroicons--exclamation-triangle-solid]"></span>`;
+      return `<span class="text-yellow-500 size-6 icon-[ph--warning-thin]"></span>`;
     default:
-      return `<span class="text-blue-500 size-6 icon-[heroicons--information-circle-solid]"></span>`;
+      return `<span class="text-blue-500 size-6 icon-[iconamoon--information-circle-thin]"></span>`;
   }
 }
 // TODO: maybe make this a component

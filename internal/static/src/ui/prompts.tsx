@@ -11,18 +11,15 @@ export function AudioPromptSummary({ url }: { url: string }) {
   }
   return (
     <details>
-      <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-yellow-500/50 py-2 pl-4 pr-2 font-semibold text-yellow-800 transition duration-200 hover:bg-yellow-300/50">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-yellow-500/50 py-2 pl-4 pr-2 font-medium text-yellow-800 transition duration-200 hover:bg-yellow-300/50">
         <div className="flex items-center gap-2">
           <span
-            className="icon-[heroicons--speaker-wave-solid] -ml-1 size-5"
+            className="-ml icon-[iconamoon--volume-up-thin] size-5"
             aria-hidden="true"
-          ></span>
+          />
           Audio Prompt
         </div>
-        <span
-          className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
-          aria-hidden="true"
-        />
+        <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />
       </summary>
       <audio controls className="my-1 w-full py-1">
         <source src={url} type="audio/mpeg" />
@@ -57,18 +54,16 @@ export function ImagePromptSummary({ url }: { url: string }) {
   return (
     <>
       <details>
-        <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50">
+        <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-medium text-indigo-800 transition duration-200 hover:bg-indigo-300/50">
           <div className="flex items-center gap-2">
             <span
-              className="icon-[heroicons--photo-solid] -ml-1 size-5"
+              className="icon-[iconamoon--file-image-thin] size-5"
               aria-hidden="true"
             ></span>
             Image Prompt
           </div>
-          <span
-            className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
-            aria-hidden="true"
-          />
+
+          <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />
         </summary>
         <button onClick={showBig} className="m-0 p-0">
           <figure className="my-2 w-full">
@@ -106,15 +101,15 @@ export function NotesPromptSummary({ notes }: { notes: string }) {
   }
   return (
     <details>
-      <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-sky-500/50 py-2 pl-4 pr-2 font-semibold text-sky-800 transition duration-200 hover:bg-sky-300/50">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-sky-500/50 py-2 pl-4 pr-2 font-medium text-sky-800 transition duration-200 hover:bg-sky-300/50">
         <div className="flex items-center gap-2">
-          <span className="icon-[heroicons--musical-note-solid] size-5" />
+          <span
+            className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
           Notes Prompt
         </div>
-        <span
-          className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
-          aria-hidden="true"
-        />
+        <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />
       </summary>
       <div className="min-h-[6rem] w-full">
         <Suspense fallback={<div className="my-2">Loading Notes...</div>}>
@@ -153,18 +148,15 @@ export function RemindersSummary({
   }
   return (
     <details open id={`reminder-details-${pieceid}-${spotid}`}>
-      <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-300/50">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-medium text-lime-800 transition duration-200 hover:bg-lime-300/50">
         <div className="flex items-center gap-2">
           <span
-            className="icon-[heroicons--chat-bubble-bottom-center-text-solid] -ml-1 size-5"
+            className="icon-[ph--chat-centered-text-thin] -ml-1 size-5"
             aria-hidden="true"
-          />
+          ></span>
           Reminders
         </div>
-        <span
-          className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
-          aria-hidden="true"
-        />
+        <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />
       </summary>
       <div
         className="flex flex-col py-1 sm:min-h-12 sm:flex-row"
@@ -176,12 +168,12 @@ export function RemindersSummary({
         {!!pieceid && !!spotid && (
           <Link
             pushUrl={false}
-            className="focusable flex items-center justify-center gap-1 rounded-xl bg-lime-700/10 px-6 py-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-700/20"
+            className="focusable flex items-center justify-center gap-1 rounded-xl bg-lime-700/10 px-6 py-2 font-medium text-lime-800 transition duration-200 hover:bg-lime-700/20"
             href={`/library/pieces/${pieceid}/spots/${spotid}/reminders/edit`}
             target={`#${targetId}`}
           >
             <span
-              className="icon-[heroicons--pencil-solid] -ml-1 size-5"
+              className="icon-[iconamoon--edit-thin] -ml-1 size-5"
               aria-hidden="true"
             />
             Edit
@@ -209,18 +201,15 @@ export function EditRemindersSummary({
 }) {
   return (
     <details open>
-      <summary className="flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-300/50">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-medium text-lime-800 transition duration-200 hover:bg-lime-300/50">
         <div className="flex items-center gap-2">
           <span
-            className="icon-[heroicons--chat-bubble-bottom-center-text-solid] -ml-1 size-5"
+            className="icon-[ph--chat-centered-text-thin] -ml-1 size-5"
             aria-hidden="true"
-          />
+          ></span>
           Reminders
         </div>
-        <span
-          className="summary-icon icon-[heroicons--chevron-right] size-6 transition-transform"
-          aria-hidden="true"
-        />
+        <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />
       </summary>
       <form
         className="flex flex-col gap-2 py-1 sm:flex-row"
@@ -237,30 +226,30 @@ export function EditRemindersSummary({
             defaultValue={text ?? ""}
             placeholder="Add some reminders"
             className={cn(
-              "focusable min-h-[5.25rem] w-full flex-grow rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20",
+              "focusable min-h-[5.25rem] w-full flex-grow rounded-xl bg-neutral-700/10 px-4 py-2 font-medium text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20",
             )}
           />
           {!!error && <p className="italic text-red-600">{error}</p>}
         </div>
         <div className="flex min-h-20 flex-grow-0 flex-col justify-center gap-1">
           <button
-            className="focusable flex items-center justify-center gap-1 rounded-xl bg-lime-700/10 px-6 py-2 font-semibold text-lime-800 transition duration-200 hover:bg-lime-700/20"
+            className="focusable action-button bg-lime-700/10 text-lime-800 hover:bg-lime-700/20"
             type="submit"
           >
             <span
-              className="icon-[heroicons--arrow-down-tray-solid] -ml-1 size-5"
+              className="icon-[iconamoon--arrow-up-5-circle-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Save
           </button>
           <Link
             pushUrl={false}
-            className="focusable flex items-center justify-center gap-1 rounded-xl bg-red-700/10 px-6 py-2 font-semibold text-red-800 transition duration-200 hover:bg-red-700/20"
+            className="focusable action-button bg-red-700/10 text-red-800 hover:bg-red-700/20"
             href={`/library/pieces/${pieceid}/spots/${spotid}/reminders`}
             target={`#${id}`}
           >
             <span
-              className="icon-[heroicons--x-mark-solid] -ml-1 size-5"
+              className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-5"
               aria-hidden="true"
             />
             Cancel

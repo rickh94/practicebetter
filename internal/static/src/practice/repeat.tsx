@@ -217,9 +217,10 @@ function RepeatPrepare({
         )}
       </div>
       <RepeatPrepareText open={!spot} />
-      <div className="col-span-full flex w-full items-center justify-center py-16">
+      <div className="col-span-full flex w-full items-center justify-center py-8">
         <GiantBasicButton type="button" onClick={startPracticing}>
           Start Practicing
+          <span className="icon-[iconamoon--player-play-thin] size-8" />
         </GiantBasicButton>
       </div>
     </div>
@@ -306,7 +307,7 @@ function RepeatPractice({
               onClick={succeed}
               className="sm:gap-2"
             >
-              <span className="icon-[heroicons--hand-thumb-up-solid] -ml-1 size-6" />
+              <span className="icon-[iconamoon--like-thin] -ml-1 -mt-1 size-8" />
               <span>Correct</span>
             </BigHappyButton>
             <BigAngryButton
@@ -314,7 +315,7 @@ function RepeatPractice({
               onClick={fail}
               className="sm:gap-2"
             >
-              <span className="icon-[heroicons--hand-thumb-down-solid] -ml-1 size-6" />
+              <span className="icon-[iconamoon--dislike-thin] -mb-1 -ml-1 size-8" />
               <span>Mistake</span>
             </BigAngryButton>
           </div>
@@ -333,7 +334,7 @@ function RepeatPractice({
         <div className="mx-auto flex w-full max-w-lg flex-wrap items-center justify-center">
           <WarningButton onClick={onFail}>
             <span>Move On</span>
-            <span className="icon-[heroicons--arrow-up-right-solid] -ml-1 size-6" />
+            <span className="icon-[iconamoon--arrow-top-right-1-thin] -ml-1 size-6" />
           </WarningButton>
         </div>
       </div>
@@ -374,7 +375,7 @@ function PracticeListItem({
           exit="exit"
           variants={variants}
         >
-          <span className="icon-[heroicons--check-solid] size-6 sm:size-8" />
+          <span className="icon-[iconamoon--check-circle-1-thin] size-6 sm:size-8" />
           <span className="sr-only">Checked</span>
         </motion.li>
       ) : (
@@ -476,7 +477,7 @@ function RepeatBreakSuccess({
             onClick={handleRandom}
             className="h-14 w-full text-lg"
           >
-            <span className="icon-[custom--shuffle] -ml-1 size-6"></span>
+            <span className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-6"></span>
             Random
           </HappyButton>
           <SkyButton
@@ -484,7 +485,7 @@ function RepeatBreakSuccess({
             onClick={handleMoreRepeat}
             className="h-14 w-full text-lg"
           >
-            <span className="icon-[custom--repeat] -ml-1 size-6"></span>
+            <span className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-6"></span>
             More Repeat
           </SkyButton>
         </div>
@@ -609,14 +610,14 @@ function RepeatFinishedActionButtons({
         <BackToPiece pieceid={pieceid} />
         <WarningLink href={`/library/pieces/${pieceid}/practice/random-single`}>
           <span
-            className="icon-[custom--shuffle] -ml-1 size-5"
+            className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-5"
             aria-hidden="true"
           ></span>
           Try Random Practicing
         </WarningLink>
         <HappyLink href={`/library/pieces/${pieceid}/practice/repeat`}>
           <span
-            className="icon-[custom--repeat] -ml-1 size-5"
+            className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-5"
             aria-hidden="true"
           ></span>
           Practice Another Spot
@@ -631,21 +632,21 @@ function RepeatFinishedActionButtons({
         href="/library"
       >
         <span
-          className="icon-[solar--music-note-slider-bold-duotone] -ml-1 size-5"
+          className="icon-[custom--music-note-screen] -ml-1 size-5"
           aria-hidden="true"
         />
         Library
       </Link>
       <WarningLink href="/practice/random-single">
         <span
-          className="icon-[custom--shuffle] -ml-1 size-5"
+          className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-5"
           aria-hidden="true"
         ></span>
         Try Random Practicing
       </WarningLink>
       <HappyButton onClick={restart}>
         <span
-          className="icon-[custom--repeat] -ml-1 size-5"
+          className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-5"
           aria-hidden="true"
         ></span>
         Practice Another Spot

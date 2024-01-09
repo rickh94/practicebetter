@@ -27,7 +27,7 @@ templ HxLink(class string, href string, target string) {
 
 templ BackHomeLink() {
 	@HxLink(navClasses, "/", "#main-content") {
-		<span class="-ml-1 size-5 icon-[heroicons--home-solid]"></span>
+		<span class="-ml-1 size-5 icon-[iconamoon--home-thin]"></span>
 		Back Home
 	}
 }
@@ -35,14 +35,14 @@ templ BackHomeLink() {
 templ AccountLink() {
 	@HxLink(navClasses, "/auth/me", "#main-content") {
 		Account
-		<span class="-mr-1 size-5 icon-[heroicons--user-circle-solid]"></span>
+		<span class="-mr-1 size-5 icon-[iconamoon--profile-circle-thin]"></span>
 	}
 }
 
 templ LoginLink() {
 	@HxLink(navClasses, "/auth/login", "#main-content") {
 		Login
-		<span class="-mr-1 size-5 icon-[heroicons--arrow-right-end-on-rectangle-solid]"></span>
+		<span class="-mr-1 size-5 icon-[iconamoon--enter-thin]"></span>
 	}
 }
 
@@ -52,7 +52,7 @@ func GetActivePracticePlan(ctx context.Context) string {
 
 templ LibraryLink() {
 	@HxLink(navClasses, "/library", "#main-content") {
-		<span class="-ml-1 size-5 icon-[solar--music-note-slider-bold-duotone]"></span>
+		<span class="-mb-1 -ml-1 size-6 icon-[custom--music-note-screen]"></span>
 		Library
 	}
 }
@@ -63,17 +63,17 @@ func getCurrentPath(ctx context.Context) string {
 
 templ MaybePracticePlan() {
 	if GetActivePracticePlan(ctx) != "" {
-		@HxLink("flex text-base gap-2 items-center py-4 px-6 h-14 flex-shrink-0 font-semibold rounded-xl transition-all duration-200 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
+		@HxLink("action-button h-14 flex-shrink-0 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
 			<span>
 				<span class="hidden xs:inline">Practice</span> Plan
 			</span>
-			<span class="-mr-1 size-5 icon-[solar--clipboard-check-bold]" aria-hidden="true"></span>
+			<span class="-mr-1 size-6 icon-[custom--music-file-curly]" aria-hidden="true"></span>
 		}
 	} else {
-		@HxLink("flex text-base gap-2 items-center flex-shrink-0 py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
+		@HxLink("action-button flex-shrink-0 h-14 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
 			<span class="hidden xs:inline">Start Practicing</span>
 			<span class="xs:hidden">Practice</span>
-			<span class="-mr-1 size-5 icon-[solar--clipboard-add-bold]" aria-hidden="true"></span>
+			<span class="-mr-1 size-6 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>
 		}
 	}
 }
@@ -85,6 +85,6 @@ templ InternalNav() {
 templ LogoutLink() {
 	@HxLink(navClasses, "/auth/logout", "#main-content") {
 		Logout
-		<span class="-mr-1 size-6 icon-[heroicons--arrow-right-start-on-rectangle-solid]"></span>
+		<span class="-mr-1 size-6 icon-[iconamoon--exit-thin]"></span>
 	}
 }

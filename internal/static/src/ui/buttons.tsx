@@ -18,7 +18,7 @@ export function BasicButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1  rounded-xl px-4 py-2 font-semibold transition duration-200",
+        "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
           : "bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20",
@@ -228,7 +228,7 @@ export function GiantBasicButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-8 py-4 text-2xl font-semibold transition duration-200",
+        "focusable flex items-center justify-center gap-1 rounded-xl px-8 py-4 text-2xl font-medium transition duration-200",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
           : "bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20",
@@ -336,7 +336,7 @@ export function BigAngryButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-6 py-4 text-2xl font-semibold transition duration-200",
+        "focusable flex items-center justify-center gap-1 rounded-xl px-6 py-4 text-2xl font-medium transition duration-200",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
           : "bg-red-700/10 text-red-800 hover:bg-red-700/20",
@@ -363,7 +363,7 @@ export function BigHappyButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-6 py-4 text-2xl font-semibold transition duration-200",
+        "focusable flex items-center justify-center gap-1 rounded-xl px-6 py-4 text-2xl font-medium transition duration-200",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
           : "bg-green-700/10 text-green-800 hover:bg-green-700/20",

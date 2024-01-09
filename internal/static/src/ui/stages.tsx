@@ -31,21 +31,21 @@ export function SpotStageIcon({ stage }: { stage: string }) {
     case "interleave":
       return (
         <span
-          className="icon-[heroicons--bookmark-solid] mx-1 size-4"
+          className="icon-[iconamoon--bookmark-thin] mx-1 size-4"
           aria-hidden="true"
         />
       );
     case "interleave_days":
       return (
         <span
-          className="icon-[heroicons--calendar-days-solid] mx-1 size-4"
+          className="icon-[iconamoon--calendar-1-thin] mx-1 size-4"
           aria-hidden="true"
         />
       );
     case "completed":
       return (
         <span
-          className="icon-[heroicons--check-circle-solid] mx-1 size-4"
+          className="icon-[iconamoon--check-circle-1-duotone] mx-1 size-4"
           aria-hidden="true"
         />
       );

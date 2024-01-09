@@ -54,12 +54,14 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 	<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 	<div class="flex flex-wrap gap-2 w-full">
 		<label class="sr-only" for="intensity">Plan Intensity</label>
-		<span class="flex-shrink-0 text-lg text-pretty text-neutral-800">I would like a</span>
+		<div class="flex flex-nowrap flex-shrink-0 items-center h-10">
+			<span class="flex-shrink-0 text-lg align-middle text-pretty text-neutral-800">I would like a</span>
+		</div>
 		<select
  			required
  			id="intensity"
  			name="intensity"
- 			class="flex-grow-0 py-2 pr-8 pl-4 w-max rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:bg-neutral-700/20"
+ 			class="flex-grow-0 py-2 pr-8 pl-4 w-max h-10 rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:bg-neutral-700/20"
 		>
 			<option value="light">
 				Light
@@ -71,13 +73,15 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 				Heavy
 			</option>
 		</select>
-		<span class="flex-shrink-0 text-lg text-pretty text-neutral-800">practice session,</span>
+		<div class="flex flex-nowrap flex-shrink-0 items-center h-10">
+			<span class="flex-shrink-0 text-lg text-pretty text-neutral-800">practice session,</span>
+		</div>
 		<span class="flex-shrink-0 text-lg whitespace-nowrap text-neutral-800">where I will practice: </span>
 		<div class="flex flex-col flex-wrap gap-2 w-full xs:flex-row xs:w-auto">
-			@practiceCheckbox("icon-[heroicons--bookmark-solid]","Interleave Spots", "practice_interleave", true)
-			@practiceCheckbox("icon-[custom--shuffle]","Random Spots", "practice_random_single", true)
+			@practiceCheckbox("icon-[iconamoon--bookmark-thin]","Interleave Spots", "practice_interleave", true)
+			@practiceCheckbox("icon-[iconamoon--playlist-shuffle-thin]","Random Spots", "practice_random_single", true)
 			@practiceCheckbox("icon-[custom--random-boxes]","Random Starting Point", "practice_starting_point", false)
-			@practiceCheckbox("icon-[custom--repeat]","New Spots", "practice_new", true)
+			@practiceCheckbox("icon-[iconamoon--playlist-repeat-list-thin]","New Spots", "practice_new", true)
 		</div>
 	</div>
 	<section id="pieces" class="grid grid-cols-1 gap-2 mt-4 sm:grid-cols-2 md:col-span-2 h-min">
@@ -97,11 +101,11 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
  			type="submit"
  			class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
 		>
-			<span class="-ml-1 size-5 icon-[solar--clipboard-add-bold]" aria-hidden="true"></span>
+			<span class="-ml-1 size-6 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>
 			Create
 		</button>
 		@components.HxLink("action-button text-yellow-800 bg-yellow-700/10 hover:bg-yellow-700/20 focusable", "/library", "#main-content") {
-			<span class="-ml-1 size-5 icon-[heroicons--arrow-left-circle-solid]" aria-hidden="true"></span>
+			<span class="-ml-1 size-6 icon-[iconamoon--arrow-left-5-circle-thin]" aria-hidden="true"></span>
 			Go Back
 		}
 	</div>
@@ -128,7 +132,7 @@ templ pieceCheckbox(text string, value string,  checked bool) {
 				{ text }
 			</span>
 		</span>
-		<span class="ml-3 size-5 text-800 icon icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
+		<span class="-ml-3 size-6 icon icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>
 		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 	</label>
 }
@@ -154,7 +158,7 @@ templ practiceCheckbox(iconClass string, text string, value string, checked bool
 				{ text }
 			</span>
 		</span>
-		<span class="ml-3 size-5 text-800 icon icon-[heroicons--check-circle-solid]" aria-hidden="true"></span>
+		<span class="ml-3 text-black size-5 icon icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>
 		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 	</label>
 }

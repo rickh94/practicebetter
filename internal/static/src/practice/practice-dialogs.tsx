@@ -56,14 +56,14 @@ export function ResumeDialog({
       <div className="mt-2 flex w-full flex-row-reverse flex-wrap gap-2 sm:gap-2">
         <HappyButton grow onClick={handleResume} className="text-lg">
           <span
-            className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+            className="icon-[iconamoon--player-play-thin] -ml-1 size-5"
             aria-hidden="true"
           ></span>
           Resume
         </HappyButton>
         <AngryButton grow onClick={closeDialog} className="text-lg">
           <span
-            className="icon-[heroicons--x-circle-solid] -ml-1 size-5"
+            className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-5"
             aria-hidden="true"
           ></span>
           Close
@@ -159,14 +159,14 @@ export function BreakDialog({
             disabled={!canContinue}
           >
             <span
-              className="icon-[heroicons--check-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--player-play-thin] -ml-1 size-5"
               aria-hidden="true"
             ></span>
             Continue
           </HappyButton>
           <WarningButton grow onClick={handleDone}>
             <span
-              className="icon-[heroicons--stop-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--player-stop-thin] -ml-1 size-5"
               aria-hidden="true"
             ></span>
             Finish

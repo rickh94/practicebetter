@@ -36,7 +36,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
     <DropdownMenu.Root onOpenChange={processLinks}>
       <DropdownMenu.Trigger asChild>
         <button className="focusable action-button bg-violet-700/10 text-violet-800 transition-all duration-200 ease-out hover:bg-violet-700/20">
-          <PlayListIcon className="-ml-1 size-5" />
+          <span className="icon-[iconamoon--playlist-thin] -ml-1 size-6" />
           Practice
         </button>
       </DropdownMenu.Trigger>

@@ -25,7 +25,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow, b
 				})
 			@components.ActionButtonContainer() {
 				@components.HxLink("focusable action-button bg-amber-700/10 text-amber-800 hover:bg-amber-700/20", "/library/pieces/" + piece[0].ID + "/edit", "#main-content") {
-					<span class="-ml-1 size-5 icon-[heroicons--pencil-solid]" aria-hidden="true"></span>
+					<span class="-ml-1 size-6 icon-[custom--music-note-edit]" aria-hidden="true"></span>
 					Edit
 				}
 				<practice-menu pieceid={ piece[0].ID } class="h-12 min-w-[7.25rem]"></practice-menu>
@@ -36,7 +36,7 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow, b
  					hx-confirm="Are you sure you want to delete this piece and all its spots?"
  					hx-target="#main-content"
 				>
-					<span class="-ml-1 size-5 icon-[heroicons--trash-solid]" aria-hidden="true"></span>
+					<span class="-ml-1 size-6 icon-[iconamoon--trash-thin]" aria-hidden="true"></span>
 					Delete Piece
 				</button>
 			}
@@ -137,12 +137,12 @@ templ SinglePiece(s pages.ServerUtil, csrf string, piece []db.GetPieceByIDRow, b
 						</span>
 					</h2>
 					<div class="flex flex-wrap flex-grow gap-2 justify-end">
-						@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-orange-800 rounded-xl transition duration-200 bg-orange-700/10 hover:bg-orange-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots", "#main-content") {
-							<span class="-ml-1 size-6 icon-[heroicons--view-columns-solid]" aria-hidden="true"></span>
-							All Spots
+						@components.HxLink("action-button text-orange-800 bg-orange-700/10 hover:bg-orange-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots", "#main-content") {
+							<span class="-ml-1 size-6 icon-[ph--circles-four-thin]" aria-hidden="true"></span>
+							Show Spots
 						}
-						@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl transition duration-200 bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
-							<span class="-ml-1 size-6 icon-[heroicons--plus-solid]" aria-hidden="true"></span>
+						@components.HxLink("action-button text-green-800 bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/"+piece[0].ID+"/spots/add", "#main-content") {
+							<span class="-ml-1 size-6 icon-[ph--circles-three-plus-thin]" aria-hidden="true"></span>
 							Add Spots
 						}
 					</div>

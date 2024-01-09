@@ -253,7 +253,7 @@ function SingleSetupForm({
           <div className="flex gap-2">
             <BasicButton onClick={decreaseSessions}>
               <span
-                className="icon-[heroicons--minus-circle-solid] -ml-1 size-4"
+                className="icon-[iconamoon--sign-minus-circle-thin] -ml-1 size-4"
                 aria-hidden="true"
               />
               Decrease
@@ -268,16 +268,17 @@ function SingleSetupForm({
             />
             <BasicButton onClick={increaseSessions}>
               <span
-                className="icon-[heroicons--plus-circle-solid] -ml-1 size-4"
+                className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-4"
                 aria-hidden="true"
               />
               Increase
             </BasicButton>
           </div>
         </div>
-        <div className="col-span-full my-16 flex w-full items-center justify-center">
+        <div className="col-span-full my-8 flex w-full items-center justify-center">
           <GiantBasicButton onClick={handleSubmit}>
             Start Practicing
+            <span className="icon-[iconamoon--player-play-thin] size-8" />
           </GiantBasicButton>
         </div>
       </div>
@@ -657,21 +658,21 @@ function SinglePractice({
             className="gap-2"
           >
             <span
-              className="icon-[heroicons--hand-thumb-up-solid] -ml-1 size-6"
+              className="icon-[iconamoon--like-thin] -ml-1 -mt-1 size-8"
               aria-hidden="true"
             ></span>
             Excellent
           </BigHappyButton>
           <BigSkyButton type="button" onClick={handleFine} className="gap-2">
             <span
-              className="icon-[heroicons--hand-raised-solid] -ml-1 size-6"
+              className="icon-[iconamoon--sign-minus-thin] -ml-1 size-8"
               aria-hidden="true"
             ></span>
             Fine
           </BigSkyButton>
           <BigAngryButton type="button" onClick={handlePoor} className="gap-2">
             <span
-              className="icon-[heroicons--hand-thumb-down-solid] -ml-1 size-6"
+              className="icon-[iconamoon--dislike-thin] -mb-1 -ml-1 size-8"
               aria-hidden="true"
             ></span>
             Poor
@@ -680,14 +681,14 @@ function SinglePractice({
         <div className="flex justify-center gap-4 pb-12 pt-8">
           <BasicButton onClick={setup}>
             <span
-              className="icon-[heroicons--arrow-left-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--settings-thin] -ml-1 size-5"
               aria-hidden="true"
             ></span>{" "}
             Back to setup
           </BasicButton>
           <WarningButton grow onClick={handleDone}>
             <span
-              className="icon-[heroicons--stop-circle-solid] -ml-1 size-5"
+              className="icon-[iconamoon--player-stop-thin] -ml-1 size-5"
               aria-hidden="true"
             ></span>
             Finish
