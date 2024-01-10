@@ -264,7 +264,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 
 	// prioritize infrequent spots with the spots that are the lest recently practiced first
 	slices.SortFunc(maybeInfrequentSpots, func(a, b PotentialInfrequentSpot) int {
-		return cmp.Compare(b.TimeSince, a.TimeSince)
+		return cmp.Compare(a.TimeSince, b.TimeSince)
 	})
 
 	// infrequent spots

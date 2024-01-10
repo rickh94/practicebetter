@@ -120,7 +120,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 templ pieceCheckbox(text string, value string,  checked bool) {
 	<label
  		for={ "piece-" + value }
- 		class={ "piece-checkbox relative cursor-pointer h-full focusable", templ.KV("checked", checked) }
+ 		class={ "piece-checkbox cursor-pointer h-full focusable", templ.KV("checked", checked) }
  		id={ "piece-" + value + "-label" }
 	>
 		<input

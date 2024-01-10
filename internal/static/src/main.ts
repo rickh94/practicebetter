@@ -273,6 +273,7 @@ type HTMXConfirmEvent = Event & {
 };
 
 function closeModal(id: string) {
+  globalThis.handleCloseModal();
   const modal = document.getElementById(id);
   if (!modal) return;
   modal.classList.add("close");
@@ -323,6 +324,7 @@ document.addEventListener("htmx:confirm", function (e: HTMXConfirmEvent) {
 
   document.getElementById("main-content").appendChild(dialog);
   (document.getElementById(id) as HTMLDialogElement).showModal();
+  globalThis.handleShowModal();
 });
 
 document.addEventListener("htmx:afterSwap", (event: CustomEvent) => {
