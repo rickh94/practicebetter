@@ -18,7 +18,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 				if hasActivePlan {
 					@components.PracticePlanCard(activePracticePlan)
 				} else {
-					@components.HxLink("flex gap-2 justify-center items-center py-6 px-6 text-2xl font-semibold text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
+					@components.HxLink("flex gap-2 justify-center items-center py-6 px-6 text-2xl font-semibold text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 transition duration-200 focusable", "/library/plans/create", "#main-content") {
 						<span class="-mr-1 size-10 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>
 						Start Practicing
 					}
@@ -28,7 +28,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 					for _, plan := range recentPracticePlans {
 						@components.PracticePlanCard(plan)
 					}
-					@components.HxLink("flex flex-grow gap-1 justify-center items-center py-3 px-6 font-medium text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans", "#main-content") {
+					@components.HxLink("action-button text-violet-700 bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans", "#main-content") {
 						<span class="-ml-1 size-8 icon-[iconamoon--calendar-2-thin]" aria-hidden="true"></span>
 						Past Practice Plans
 					}

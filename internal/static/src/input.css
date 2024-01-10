@@ -222,8 +222,9 @@
     @apply bg-neutral-700/10;
   }
 
-  .poor-radio-option.checked {
-    @apply bg-red-700/20 shadow;
+  .poor-radio-option.checked,
+  .poor-radio-option:hover {
+    @apply bg-red-500/50 shadow;
   }
 
   .poor-radio-option.checked > .icon {
@@ -243,7 +244,12 @@
   }
 
   .poor-radio-option {
-    @apply bg-red-700/10;
+    @apply bg-red-500/30;
+  }
+
+  .fine-radio-option.checked,
+  .fine-radio-option:hover {
+    @apply bg-sky-500/50;
   }
 
   .fine-radio-option.checked > .icon {
@@ -263,7 +269,12 @@
   }
 
   .fine-radio-option {
-    @apply bg-sky-700/10;
+    @apply bg-sky-500/30;
+  }
+
+  .excellent-radio-option.checked,
+  .excellent-radio-option:hover {
+    @apply bg-green-500/50;
   }
 
   .excellent-radio-option.checked > .icon {
@@ -283,7 +294,7 @@
   }
 
   .excellent-radio-option {
-    @apply bg-green-700/10;
+    @apply bg-green-500/30;
   }
 
   .practice-radio-option.checked {

@@ -64,17 +64,12 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 		</ul>
 		if active && len(interleaveSpots) > 0 {
 			if allCompleted {
-				<div
- 					class="flex gap-1 justify-center items-center py-2 px-4 font-semibold text-green-800 rounded-xl border border-green-800 bg-green-500/50"
-				>
-					<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>
-					Completed
-				</div>
+				@CompletedButtonDiv()
 			} else {
 				<button
  					onClick={ components.ShowModal(completeInterleaveFormId) }
  					type="button"
- 					class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 					class="text-green-900 action-button bg-green-500/30 hover:bg-green-500/50 focusable"
 				>
 					<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 					Complete
@@ -109,14 +104,14 @@ templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpo
 			<section class="flex flex-col-reverse gap-2 mt-4 w-full xs:grid xs:grid-cols-2">
 				<button
  					onclick={ components.CloseModal(completeInterleaveFormId) }
- 					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
+ 					class="flex-grow text-red-800 action-button bg-red-500/30 hover:bg-red-500/50 focusable"
  					type="button"
 				>
 					<span class="-ml1 size-5 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 					Cancel
 				</button>
 				<button
- 					class="flex-grow text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 					class="flex-grow text-green-800 action-button bg-green-500/30 hover:bg-green-500/50 focusable"
  					type="submit"
 				>
 					<span class="-ml-1 size-5 icon-[iconamoon--arrow-up-5-circle-thin]" aria-hidden="true"></span>
@@ -151,7 +146,7 @@ templ CompleteSpotRadioOptions(spot PracticePlanSpot, showCompleted bool) {
  				onchange={ changeSelectedQuality(spot.ID, "poor") }
 			/>
 			<span class="flex flex-1 gap-1 items-center">
-				<span class="-ml-1 size-6 text-red-800/80 icon-[iconamoon--dislike-thin]" aria-hidden="true"></span>
+				<span class="-mb-0.5 -ml-1 size-6 text-red-800/80 icon-[iconamoon--dislike-thin]" aria-hidden="true"></span>
 				<span class="font-medium">
 					Poor
 				</span>
@@ -211,7 +206,7 @@ templ CompleteSpotRadioOptions(spot PracticePlanSpot, showCompleted bool) {
  					onchange={ changeSelectedQuality(spot.ID, "excellent") }
 				/>
 				<span class="flex flex-1 gap-1 items-center">
-					<span class="-ml-1 size-5 text-green-800/80 icon-[iconamoon--like-thin]" aria-hidden="true"></span>
+					<span class="-mt-0.5 -ml-1 size-5 text-green-800/80 icon-[iconamoon--like-thin]" aria-hidden="true"></span>
 					<span class="font-medium">
 						Excellent
 					</span>

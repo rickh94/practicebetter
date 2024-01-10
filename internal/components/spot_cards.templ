@@ -4,7 +4,7 @@ const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 t
 
 func getSpotCardClass(completed bool, stage string) string {
 	if completed {
-		return baseSpotCardClass + " bg-green-500/50 border-green-800 hover:shadow-green-800"
+		return baseSpotCardClass + " bg-green-300 border-green-700 shadow-black/50"
 	} else {
 
 		return baseSpotCardClass + " " + getStageColor(stage) + " border-neutral-800"
@@ -147,7 +147,7 @@ templ InterleaveSpotItem(name, pieceTitle, measures, stage string, practiced boo
 	</div>
 	if practiced {
 		<span
- 			class="absolute right-0 top-1/2 mr-3 text-green-900 transform -translate-y-1/2 size-6 icon-[iconamoon--check-circle-1-duotone]"
+ 			class="absolute right-0 top-1/2 mr-3 text-green-900 transform -translate-y-1/2 size-8 icon-[iconamoon--check-circle-1-duotone]"
  			aria-hidden="true"
 		></span>
 		<span class="sr-only">Completed</span>
