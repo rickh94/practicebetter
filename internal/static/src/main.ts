@@ -326,12 +326,25 @@ document.addEventListener("htmx:confirm", function (e: HTMXConfirmEvent) {
 });
 
 document.addEventListener("htmx:afterSwap", (event: CustomEvent) => {
-  if (!(event.target instanceof HTMLElement)) {
+  if (!(event.detail.target instanceof HTMLElement)) {
     return;
   }
   if (event.detail?.target?.id === "main-content") {
     globalThis.handleCloseModal();
     window.scrollTo(0, 0);
+  }
+});
+
+document.addEventListener("htmx:beforeSwap", (event: CustomEvent) => {
+  if (!(event.detail.target instanceof HTMLElement)) {
+    return;
+  }
+  if (event.detail?.target?.id === "main-content") {
+    document
+      .querySelectorAll("[data-radix-popper-content-wrapper]")
+      .forEach((el) => {
+        el.remove();
+      });
   }
 });
 

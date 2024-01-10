@@ -30,7 +30,7 @@ templ TwoButtonBar(left templ.Component, header templ.Component, right templ.Com
 			<div class="flex flex-grow-0 justify-start md:w-56">
 				@left
 			</div>
-			<header class="hidden flex-grow text-center md:block overflow-x-clip" id="page-title">
+			<header class="hidden flex-grow text-center md:block overflow-x-clip" id="page-title-large">
 				@header
 			</header>
 			<div class="flex flex-grow-0 justify-end md:w-56">
@@ -39,7 +39,7 @@ templ TwoButtonBar(left templ.Component, header templ.Component, right templ.Com
 		</div>
 	</div>
 	<div class="h-20"></div>
-	<header class="flex justify-center items-center h-14 md:hidden" id="page-title">
+	<header class="flex justify-center items-center h-14 md:hidden" id="page-title-small">
 		@header
 	</header>
 }
