@@ -7,6 +7,7 @@ import {
 } from "../ui/prompts";
 import { cn } from "../common";
 
+// TODO:: set some min heights so the layout doesn't shift around as much
 export function PracticeSpotDisplay({
   spot,
   pieceid = "",

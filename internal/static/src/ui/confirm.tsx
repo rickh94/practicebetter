@@ -1,4 +1,4 @@
-import { useCallback } from "preact/hooks";
+import { useCallback, useEffect } from "preact/hooks";
 import { SkyButton, WarningButton } from "./buttons";
 
 export function ConfirmDialog({
@@ -24,6 +24,7 @@ export function ConfirmDialog({
     },
     [cancelevent],
   );
+
   return (
     <dialog
       id={dialogid}

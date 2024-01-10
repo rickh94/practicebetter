@@ -330,6 +330,7 @@ document.addEventListener("htmx:afterSwap", (event: CustomEvent) => {
     return;
   }
   if (event.detail?.target?.id === "main-content") {
+    globalThis.handleCloseModal();
     window.scrollTo(0, 0);
   }
 });
@@ -467,4 +468,22 @@ globalThis.startPasskeyRegistration = function (
         }),
       );
     });
+};
+
+function handleShowModal() {
+  document.body.style.position = "fixed;";
+  document.body.style.top = `-${window.scrollY}px`;
+  document.body.style.height = "100vh";
+  document.body.style.overflowY = "hidden";
+}
+globalThis.handleOpenModal = handleShowModal;
+globalThis.handleShowModal = handleShowModal;
+
+globalThis.handleCloseModal = function () {
+  const scrollY = document.body.style.top;
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.height = "";
+  document.body.style.overflowY = "";
+  window.scrollTo(0, parseInt(scrollY || "0") * -1);
 };

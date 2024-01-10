@@ -104,8 +104,7 @@ export function RandomSpots({
       // get initial sessions value from query param
       const urlParams = new URLSearchParams(window.location.search);
       const initialSessions = parseInt(urlParams.get("numSessions"));
-      console.log("initialSessions", initialSessions);
-      if (initialSessions && typeof initialSessions === "number") {
+      if (!isNaN(initialSessions) && typeof initialSessions === "number") {
         setNumSessions(initialSessions);
       }
       if (initialspots) {
@@ -250,7 +249,7 @@ function SingleSetupForm({
             Random practicing is broken up into five minute sessions with one
             minute breaks.
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 xs:flex-row">
             <BasicButton onClick={decreaseSessions}>
               <span
                 className="icon-[iconamoon--sign-minus-circle-thin] -ml-1 size-5"
@@ -260,7 +259,7 @@ function SingleSetupForm({
             </BasicButton>
             <input
               id="num-sessions"
-              className="focusable w-20 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20"
+              className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20 xs:w-20"
               type="number"
               min="1"
               defaultValue={`${numSessions}`}
@@ -295,6 +294,35 @@ function hash(s: string) {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
+type SpotNeglectInfo = {
+  reps: number;
+  evicted: boolean;
+};
+
+function findNeglectedSpot(spots: SpotNeglectInfo[]): [boolean, number] {
+  let maxReps = -Infinity;
+  let minReps = Infinity;
+  let minIdx: number = 0;
+  for (let i = 0; i < spots.length; i++) {
+    if (spots[i].evicted) {
+      continue;
+    }
+    if (spots[i].reps > maxReps) {
+      maxReps = spots[i].reps;
+    }
+    if (spots[i].reps < minReps) {
+      minReps = spots[i].reps;
+      minIdx = i;
+    }
+  }
+
+  if (maxReps - minReps > 3) {
+    return [true, minIdx];
+  } else {
+    return [false, -1];
+  }
+}
+
 // TODO: This should probably be a few components at this point
 
 function SinglePractice({
@@ -314,6 +342,9 @@ function SinglePractice({
 }) {
   const [currentSpotIdx, setCurrentSpotIdx] = useState(
     Math.floor(Math.random() * spots.length),
+  );
+  const [neglectInfo, setNeglectInfo] = useState<SpotNeglectInfo[]>(
+    new Array(spots.length).fill({ reps: 0, evicted: false }),
   );
   const [practiceSummary, setPracticeSummary] = useState<
     Map<string, { excellent: number; fine: number; poor: number }>
@@ -387,6 +418,7 @@ function SinglePractice({
       }
       if (resumeRef.current && !hasShownResume) {
         resumeRef.current.showModal();
+        globalThis.handleShowModal();
       }
     } else {
       localStorage.removeItem(`${pieceid}.${spotIdsHash}.practiceSummary`);
@@ -419,6 +451,10 @@ function SinglePractice({
 
   const addSpotRep = useCallback(
     function (id: string | undefined, quality: "excellent" | "fine" | "poor") {
+      setNeglectInfo((curr) => {
+        curr[currentSpotIdx].reps++;
+        return curr;
+      });
       if (!id || !quality) {
         return;
       }
@@ -438,7 +474,7 @@ function SinglePractice({
       setPracticeSummary(practiceSummary);
       return summary;
     },
-    [setPracticeSummary, practiceSummary, pieceid, spotIdsHash],
+    [setPracticeSummary, practiceSummary, pieceid, spotIdsHash, currentSpotIdx],
   );
 
   // TODO: handle adding rep correctly when hitting done
@@ -495,21 +531,28 @@ function SinglePractice({
         handleDone();
         return;
       }
-      let nextSpotIdx = Math.floor(Math.random() * spots.length);
-      let nextSpotId = spots[nextSpotIdx]?.id;
-      while (
-        !nextSpotId ||
-        (nextSpotId && nextSkipSpotIds.includes(nextSpotId)) ||
-        // check if the last two spots are the same and also the same as the next spot
-        // but only if the skip spots is more than one smaller than the spots, otherwise
-        // there is only one spot left and it will infinitely loop
-        (nextSpotId &&
-          spots.length - 1 > nextSkipSpotIds.length &&
-          lastTwoSpots[0] === lastTwoSpots[1] &&
-          lastTwoSpots[1] === nextSpotId)
-      ) {
+      const [hasNeglectedSpot, neglectedSpotIdx] =
+        findNeglectedSpot(neglectInfo);
+      let nextSpotIdx: number;
+      let nextSpotId: string;
+      if (hasNeglectedSpot) {
+        nextSpotIdx = neglectedSpotIdx;
+      } else {
         nextSpotIdx = Math.floor(Math.random() * spots.length);
         nextSpotId = spots[nextSpotIdx]?.id;
+        while (
+          !nextSpotId ||
+          (nextSpotId && nextSkipSpotIds.includes(nextSpotId)) ||
+          // check if the last two spots are the same and also the same as the next spot
+          // but only if the skip spots is more than one smaller than the spots, otherwise
+          // there is only one spot left and it will infinitely loop
+          (nextSpotId &&
+            spots.length - 1 > nextSkipSpotIds.length &&
+            lastTwoSpots[0] === lastTwoSpots[1] &&
+            lastTwoSpots[1] === nextSpotId)
+        ) {
+          nextSpotIdx = Math.floor(Math.random() * spots.length);
+        }
       }
       setCurrentSpotIdx(nextSpotIdx);
       setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
@@ -527,10 +570,14 @@ function SinglePractice({
       if (pieceid) {
         saveToStorage("skipSpotIds", JSON.stringify(newSkipSpotIds));
       }
+      setNeglectInfo((curr) => {
+        curr[currentSpotIdx].evicted = true;
+        return curr;
+      });
       setSkipSpotIds(newSkipSpotIds);
       return newSkipSpotIds;
     },
-    [spots, skipSpotIds, pieceid, spotIdsHash],
+    [spots, skipSpotIds, pieceid, spotIdsHash, currentSpotIdx],
   );
 
   const maybeTakeABreak = useCallback(
@@ -615,10 +662,11 @@ function SinglePractice({
     function () {
       if (breakDialogRef.current) {
         breakDialogRef.current.showModal();
+        globalThis.handleShowModal();
         setCanContinue(false);
         setTimeout(function () {
           setCanContinue(true);
-        }, 45000);
+        }, 30000);
         // }, 1000);
       }
     },
@@ -652,26 +700,22 @@ function SinglePractice({
             id={`${currentSpotIdx}-${counter}`}
           />
         </div>
-        <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 sm:flex-row-reverse sm:px-0">
-          <BigHappyButton
-            type="button"
-            onClick={handleExcellent}
-            className="gap-2"
-          >
+        <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 xs:flex-row-reverse xs:px-0">
+          <BigHappyButton type="button" onClick={handleExcellent}>
             <span
               className="icon-[iconamoon--like-thin] -ml-1 -mt-1 size-8"
               aria-hidden="true"
             ></span>
             Excellent
           </BigHappyButton>
-          <BigSkyButton type="button" onClick={handleFine} className="gap-2">
+          <BigSkyButton type="button" onClick={handleFine}>
             <span
               className="icon-[iconamoon--sign-minus-thin] -ml-1 size-8"
               aria-hidden="true"
             ></span>
             Fine
           </BigSkyButton>
-          <BigAngryButton type="button" onClick={handlePoor} className="gap-2">
+          <BigAngryButton type="button" onClick={handlePoor}>
             <span
               className="icon-[iconamoon--dislike-thin] -mb-1 -ml-1 size-8"
               aria-hidden="true"

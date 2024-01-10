@@ -1,11 +1,12 @@
 import { BackToPlan, Link } from "./links";
-import { useCallback, useEffect, useRef } from "preact/hooks";
+import { StateUpdater, useCallback, useEffect, useRef } from "preact/hooks";
 import * as htmx from "htmx.org";
 
 export function NextPlanItem({ planid }: { planid?: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openDialog = useCallback(() => {
     dialogRef.current?.showModal();
+    globalThis.handleOpenModal();
   }, [dialogRef.current]);
   return (
     <>
@@ -22,9 +23,9 @@ export function NextPlanItem({ planid }: { planid?: string }) {
       <dialog
         ref={dialogRef}
         aria-labelledby="practice-next-title"
-        className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-2 text-left sm:max-w-xl"
+        className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] p-4 text-left sm:max-w-xl"
       >
-        <header className="flex h-8 flex-shrink-0 text-left sm:mt-2">
+        <header className="flex h-8 flex-shrink-0 text-left">
           <h3
             id="practice-next-title"
             className="inline-block text-2xl font-semibold leading-6 text-neutral-900"
@@ -40,7 +41,7 @@ export function NextPlanItem({ planid }: { planid?: string }) {
             <li>Go on to the next item</li>
             <li>Go back to your practice plan</li>
           </ul>
-          <InterleaveSpotsList planid={planid} />
+          <InterleaveSpotsList planid={planid} shouldFetch={true} />
         </div>
         <div className="grid w-full grid-cols-1 gap-2 xs:grid-cols-2">
           <BackToPlan grow planid={planid} />
@@ -50,7 +51,7 @@ export function NextPlanItem({ planid }: { planid?: string }) {
           >
             Go On
             <span
-              className="icon-[iconamoon--player-end-thin] -mr-1 size-5"
+              className="icon-[iconamoon--player-next-thin] -mr-1 size-5"
               aria-hidden="true"
             />
           </Link>
@@ -60,14 +61,29 @@ export function NextPlanItem({ planid }: { planid?: string }) {
   );
 }
 
-export function InterleaveSpotsList({ planid }: { planid?: string }) {
+export function InterleaveSpotsList({
+  planid,
+  shouldFetch = false,
+  setShouldFetch,
+}: {
+  planid?: string;
+  shouldFetch?: boolean;
+  setShouldFetch?: StateUpdater<boolean>;
+}) {
   const interleaveSpotsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (interleaveSpotsRef.current) {
-      htmx.process(interleaveSpotsRef.current);
+    if (interleaveSpotsRef.current && shouldFetch) {
+      htmx
+        .ajax(
+          "GET",
+          `/library/plans/${planid}/interleave`,
+          interleaveSpotsRef.current,
+        )
+        .then(() => setShouldFetch(false))
+        .catch((err) => console.error(err));
     }
-  }, [interleaveSpotsRef.current]);
+  }, [interleaveSpotsRef.current, shouldFetch, setShouldFetch]);
 
   return (
     <details className="my-1 w-full">
@@ -82,13 +98,7 @@ export function InterleaveSpotsList({ planid }: { planid?: string }) {
         />
       </summary>
       {!!planid ? (
-        <div
-          ref={interleaveSpotsRef}
-          hx-trigger="revealed"
-          hx-swap="innterHTML transition:true"
-          hx-get={`/library/plans/${planid}/interleave`}
-          className="w-full py-2"
-        >
+        <div ref={interleaveSpotsRef} className="w-full py-2">
           Loading Interleave Spots...
         </div>
       ) : (
@@ -97,3 +107,9 @@ export function InterleaveSpotsList({ planid }: { planid?: string }) {
     </details>
   );
 }
+/*
+ *
+          hx-trigger="revealed"
+          hx-swap="innterHTML transition:true"
+          hx-get={`/library/plans/${planid}/interleave`}
+*/

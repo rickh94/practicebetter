@@ -4,12 +4,14 @@ import "strconv"
 
 script ShowModal(id string) {
 	document.getElementById(id).showModal();
+	globalThis.handleOpenModal();
 }
 
 script CloseModal(id string) {
 	const modal = document.getElementById(id);
 	modal.classList.add('close'); // run animation here
 
+	globalThis.handleCloseModal();
 	requestAnimationFrame(function () {
 		requestAnimationFrame(function () {
 			modal.classList.remove('close');
@@ -128,6 +130,17 @@ templ BreadcrumbWrapper() {
 	</nav>
 }
 
+templ LittleBreadcrumbButton( href string) {
+	<nav aria-label="Breadcrumb" class="flex overflow-x-hidden flex-grow-0 md:hidden">
+		@HxLink("focusable rounded-xl h-12 flex items-center px-5 text-lg bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", href, "#main-content") {
+			<span class="-mx-2 size-8 icon-[iconamoon--arrow-left-2-thin]" aria-hidden="true"></span>
+			<span class="truncate">
+				{ children... }
+			</span>
+		}
+	</nav>
+}
+
 templ Breadcrumb(bc []BreadcrumbInfo) {
 	@BreadcrumbWrapper() {
 		for i, b := range bc {
@@ -135,12 +148,9 @@ templ Breadcrumb(bc []BreadcrumbInfo) {
 		}
 	}
 	if len(bc) > 1 {
-		<nav aria-label="Breadcrumb" class="flex flex-grow-0 md:hidden overflow-x-clip">
-			@HxLink("focusable action-button text-ellipsis text-xl bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
-				<span class="-mx-2 size-8 icon-[iconamoon--arrow-left-2-thin]" aria-hidden="true"></span>
-				{ bc[len(bc)-2].Label }
-			}
-		</nav>
+		@LittleBreadcrumbButton( bc[len(bc)-2].Href) {
+			{ bc[len(bc)-2].Label }
+		}
 	}
 }
 
@@ -158,16 +168,13 @@ templ BreadcrumbWithDates(bc []BreadcrumbWithDatesInfo) {
 		}
 	}
 	if len(bc) > 1 {
-		<nav aria-label="Breadcrumb" class="flex flex-grow-0 md:hidden overflow-x-clip">
-			@HxLink("focusable action-button text-ellipsis text-xl bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", bc[len(bc)-2].Href, "#main-content") {
-				<span class="-mx-2 icon-[iconamoon--arrow-left-2-thin] size-8" aria-hidden="true"></span>
-				if bc[len(bc)-2].IsDate {
-					<number-date epoch={ bc[len(bc)-2].Label }></number-date>
-				} else {
-					{ bc[len(bc)-2].Label }
-				}
+		@LittleBreadcrumbButton( bc[len(bc)-2].Href) {
+			if bc[len(bc)-2].IsDate {
+				<number-date epoch={ bc[len(bc)-2].Label }></number-date>
+			} else {
+				{ bc[len(bc)-2].Label }
 			}
-		</nav>
+		}
 	}
 }
 

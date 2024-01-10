@@ -31,10 +31,14 @@ export function ImagePromptSummary({ url }: { url: string }) {
   const lightboxRef = useRef<HTMLDialogElement>(null);
 
   const showBig = useCallback(() => {
-    lightboxRef.current?.showModal();
+    if (lightboxRef.current) {
+      lightboxRef.current.showModal();
+      globalThis.handleOpenModal();
+    }
   }, [lightboxRef.current]);
 
   const closeBig = useCallback(() => {
+    globalThis.handleCloseModal();
     if (lightboxRef.current) {
       lightboxRef.current.classList.add("close");
       requestAnimationFrame(() => {

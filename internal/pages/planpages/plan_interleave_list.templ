@@ -126,7 +126,7 @@ templ CompleteInterleaveSpotItem(spot PracticePlanSpot) {
 	<li class="flex flex-col flex-wrap gap-1 justify-start items-start w-full" id={ "quality-" + spot.ID }>
 		<span class="w-full text-left">
 			<div>
-				@components.SpotCardHeading(spot.Name, spot.PieceTitle, true)
+				@components.SpotCardHeadingWithMeasures(spot.Name, spot.PieceTitle, spot.Measures, true)
 			</div>
 			@CompleteSpotRadioOptions(spot, false)
 		</span>

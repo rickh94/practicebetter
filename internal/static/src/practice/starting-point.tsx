@@ -650,6 +650,7 @@ export function StartingPointPractice({
       }
       if (resumeRef.current && !hasShownResume) {
         resumeRef.current.showModal();
+        globalThis.handleShowModal();
       }
     } else {
       localStorage.removeItem(`${pieceid}.startingPoint.practiceSummary`);
@@ -694,6 +695,7 @@ export function StartingPointPractice({
     function () {
       if (breakDialogRef.current) {
         breakDialogRef.current.showModal();
+        globalThis.handleShowModal();
         setCanContinue(false);
         setTimeout(function () {
           setCanContinue(true);

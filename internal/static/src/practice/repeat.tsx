@@ -322,7 +322,7 @@ function RepeatPractice({
         </div>
       </div>
       {spot && (
-        <div className="px-8 pt-8">
+        <div className="pt-4 md:px-8 md:pt-8">
           <PracticeSpotDisplay
             spot={spot}
             pieceid={pieceid}
@@ -412,6 +412,7 @@ function RepeatBreakSuccess({
 
   const close = useCallback(
     function () {
+      globalThis.handleCloseModal();
       if (dialogRef.current) {
         dialogRef.current.classList.add("close");
         requestAnimationFrame(() => {
@@ -446,6 +447,7 @@ function RepeatBreakSuccess({
     if (dialogRef.current) {
       if (canPromote) {
         dialogRef.current.showModal();
+        globalThis.handleShowModal();
       }
     }
   }, [canPromote, dialogRef.current]);

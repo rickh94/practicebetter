@@ -109,7 +109,7 @@ export function CreateSpots({
         <p className="pb-2 text-sm text-neutral-700">
           Enter the name of a spot
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             id="spot-name"
             ref={spotNameRef}
@@ -121,7 +121,7 @@ export function CreateSpots({
               }
             }}
           />
-          <BasicButton onClick={onAddSpot}>
+          <BasicButton onClick={onAddSpot} className="flex-shrink-0">
             <span
               className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-6"
               aria-hidden="true"

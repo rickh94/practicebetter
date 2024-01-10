@@ -1,4 +1,4 @@
-import { Ref, useCallback } from "preact/hooks";
+import { Ref, useCallback, useState } from "preact/hooks";
 import { HappyButton, AngryButton, WarningButton } from "../ui/buttons";
 import { InterleaveSpotsList } from "../ui/plan-components";
 import { BackToPlan } from "../ui/links";
@@ -13,6 +13,7 @@ export function ResumeDialog({
   const closeDialog = useCallback(
     function () {
       if (dialogRef.current) {
+        globalThis.handleShowModal();
         dialogRef.current.classList.add("close");
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -88,9 +89,11 @@ export function BreakDialog({
   canContinue: boolean;
   length?: string;
 }) {
+  const [shouldFetch, setShouldFetch] = useState(true);
   const closeDialog = useCallback(
     function () {
       if (dialogRef.current) {
+        globalThis.handleCloseModal();
         dialogRef.current.classList.add("close");
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -100,6 +103,7 @@ export function BreakDialog({
             }
           });
         });
+        setShouldFetch(true);
       }
     },
     [dialogRef.current],
@@ -143,7 +147,11 @@ export function BreakDialog({
         {!!planid && (
           <>
             <p>This is a great time to practice your interleave spots!</p>
-            <InterleaveSpotsList planid={planid} />
+            <InterleaveSpotsList
+              planid={planid}
+              shouldFetch={shouldFetch}
+              setShouldFetch={setShouldFetch}
+            />
             <p>
               You can also go back to your practice plan and resume this later.
             </p>

@@ -11,15 +11,24 @@ func getSpotCardClass(completed bool, stage string) string {
 	}
 }
 
-templ SpotCardHeading(name, pieceTitle string, showTitle bool) {
+templ SpotCardHeadingWithMeasures(name, pieceTitle, measures string, showTitle bool) {
 	if showTitle {
 		<h3 class="text-sm italic text-neutral-900 truncate">
 			{ pieceTitle }
 		</h3>
 	}
-	<h4 class="text-lg font-bold truncate">
-		{ name }
-	</h4>
+	<span class="inline-flex gap-1 items-center">
+		<h4 class="text-lg font-bold truncate">
+			{ name }
+		</h4>
+		if measures != "" {
+			<span class="px-2 text-xl">|</span> Measures: { measures }
+		}
+	</span>
+}
+
+templ SpotCardHeading(name, pieceTitle string, showTitle bool) {
+	@SpotCardHeadingWithMeasures(name, pieceTitle, "", showTitle)
 }
 
 templ SpotMeasures(measures string) {

@@ -90,6 +90,7 @@ export default function Summary({
 
   const close = useCallback(
     function () {
+      globalThis.handleCloseModal();
       if (dialogRef.current) {
         dialogRef.current.classList.add("close");
         requestAnimationFrame(() => {
@@ -174,6 +175,7 @@ export default function Summary({
       setPromotionSpots(promote);
       setDemotionSpots(demote);
       if (dialogRef.current && (promote.length > 0 || demote.length > 0)) {
+        globalThis.handleOpenModal();
         dialogRef.current.showModal();
       } else {
         submit();

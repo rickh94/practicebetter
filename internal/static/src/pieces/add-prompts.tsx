@@ -29,6 +29,7 @@ export function AddAudioPrompt({
     function () {
       if (ref.current) {
         ref.current.showModal();
+        globalThis.handleOpenModal();
       }
     },
     [ref.current],
@@ -36,6 +37,7 @@ export function AddAudioPrompt({
 
   const close = useCallback(
     function () {
+      globalThis.handleCloseModal();
       if (ref.current) {
         ref.current.classList.add("close");
         requestAnimationFrame(() => {
@@ -48,7 +50,7 @@ export function AddAudioPrompt({
         });
       }
     },
-    [ref],
+    [ref.current],
   );
 
   const handleSubmit = useCallback(
@@ -246,6 +248,7 @@ export function AddImagePrompt({
     function () {
       if (ref.current) {
         ref.current.showModal();
+        globalThis.handleOpenModal();
       }
     },
     [ref.current],
@@ -253,6 +256,7 @@ export function AddImagePrompt({
 
   const close = useCallback(
     function () {
+      globalThis.handleCloseModal();
       if (ref.current) {
         ref.current.classList.add("close");
         requestAnimationFrame(() => {
@@ -461,6 +465,7 @@ export function AddReminders({
     function () {
       if (ref.current) {
         ref.current.showModal();
+        globalThis.handleOpenModal();
       }
     },
     [ref.current],
@@ -468,6 +473,7 @@ export function AddReminders({
 
   const close = useCallback(
     function () {
+      globalThis.handleCloseModal();
       if (ref.current) {
         ref.current.classList.add("close");
         requestAnimationFrame(() => {
@@ -480,7 +486,7 @@ export function AddReminders({
         });
       }
     },
-    [ref],
+    [ref.current],
   );
 
   return (
@@ -562,6 +568,7 @@ export function AddNotesPrompt({
     function () {
       if (ref.current) {
         ref.current.showModal();
+        globalThis.handleOpenModal();
       }
     },
     [ref.current],
@@ -569,6 +576,7 @@ export function AddNotesPrompt({
 
   const close = useCallback(
     function () {
+      globalThis.handleCloseModal();
       if (ref.current) {
         ref.current.classList.add("close");
         requestAnimationFrame(() => {

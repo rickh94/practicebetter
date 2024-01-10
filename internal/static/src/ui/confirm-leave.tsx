@@ -13,8 +13,8 @@ export function ConfirmDialog({
 
   const close = useCallback(
     function () {
+      globalThis.handleCloseModal();
       if (ref.current) {
-        if (!ref.current) return;
         ref.current.classList.add("close");
 
         requestAnimationFrame(function () {
@@ -44,14 +44,18 @@ export function ConfirmDialog({
     },
     [onCancel, close],
   );
-  useEffect(function () {
-    if (ref.current) {
-      ref.current.showModal();
-    }
-    return function () {
-      close();
-    };
-  }, []);
+  useEffect(
+    function () {
+      if (ref.current) {
+        globalThis.handleShowModal();
+        ref.current.showModal();
+      }
+      return function () {
+        close();
+      };
+    },
+    [ref.current],
+  );
   return (
     <dialog
       id={dialogid}
