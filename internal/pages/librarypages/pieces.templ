@@ -21,12 +21,12 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 				}
 			}
 		}
-		<ul class="grid flex-grow grid-cols-1 auto-rows-min gap-x-2 gap-y-4 px-4 w-full list-none sm:grid-cols-2 sm:mx-auto sm:max-w-5xl">
+		<ul class="grid flex-grow grid-cols-1 auto-rows-min gap-x-2 gap-y-4 px-4 w-full list-none sm:grid-cols-2 sm:mx-auto sm:max-w-6xl">
 			for _, piece := range pieces {
 				@components.PieceCard(piece.ID, piece.Title, composerOrDefault(piece.Composer), piece.ActiveSpots, piece.CompletedSpots)
 			}
 		</ul>
-		<div class="flex flex-grow-0 justify-between items-center px-4 pt-4 pb-8 w-full sm:mx-auto sm:max-w-5xl lg:pb-4">
+		<div class="flex flex-grow-0 justify-between items-center px-4 pt-4 pb-8 w-full sm:mx-auto sm:max-w-6xl lg:pb-4">
 			if page > 1 {
 				@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  "/library/pieces?page=" + strconv.Itoa(page-1), "#main-content") {
 					<span class="-ml-1 size-6 icon-[iconamoon--arrow-left-6-circle-thin]" aria-hidden="true"></span>

@@ -74,9 +74,11 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 			</option>
 		</select>
 		<div class="flex flex-nowrap flex-shrink-0 items-center h-10">
-			<span class="flex-shrink-0 text-lg text-pretty text-neutral-800">practice session,</span>
+			<span class="flex-shrink-0 text-lg text-pretty text-neutral-800">intensity practice session,</span>
 		</div>
-		<span class="flex-shrink-0 text-lg whitespace-nowrap text-neutral-800">where I will practice: </span>
+		<div class="flex flex-nowrap flex-shrink-0 items-center h-10">
+			<span class="flex-shrink-0 text-lg whitespace-nowrap text-neutral-800">where I will practice: </span>
+		</div>
 		<div class="flex flex-col flex-wrap gap-2 w-full xs:flex-row xs:w-auto">
 			@practiceCheckbox("icon-[iconamoon--bookmark-thin]","Interleave Spots", "practice_interleave", true)
 			@practiceCheckbox("icon-[iconamoon--playlist-shuffle-thin]","Random Spots", "practice_random_single", true)
@@ -84,10 +86,14 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 			@practiceCheckbox("icon-[iconamoon--playlist-repeat-list-thin]","New Spots", "practice_new", true)
 		</div>
 	</div>
-	<section id="pieces" class="grid grid-cols-1 gap-2 mt-4 sm:grid-cols-2 md:col-span-2 h-min">
+	<section id="pieces" class="grid grid-cols-1 gap-2 mt-4 sm:grid-cols-2 md:col-span-2 lg:grid-cols-3 h-min">
 		<p class="col-span-full pb-1 w-full text-lg leading-6 text-neutral-800">I will practice these pieces:</p>
 		for i, piece := range pieces {
-			@pieceCheckbox(piece.Title, piece.ID, i < 3)
+			if piece.Composer.Valid {
+				@pieceCheckbox(piece.Title + " - " + piece.Composer.String, piece.ID, i < 3)
+			} else {
+				@pieceCheckbox(piece.Title, piece.ID, i < 3)
+			}
 		}
 	</section>
 	<section id="customize" class="flex col-span-full justify-end pt-4 w-full">
@@ -114,7 +120,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 templ pieceCheckbox(text string, value string,  checked bool) {
 	<label
  		for={ "piece-" + value }
- 		class={ "flex relative items-center py-3 pr-2 pl-4 rounded-xl cursor-pointer radio-option focusable", templ.KV("checked", checked) }
+ 		class={ "piece-checkbox relative cursor-pointer h-full focusable", templ.KV("checked", checked) }
  		id={ "piece-" + value + "-label" }
 	>
 		<input
@@ -128,12 +134,11 @@ templ pieceCheckbox(text string, value string,  checked bool) {
  			checked?={ checked }
 		/>
 		<span class="flex flex-1">
-			<span class="flex-col">
+			<span class="flex-col font-medium">
 				{ text }
 			</span>
 		</span>
-		<span class="-ml-3 size-6 icon icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>
-		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
+		<span class="-ml-4 text-indigo-800 size-6 icon icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>
 	</label>
 }
 

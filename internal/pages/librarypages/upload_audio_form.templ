@@ -4,7 +4,7 @@ import "practicebetter/internal/components"
 
 templ UploadAudioForm(csrf string) {
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Upload Audio") , components.MaybePracticePlan())) {
-		<div class="px-4 pt-32 w-full sm:mx-auto sm:max-w-5xl">
+		@components.NormalContainer() {
 			<p class="text-lg">
 				Upload an audio file to practice below. You can always edit it later.
 			</p>
@@ -15,6 +15,6 @@ templ UploadAudioForm(csrf string) {
 					Upload
 				}
 			</form>
-		</div>
+		}
 	}
 }

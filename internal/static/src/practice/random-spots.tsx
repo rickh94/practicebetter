@@ -253,7 +253,7 @@ function SingleSetupForm({
           <div className="flex gap-2">
             <BasicButton onClick={decreaseSessions}>
               <span
-                className="icon-[iconamoon--sign-minus-circle-thin] -ml-1 size-4"
+                className="icon-[iconamoon--sign-minus-circle-thin] -ml-1 size-5"
                 aria-hidden="true"
               />
               Decrease
@@ -268,7 +268,7 @@ function SingleSetupForm({
             />
             <BasicButton onClick={increaseSessions}>
               <span
-                className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-4"
+                className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-5"
                 aria-hidden="true"
               />
               Increase

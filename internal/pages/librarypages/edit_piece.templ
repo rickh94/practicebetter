@@ -16,7 +16,7 @@ templ EditPiecePage(s pages.ServerUtil, csrf string, piece db.Piece) {
 					{ Label: "Edit", Href: "/library/pieces/"+piece.ID+"/edit", Active: true },
 				})
 		}
-		<div class="px-4 w-full sm:mx-auto sm:max-w-5xl">
+		@components.NormalContainer() {
 			<form hx-put={ "/library/pieces/" + piece.ID } hx-target="#main-content" hx-swap="outerHTML transition:true" action="#" class="flex flex-col gap-2 w-full">
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<div class="grid-cols-1 gap-x-0 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-2 md:gap-x-4">
@@ -84,6 +84,6 @@ templ EditPiecePage(s pages.ServerUtil, csrf string, piece db.Piece) {
 					}
 				</div>
 			</form>
-		</div>
+		}
 	}
 }

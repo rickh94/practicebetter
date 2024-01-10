@@ -20,7 +20,7 @@ templ PSList(s pages.ServerUtil,  practiceSessions string, page int, hasNext boo
 			<past-practice-display sessions={ practiceSessions } wide="true" title="Your Practice Sessions" class="w-full"></past-practice-display>
 		}
 		@components.NormalContainer() {
-			<div class="flex flex-grow-0 justify-between items-center py-4 px-4 w-full sm:max-w-5xl sm:max-auto">
+			<div class="flex flex-grow-0 justify-between items-center py-4 px-4 w-full sm:max-w-6xl sm:max-auto">
 				if page > 1 {
 					@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", "/library/practice-sessions?page=" + strconv.Itoa(page-1), "#main-content") {
 						<span class="-ml-1 size-6 icon-[iconamoon--arrow-left-6-circle-thin]" aria-hidden="true"></span>

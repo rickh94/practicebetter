@@ -219,7 +219,7 @@
   }
 
   .radio-option {
-    @apply bg-neutral-700/10;
+    @apply bg-neutral-700/10 transition-all duration-100;
   }
 
   .poor-radio-option.checked,
@@ -244,7 +244,7 @@
   }
 
   .poor-radio-option {
-    @apply bg-red-500/30;
+    @apply bg-red-500/30 transition-all duration-100;
   }
 
   .fine-radio-option.checked,
@@ -269,7 +269,7 @@
   }
 
   .fine-radio-option {
-    @apply bg-sky-500/30;
+    @apply bg-sky-500/30 transition-all duration-100;
   }
 
   .excellent-radio-option.checked,
@@ -294,11 +294,11 @@
   }
 
   .excellent-radio-option {
-    @apply bg-green-500/30;
+    @apply bg-green-500/30 transition-all duration-100;
   }
 
   .practice-radio-option.checked {
-    @apply shadow;
+    @apply shadow shadow-black/30;
   }
 
   .practice-radio-option.checked > .icon {
@@ -315,6 +315,10 @@
 
   .practice-radio-option > .icon {
     @apply invisible;
+  }
+
+  .practice-radio-option {
+    @apply shadow-sm shadow-black/20 transition-all duration-100;
   }
 
   .check-option.checked {
@@ -338,7 +342,31 @@
   }
 
   .check-option {
-    @apply bg-neutral-700/10;
+    @apply bg-neutral-700/10 transition-all duration-100;
+  }
+
+  .piece-checkbox.checked {
+    @apply border-indigo-800 shadow-indigo-400;
+  }
+
+  .piece-checkbox.checked > .icon {
+    @apply visible;
+  }
+
+  .piece-checkbox.checked > .radio-border {
+    @apply border-indigo-800;
+  }
+
+  .piece-checkbox > .radio-border {
+    @apply border-transparent;
+  }
+
+  .piece-checkbox > .icon {
+    @apply invisible;
+  }
+
+  .piece-checkbox {
+    @apply flex items-center gap-1 rounded-xl border-2 border-transparent bg-neutral-50 px-4 py-4 text-black shadow-sm shadow-black/20 transition-all duration-100;
   }
 
   .action-button {
@@ -410,6 +438,10 @@
     --progress-background: #e5e5e5; /* the background color */
   }
 
+  .progress-bg-transparent {
+    --progress-background: transparent; /* the background color */
+  }
+
   .progress-bg-neutral-800 {
     --progress-background: #262626; /* the background color */
   }
@@ -436,6 +468,13 @@
     --progress-border-bottom-left-radius: 0.25rem;
     --progress-border-top-right-radius: 0.25rem;
     --progress-border-top-left-radius: 0.25rem;
+  }
+
+  .progress-rounded-lg {
+    --progress-border-bottom-right-radius: 0.5rem;
+    --progress-border-bottom-left-radius: 0.5rem;
+    --progress-border-top-right-radius: 0.5rem;
+    --progress-border-top-left-radius: 0.5rem;
   }
 
   .w-huge {

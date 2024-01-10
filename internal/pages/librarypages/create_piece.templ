@@ -17,7 +17,7 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 					{ Label: "New", Href: "/library/pieces/create", Active: true },
 				})
 		}
-		<div class="px-4 w-full sm:mx-auto sm:max-w-5xl">
+		@components.NormalContainer() {
 			<p class="text-lg">
 				Enter your piece information below then click save. Afterwards you’ll add your practice spots.
 			</p>
@@ -72,7 +72,7 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 					}
 				</div>
 			</form>
-		</div>
+		}
 	}
 }
 

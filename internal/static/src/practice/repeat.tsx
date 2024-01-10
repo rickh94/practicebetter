@@ -141,7 +141,7 @@ export function Repeat({
   );
 
   return (
-    <div className="relative left-0 top-0 w-full sm:mx-auto sm:max-w-5xl">
+    <div className="relative left-0 top-0 w-full sm:mx-auto sm:max-w-6xl">
       <ScaleCrossFadeContent
         component={
           {

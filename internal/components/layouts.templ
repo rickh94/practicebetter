@@ -26,7 +26,7 @@ templ HeadingText(text string) {
 
 templ TwoButtonBar(left templ.Component, header templ.Component, right templ.Component) {
 	<div class="absolute top-0 left-0 w-full" id="topbar">
-		<div class="flex gap-2 justify-between items-center p-4 mx-auto w-full sm:max-w-5xl">
+		<div class="flex gap-2 justify-between items-center p-4 mx-auto w-full sm:max-w-6xl">
 			<div class="flex flex-grow-0 justify-start md:w-56">
 				@left
 			</div>
@@ -53,7 +53,7 @@ templ LeftButtonBar(left templ.Component, header templ.Component) {
 }
 
 templ TwoColumnContainer() {
-	<div class="grid relative grid-cols-1 gap-x-2 gap-y-4 p-4 pb-12 w-full sm:mx-auto sm:max-w-5xl md:grid-cols-2">
+	<div class="grid relative grid-cols-1 gap-x-2 gap-y-4 p-4 pb-12 w-full sm:mx-auto sm:max-w-6xl md:grid-cols-2">
 		{ children... }
 	</div>
 }
@@ -65,19 +65,19 @@ templ NarrowContainer() {
 }
 
 templ NormalContainer() {
-	<div class="px-4 pt-4 pb-12 w-full sm:mx-auto lg:max-w-5xl">
+	<div class="px-4 pb-12 w-full sm:mx-auto lg:max-w-6xl">
 		{ children... }
 	</div>
 }
 
 templ FiveColumnContainer() {
-	<div class="grid relative grid-cols-1 gap-4 p-4 pb-12 w-full sm:mx-auto sm:max-w-5xl lg:grid-cols-5">
+	<div class="grid relative grid-cols-1 gap-4 p-4 pb-12 w-full sm:mx-auto sm:max-w-6xl lg:grid-cols-5">
 		{ children... }
 	</div>
 }
 
 templ BreadcrumbContainer() {
-	<div class="flex flex-wrap flex-grow-0 gap-2 p-4 pb-12 w-full md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-5xl">
+	<div class="flex flex-wrap flex-grow-0 gap-2 p-4 pb-12 w-full md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-6xl">
 		{ children... }
 	</div>
 }

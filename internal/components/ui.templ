@@ -204,7 +204,7 @@ templ PieceCardHeading(title, composer string, completed bool) {
 	</div>
 }
 
-const pieceCardClass = "focusable border flex border rounded-xl px-6 py-4 text-black transition-all duration-200 shadow-sm shadow-black/20"
+const pieceCardClass = "flex py-4 px-6 text-black rounded-xl border shadow-sm transition-all duration-200 shadow-black/20 focusable"
 
 func getPieceCardClass(completed bool) string {
 	if completed {

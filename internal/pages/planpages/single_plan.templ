@@ -97,7 +97,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 			}
 		}
 		@components.NormalContainer() {
-			<div class="flex flex-col flex-grow gap-0 p-0 min-h-full text-black bg-white rounded shadow shadow-violet-400">
+			<div class="flex flex-col flex-grow gap-0 p-0 min-h-full text-black bg-white rounded-lg shadow shadow-violet-400">
 				@singlePlanContent(planData, csrf)
 			</div>
 		}
@@ -171,22 +171,24 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
 }
 
 templ singlePlanContent(planData PracticePlanData, csrf string) {
-	<label id="progress-label" class="sr-only">Plan Progress</label>
-	<progress
- 		value={ strconv.Itoa(planData.CompletedItems) }
- 		max={ strconv.Itoa(planData.TotalItems) }
- 		class="pb-2 m-0 w-full progress-rounded progress-violet-600 progress-bg-white"
- 		aria-labelledby="progress-label"
-	>{ strconv.Itoa(planData.CompletedItems) }/{ strconv.Itoa(planData.TotalItems) }</progress>
 	<div class="grid grid-cols-1 gap-4 p-4 w-full sm:grid-cols-2 lg:grid-cols-3">
 		<header class="flex flex-col col-span-full justify-center items-center pb-2 w-full">
-			<div class="py-2 px-4 text-center border-b-2 border-black sm:px-8">
+			<div class="py-2 px-4 text-center sm:px-8">
 				<h2 class="text-xl font-bold text-center sm:text-3xl">
 					<pretty-date class="text-black" epoch={ strconv.FormatInt(planData.Date, 10) }></pretty-date>
 					if planData.IsActive {
 						<span class="text-violet-700 whitespace-nowrap">- Active</span>
 					}
 				</h2>
+			</div>
+			<div class="px-8 w-full xs:mx-auto xs:max-w-xl">
+				<label id="progress-label" class="sr-only">Plan Progress</label>
+				<progress
+ 					value={ strconv.Itoa(planData.CompletedItems) }
+ 					max={ strconv.Itoa(planData.TotalItems) }
+ 					class="m-0 w-full progress-rounded progress-violet-600 progress-bg-violet-200"
+ 					aria-labelledby="progress-label"
+				>{ strconv.Itoa(planData.CompletedItems) }/{ strconv.Itoa(planData.TotalItems) }</progress>
 			</div>
 			if planData.IsActive {
 				<p class="py-2 text-base">Click the items below start practicing.</p>
