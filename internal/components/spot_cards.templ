@@ -49,7 +49,7 @@ templ SpotMeasures(measures string) {
 templ BaseSpotCard(spotID, name, measures, stage, href string, practiced bool, showTitle bool, pieceTitle string, hidden bool, showStage bool) {
 	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration-200 spot-card", templ.KV("hidden", hidden) }>
 		@HxLink(getSpotCardClass(practiced, stage), href, "#main-content") {
-			<div class="flex flex-col flex-grow overflow-x-clip">
+			<div class="flex flex-col flex-grow min-w-0 overflow-x-clip">
 				@SpotCardHeading(name, pieceTitle, showTitle)
 				if practiced {
 					<div class="text-sm font-bold">
@@ -145,7 +145,7 @@ templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTit
 // TODO: make this nice
 
 templ InterleaveSpotItem(name, pieceTitle, measures, stage string, practiced bool) {
-	<div class="flex flex-col flex-grow items-start text-left overflow-x-clip">
+	<div class="flex flex-col flex-grow items-start min-w-0 text-left overflow-x-clip">
 		@SpotCardHeading(name, pieceTitle, true)
 		if practiced {
 			<div class="text-sm font-bold">

@@ -124,16 +124,16 @@ type BreadcrumbInfo struct {
 
 templ BreadcrumbWrapper() {
 	<nav aria-label="Breadcrumb" class="hidden flex-grow-0 md:flex">
-		<ul class="flex flex-grow-0 flex-shrink justify-around items-center py-2 px-4 text-sm rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
+		<ul class="flex flex-grow-0 flex-shrink justify-around items-center py-2 px-4 min-w-0 text-sm rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
 			{ children... }
 		</ul>
 	</nav>
 }
 
 templ LittleBreadcrumbButton( href string) {
-	<nav aria-label="Breadcrumb" class="flex overflow-x-hidden flex-grow-0 md:hidden">
-		@HxLink("focusable rounded-xl h-12 flex items-center px-5 text-lg bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", href, "#main-content") {
-			<span class="-mx-2 size-8 icon-[iconamoon--arrow-left-2-thin]" aria-hidden="true"></span>
+	<nav aria-label="Breadcrumb" class="flex overflow-x-hidden flex-grow-0 min-w-0 md:hidden">
+		@HxLink("focusable rounded-xl min-w-0 h-12 flex items-center px-5 text-lg bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", href, "#main-content") {
+			<span class="flex-shrink-0 -ml-2 size-8 icon-[iconamoon--arrow-left-2-thin]" aria-hidden="true"></span>
 			<span class="truncate">
 				{ children... }
 			</span>
