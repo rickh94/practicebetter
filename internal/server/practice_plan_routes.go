@@ -164,7 +164,11 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				if !row.SpotLastPracticed.Valid || time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > time.Duration(row.SpotSkipDays.Int64)*24*time.Hour {
+				// we want to make sure that it has been more than the skip days value since the last time
+				// this spot was practiced. I've made the offset 12 hours as a reasonable way to avoid adding
+				// an extra day because someone practiced in the evening one day and in the morning the next
+				if !row.SpotLastPracticed.Valid ||
+					time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > time.Duration(row.SpotSkipDays.Int64)*24*time.Hour+12*time.Hour {
 					maybeInfrequentSpots = append(maybeInfrequentSpots, PotentialInfrequentSpot{
 						ID:        row.SpotID.String,
 						TimeSince: time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)),
@@ -264,7 +268,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 
 	// prioritize infrequent spots with the spots that are the lest recently practiced first
 	slices.SortFunc(maybeInfrequentSpots, func(a, b PotentialInfrequentSpot) int {
-		return cmp.Compare(a.TimeSince, b.TimeSince)
+		return cmp.Compare(b.TimeSince, a.TimeSince)
 	})
 
 	// infrequent spots
