@@ -90,6 +90,10 @@
     display: none;
   }
 
+  html {
+    overscroll-behavior-y: none;
+  }
+
   body {
     overscroll-behavior: none;
     height: 100%;

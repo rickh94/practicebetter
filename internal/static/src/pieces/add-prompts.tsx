@@ -465,7 +465,7 @@ export function AddReminders({
     function () {
       if (ref.current) {
         ref.current.showModal();
-        globalThis.handleOpenModal();
+        globalThis.handleShowModal();
       }
     },
     [ref.current],
@@ -568,7 +568,7 @@ export function AddNotesPrompt({
     function () {
       if (ref.current) {
         ref.current.showModal();
-        globalThis.handleOpenModal();
+        globalThis.handleShowModal();
       }
     },
     [ref.current],
