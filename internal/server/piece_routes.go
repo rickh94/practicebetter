@@ -9,7 +9,6 @@ import (
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
 	"strconv"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
@@ -532,57 +531,8 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 
 	qtx := queries.WithTx(tx)
 
-	var practiceSessionID string
 	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
-	if ok {
-		activePracticePlan, err := qtx.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
-			ID:     activePracticePlanID,
-			UserID: user.ID,
-		})
-		if err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not get active practice plan", http.StatusInternalServerError)
-			return
-		}
-		if !activePracticePlan.PracticeSessionID.Valid {
-			practiceSessionID = cuid2.Generate()
-			if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-				ID:              practiceSessionID,
-				UserID:          user.ID,
-				DurationMinutes: info.DurationMinutes,
-				Date:            time.Now().Unix(),
-			}); err != nil {
-				log.Default().Println(err)
-				http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-				return
-			}
-		}
-		practiceSessionID = activePracticePlan.PracticeSessionID.String
-		if err := qtx.ExtendPracticeSessionToNow(r.Context(), db.ExtendPracticeSessionToNowParams{
-			ID:     practiceSessionID,
-			UserID: user.ID,
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not extend practice session", http.StatusInternalServerError)
-			return
-		}
-
-	} else {
-		log.Default().Println(err)
-		practiceSessionID = cuid2.Generate()
-		if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-			ID:              practiceSessionID,
-			UserID:          user.ID,
-			DurationMinutes: info.DurationMinutes,
-			Date:            time.Now().Unix(),
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	if activePracticePlanID != "" {
+	if ok && activePracticePlanID != "" {
 		if err := qtx.CompletePracticePlanPiece(r.Context(), db.CompletePracticePlanPieceParams{
 			UserID:       user.ID,
 			PlanID:       activePracticePlanID,
@@ -597,22 +547,6 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 	}
 
 	for _, spot := range info.Spots {
-		if err := qtx.CreatePracticeSpot(r.Context(), db.CreatePracticeSpotParams{
-			UserID:            user.ID,
-			SpotID:            spot.ID,
-			PracticeSessionID: practiceSessionID,
-		}); err != nil {
-			if err := qtx.AddRepToPracticeSpot(r.Context(), db.AddRepToPracticeSpotParams{
-				UserID:            user.ID,
-				SpotID:            spot.ID,
-				PracticeSessionID: practiceSessionID,
-			}); err != nil {
-				log.Default().Println(err)
-				http.Error(w, "Could not practice spot", http.StatusInternalServerError)
-				return
-			}
-		}
-
 		if spot.Promote {
 			if err := qtx.PromoteSpotToInterleave(r.Context(), db.PromoteSpotToInterleaveParams{
 				SpotID:  spot.ID,
@@ -702,27 +636,6 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 
 	qtx := queries.WithTx(tx)
 
-	practiceSessionID := cuid2.Generate()
-	if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-		ID:              practiceSessionID,
-		UserID:          user.ID,
-		DurationMinutes: info.DurationMinutes,
-		Date:            time.Now().Unix(),
-	}); err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-		return
-	}
-	if err := qtx.PracticePiece(r.Context(), db.PracticePieceParams{
-		UserID:            user.ID,
-		PieceID:           pieceID,
-		PracticeSessionID: practiceSessionID,
-		Measures:          info.MeasuresPracticed,
-	}); err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Could not practice piece", http.StatusInternalServerError)
-		return
-	}
 	if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
 		UserID:  user.ID,
 		PieceID: pieceID,

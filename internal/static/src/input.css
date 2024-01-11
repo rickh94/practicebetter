@@ -105,7 +105,8 @@
     pointer-events: none;
     opacity: 0;
     overflow: hidden;
-    @apply h-0 w-0 translate-y-4 rounded-xl transition-all duration-300;
+    transition-property: transform, opacity;
+    @apply h-0 w-0 translate-y-4 rounded-xl duration-300 ease-out;
   }
 
   dialog:focus {
@@ -126,13 +127,13 @@
   }
 
   dialog[open]::backdrop {
-    animation: backdrop-fade 0.3s ease forwards;
+    animation: backdrop-fade 0.2s ease forwards;
     height: 100dvh;
     width: 100vw;
   }
 
-  dialog.close::backdrop {
-    animation: backdrop-fade 0.3s ease backwards;
+  dialog[open].close::backdrop {
+    animation: backdrop-fade 0.2s ease backwards;
     animation-direction: reverse;
   }
 

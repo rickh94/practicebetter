@@ -3,9 +3,8 @@ INSERT INTO practice_plans (
     id,
     user_id,
     intensity,
-    practice_session_id,
     date
-) VALUES (?, ?, ?, ?, unixepoch('now'))
+) VALUES (?, ?, ?, unixepoch('now'))
 RETURNING *;
 
 -- name: CreatePracticePlanSpot :one
@@ -268,11 +267,6 @@ WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE pra
 UPDATE practice_plan_pieces
 SET completed = true
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id) AND piece_id = ? AND practice_type = ?;
-
--- name: AddPracticeSessionToPlan :exec
-UPDATE practice_plans
-SET practice_session_id = ?
-WHERE id = ? AND user_id = ?;
 
 -- name: DeletePracticePlanSpot :exec
 DELETE FROM practice_plan_spots

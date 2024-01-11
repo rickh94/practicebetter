@@ -3,7 +3,6 @@ package server
 import (
 	"cmp"
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"math"
@@ -67,18 +66,6 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(s.DB)
 	qtx := queries.WithTx(tx)
 
-	practiceSessionID := cuid2.Generate()
-	if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-		ID:              practiceSessionID,
-		UserID:          user.ID,
-		DurationMinutes: 0,
-		Date:            time.Now().Unix(),
-	}); err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-		return
-	}
-
 	// We're going to carry forward failed new spots, so we need to get the new spots from the last plan that are
 	// still in the repeat practice stage
 	failedNewSpotIDs := make(map[string]struct{}, 0)
@@ -96,10 +83,9 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newPlan, err := qtx.CreatePracticePlan(r.Context(), db.CreatePracticePlanParams{
-		ID:                cuid2.Generate(),
-		UserID:            user.ID,
-		Intensity:         r.FormValue("intensity"),
-		PracticeSessionID: sql.NullString{Valid: true, String: practiceSessionID},
+		ID:        cuid2.Generate(),
+		UserID:    user.ID,
+		Intensity: r.FormValue("intensity"),
 	})
 	if err != nil {
 		log.Default().Printf("Database error: %v\n", err)
@@ -742,40 +728,6 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 	queries := db.New(s.DB)
 	qtx := queries.WithTx(tx)
 
-	plan, err := qtx.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
-		ID:     planID,
-		UserID: user.ID,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	var practiceSessionID string
-	if plan.PracticeSessionID.Valid {
-		practiceSessionID = plan.PracticeSessionID.String
-		if err := qtx.ExtendPracticeSessionToNow(r.Context(), db.ExtendPracticeSessionToNowParams{
-			ID:     practiceSessionID,
-			UserID: user.ID,
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not extend practice session", http.StatusInternalServerError)
-			return
-		}
-	} else {
-		practiceSessionID = cuid2.Generate()
-		if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-			ID:              practiceSessionID,
-			UserID:          user.ID,
-			DurationMinutes: 5,
-			Date:            time.Now().Unix() - 5*60,
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-			return
-		}
-	}
-
 	interleaveDaysSpots, err := qtx.GetPracticePlanInterleaveDaysSpots(r.Context(), db.GetPracticePlanInterleaveDaysSpotsParams{
 		PlanID: planID,
 		UserID: user.ID,
@@ -937,21 +889,6 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 			}
 		}
 
-		if err := qtx.CreatePracticeSpot(r.Context(), db.CreatePracticeSpotParams{
-			UserID:            user.ID,
-			SpotID:            interleaveDaysSpot.SpotID,
-			PracticeSessionID: practiceSessionID,
-		}); err != nil {
-			if err := qtx.AddRepToPracticeSpot(r.Context(), db.AddRepToPracticeSpotParams{
-				UserID:            user.ID,
-				SpotID:            interleaveDaysSpot.SpotID,
-				PracticeSessionID: practiceSessionID,
-			}); err != nil {
-				log.Default().Println(err)
-				http.Error(w, "Could not practice spot", http.StatusInternalServerError)
-				return
-			}
-		}
 		spotInfo = append(spotInfo, planpages.PracticePlanSpot{
 			ID:               interleaveDaysSpot.SpotID,
 			Name:             interleaveDaysSpot.SpotName.String,
@@ -1127,40 +1064,6 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 	queries := db.New(s.DB)
 	qtx := queries.WithTx(tx)
 
-	plan, err := qtx.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
-		ID:     planID,
-		UserID: user.ID,
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	var practiceSessionID string
-	if plan.PracticeSessionID.Valid {
-		practiceSessionID = plan.PracticeSessionID.String
-		if err := qtx.ExtendPracticeSessionToNow(r.Context(), db.ExtendPracticeSessionToNowParams{
-			ID:     practiceSessionID,
-			UserID: user.ID,
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not extend practice session", http.StatusInternalServerError)
-			return
-		}
-	} else {
-		practiceSessionID = cuid2.Generate()
-		if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-			ID:              practiceSessionID,
-			UserID:          user.ID,
-			DurationMinutes: 5,
-			Date:            time.Now().Unix() - 5*60,
-		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-			return
-		}
-	}
-
 	interleaveSpots, err := qtx.GetPracticePlanInterleaveSpots(r.Context(), db.GetPracticePlanInterleaveSpotsParams{
 		PlanID: planID,
 		UserID: user.ID,
@@ -1260,27 +1163,6 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 			}
 		}
 
-		if err := qtx.CreatePracticeSpot(r.Context(), db.CreatePracticeSpotParams{
-			UserID:            user.ID,
-			SpotID:            interleaveSpot.SpotID,
-			PracticeSessionID: practiceSessionID,
-		}); err != nil {
-			if err := qtx.AddRepToPracticeSpot(r.Context(), db.AddRepToPracticeSpotParams{
-				UserID:            user.ID,
-				SpotID:            interleaveSpot.SpotID,
-				PracticeSessionID: practiceSessionID,
-			}); err != nil {
-				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-					Message:  "Could not add rep to spot",
-					Title:    "Error",
-					Variant:  "error",
-					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-		}
 		spotInfo = append(spotInfo, planpages.PracticePlanSpot{
 			ID:         interleaveSpot.SpotID,
 			Name:       interleaveSpot.SpotName.String,
@@ -2298,23 +2180,10 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	practiceSessionID := cuid2.Generate()
-	if err := qtx.CreatePracticeSession(r.Context(), db.CreatePracticeSessionParams{
-		ID:              practiceSessionID,
-		UserID:          user.ID,
-		DurationMinutes: 0,
-		Date:            time.Now().Unix(),
-	}); err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Could not create practice session", http.StatusInternalServerError)
-		return
-	}
-
 	newPlan, err := qtx.CreatePracticePlan(r.Context(), db.CreatePracticePlanParams{
-		ID:                cuid2.Generate(),
-		UserID:            user.ID,
-		Intensity:         oldPlan.Intensity,
-		PracticeSessionID: sql.NullString{Valid: true, String: practiceSessionID},
+		ID:        cuid2.Generate(),
+		UserID:    user.ID,
+		Intensity: oldPlan.Intensity,
 	})
 	if err != nil {
 		log.Default().Printf("Database error: %v\n", err)
