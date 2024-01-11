@@ -82,46 +82,7 @@ CREATE TABLE spots (
 );
 
 CREATE INDEX spots_piece_id ON spots (piece_id);
-
-CREATE TABLE practice_sessions(
-    id TEXT NOT NULL,
-    duration_minutes INTEGER NOT NULL,
-    date INTEGER NOT NULL,
-    user_id TEXT NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT user FOREIGN KEY (user_id) REFERENCES users (
-        id
-    ) ON UPDATE NO ACTION ON DELETE CASCADE
-);
-
-CREATE INDEX practice_sessions_date ON practice_sessions (date);
-
-CREATE TABLE practice_piece (
-    practice_session_id TEXT NOT NULL,
-    piece_id TEXT NOT NULL,
-    measures TEXT NOT NULL,
-    PRIMARY KEY (practice_session_id, piece_id),
-    CONSTRAINT practice_session FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (
-        id
-    ) ON UPDATE NO ACTION ON DELETE CASCADE,
-    CONSTRAINT piece FOREIGN KEY (piece_id) REFERENCES pieces (
-        id
-    ) ON UPDATE NO ACTION ON DELETE CASCADE
-);
-
-CREATE TABLE practice_spot (
-    practice_session_id TEXT NOT NULL,
-    spot_id TEXT NOT NULL,
-    reps INTEGER NOT NULL DEFAULT 1,
-    PRIMARY KEY (practice_session_id, spot_id),
-    CONSTRAINT practice_session FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (
-        id
-    ) ON UPDATE NO ACTION ON DELETE CASCADE,
-    CONSTRAINT spot FOREIGN KEY (spot_id) REFERENCES spots (
-        id
-    ) ON UPDATE NO ACTION ON DELETE CASCADE
-);
-
+CREATE INDEX spots_piece_stage ON spots(piece_id, stage);
 
 CREATE TABLE practice_plans (
     id TEXT NOT NULL,
@@ -129,16 +90,14 @@ CREATE TABLE practice_plans (
     intensity TEXT NOT NULL,
     date INTEGER NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT 0,
-    practice_session_id TEXT,
     CHECK (intensity IN ('light', 'medium', 'heavy')),
     PRIMARY KEY (id),
     CONSTRAINT user FOREIGN KEY (user_id) REFERENCES users (
         id
-    ) ON UPDATE NO ACTION ON DELETE CASCADE,
-    CONSTRAINT ps FOREIGN KEY (practice_session_id) REFERENCES practice_sessions (
-        id
-    ) ON UPDATE NO ACTION ON DELETE SET NULL
+    ) ON UPDATE NO ACTION ON DELETE CASCADE
 );
+
+CREATE INDEX practice_plans_user_id ON practice_plans (user_id);
 
 CREATE TABLE practice_plan_spots (
     practice_plan_id TEXT NOT NULL,
