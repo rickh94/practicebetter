@@ -3,6 +3,7 @@ package planpages
 import "practicebetter/internal/db"
 import "practicebetter/internal/components"
 import "practicebetter/internal/pages"
+import "database/sql"
 
 script changeSelectedIntensity(value string) {
 	for (const el of document.querySelectorAll('#intensities .radio-option')) {
@@ -52,7 +53,7 @@ templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListAc
 
 templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPiecesRow) {
 	<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
-	<div class="flex flex-wrap gap-2 w-full">
+	<div class="flex flex-wrap gap-2 items-center w-full">
 		<label class="sr-only" for="intensity">Plan Intensity</label>
 		<div class="flex flex-nowrap flex-shrink-0 items-center h-10">
 			<span class="flex-shrink-0 text-lg align-middle text-pretty text-neutral-800">I would like a</span>
@@ -61,7 +62,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
  			required
  			id="intensity"
  			name="intensity"
- 			class="flex-grow-0 py-2 pr-8 pl-4 w-max h-10 rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:bg-neutral-700/20"
+ 			class="flex-grow-0 py-2 pr-8 pl-4 w-max bg-white rounded-xl border-2 shadow-sm transition duration-200 focus:shadow border-neutral-800 shadow-neutral-300 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:border-neutral-800 focus:shadow-neutral-700/20"
 		>
 			<option value="light">
 				Light
@@ -89,11 +90,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 	<section id="pieces" class="grid grid-cols-1 gap-2 mt-4 sm:grid-cols-2 md:col-span-2 lg:grid-cols-3 h-min">
 		<p class="col-span-full pb-1 w-full text-lg leading-6 text-neutral-800">I will practice these pieces:</p>
 		for i, piece := range pieces {
-			if piece.Composer.Valid {
-				@pieceCheckbox(piece.Title + " - " + piece.Composer.String, piece.ID, i < 3)
-			} else {
-				@pieceCheckbox(piece.Title, piece.ID, i < 3)
-			}
+			@pieceCheckbox(piece.Title,piece.Composer, piece.ID, i < 3)
 		}
 	</section>
 	<section id="customize" class="flex col-span-full justify-end pt-4 w-full">
@@ -117,7 +114,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 	</div>
 }
 
-templ pieceCheckbox(text string, value string,  checked bool) {
+templ pieceCheckbox(title string, composer sql.NullString, value string, checked bool) {
 	<label
  		for={ "piece-" + value }
  		class={ "piece-checkbox cursor-pointer h-max focusable", templ.KV("checked", checked) }
@@ -134,8 +131,15 @@ templ pieceCheckbox(text string, value string,  checked bool) {
  			checked?={ checked }
 		/>
 		<span class="flex flex-1">
-			<span class="flex-col font-medium">
-				{ text }
+			<span>
+				<span class="font-medium">
+					{ title }
+				</span>
+				if composer.Valid && composer.String != "" {
+					<span class="italic">
+						- { composer.String }
+					</span>
+				}
 			</span>
 		</span>
 		<span class="-ml-4 text-indigo-800 size-6 icon icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>

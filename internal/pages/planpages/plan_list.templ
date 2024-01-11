@@ -1,7 +1,6 @@
 package planpages
 
 import "practicebetter/internal/components"
-import "strconv"
 
 // TODO: add create piece link
 
@@ -25,46 +24,7 @@ templ PlanList(plans []components.PracticePlanCardInfo, page int, totalPages int
 				@components.PracticePlanCard(plan)
 			}
 		</ul>
-		<div class="flex flex-grow-0 justify-between items-center px-4 pt-4 pb-8 w-full sm:mx-auto sm:max-w-6xl">
-			if page > 1 {
-				@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  "/library/plans?page=" + strconv.Itoa(page-1), "#main-content") {
-					<span class="-ml-1 size-6 icon-[iconamoon--arrow-left-6-circle-thin]" aria-hidden="true"></span>
-					Previous
-				}
-			} else {
-				<span class="py-2 px-4 text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No Previous Pages</span>
-			}
-			<div class="flex gap-0 justify-center items-center">
-				for i := 1; i <= totalPages; i++ {
-					if i == page {
-						<span
- 							class={ "flex gap-1 justify-center items-center py-2 px-4 font-bold text-neutral-800 bg-neutral-700/20", templ.KV("rounded-l-xl", i == 1), templ.KV("rounded-r-xl", i == totalPages) }
-						>
-							{ strconv.Itoa(i) }
-						</span>
-					} else {
-						<a
- 							class={ "flex gap-1 justify-center items-center py-2 px-4 font-medium transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", templ.KV("rounded-l-xl", i == 1), templ.KV("rounded-r-xl", i == totalPages) }
- 							href={ templ.SafeURL("/library/plans?page=" + strconv.Itoa(i)) }
- 							hx-get={ "/library/plans?page=" + strconv.Itoa(i) }
- 							hx-swap="outerHTML transition:true"
- 							hx-target="#main-content"
- 							hx-push-url="true"
-						>
-							{ strconv.Itoa(i) }
-						</a>
-					}
-				}
-			</div>
-			if page < totalPages {
-				@components.HxLink("flex gap-1 justify-center items-center py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  "/library/plans?page=" + strconv.Itoa(page+1), "#main-content") {
-					Next Page
-					<span class="-ml-1 size-6 icon-[iconamoon--arrow-right-6-circle-thin]" aria-hidden="true"></span>
-				}
-			} else {
-				<span class="py-2 px-4 h-full text-sm font-medium rounded-xl text-neutral-800 bg-neutral-600/5">No More Pages</span>
-			}
-		</div>
+		@components.Pagination(page, totalPages, "/library/plans", "Newer", "Older", "No Newer Plans", "No Older Plans")
 	}
 }
 

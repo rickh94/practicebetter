@@ -1,4 +1,5 @@
 import {
+  Ref,
   StateUpdater,
   useCallback,
   useEffect,
@@ -16,6 +17,7 @@ import {
   BigHappyButton,
   BigSkyButton,
   GiantBasicButton,
+  VioletButton,
   WarningButton,
 } from "../ui/buttons";
 import Summary from "./summary";
@@ -28,17 +30,21 @@ export function RandomSpots({
   pieceid,
   csrf,
   planid,
+  piecetitle,
 }: {
   initialspots?: string;
   pieceid?: string;
   csrf?: string;
   planid?: string;
+  piecetitle?: string;
 }) {
   const [spots, setSpots] = useState<BasicSpot[]>([]);
   const [summary, setSummary] = useState<PracticeSummaryItem[]>([]);
   const [mode, setMode] = useState<RandomMode>("setup");
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [numSessions, setNumSessions] = useState(2);
+  const [showPrepare, setShowPrepare] = useState(false);
+  const getReadyRef = useRef<HTMLDialogElement>(null);
 
   const initialSpotIds = useMemo(
     function () {
@@ -113,14 +119,22 @@ export function RandomSpots({
       }
       const skipSetup = !!urlParams.get("skipSetup");
       if (skipSetup) {
+        setShowPrepare(true);
         startPracticing();
       }
     },
-    [initialspots, setNumSessions, startPracticing, window.location.search],
+    [
+      initialspots,
+      setNumSessions,
+      startPracticing,
+      window.location.search,
+      getReadyRef.current,
+    ],
   );
 
   return (
     <div className="w-full">
+      <GetReadyDialog title={piecetitle} show={showPrepare} />
       <ScaleCrossFadeContent
         component={
           {
@@ -160,6 +174,96 @@ export function RandomSpots({
         id={mode}
       />
     </div>
+  );
+}
+
+export function GetReadyDialog({
+  title,
+  show = false,
+}: {
+  title?: string;
+  show?: boolean;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  let interval;
+  const closeDialog = useCallback(
+    function () {
+      globalThis.handleCloseModal();
+      if (dialogRef.current) {
+        clearInterval(interval);
+        dialogRef.current.classList.add("close");
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (dialogRef.current) {
+              dialogRef.current.classList.remove("close");
+              dialogRef.current.close();
+            }
+          });
+        });
+      }
+    },
+    [dialogRef.current],
+  );
+
+  useEffect(() => {
+    if (show && dialogRef.current) {
+      globalThis.handleShowModal();
+      dialogRef.current.showModal();
+      interval = setInterval(() => {
+        console.log("timeElapsed", timeElapsed);
+        setTimeElapsed((timeElapsed) => timeElapsed + 1);
+      }, 10);
+      return () => clearInterval(interval);
+    }
+  }, [dialogRef.current, setTimeElapsed]);
+
+  useEffect(() => {
+    if (timeElapsed >= 200) {
+      closeDialog();
+    }
+  }, [timeElapsed, closeDialog]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="resume-title"
+      className="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] px-4 py-4 text-left sm:max-w-xl"
+    >
+      <header className="mt-2 text-center sm:text-left">
+        <h3
+          id="resume-title"
+          className="text-2xl font-semibold leading-6 text-neutral-900"
+        >
+          Random Practicing {title}
+        </h3>
+      </header>
+      <div className="prose prose-neutral mt-2 text-left">
+        You’re random practicing{" "}
+        <em className="font-medium italic">{title ?? "your spots"}</em>. Get
+        ready to start.
+      </div>
+      <div className="w-full">
+        <progress
+          id="countdown"
+          value={timeElapsed}
+          max="200"
+          aria-hidden="true"
+          className="progress-rounded progress-violet-600 progress-bg-white m-0 w-full"
+        >
+          {timeElapsed}/200
+        </progress>
+      </div>
+      <div className="mt-2 flex w-full flex-row-reverse flex-wrap gap-2 sm:gap-2">
+        <VioletButton grow onClick={closeDialog} className="text-lg">
+          Start Practicing
+          <span
+            className="icon-[iconamoon--player-play-thin] -ml-1 size-5"
+            aria-hidden="true"
+          ></span>
+        </VioletButton>
+      </div>
+    </dialog>
   );
 }
 
@@ -686,9 +790,9 @@ function SinglePractice({
       <ResumeDialog dialogRef={resumeRef} onResume={handleResume} />
 
       <div className="flex w-full flex-col items-center justify-center gap-2 pt-2">
-        <div className="text-2xl font-semibold text-neutral-700">
-          Practicing:
-        </div>
+        <h3 className="text-2xl font-semibold text-neutral-700 underline">
+          Random Practicing
+        </h3>
         <div className="relative w-full py-4">
           <ScaleCrossFadeContent
             component={

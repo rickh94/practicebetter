@@ -198,6 +198,12 @@
     border-bottom-left-radius: var(--progress-border-bottom-left-radius);
     @apply h-1;
   }
+  ::-webkit-progress-value {
+    transition: width 50ms;
+  }
+  ::-moz-progress-value {
+    transition: width 50ms;
+  }
 }
 
 @layer components {

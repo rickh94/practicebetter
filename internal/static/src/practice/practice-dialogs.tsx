@@ -13,7 +13,7 @@ export function ResumeDialog({
   const closeDialog = useCallback(
     function () {
       if (dialogRef.current) {
-        globalThis.handleShowModal();
+        globalThis.handleCloseModal();
         dialogRef.current.classList.add("close");
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {

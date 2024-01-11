@@ -313,14 +313,26 @@ type PracticePlanCardInfo struct {
 	PieceTitles    []string
 }
 
+const basePlanCardClass = "flex flex-col gap-2 p-4 text-black bg-white rounded-lg shadow-sm focusable hover:shadow border-2 hover:shadow-violet-400  shadow-black/20"
+
+func GetPlanCardClass(ctx context.Context, planID string) string {
+	if planID == GetActivePracticePlan(ctx) {
+		return basePlanCardClass + " border-violet-700"
+	}
+	return basePlanCardClass + " border-transparent"
+
+}
+
 templ PracticePlanCard(planInfo PracticePlanCardInfo) {
-	@HxLink("flex flex-col gap-2 p-4 text-black bg-white rounded-lg shadow-sm shadow-black/20 focusable hover:shadow hover:shadow-violet-400", "/library/plans/"+planInfo.ID, "#main-content") {
+	@HxLink(GetPlanCardClass(ctx, planInfo.ID), "/library/plans/"+planInfo.ID, "#main-content") {
 		<div class="flex flex-col gap-1 px-6 w-full">
+			if planInfo.ID == GetActivePracticePlan(ctx) {
+				<h4 class="-mt-1 -mb-1 w-full text-sm italic font-medium leading-4 text-center text-violet-700">
+					Practicing
+				</h4>
+			}
 			<h3 class="pb-1 text-xl font-bold text-center text-black">
 				<pretty-date class="text-black" epoch={ strconv.FormatInt(planInfo.Date, 10) }></pretty-date>
-				if planInfo.ID == GetActivePracticePlan(ctx) {
-					<span class="text-violet-700">- Active</span>
-				}
 			</h3>
 			<label id="progress-label" class="sr-only">Plan Progress</label>
 			<progress

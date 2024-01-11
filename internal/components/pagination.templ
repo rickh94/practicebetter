@@ -1,0 +1,50 @@
+package components
+
+import "strconv"
+
+templ Pagination(page int, totalPages int, pageUrl string, previousText string, nextText string, noPreviousMessage string, noMoreMessage string) {
+	if totalPages > 1 {
+		<div class="flex flex-grow-0 justify-between items-center px-4 pt-4 pb-12 w-full sm:mx-auto sm:max-w-6xl">
+			if page > 1 {
+				@HxLink("action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", pageUrl + "?page=" + strconv.Itoa(page-1), "#main-content") {
+					<span class="-ml-1 size-6 icon-[iconamoon--arrow-left-6-circle-thin]" aria-hidden="true"></span>
+					{ previousText }
+				}
+			} else {
+				<span class="action-button text-neutral-800 bg-neutral-600/5">{ noPreviousMessage }</span>
+			}
+			<div class="hidden gap-0 justify-center items-center xs:flex">
+				for i := 1; i <= totalPages; i++ {
+					if i == page {
+						<span
+ 							class={ "flex gap-1 justify-center items-center h-12 px-4 font-bold text-neutral-800 bg-neutral-700/20", templ.KV("rounded-l-xl", i == 1), templ.KV("rounded-r-xl", i == totalPages) }
+						>
+							{ strconv.Itoa(i) }
+						</span>
+					} else {
+						<a
+ 							class={ "flex gap-1 justify-center items-center h-12 px-4 font-medium transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable", templ.KV("rounded-l-xl", i == 1), templ.KV("rounded-r-xl", i == totalPages) }
+ 							href={ templ.SafeURL(pageUrl + "?page=" + strconv.Itoa(i)) }
+ 							hx-get={ pageUrl + "?page=" + strconv.Itoa(i) }
+ 							hx-swap="outerHTML transition:true"
+ 							hx-target="#main-content"
+ 							hx-push-url="true"
+						>
+							{ strconv.Itoa(i) }
+						</a>
+					}
+				}
+			</div>
+			if page < totalPages {
+				@HxLink("action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable",  pageUrl + "?page=" + strconv.Itoa(page+1), "#main-content") {
+					{ nextText }
+					<span class="-mr-1 size-6 icon-[iconamoon--arrow-right-6-circle-thin]" aria-hidden="true"></span>
+				}
+			} else {
+				<span class="action-button text-neutral-800 bg-neutral-600/5">{ noMoreMessage }</span>
+			}
+		</div>
+	} else {
+		<div class="pb-12 w-full"></div>
+	}
+}

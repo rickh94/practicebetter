@@ -19,7 +19,14 @@ templ PiecePracticeRandomSpotsPage(s pages.ServerUtil, csrf string, piece []db.G
 			}
 		}
 		@components.NormalContainer() {
-			<random-spots initialspots={ spotsData } pieceid={ piece[0].ID } csrf={ csrf } class="w-full" planid={ components.GetActivePracticePlan(ctx) }></random-spots>
+			<random-spots
+ 				initialspots={ spotsData }
+ 				pieceid={ piece[0].ID }
+ 				csrf={ csrf }
+ 				class="w-full"
+ 				planid={ components.GetActivePracticePlan(ctx) }
+ 				piecetitle={ piece[0].Title }
+			></random-spots>
 		}
 		<script type="module" src={ s.StaticUrl("dist/practice.js") }></script>
 	}
