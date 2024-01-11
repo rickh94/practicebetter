@@ -21,6 +21,10 @@
     javascript.enable = true;
   };
 
+  certificates = [
+    "pbgo.localhost"
+  ];
+
   services.caddy = {
     enable = true;
     virtualHosts."pbgo.localhost".extraConfig = ''
@@ -29,10 +33,6 @@
       }
     '';
   };
-
-  certificates = [
-    "pbgo.localhost"
-  ];
 
   services.redis = {
     enable = true;

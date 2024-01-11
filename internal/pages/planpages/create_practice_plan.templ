@@ -120,7 +120,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 templ pieceCheckbox(text string, value string,  checked bool) {
 	<label
  		for={ "piece-" + value }
- 		class={ "piece-checkbox cursor-pointer h-full focusable", templ.KV("checked", checked) }
+ 		class={ "piece-checkbox cursor-pointer h-max focusable", templ.KV("checked", checked) }
  		id={ "piece-" + value + "-label" }
 	>
 		<input
@@ -145,7 +145,7 @@ templ pieceCheckbox(text string, value string,  checked bool) {
 templ practiceCheckbox(iconClass string, text string, value string, checked bool) {
 	<label
  		for={ value }
- 		class={ "flex w-full xs:w-auto relative bg-white items-center py-3 pr-2 pl-4 rounded-xl cursor-pointer practice-radio-option focusable", templ.KV("checked", checked) }
+ 		class={ "w-full xs:w-auto cursor-pointer practice-radio-option focusable", templ.KV("checked", checked) }
  		id={ value + "-label" }
 	>
 		<input
@@ -164,6 +164,5 @@ templ practiceCheckbox(iconClass string, text string, value string, checked bool
 			</span>
 		</span>
 		<span class="ml-3 text-black size-5 icon icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>
-		<span class="absolute -inset-px rounded-xl border-2 pointer-events-none radio-border" aria-hidden="true"></span>
 	</label>
 }

@@ -25,7 +25,9 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
  				action="/library/pieces"
  				method="post"
  				class="flex flex-col gap-2 p-4 rounded-xl shadow-sm sm:mx-auto sm:max-w-3xl bg-neutral-100 shadow-black/20"
-			></form>
+			>
+				@CreatePieceFormContents(csrf)
+			</form>
 		}
 	}
 }

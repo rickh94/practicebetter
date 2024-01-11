@@ -92,13 +92,16 @@
 
   body {
     overscroll-behavior: none;
+    height: 100%;
+    width: 100%;
+    overflow: auto;
   }
 
   dialog {
     pointer-events: none;
     opacity: 0;
     overflow: hidden;
-    @apply h-0 w-0 translate-y-4 rounded-xl transition-opacity transition-transform duration-300;
+    @apply h-0 w-0 translate-y-4 rounded-xl transition-all duration-300;
   }
 
   dialog:focus {
@@ -298,27 +301,23 @@
   }
 
   .practice-radio-option.checked {
-    @apply shadow shadow-black/30;
+    @apply border-neutral-800 shadow shadow-neutral-400;
   }
 
   .practice-radio-option.checked > .icon {
-    @apply visible;
+    @apply opacity-100;
   }
 
   .practice-radio-option.checked > .radio-border {
     @apply border-black;
   }
 
-  .practice-radio-option > .radio-border {
-    @apply border-neutral-800/10;
-  }
-
   .practice-radio-option > .icon {
-    @apply invisible;
+    @apply opacity-0 transition-all duration-75;
   }
 
   .practice-radio-option {
-    @apply shadow-sm shadow-black/20 transition-all duration-100;
+    @apply flex items-center rounded-xl border-2 border-neutral-300 bg-white py-3 pl-4 pr-2 shadow-sm shadow-neutral-300 transition-all duration-100;
   }
 
   .check-option.checked {
@@ -350,23 +349,19 @@
   }
 
   .piece-checkbox.checked > .icon {
-    @apply visible;
+    @apply opacity-100;
   }
 
   .piece-checkbox.checked > .radio-border {
     @apply border-indigo-800;
   }
 
-  .piece-checkbox > .radio-border {
-    @apply border-transparent;
-  }
-
   .piece-checkbox > .icon {
-    @apply invisible;
+    @apply opacity-0 transition-all duration-75;
   }
 
   .piece-checkbox {
-    @apply flex items-center gap-1 rounded-xl border-2 border-transparent bg-neutral-50 px-4 py-4 text-black shadow-sm shadow-black/20 transition-all duration-100;
+    @apply flex items-center gap-1 rounded-xl border-2 border-neutral-300 bg-neutral-50 px-4 py-4 text-black shadow-sm shadow-black/20 transition-all duration-100;
   }
 
   .action-button {
