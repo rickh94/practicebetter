@@ -1,9 +1,6 @@
-import { NavItem, cn } from "../common";
+import { type NavItem, cn } from "../common";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { PlayListIcon } from "./icons";
 import * as htmx from "htmx.org";
-
-const navItemIconClasses = "ml-1 size-5" as const;
 
 export function InternalNav({ activepath }: { activepath: string }) {
   const links: NavItem[] = [
@@ -70,7 +67,7 @@ export function InternalNav({ activepath }: { activepath: string }) {
           className="w-64 origin-top-left rounded-lg bg-white shadow-lg duration-200 animate-in fade-in zoom-in-95 focus-within:outline-none focus:outline-none"
         >
           {links.map(({ href, label, icon }) => (
-            <DropdownMenu.Item asChild>
+            <DropdownMenu.Item asChild key={href}>
               <a
                 href={href}
                 onClick={(e) => e.preventDefault()}

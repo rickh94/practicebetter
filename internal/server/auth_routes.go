@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"net/mail"
 	"practicebetter/internal/auth"
+	"practicebetter/internal/ck"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/authpages"
 	"strings"
@@ -67,7 +69,19 @@ func (s *Server) continueLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	*/
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not login",
+			Title:    "Invalid Input",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Invalid Input", http.StatusBadRequest)
+		return
+	}
 
 	userEmail := r.Form.Get("email")
 	if userEmail == "" {
@@ -113,15 +127,15 @@ func (s *Server) continueOtpSignIn(w http.ResponseWriter, r *http.Request, userE
 	go s.SendEmail(userEmail, "Practice Better: Login Code", message)
 	s.SaveEncToSession(r.Context(), "email", userEmail)
 
-	htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Login Code sent to your email",
 		Title:    "Code Sent!",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	s.HxRender(w, r, authpages.FinishCodeLoginPage(token, nextLoc), "Login")
-
-	return
 }
 
 func (s *Server) continuePasskeySignIn(w http.ResponseWriter, r *http.Request, user db.GetUserForLoginRow, nextLoc string) {
@@ -133,7 +147,6 @@ func (s *Server) continuePasskeySignIn(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 	s.HxRender(w, r, authpages.FinishPasskeyLoginPage(options, token, nextLoc), "Login")
-	return
 }
 
 func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +163,20 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not login",
+			Title:    "Invalid Input",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		if err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Invalid Input", http.StatusBadRequest)
+		return
+	}
 	nextLoc := r.Form.Get("next")
 	if nextLoc == "" {
 		nextLoc = "/library"
@@ -159,7 +185,7 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 	if s.CheckOTP(r.Context(), submittedCode) {
 		queries := db.New(s.DB)
 		user, err := queries.GetOrCreateUser(r.Context(), userEmail)
-		go queries.SetEmailVerified(r.Context(), user.ID)
+		go s.setEmailVerified(r.Context(), user.ID)
 		if err != nil {
 			log.Default().Printf("Database error: %v\n", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -178,14 +204,41 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 			}
 			http.SetCookie(w, &cookie)
 		}
-		s.LoginUser(r.Context(), user.ID)
+		if err := s.LoginUser(r.Context(), user.ID); err != nil {
+			log.Default().Printf("Could not login user: %v\n", err)
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Could not log you in with that information.",
+				Title:    "Login Failed",
+				Variant:  "error",
+				Duration: 3000}); err != nil {
+				log.Default().Println(err)
+			}
+			http.Error(w, "Could not log you in with that information.", http.StatusUnauthorized)
+			return
+		}
 		s.Redirect(w, r, nextLoc)
-		return
 	} else {
 		log.Default().Println("Login Rejected for incorrect code")
-		w.WriteHeader(http.StatusBadRequest)
+		err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Incorrect Code.",
+			Title:    "Login Failed",
+			Variant:  "error",
+			Duration: 3000,
+		})
+		if err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Login Rejected for incorrect code", http.StatusUnauthorized)
 		// TODO: re-render the form with an error
-		return
+	}
+
+}
+
+func (s *Server) setEmailVerified(ctx context.Context, userID string) {
+	queries := db.New(s.DB)
+	err := queries.SetEmailVerified(ctx, userID)
+	if err != nil {
+		log.Default().Printf("Could not set email verified, Database error: %v\n", err)
 	}
 
 }
@@ -202,7 +255,10 @@ func (s *Server) completePasskeySignin(w http.ResponseWriter, r *http.Request) {
 
 	if err := s.FinishPasskeyLogin(r, user); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"status": "error", "message": "Failed to log in"})
+		err := json.NewEncoder(w).Encode(map[string]string{"status": "error", "message": "Failed to log in"})
+		if err != nil {
+			log.Default().Println(err)
+		}
 		return
 	} else {
 		if val, ok := s.SM.Get(r.Context(), "rememberMe").(bool); val && ok {
@@ -217,10 +273,25 @@ func (s *Server) completePasskeySignin(w http.ResponseWriter, r *http.Request) {
 			}
 			http.SetCookie(w, &cookie)
 		}
-		s.LoginUser(r.Context(), user.ID)
+		if err := s.LoginUser(r.Context(), user.ID); err != nil {
+			err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Something went wrong.",
+				Title:    "Login Failed",
+				Variant:  "error",
+				Duration: 3000,
+			})
+			if err != nil {
+				log.Default().Println(err)
+			}
+			http.Error(w, "Something went wrong.", http.StatusInternalServerError)
+			// TODO: re-render the form with an error
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"status": "ok", "redirect": "/auth/me"})
-		return
+		err := json.NewEncoder(w).Encode(map[string]string{"status": "ok", "redirect": "/auth/me"})
+		if err != nil {
+			log.Default().Println(err)
+		}
 	}
 }
 
@@ -234,12 +305,15 @@ func (s *Server) logoutUserRoute(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		MaxAge:   -1,
 	})
-	s.LogoutUser(r.Context())
+	err := s.LogoutUser(r.Context())
+	if err != nil {
+		log.Default().Println(err)
+	}
 	s.Redirect(w, r, "/")
 }
 
 func (s *Server) me(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	credentialCount, err := queries.CountUserCredentials(r.Context(), user.ID)
 	if err != nil {
@@ -260,19 +334,34 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) editProfile(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	token := csrf.Token(r)
 	component := authpages.UserForm(user, token, nil)
 	w.Header().Set("Content-Type", "text/html")
-	component.Render(r.Context(), w)
+	err := component.Render(r.Context(), w)
+	if err != nil {
+		log.Default().Println(err)
+	}
 }
 
 func (s *Server) updateProfile(w http.ResponseWriter, r *http.Request) {
 	errors := make(map[string]string)
 	hasError := false
 
-	user := r.Context().Value("user").(db.User)
-	r.ParseForm()
+	user := r.Context().Value(ck.UserKey).(db.User)
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not update your profile",
+			Title:    "Invalid Input",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Invalid Input.", http.StatusBadRequest)
+		return
+	}
 
 	email := r.Form.Get("email")
 	_, err := mail.ParseAddress(email)
@@ -287,15 +376,19 @@ func (s *Server) updateProfile(w http.ResponseWriter, r *http.Request) {
 
 	if hasError {
 		component := authpages.UserForm(user, token, errors)
-		htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not update your profile",
 			Title:    "Invalid Input",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		w.WriteHeader(http.StatusBadRequest)
 		w.Header().Set("Content-Type", "text/html")
-		component.Render(r.Context(), w)
+		if err := component.Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+		}
 		return
 	}
 
@@ -312,74 +405,87 @@ func (s *Server) updateProfile(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Printf("Database error: %v\n", err)
-		htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not update your profiled",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		w.Header().Set("Content-Type", "text/html")
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		component := authpages.UserForm(user, token, nil)
-		component.Render(r.Context(), w)
+		if err := component.Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+		}
 		return
 	}
 
-	htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Your profile has been updated",
 		Title:    "Update Complete",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	if needsReverify {
-		htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Since you changed your email, you need to log out and back in to re-verify it.",
 			Title:    "Verify Email",
 			Variant:  "info",
 			Duration: 5000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 	}
 	w.WriteHeader(http.StatusOK)
-	component := authpages.UserInfo(user, token)
-	w.Header().Set("Content-Type", "text/html")
-	component.Render(r.Context(), w)
+	if err := authpages.UserInfo(user, token).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+	}
 }
 
 func (s *Server) getProfile(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	token := csrf.Token(r)
-	component := authpages.UserInfo(user, token)
 	w.Header().Set("Content-Type", "text/html")
-	component.Render(r.Context(), w)
+	if err := authpages.UserInfo(user, token).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+	}
 }
 
 func (s *Server) registerPasskey(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	if err := s.FinishPasskeyRegistration(r, user); err != nil {
 		log.Default().Printf("Error registering passkey for user %s: %v", user.Email, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Could not register passkey"))
+		http.Error(w, "Could not register passkey", http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte("OK"))
+	if _, err := w.Write([]byte("OK")); err != nil {
+		log.Default().Println(err)
+	}
 	w.WriteHeader(http.StatusCreated)
 }
 
 func (s *Server) deletePasskeys(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	if err := queries.DeleteUserCredentials(r.Context(), user.ID); err != nil {
 		log.Default().Printf("Error deleting passkeys for user %s: %v", user.Email, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Could not delete passkeys"))
+		http.Error(w, "Could not delete passkeys", http.StatusInternalServerError)
 		return
 	}
-	htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
 		Message:  "All your passkeys have been deleted. Consider registering a new one!",
 		Title:    "Passkeys Deleted!",
 		Variant:  "success",
 		Duration: 3000,
-	})
-	w.Write([]byte("OK"))
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	_, err := w.Write([]byte("OK"))
+	if err != nil {
+		log.Default().Println(err)
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -395,7 +501,6 @@ func (s *Server) forceCodeLogin(w http.ResponseWriter, r *http.Request) {
 		nextLoc = "/auth/me"
 	}
 	s.continueOtpSignIn(w, r, userEmail, nextLoc)
-	return
 }
 
 func (s *Server) forgetUser(w http.ResponseWriter, r *http.Request) {

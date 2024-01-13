@@ -106,7 +106,7 @@
     opacity: 0;
     overflow: hidden;
     transition-property: transform, opacity;
-    @apply h-0 w-0 translate-y-4 rounded-xl duration-300 ease-out;
+    @apply h-0 w-0 translate-y-4 rounded-xl duration-200 ease-out;
   }
 
   dialog:focus {
@@ -123,18 +123,24 @@
     margin-bottom: 3.5rem;
     pointer-events: inherit;
     overflow-y: auto;
-    @apply h-max translate-y-0 scale-100;
+    transition-property: transform, opacity;
+    @apply h-max translate-y-0 scale-100 duration-150;
   }
 
   dialog[open]::backdrop {
-    animation: backdrop-fade 0.2s ease forwards;
+    animation: backdrop-fade 250ms ease forwards;
     height: 100dvh;
     width: 100vw;
   }
 
-  dialog[open].close::backdrop {
-    animation: backdrop-fade 0.2s ease backwards;
+  dialog::backdrop {
+    animation: backdrop-fade 250ms ease backwards;
     animation-direction: reverse;
+  }
+
+  dialog[open].close {
+    transition-property: transform, opacity;
+    @apply translate-y-4;
   }
 
   @keyframes backdrop-fade {
@@ -149,16 +155,23 @@
   @media screen(sm) {
     dialog {
       overflow: hidden;
-      @apply h-0 w-0 translate-y-0 scale-95 transition-opacity transition-transform duration-300;
+      transition-property: transform, opacity;
+      @apply translate-y-0 scale-95 duration-200;
     }
 
     dialog[open] {
       width: fit-content;
       overflow: visible;
-      @apply h-max translate-y-0 scale-100;
       margin-block: auto;
       margin-inline: auto;
       overflow-y: auto;
+      transition-property: transform, opacity;
+      @apply h-max translate-y-0 scale-100 duration-150;
+    }
+
+    dialog[open].close {
+      transition-property: transform, opacity;
+      @apply translate-y-0 scale-95;
     }
   }
 

@@ -75,8 +75,10 @@ export function StartingPoint({
   csrf?: string;
   planid?: string;
 }) {
-  const [measures, setMeasures] = useState<number>(parseInt(initialmeasures));
-  const [beats, setBeats] = useState<number>(parseInt(initialbeats));
+  const [measures, setMeasures] = useState<number>(
+    parseInt(initialmeasures, 10),
+  );
+  const [beats, setBeats] = useState<number>(parseInt(initialbeats, 10));
   const [mode, setMode] = useState<StartingPointMode>("setup");
   const [maxLength, setMaxLength] = useState<number>(5);
   const [summary, setSummary] = useState<Section[]>([]);
@@ -89,20 +91,17 @@ export function StartingPoint({
   const [lowerBound, setLowerBound] = useState<number | null>(null);
   const [upperBound, setUpperBound] = useState<number | null>(null);
 
-  const setModePractice = useCallback(
-    function () {
-      setSummary([]);
-      setMode("practice");
-      setStartTime(new Date());
-    },
-    [setMode, setSummary, setStartTime],
-  );
+  const setModePractice = useCallback(() => {
+    setSummary([]);
+    setMode("practice");
+    setStartTime(new Date());
+  }, [setMode, setSummary, setStartTime]);
 
   const saveConfig = useCallback(
-    function (c: FormData) {
+    (c: FormData) => {
       const measures = c.get("measures");
       if (measures && typeof measures === "string") {
-        const measuresInt = parseInt(measures);
+        const measuresInt = parseInt(measures, 10);
         if (!isNaN(measuresInt)) {
           setMeasures(measuresInt);
         }
@@ -110,7 +109,7 @@ export function StartingPoint({
 
       const beats = c.get("beats");
       if (beats && typeof beats === "string") {
-        const beatsInt = parseInt(beats);
+        const beatsInt = parseInt(beats, 10);
         if (!isNaN(beatsInt)) {
           setBeats(beatsInt);
         }
@@ -118,7 +117,7 @@ export function StartingPoint({
 
       const maxLength = c.get("maxLength");
       if (maxLength && typeof maxLength === "string") {
-        const maxLengthInt = parseInt(maxLength);
+        const maxLengthInt = parseInt(maxLength, 10);
         if (!isNaN(maxLengthInt)) {
           setMaxLength(maxLengthInt);
         }
@@ -126,7 +125,7 @@ export function StartingPoint({
 
       const numSessions = c.get("numSessions");
       if (numSessions && typeof numSessions === "string") {
-        const numSessionsInt = parseInt(numSessions);
+        const numSessionsInt = parseInt(numSessions, 10);
         if (!isNaN(numSessionsInt)) {
           setNumSessions(numSessionsInt);
         }
@@ -134,7 +133,7 @@ export function StartingPoint({
 
       const lowerBound = c.get("lowerBound");
       if (lowerBound && typeof lowerBound === "string") {
-        const lowerBoundInt = parseInt(lowerBound);
+        const lowerBoundInt = parseInt(lowerBound, 10);
         if (!isNaN(lowerBoundInt)) {
           setLowerBound(lowerBoundInt);
         }
@@ -142,7 +141,7 @@ export function StartingPoint({
 
       const upperBound = c.get("upperBound");
       if (upperBound && typeof upperBound === "string") {
-        const upperBoundInt = parseInt(upperBound);
+        const upperBoundInt = parseInt(upperBound, 10);
         if (!isNaN(upperBoundInt)) {
           setUpperBound(upperBoundInt);
         }
@@ -150,8 +149,6 @@ export function StartingPoint({
       setModePractice();
     },
     [
-      measures,
-      beats,
       setBeats,
       setMeasures,
       setMaxLength,
@@ -162,16 +159,13 @@ export function StartingPoint({
     ],
   );
 
-  const setModeSetup = useCallback(
-    function () {
-      setSummary([]);
-      setMode("setup");
-    },
-    [setMode, setSummary],
-  );
+  const setModeSetup = useCallback(() => {
+    setSummary([]);
+    setMode("setup");
+  }, [setMode, setSummary]);
 
   const finishPracticing = useCallback(
-    function (finalSummary: Section[]) {
+    (finalSummary: Section[]) => {
       setMode("summary");
       setSummary(finalSummary);
       const mpracticed = calculateMeasuresPracticed(finalSummary);
@@ -202,16 +196,13 @@ export function StartingPoint({
     [setSummary, setMode, pieceid, setMeasuresPracticed, startTime, csrf],
   );
 
-  useEffect(
-    function () {
-      const urlParams = new URLSearchParams(window.location.search);
-      const skipSetup = !!urlParams.get("skipSetup");
-      if (skipSetup) {
-        setModePractice();
-      }
-    },
-    [setModePractice],
-  );
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const skipSetup = !!urlParams.get("skipSetup");
+    if (skipSetup) {
+      setModePractice();
+    }
+  }, [setModePractice]);
 
   // TODO: consider switch to react-hook-form for setup to reduce annoying prop complexity
   return (
@@ -288,14 +279,14 @@ export function StartingPointSetupForm({
   const lowerBoundRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const autoSelect = useCallback(function (e: FocusEvent) {
+  const autoSelect = useCallback((e: FocusEvent) => {
     if (e.currentTarget instanceof HTMLInputElement) {
       e.currentTarget?.select();
     }
   }, []);
 
   const handleSubmit = useCallback(
-    function (e: Event) {
+    (e: Event) => {
       e.preventDefault();
       if (!formRef.current) {
         return;
@@ -303,7 +294,7 @@ export function StartingPointSetupForm({
       const data = new FormData(formRef.current);
       submit(data);
     },
-    [formRef.current],
+    [submit],
   );
 
   // TODO: improve form
@@ -597,7 +588,7 @@ export function StartingPointPractice({
   const [canContinue, setCanContinue] = useState(false);
 
   const saveToStorage = useCallback(
-    function (key: string, value: string) {
+    (key: string, value: string) => {
       if (pieceid) {
         localStorage.setItem(`${pieceid}.startingPoint.${key}`, value);
         localStorage.setItem(
@@ -610,14 +601,14 @@ export function StartingPointPractice({
   );
 
   const loadFromStorage = useCallback(
-    function (key: string) {
+    (key: string) => {
       if (pieceid) {
         const savedAt = localStorage.getItem(
           `${pieceid}.startingPoint.savedAt`,
         );
         if (
           !savedAt ||
-          dayjs(parseInt(savedAt)).isBefore(dayjs().subtract(1, "day"))
+          dayjs(parseInt(savedAt, 10)).isBefore(dayjs().subtract(1, "day"))
         ) {
           localStorage.removeItem(`${pieceid}.startingPoint.${key}`);
           return undefined;
@@ -632,7 +623,18 @@ export function StartingPointPractice({
     if (topRef.current) {
       window.scrollTo(0, topRef.current.offsetTop);
     }
-  }, [topRef.current]);
+  }, []);
+
+  const handleResume = useCallback(() => {
+    const summary = loadFromStorage("practiceSummary");
+    if (summary) {
+      setPracticeSummary(JSON.parse(summary) as Section[]);
+    }
+    const sessionsCompleted = loadFromStorage("sessionsCompleted");
+    if (sessionsCompleted) {
+      setSessionsCompleted(parseInt(sessionsCompleted, 10));
+    }
+  }, [loadFromStorage]);
 
   useEffect(() => {
     setHasShownResume(true);
@@ -658,97 +660,76 @@ export function StartingPointPractice({
       localStorage.removeItem(`${pieceid}.startingPoint.savedAt`);
       return;
     }
-  }, [pieceid, resumeRef.current, hasShownResume]);
+  }, [pieceid, hasShownResume, loadFromStorage, handleResume]);
 
-  const handleResume = useCallback(
-    function () {
-      const summary = loadFromStorage("practiceSummary");
-      if (summary) {
-        setPracticeSummary(JSON.parse(summary));
-      }
-      const sessionsCompleted = loadFromStorage("sessionsCompleted");
-      if (sessionsCompleted) {
-        setSessionsCompleted(parseInt(sessionsCompleted));
-      }
-    },
-    [resumeRef, setPracticeSummary],
-  );
+  const takeABreak = useCallback(() => {
+    if (breakDialogRef.current) {
+      breakDialogRef.current.showModal();
+      globalThis.handleShowModal();
+      setCanContinue(false);
+      setTimeout(() => {
+        setCanContinue(true);
+      }, 45000);
+      // }, 1000);
+    }
+  }, [setCanContinue]);
 
-  const maybeTakeABreak = useCallback(
-    function () {
-      if (dayjs().diff(sessionStarted, "minute") < 5) {
-        // if (dayjs().diff(sessionStarted, "second") < 2) {
-        return;
-      }
-      if (sessionsCompleted >= numSessions - 1) {
-        handleDone();
-      } else {
-        takeABreak();
-        setSessionsCompleted((curr) => curr + 1);
-        saveToStorage("sessionsCompleted", `${sessionsCompleted + 1}`);
-      }
-    },
-    [sessionStarted, sessionsCompleted, setSessionsCompleted],
-  );
+  const handleDone = useCallback(() => {
+    // have to add the last one in manually
+    const finalSummary = [...practiceSummary, section];
+    finalSummary.sort(
+      (a, b) => a.startingPoint.measure - b.startingPoint.measure,
+    );
+    localStorage.removeItem(`${pieceid}.startingPoint.practiceSummary`);
+    localStorage.removeItem(`${pieceid}.startingPoint.sessionsCompleted`);
+    localStorage.removeItem(`${pieceid}.startingPoint.savedAt`);
+    finish(finalSummary);
+  }, [practiceSummary, section, pieceid, finish]);
 
-  const takeABreak = useCallback(
-    function () {
-      if (breakDialogRef.current) {
-        breakDialogRef.current.showModal();
-        globalThis.handleShowModal();
-        setCanContinue(false);
-        setTimeout(function () {
-          setCanContinue(true);
-        }, 45000);
-        // }, 1000);
-      }
-    },
-    [breakDialogRef.current, setCanContinue],
-  );
+  const startSession = useCallback(() => {
+    setSessionStarted(dayjs());
+  }, [setSessionStarted]);
 
-  const nextStartingPoint = useCallback(
-    function () {
-      const nextPracticeSummary = [...practiceSummary, section];
-      setPracticeSummary(nextPracticeSummary);
-      saveToStorage("practiceSummary", JSON.stringify(nextPracticeSummary));
-      setSection(
-        makeRandomSection(measures, beats, maxLength, lowerBound, upperBound),
-      );
-      maybeTakeABreak();
-    },
-    [
-      practiceSummary,
-      beats,
-      measures,
-      section,
-      maxLength,
-      lowerBound,
-      upperBound,
-      maybeTakeABreak,
-    ],
-  );
+  const maybeTakeABreak = useCallback(() => {
+    if (dayjs().diff(sessionStarted, "minute") < 5) {
+      // if (dayjs().diff(sessionStarted, "second") < 2) {
+      return;
+    }
+    if (sessionsCompleted >= numSessions - 1) {
+      handleDone();
+    } else {
+      takeABreak();
+      setSessionsCompleted((curr) => curr + 1);
+      saveToStorage("sessionsCompleted", `${sessionsCompleted + 1}`);
+    }
+  }, [
+    handleDone,
+    numSessions,
+    saveToStorage,
+    sessionStarted,
+    sessionsCompleted,
+    takeABreak,
+  ]);
 
-  const handleDone = useCallback(
-    function () {
-      // have to add the last one in manually
-      const finalSummary = [...practiceSummary, section];
-      finalSummary.sort(
-        (a, b) => a.startingPoint.measure - b.startingPoint.measure,
-      );
-      localStorage.removeItem(`${pieceid}.startingPoint.practiceSummary`);
-      localStorage.removeItem(`${pieceid}.startingPoint.sessionsCompleted`);
-      localStorage.removeItem(`${pieceid}.startingPoint.savedAt`);
-      finish(finalSummary);
-    },
-    [practiceSummary, finish, section],
-  );
-
-  const startSession = useCallback(
-    function () {
-      setSessionStarted(dayjs());
-    },
-    [setSessionStarted],
-  );
+  const nextStartingPoint = useCallback(() => {
+    const nextPracticeSummary = [...practiceSummary, section];
+    setPracticeSummary(nextPracticeSummary);
+    saveToStorage("practiceSummary", JSON.stringify(nextPracticeSummary));
+    setSection(
+      makeRandomSection(measures, beats, maxLength, lowerBound, upperBound),
+    );
+    maybeTakeABreak();
+  }, [
+    practiceSummary,
+    section,
+    saveToStorage,
+    measures,
+    beats,
+    maxLength,
+    lowerBound,
+    upperBound,
+    maybeTakeABreak,
+  ]);
 
   return (
     <div className="relative mb-8 grid grid-cols-1" ref={topRef}>
@@ -760,7 +741,7 @@ export function StartingPointPractice({
         planid={planid}
       />
       <ResumeDialog dialogRef={resumeRef} onResume={handleResume} />
-      <div className="absolute left-0 top-0 sm:p-8"></div>
+      <div className="absolute left-0 top-0 sm:p-8" />
       <div className="flex w-full flex-col items-center justify-center gap-2 pt-12 sm:pt-24">
         <div className="relative h-32 w-full">
           <ScaleCrossFadeContent
@@ -785,7 +766,7 @@ export function StartingPointPractice({
             <span
               className="icon-[iconamoon--player-stop-thin] -ml-1 size-5"
               aria-hidden="true"
-            ></span>
+            />
             Finish
           </WarningButton>
         </div>
@@ -860,15 +841,13 @@ export function Summary({
             </div>
             <div className="text-balance pt-1">
               {measuresPracticed.map(([start, end], idx) => (
-                <>
-                  <span
-                    key={`${start}-${end}`}
-                    className="whitespace-nowrap text-xl font-medium text-neutral-800"
-                  >
-                    {start === end ? start : `${start}-${end}`}
-                    {idx < measuresPracticed.length - 1 && ","}
-                  </span>{" "}
-                </>
+                <span
+                  key={`${start}-${end}`}
+                  className="whitespace-nowrap text-xl font-medium text-neutral-800"
+                >
+                  {start === end ? start : `${start}-${end}`}
+                  {idx < measuresPracticed.length - 1 && ","}
+                </span>
               ))}
             </div>
           </div>

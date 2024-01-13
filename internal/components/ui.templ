@@ -4,20 +4,18 @@ import "strconv"
 
 script ShowModal(id string) {
 	document.getElementById(id).showModal();
-	globalThis.handleOpenModal();
+	globalThis.handleShowModal();
 }
 
 script CloseModal(id string) {
 	const modal = document.getElementById(id);
-	modal.classList.add('close'); // run animation here
 
 	globalThis.handleCloseModal();
-	requestAnimationFrame(function () {
-		requestAnimationFrame(function () {
-			modal.classList.remove('close');
-			modal.close(); // then run the default close method
-		});
-	});
+	modal.classList.add('close');
+	setTimeout(function () {
+		modal.close();
+		modal.classList.remove('close');
+	}, 155);
 }
 
 templ ClearButton(buttonType string) {

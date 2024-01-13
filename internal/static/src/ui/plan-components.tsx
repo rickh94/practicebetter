@@ -1,13 +1,20 @@
 import { BackToPlan, Link } from "./links";
-import { StateUpdater, useCallback, useEffect, useRef } from "preact/hooks";
+import {
+  type StateUpdater,
+  useCallback,
+  useEffect,
+  useRef,
+} from "preact/hooks";
 import * as htmx from "htmx.org";
+import { forwardRef } from "preact/compat";
+import { type Ref } from "preact";
 
-export function NextPlanItem({ planid }: { planid?: string }) {
+export function NextPlanItem({ planid }: { planid: string }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openDialog = useCallback(() => {
     dialogRef.current?.showModal();
-    globalThis.handleOpenModal();
-  }, [dialogRef.current]);
+    globalThis.handleShowModal();
+  }, [dialogRef]);
   return (
     <>
       <button
@@ -61,52 +68,53 @@ export function NextPlanItem({ planid }: { planid?: string }) {
   );
 }
 
-export function InterleaveSpotsList({
-  planid,
-  shouldFetch = false,
-  setShouldFetch,
-}: {
-  planid?: string;
-  shouldFetch?: boolean;
-  setShouldFetch?: StateUpdater<boolean>;
-}) {
-  const interleaveSpotsRef = useRef<HTMLDivElement>(null);
+export const InterleaveSpotsList = forwardRef(
+  (
+    props: {
+      planid?: string;
+      shouldFetch?: boolean;
+      setShouldFetch?: StateUpdater<boolean>;
+    },
+    ref: Ref<HTMLDetailsElement>,
+  ) => {
+    const interleaveSpotsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (interleaveSpotsRef.current && shouldFetch) {
-      htmx
-        .ajax(
-          "GET",
-          `/library/plans/${planid}/interleave`,
-          interleaveSpotsRef.current,
-        )
-        .then(() => setShouldFetch(false))
-        .catch((err) => console.error(err));
-    }
-  }, [interleaveSpotsRef.current, shouldFetch, setShouldFetch]);
+    useEffect(() => {
+      if (interleaveSpotsRef.current && props.shouldFetch) {
+        htmx
+          .ajax(
+            "GET",
+            `/library/plans/${props.planid}/interleave`,
+            interleaveSpotsRef.current,
+          )
+          .then(() => props.setShouldFetch?.(false))
+          .catch((err) => console.error(err));
+      }
+    }, [props.shouldFetch, props.setShouldFetch, props]);
 
-  return (
-    <details className="my-1 w-full">
-      <summary className="focusable flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50 focus:outline-none">
-        <div className="flex items-center gap-2 focus:outline-none">
-          <span className="icon-[iconamoon--bookmark-thin] -ml-1 size-5" />
-          Interleave Spots
-        </div>
-        <span
-          className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform"
-          aria-hidden="true"
-        />
-      </summary>
-      {!!planid ? (
-        <div ref={interleaveSpotsRef} className="w-full py-2">
-          Loading Interleave Spots...
-        </div>
-      ) : (
-        <div className="w-full py-2">No interleave spots</div>
-      )}
-    </details>
-  );
-}
+    return (
+      <details className="my-1 w-full" ref={ref}>
+        <summary className="focusable flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50 focus:outline-none">
+          <div className="flex items-center gap-2 focus:outline-none">
+            <span className="icon-[iconamoon--bookmark-thin] -ml-1 size-5" />
+            Interleave Spots
+          </div>
+          <span
+            className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform"
+            aria-hidden="true"
+          />
+        </summary>
+        {props.planid ? (
+          <div ref={interleaveSpotsRef} className="w-full py-2">
+            Loading Interleave Spots...
+          </div>
+        ) : (
+          <div className="w-full py-2">No interleave spots</div>
+        )}
+      </details>
+    );
+  },
+);
 /*
  *
           hx-trigger="revealed"

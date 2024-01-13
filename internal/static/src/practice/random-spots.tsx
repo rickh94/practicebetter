@@ -1,14 +1,13 @@
 import {
-  Ref,
-  StateUpdater,
+  type StateUpdater,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "preact/hooks";
-import { PracticeSummaryItem, RandomMode } from "../common";
-import { BasicSpot } from "../validators";
+import { type PracticeSummaryItem, type RandomMode } from "../common";
+import { type BasicSpot } from "../validators";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { CreateSpots } from "./create-spots";
 import {
@@ -41,38 +40,33 @@ export function RandomSpots({
   const [spots, setSpots] = useState<BasicSpot[]>([]);
   const [summary, setSummary] = useState<PracticeSummaryItem[]>([]);
   const [mode, setMode] = useState<RandomMode>("setup");
-  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [startTime, setStartTime] = useState<Date | undefined>(undefined);
   const [numSessions, setNumSessions] = useState(2);
   const [showPrepare, setShowPrepare] = useState(false);
-  const getReadyRef = useRef<HTMLDialogElement>(null);
 
-  const initialSpotIds = useMemo(
-    function () {
-      if (!initialspots) return [];
-      const initialSpots: BasicSpot[] = JSON.parse(initialspots);
-      if (!(initialSpots instanceof Array) || initialSpots.length === 0) {
-        return [];
+  const initialSpotIds = useMemo(() => {
+    const spots: string[] = [];
+    if (!initialspots) return spots;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const initialSpots: BasicSpot[] = JSON.parse(initialspots);
+    if (!(initialSpots instanceof Array) || initialSpots.length === 0) {
+      return spots;
+    }
+    for (const spot of initialSpots) {
+      if (spot.id) {
+        spots.push(spot.id);
       }
-      return initialSpots.map((spot) => spot.id);
-    },
-    [initialspots],
-  );
-
-  const finish = useCallback(
-    function (finalSummary: PracticeSummaryItem[]) {
-      setSummary(finalSummary);
-      setMode("summary");
-      document.removeEventListener(
-        "UpdateSpotRemindersField",
-        updateSpotRemindersField,
-      );
-    },
-    [setMode, setSummary, startTime, pieceid, initialspots, csrf],
-  );
+    }
+    return spots;
+  }, [initialspots]);
 
   const updateSpotRemindersField = useCallback(
-    function (event: CustomEvent) {
+    (event: CustomEvent) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const { id, text } = event.detail;
+      if (!id || !text || typeof id !== "string" || typeof text !== "string") {
+        throw new Error("Invalid event");
+      }
       setSpots((spots) =>
         spots.map((spot) =>
           spot.id === id ? { ...spot, textPrompt: text } : spot,
@@ -81,56 +75,57 @@ export function RandomSpots({
     },
     [setSpots],
   );
-
-  const startPracticing = useCallback(
-    function () {
-      setStartTime(new Date());
-      setMode("practice");
-      document.addEventListener(
-        "UpdateSpotRemindersField",
-        updateSpotRemindersField,
-      );
-    },
-    [setMode, setStartTime, updateSpotRemindersField],
-  );
-
-  const backToSetup = useCallback(
-    function () {
-      setMode("setup");
+  const finish = useCallback(
+    (finalSummary: PracticeSummaryItem[]) => {
+      setSummary(finalSummary);
+      setMode("summary");
       document.removeEventListener(
         "UpdateSpotRemindersField",
         updateSpotRemindersField,
       );
     },
-    [setMode],
+    [updateSpotRemindersField],
   );
 
-  useEffect(
-    function () {
-      // get initial sessions value from query param
-      const urlParams = new URLSearchParams(window.location.search);
-      const initialSessions = parseInt(urlParams.get("numSessions"));
-      if (!isNaN(initialSessions) && typeof initialSessions === "number") {
-        setNumSessions(initialSessions);
+  const startPracticing = useCallback(() => {
+    setStartTime(new Date());
+    setMode("practice");
+    document.addEventListener(
+      "UpdateSpotRemindersField",
+      updateSpotRemindersField,
+    );
+  }, [setMode, setStartTime, updateSpotRemindersField]);
+
+  const backToSetup = useCallback(() => {
+    setMode("setup");
+    document.removeEventListener(
+      "UpdateSpotRemindersField",
+      updateSpotRemindersField,
+    );
+  }, [updateSpotRemindersField]);
+
+  useEffect(() => {
+    // get initial sessions value from query param
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialSessions = parseInt(urlParams.get("numSessions") ?? "", 10);
+    if (!isNaN(initialSessions) && typeof initialSessions === "number") {
+      setNumSessions(initialSessions);
+    }
+    if (initialspots) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const initSpots: BasicSpot[] = JSON.parse(initialspots);
+      if (!(initSpots instanceof Array) || initSpots.length === 0) {
+        console.error("Invalid initial spots");
+        return;
       }
-      if (initialspots) {
-        const initSpots: BasicSpot[] = JSON.parse(initialspots);
-        setSpots(initSpots);
-      }
-      const skipSetup = !!urlParams.get("skipSetup");
-      if (skipSetup) {
-        setShowPrepare(true);
-        startPracticing();
-      }
-    },
-    [
-      initialspots,
-      setNumSessions,
-      startPracticing,
-      window.location.search,
-      getReadyRef.current,
-    ],
-  );
+      setSpots(initSpots);
+    }
+    const skipSetup = !!urlParams.get("skipSetup");
+    if (skipSetup) {
+      setShowPrepare(true);
+      startPracticing();
+    }
+  }, [initialspots, setNumSessions, startPracticing]);
 
   return (
     <div className="w-full">
@@ -186,37 +181,42 @@ export function GetReadyDialog({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [timeElapsed, setTimeElapsed] = useState(0);
-  let interval;
-  const closeDialog = useCallback(
-    function () {
-      globalThis.handleCloseModal();
-      if (dialogRef.current) {
-        clearInterval(interval);
-        dialogRef.current.classList.add("close");
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (dialogRef.current) {
-              dialogRef.current.classList.remove("close");
-              dialogRef.current.close();
-            }
-          });
-        });
-      }
-    },
-    [dialogRef.current],
-  );
+  const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
-  useEffect(() => {
-    if (show && dialogRef.current) {
+  const openDialog = useCallback(() => {
+    console.log("opening dialog");
+    if (dialogRef.current) {
       globalThis.handleShowModal();
       dialogRef.current.showModal();
-      interval = setInterval(() => {
-        console.log("timeElapsed", timeElapsed);
+      setTimeElapsed(0);
+      intervalRef.current = setInterval(() => {
         setTimeElapsed((timeElapsed) => timeElapsed + 1);
       }, 10);
-      return () => clearInterval(interval);
     }
-  }, [dialogRef.current, setTimeElapsed]);
+  }, [setTimeElapsed]);
+
+  const closeDialog = useCallback(() => {
+    globalThis.handleCloseModal();
+    if (dialogRef.current) {
+      clearInterval(intervalRef.current);
+      if (dialogRef.current) {
+        dialogRef.current.classList.add("close");
+        setTimeout(() => {
+          if (dialogRef.current) {
+            dialogRef.current.close();
+            dialogRef.current.classList.remove("close");
+          }
+        }, 150);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (show) {
+      openDialog();
+      return () => closeDialog();
+    }
+  }, [closeDialog, openDialog, show]);
 
   useEffect(() => {
     if (timeElapsed >= 200) {
@@ -260,14 +260,14 @@ export function GetReadyDialog({
           <span
             className="icon-[iconamoon--player-play-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
         </VioletButton>
       </div>
     </dialog>
   );
 }
 
-function SingleSetupForm({
+export function SingleSetupForm({
   setSpots,
   spots,
   submit,
@@ -282,12 +282,14 @@ function SingleSetupForm({
 }) {
   const numSessionsRef = useRef<HTMLInputElement>(null);
   const handleSubmit = useCallback(() => {
-    setNumSessions(parseInt(numSessionsRef.current.value));
+    if (numSessionsRef.current) {
+      setNumSessions(parseInt(numSessionsRef.current.value, 10));
+    }
     if (spots.length === 0) {
       if (!numSessionsRef.current) {
         setNumSessions(1);
       } else {
-        setNumSessions(parseInt(numSessionsRef.current.value));
+        setNumSessions(parseInt(numSessionsRef.current.value, 10));
       }
       document.dispatchEvent(
         new CustomEvent("ShowAlert", {
@@ -302,29 +304,25 @@ function SingleSetupForm({
       return;
     }
     submit();
-  }, [submit, spots, numSessionsRef.current]);
+  }, [spots.length, submit, setNumSessions]);
 
-  const increaseSessions = useCallback(
-    function () {
-      const curr = parseInt(numSessionsRef.current?.value);
-      if (isNaN(curr) || curr < 1) {
-        numSessionsRef.current.value = "1";
-      }
-      numSessionsRef.current.value = (curr + 1).toString();
-    },
-    [numSessionsRef.current],
-  );
+  const increaseSessions = useCallback(() => {
+    if (!numSessionsRef.current) return;
+    const curr = parseInt(numSessionsRef.current.value ?? "", 10);
+    if (isNaN(curr) || curr < 1) {
+      numSessionsRef.current.value = "1";
+    }
+    numSessionsRef.current.value = (curr + 1).toString();
+  }, []);
 
-  const decreaseSessions = useCallback(
-    function () {
-      const curr = parseInt(numSessionsRef.current?.value);
-      if (isNaN(curr) || curr < 1) {
-        numSessionsRef.current.value = "1";
-      }
-      numSessionsRef.current.value = (curr - 1).toString();
-    },
-    [numSessionsRef.current],
-  );
+  const decreaseSessions = useCallback(() => {
+    if (!numSessionsRef.current) return;
+    const curr = parseInt(numSessionsRef.current?.value, 10);
+    if (isNaN(curr) || curr < 1) {
+      numSessionsRef.current.value = "1";
+    }
+    numSessionsRef.current.value = (curr - 1).toString();
+  }, []);
 
   return (
     <>
@@ -338,7 +336,7 @@ function SingleSetupForm({
             once.
           </p>
         </div>
-        <div className="flex-shrink-0 flex-grow"></div>
+        <div className="flex-shrink-0 flex-grow" />
       </div>
       <div className="flex w-full flex-col gap-y-4">
         <CreateSpots setSpots={setSpots} spots={spots} />
@@ -406,7 +404,7 @@ type SpotNeglectInfo = {
 function findNeglectedSpot(spots: SpotNeglectInfo[]): [boolean, number] {
   let maxReps = -Infinity;
   let minReps = Infinity;
-  let minIdx: number = 0;
+  let minIdx = 0;
   for (let i = 0; i < spots.length; i++) {
     if (spots[i].evicted) {
       continue;
@@ -420,16 +418,15 @@ function findNeglectedSpot(spots: SpotNeglectInfo[]): [boolean, number] {
     }
   }
 
-  if (maxReps - minReps > 3) {
+  if (maxReps - minReps > 2) {
     return [true, minIdx];
-  } else {
-    return [false, -1];
   }
+  return [false, -1];
 }
 
 // TODO: This should probably be a few components at this point
 
-function SinglePractice({
+export function SinglePractice({
   spots,
   setup,
   finish,
@@ -466,19 +463,16 @@ function SinglePractice({
   const resumeRef = useRef<HTMLDialogElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const breakDialogRef = useRef<HTMLDialogElement>(null);
-  const spotIdsHash = useMemo(
-    function () {
-      const ids = spots
-        .map((spot) => spot.id)
-        .sort()
-        .join("");
-      return hash(ids);
-    },
-    [spots],
-  );
+  const spotIdsHash = useMemo(() => {
+    const ids = spots
+      .map((spot) => spot.id)
+      .sort()
+      .join("");
+    return hash(ids);
+  }, [spots]);
 
   const saveToStorage = useCallback(
-    function (key: string, value: string) {
+    (key: string, value: string) => {
       localStorage.setItem(`${pieceid}.${spotIdsHash}.${key}`, value);
       localStorage.setItem(
         `${pieceid}.${spotIdsHash}.savedAt`,
@@ -489,11 +483,11 @@ function SinglePractice({
   );
 
   const loadFromStorage = useCallback(
-    function (key: string) {
+    (key: string) => {
       const savedAt = localStorage.getItem(`${pieceid}.${spotIdsHash}.savedAt`);
       if (
         !savedAt ||
-        dayjs(parseInt(savedAt)).isBefore(dayjs().subtract(1, "day"))
+        dayjs(parseInt(savedAt, 10)).isBefore(dayjs().subtract(1, "day"))
       ) {
         localStorage.removeItem(`${pieceid}.${spotIdsHash}.${key}`);
         return undefined;
@@ -507,7 +501,116 @@ function SinglePractice({
     if (topRef.current) {
       window.scrollTo(0, topRef.current.offsetTop);
     }
-  }, [topRef.current]);
+  }, []);
+
+  const handleDone = useCallback(() => {
+    const finalSummary: PracticeSummaryItem[] = [];
+    for (const spot of spots) {
+      if (!spot.id) {
+        continue;
+      }
+      const results = practiceSummary.get(spot.id) ?? {
+        excellent: 0,
+        fine: 0,
+        poor: 0,
+      };
+      let day = 0;
+      if (spot.stageStarted) {
+        const stageStarted = dayjs.unix(spot.stageStarted).tz(dayjs.tz.guess());
+        const now = dayjs().tz(dayjs.tz.guess());
+        day = now.diff(stageStarted, "day");
+      }
+      finalSummary.push({
+        name: spot.name ?? "Missing spot name",
+        reps: results.excellent + results.fine + results.poor,
+        excellent: results.excellent,
+        fine: results.fine,
+        poor: results.poor,
+        id: spot.id ?? "Missing spot id",
+        day,
+      });
+    }
+    if (pieceid) {
+      localStorage.removeItem(`${pieceid}.${spotIdsHash}.practiceSummary`);
+      localStorage.removeItem(`${pieceid}.${spotIdsHash}.skipSpotIds`);
+      localStorage.removeItem(`${pieceid}.${spotIdsHash}.sessionsCompleted`);
+      localStorage.removeItem(`${pieceid}.${spotIdsHash}.savedAt`);
+    }
+    finish(finalSummary);
+  }, [practiceSummary, finish, spots, pieceid, spotIdsHash]);
+
+  const nextSpot = useCallback(
+    (nextSkipSpotIds: string[]) => {
+      setCounter((curr) => curr + 1);
+      if (nextSkipSpotIds.length >= spots.length) {
+        document.dispatchEvent(
+          new CustomEvent("ShowAlert", {
+            detail: {
+              message: "You practiced every spot!",
+              title: "Practicing Complete",
+              variant: "success",
+              duration: 3000,
+            },
+          }),
+        );
+        handleDone();
+        return;
+      }
+      const [hasNeglectedSpot, neglectedSpotIdx] =
+        findNeglectedSpot(neglectInfo);
+      let nextSpotIdx: number;
+      let nextSpotId: string;
+      if (hasNeglectedSpot) {
+        nextSpotIdx = neglectedSpotIdx;
+        nextSpotId = spots[nextSpotIdx]?.id ?? "";
+      } else {
+        nextSpotIdx = Math.floor(Math.random() * spots.length);
+        nextSpotId = spots[nextSpotIdx]?.id ?? "";
+        while (
+          !nextSpotId ||
+          (nextSpotId && nextSkipSpotIds.includes(nextSpotId)) ||
+          // check if the last two spots are the same and also the same as the next spot
+          // but only if the skip spots is more than one smaller than the spots, otherwise
+          // there is only one spot left and it will infinitely loop
+          (nextSpotId &&
+            spots.length - 1 > nextSkipSpotIds.length &&
+            lastTwoSpots[0] === lastTwoSpots[1] &&
+            lastTwoSpots[1] === nextSpotId)
+        ) {
+          nextSpotIdx = Math.floor(Math.random() * spots.length);
+        }
+      }
+      setCurrentSpotIdx(nextSpotIdx);
+      setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
+    },
+    [handleDone, spots, lastTwoSpots, neglectInfo],
+  );
+
+  const handleResume = useCallback(() => {
+    const summary = loadFromStorage("practiceSummary");
+    if (summary) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      setPracticeSummary(
+        new Map(
+          JSON.parse(summary) as [
+            string,
+            { excellent: number; fine: number; poor: number },
+          ][],
+        ),
+      );
+    }
+    const skipSpotIds = loadFromStorage("skipSpotIds");
+    if (skipSpotIds) {
+      setSkipSpotIds(JSON.parse(skipSpotIds) as string[]);
+      nextSpot(JSON.parse(skipSpotIds) as string[]);
+    } else {
+      nextSpot([]);
+    }
+    const sessionsCompleted = loadFromStorage("sessionsCompleted");
+    if (sessionsCompleted) {
+      setSessionsCompleted(parseInt(sessionsCompleted, 10));
+    }
+  }, [loadFromStorage, nextSpot]);
 
   useEffect(() => {
     setHasShownResume(true);
@@ -530,31 +633,10 @@ function SinglePractice({
       localStorage.removeItem(`${pieceid}.${spotIdsHash}.savedAt`);
       return;
     }
-  }, [spotIdsHash, pieceid, resumeRef.current, hasShownResume]);
-
-  const handleResume = useCallback(
-    function () {
-      const summary = loadFromStorage("practiceSummary");
-      if (summary) {
-        setPracticeSummary(new Map(JSON.parse(summary)));
-      }
-      const skipSpotIds = loadFromStorage("skipSpotIds");
-      if (skipSpotIds) {
-        setSkipSpotIds(JSON.parse(skipSpotIds));
-        nextSpot(JSON.parse(skipSpotIds));
-      } else {
-        nextSpot([]);
-      }
-      const sessionsCompleted = loadFromStorage("sessionsCompleted");
-      if (sessionsCompleted) {
-        setSessionsCompleted(parseInt(sessionsCompleted));
-      }
-    },
-    [setSkipSpotIds, setPracticeSummary],
-  );
+  }, [spotIdsHash, pieceid, hasShownResume, loadFromStorage, handleResume]);
 
   const addSpotRep = useCallback(
-    function (id: string | undefined, quality: "excellent" | "fine" | "poor") {
+    (id: string | undefined, quality: "excellent" | "fine" | "poor") => {
       setNeglectInfo((curr) => {
         curr[currentSpotIdx].reps++;
         return curr;
@@ -562,7 +644,7 @@ function SinglePractice({
       if (!id || !quality) {
         return;
       }
-      let summary = practiceSummary.get(id) ?? {
+      const summary = practiceSummary.get(id) ?? {
         excellent: 0,
         fine: 0,
         poor: 0,
@@ -578,94 +660,11 @@ function SinglePractice({
       setPracticeSummary(practiceSummary);
       return summary;
     },
-    [setPracticeSummary, practiceSummary, pieceid, spotIdsHash, currentSpotIdx],
-  );
-
-  // TODO: handle adding rep correctly when hitting done
-  const handleDone = useCallback(
-    function () {
-      const finalSummary: PracticeSummaryItem[] = [];
-      for (const spot of spots) {
-        let results = practiceSummary.get(spot.id) ?? {
-          excellent: 0,
-          fine: 0,
-          poor: 0,
-        };
-        let day = 0;
-        if (spot.stageStarted) {
-          let stageStarted = dayjs.unix(spot.stageStarted).tz(dayjs.tz.guess());
-          let now = dayjs().tz(dayjs.tz.guess());
-          day = now.diff(stageStarted, "day");
-        }
-        finalSummary.push({
-          name: spot.name ?? "Missing spot name",
-          reps: results.excellent + results.fine + results.poor,
-          excellent: results.excellent,
-          fine: results.fine,
-          poor: results.poor,
-          id: spot.id ?? "Missing spot id",
-          day,
-        });
-      }
-      if (pieceid) {
-        localStorage.removeItem(`${pieceid}.${spotIdsHash}.practiceSummary`);
-        localStorage.removeItem(`${pieceid}.${spotIdsHash}.skipSpotIds`);
-        localStorage.removeItem(`${pieceid}.${spotIdsHash}.sessionsCompleted`);
-        localStorage.removeItem(`${pieceid}.${spotIdsHash}.savedAt`);
-      }
-      finish(finalSummary);
-    },
-    [practiceSummary, finish, spots, pieceid, spotIdsHash],
-  );
-
-  const nextSpot = useCallback(
-    function (nextSkipSpotIds: string[]) {
-      setCounter((curr) => curr + 1);
-      if (nextSkipSpotIds.length >= spots.length) {
-        document.dispatchEvent(
-          new CustomEvent("ShowAlert", {
-            detail: {
-              message: "You practiced every spot!",
-              title: "Practicing Complete",
-              variant: "success",
-              duration: 3000,
-            },
-          }),
-        );
-        handleDone();
-        return;
-      }
-      const [hasNeglectedSpot, neglectedSpotIdx] =
-        findNeglectedSpot(neglectInfo);
-      let nextSpotIdx: number;
-      let nextSpotId: string;
-      if (hasNeglectedSpot) {
-        nextSpotIdx = neglectedSpotIdx;
-      } else {
-        nextSpotIdx = Math.floor(Math.random() * spots.length);
-        nextSpotId = spots[nextSpotIdx]?.id;
-        while (
-          !nextSpotId ||
-          (nextSpotId && nextSkipSpotIds.includes(nextSpotId)) ||
-          // check if the last two spots are the same and also the same as the next spot
-          // but only if the skip spots is more than one smaller than the spots, otherwise
-          // there is only one spot left and it will infinitely loop
-          (nextSpotId &&
-            spots.length - 1 > nextSkipSpotIds.length &&
-            lastTwoSpots[0] === lastTwoSpots[1] &&
-            lastTwoSpots[1] === nextSpotId)
-        ) {
-          nextSpotIdx = Math.floor(Math.random() * spots.length);
-        }
-      }
-      setCurrentSpotIdx(nextSpotIdx);
-      setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
-    },
-    [addSpotRep, currentSpotIdx, handleDone, spots, lastTwoSpots],
+    [practiceSummary, pieceid, currentSpotIdx, saveToStorage],
   );
 
   const evictSpot = useCallback(
-    function (spotId: string) {
+    (spotId: string) => {
       // going to need a copy of this because the it won't be updated by setstate until after the function finishes
       const newSkipSpotIds = [...skipSpotIds];
       if (spotId) {
@@ -681,101 +680,112 @@ function SinglePractice({
       setSkipSpotIds(newSkipSpotIds);
       return newSkipSpotIds;
     },
-    [spots, skipSpotIds, pieceid, spotIdsHash, currentSpotIdx],
+    [skipSpotIds, pieceid, saveToStorage, currentSpotIdx],
   );
 
-  const maybeTakeABreak = useCallback(
-    function () {
-      if (dayjs().diff(sessionStarted, "minute") < 5) {
-        // if (dayjs().diff(sessionStarted, "second") < 2) {
-        return;
-      }
-      if (sessionsCompleted >= numSessions - 1) {
-        handleDone();
-      } else {
-        takeABreak();
-        setSessionsCompleted((curr) => curr + 1);
-        saveToStorage("sessionsCompleted", `${sessionsCompleted + 1}`);
-      }
-    },
-    [sessionStarted, sessionsCompleted, setSessionsCompleted],
-  );
+  const takeABreak = useCallback(() => {
+    if (breakDialogRef.current) {
+      breakDialogRef.current.showModal();
+      globalThis.handleShowModal();
+      setCanContinue(false);
+      setTimeout(() => {
+        setCanContinue(true);
+      }, 30000);
+      // }, 1000);
+    }
+  }, [setCanContinue]);
 
-  const handleExcellent = useCallback(
-    function () {
-      const currentSpotId = spots[currentSpotIdx]?.id;
-      const summary = addSpotRep(currentSpotId, "excellent");
-      let nextSkipSpotIds = skipSpotIds;
-      if (summary.excellent - summary.poor > 4) {
-        nextSkipSpotIds = evictSpot(currentSpotId);
-      }
-      maybeTakeABreak();
-      nextSpot(nextSkipSpotIds);
-    },
-    [
-      spots,
-      currentSpotIdx,
-      skipSpotIds,
-      addSpotRep,
-      nextSpot,
-      evictSpot,
-      maybeTakeABreak,
-    ],
-  );
+  const maybeTakeABreak = useCallback(() => {
+    if (dayjs().diff(sessionStarted, "minute") < 5) {
+      // if (dayjs().diff(sessionStarted, "second") < 2) {
+      return;
+    }
+    if (sessionsCompleted >= numSessions - 1) {
+      handleDone();
+    } else {
+      takeABreak();
+      setSessionsCompleted((curr) => curr + 1);
+      saveToStorage("sessionsCompleted", `${sessionsCompleted + 1}`);
+    }
+  }, [
+    handleDone,
+    numSessions,
+    saveToStorage,
+    sessionStarted,
+    sessionsCompleted,
+    takeABreak,
+  ]);
 
-  const handleFine = useCallback(
-    function () {
-      const currentSpotId = spots[currentSpotIdx]?.id;
-      addSpotRep(currentSpotId, "fine");
-      maybeTakeABreak();
-      nextSpot(skipSpotIds);
-    },
-    [spots, currentSpotIdx, skipSpotIds, addSpotRep, nextSpot, maybeTakeABreak],
-  );
+  const handleExcellent = useCallback(() => {
+    const currentSpotId = spots[currentSpotIdx]?.id;
+    if (!currentSpotId) {
+      return;
+    }
+    const summary = addSpotRep(currentSpotId, "excellent");
+    if (!summary) {
+      return;
+    }
+    let nextSkipSpotIds = skipSpotIds;
+    if (summary.excellent - summary.poor > 4) {
+      nextSkipSpotIds = evictSpot(currentSpotId);
+    }
+    maybeTakeABreak();
+    nextSpot(nextSkipSpotIds);
+  }, [
+    spots,
+    currentSpotIdx,
+    skipSpotIds,
+    addSpotRep,
+    nextSpot,
+    evictSpot,
+    maybeTakeABreak,
+  ]);
 
-  const handlePoor = useCallback(
-    function () {
-      const currentSpotId = spots[currentSpotIdx]?.id;
-      const summary = addSpotRep(currentSpotId, "poor");
-      let nextSkipSpotIds = skipSpotIds;
-      if (summary.poor > 2) {
-        nextSkipSpotIds = evictSpot(currentSpotId);
-      }
-      maybeTakeABreak();
-      nextSpot(nextSkipSpotIds);
-    },
-    [
-      spots,
-      currentSpotIdx,
-      skipSpotIds,
-      addSpotRep,
-      nextSpot,
-      evictSpot,
-      maybeTakeABreak,
-    ],
-  );
+  const handleFine = useCallback(() => {
+    const currentSpotId = spots[currentSpotIdx]?.id;
+    if (!currentSpotId) {
+      return;
+    }
+    addSpotRep(currentSpotId, "fine");
+    maybeTakeABreak();
+    nextSpot(skipSpotIds);
+  }, [
+    spots,
+    currentSpotIdx,
+    skipSpotIds,
+    addSpotRep,
+    nextSpot,
+    maybeTakeABreak,
+  ]);
 
-  const startSession = useCallback(
-    function () {
-      setSessionStarted(dayjs());
-    },
-    [setSessionStarted],
-  );
+  const handlePoor = useCallback(() => {
+    const currentSpotId = spots[currentSpotIdx]?.id;
+    if (!currentSpotId) {
+      return;
+    }
+    const summary = addSpotRep(currentSpotId, "poor");
+    if (!summary) {
+      return;
+    }
+    let nextSkipSpotIds = skipSpotIds;
+    if (summary.poor > 2) {
+      nextSkipSpotIds = evictSpot(currentSpotId);
+    }
+    maybeTakeABreak();
+    nextSpot(nextSkipSpotIds);
+  }, [
+    spots,
+    currentSpotIdx,
+    skipSpotIds,
+    addSpotRep,
+    nextSpot,
+    evictSpot,
+    maybeTakeABreak,
+  ]);
 
-  const takeABreak = useCallback(
-    function () {
-      if (breakDialogRef.current) {
-        breakDialogRef.current.showModal();
-        globalThis.handleShowModal();
-        setCanContinue(false);
-        setTimeout(function () {
-          setCanContinue(true);
-        }, 30000);
-        // }, 1000);
-      }
-    },
-    [breakDialogRef.current, setCanContinue],
-  );
+  const startSession = useCallback(() => {
+    setSessionStarted(dayjs());
+  }, [setSessionStarted]);
 
   // TODO: handle pretty widths for buttons
   return (
@@ -809,21 +819,21 @@ function SinglePractice({
             <span
               className="icon-[iconamoon--like-thin] -ml-1 -mt-1 size-8"
               aria-hidden="true"
-            ></span>
+            />
             Excellent
           </BigHappyButton>
           <BigSkyButton type="button" onClick={handleFine}>
             <span
               className="icon-[iconamoon--sign-minus-thin] -ml-1 size-8"
               aria-hidden="true"
-            ></span>
+            />
             Fine
           </BigSkyButton>
           <BigAngryButton type="button" onClick={handlePoor}>
             <span
               className="icon-[iconamoon--dislike-thin] -mb-1 -ml-1 size-8"
               aria-hidden="true"
-            ></span>
+            />
             Poor
           </BigAngryButton>
         </div>
@@ -832,14 +842,14 @@ function SinglePractice({
             <span
               className="icon-[iconamoon--settings-thin] -ml-1 size-5"
               aria-hidden="true"
-            ></span>{" "}
+            />{" "}
             Back to setup
           </BasicButton>
           <WarningButton grow onClick={handleDone}>
             <span
               className="icon-[iconamoon--player-stop-thin] -ml-1 size-5"
               aria-hidden="true"
-            ></span>
+            />
             Finish
           </WarningButton>
         </div>

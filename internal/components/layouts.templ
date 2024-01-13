@@ -25,8 +25,8 @@ templ HeadingText(text string) {
 }
 
 templ TwoButtonBar(left templ.Component, header templ.Component, right templ.Component) {
-	<div class="absolute top-0 left-0 w-full" id="topbar">
-		<div class="flex gap-2 justify-between items-center p-4 mx-auto w-full sm:max-w-6xl">
+	<div id="topbar">
+		<div class="flex gap-2 justify-between items-center px-4 pt-4 mx-auto w-full sm:max-w-6xl">
 			<div class="flex flex-grow-0 justify-start md:w-56">
 				@left
 			</div>
@@ -38,8 +38,7 @@ templ TwoButtonBar(left templ.Component, header templ.Component, right templ.Com
 			</div>
 		</div>
 	</div>
-	<div class="h-20"></div>
-	<header class="flex justify-center items-center h-14 md:hidden" id="page-title-small">
+	<header class="flex justify-center items-center h-12 md:hidden" id="page-title-small">
 		@header
 	</header>
 }
@@ -77,7 +76,7 @@ templ FiveColumnContainer() {
 }
 
 templ BreadcrumbContainer() {
-	<div class="flex flex-wrap flex-grow-0 gap-2 p-4 pb-5 w-full md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-6xl">
+	<div class="flex flex-wrap flex-grow-0 gap-2 py-2 px-4 w-full md:gap-4 md:justify-between md:items-center md:mx-auto md:max-w-6xl">
 		{ children... }
 	</div>
 }

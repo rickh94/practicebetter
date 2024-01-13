@@ -82,7 +82,7 @@ export default function SpotChart({
             <span
               className="icon-[heroicons--chart-pie] size-5"
               aria-hidden="true"
-            ></span>
+            />
             <h4 className="text-center text-xl font-bold">
               Spots Progress Chart
             </h4>
@@ -90,7 +90,7 @@ export default function SpotChart({
           <span
             className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform"
             aria-hidden="true"
-          ></span>
+          />
         </summary>
         <div className="mx-auto max-w-md">
           <Doughnut options={options} data={data} />

@@ -7,8 +7,14 @@ export default defineConfig({
   plugins: [preact()],
   base: "/static/dist",
   root: "internal/static",
+  esbuild: {
+    jsxFactory: "h",
+    jsxFragment: "Fragment",
+    jsxInject: `import { h, Fragment } from 'preact'`,
+  },
   build: {
     outDir: "dist",
+    target: "es2020",
     lib: {
       entry: {
         main: "src/main.ts",
@@ -20,6 +26,7 @@ export default defineConfig({
         "edit-spot": "src/edit-spot.ts",
         prompts: "src/prompts.ts",
         "spot-breakdown": "src/spot-breakdown.ts",
+        "practice-plan": "src/practice-plan.ts",
       },
       formats: ["es"],
     },

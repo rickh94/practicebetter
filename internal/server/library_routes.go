@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"practicebetter/internal/ck"
 	"practicebetter/internal/components"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
@@ -22,7 +23,7 @@ import (
 
 func (s *Server) libraryDashboard(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(s.DB)
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	pieces, err := queries.ListRecentlyPracticedPieces(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
@@ -99,40 +100,10 @@ type SpotFormData struct {
 	StageStarted   *int64  `json:"stageStarted,omitempty"`
 }
 
-func makeSpotFormDataFromRow(row db.GetPieceByIDRow) SpotFormData {
-	var spot SpotFormData
-	spot.ID = &row.SpotID.String
-	if row.SpotName.Valid {
-		spot.Name = row.SpotName.String
-	}
-	if row.SpotStage.Valid {
-		spot.Stage = row.SpotStage.String
-	}
-	if row.SpotMeasures.Valid {
-		spot.Measures = &row.SpotMeasures.String
-	}
-	if row.SpotTextPrompt.Valid {
-		spot.TextPrompt = row.SpotTextPrompt.String
-	}
-	if row.SpotAudioPromptUrl.Valid {
-		spot.AudioPromptUrl = row.SpotAudioPromptUrl.String
-	}
-	if row.SpotImagePromptUrl.Valid {
-		spot.ImagePromptUrl = row.SpotImagePromptUrl.String
-	}
-	if row.SpotNotesPrompt.Valid {
-		spot.NotesPrompt = row.SpotNotesPrompt.String
-	}
-	if row.SpotCurrentTempo.Valid && row.SpotCurrentTempo.Int64 > 0 {
-		spot.CurrentTempo = &row.SpotCurrentTempo.Int64
-	}
-	return spot
-}
-
 const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MiB
 
 func (s *Server) uploadAudio(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
 		log.Default().Println(err)
@@ -206,7 +177,10 @@ func (s *Server) uploadAudio(w http.ResponseWriter, r *http.Request) {
 		"filename": newFileName,
 		"url":      fmt.Sprintf("/uploads/%s/audio/%s", userIDHash, newFileName),
 	}
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) uploadAudioForm(w http.ResponseWriter, r *http.Request) {
@@ -216,7 +190,7 @@ func (s *Server) uploadAudioForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) uploadImage(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
 	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
 		log.Default().Println(err)
@@ -290,31 +264,16 @@ func (s *Server) uploadImage(w http.ResponseWriter, r *http.Request) {
 		"filename": newFileName,
 		"url":      fmt.Sprintf("/uploads/%s/images/%s", userIDHash, newFileName),
 	}
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) uploadImageForm(w http.ResponseWriter, r *http.Request) {
 	token := csrf.Token(r)
 	s.HxRender(w, r, librarypages.UploadImageForm(token), "Upload Image")
 
-}
-
-func makeSpotFormDataFromSpot(row db.GetSpotRow) SpotFormData {
-	var spot SpotFormData
-	spot.ID = &row.ID
-	spot.Name = row.Name
-	spot.Stage = row.Stage
-	spot.TextPrompt = row.TextPrompt
-	spot.AudioPromptUrl = row.AudioPromptUrl
-	spot.ImagePromptUrl = row.ImagePromptUrl
-	spot.NotesPrompt = row.NotesPrompt
-	if row.CurrentTempo.Valid && row.CurrentTempo.Int64 > 0 {
-		spot.CurrentTempo = &row.CurrentTempo.Int64
-	}
-	if row.Measures.Valid {
-		spot.Measures = &row.Measures.String
-	}
-	return spot
 }
 
 func pieceTitlesForPlanCard(pieceTitlesIn interface{}, spotPieceTitlesIn interface{}) []string {

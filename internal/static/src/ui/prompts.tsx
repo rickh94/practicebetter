@@ -33,24 +33,22 @@ export function ImagePromptSummary({ url }: { url: string }) {
   const showBig = useCallback(() => {
     if (lightboxRef.current) {
       lightboxRef.current.showModal();
-      globalThis.handleOpenModal();
+      globalThis.handleShowModal();
     }
-  }, [lightboxRef.current]);
+  }, []);
 
   const closeBig = useCallback(() => {
     globalThis.handleCloseModal();
     if (lightboxRef.current) {
-      lightboxRef.current.classList.add("close");
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (lightboxRef.current) {
-            lightboxRef.current.classList.remove("close");
-            lightboxRef.current.close();
-          }
-        });
-      });
+      if (lightboxRef.current) {
+        lightboxRef.current.classList.add("close");
+        setTimeout(() => {
+          lightboxRef.current?.close();
+          lightboxRef.current?.classList.remove("close");
+        }, 150);
+      }
     }
-  }, [lightboxRef.current]);
+  }, []);
 
   if (!url) {
     return <div>No Image Prompt</div>;
@@ -63,7 +61,7 @@ export function ImagePromptSummary({ url }: { url: string }) {
             <span
               className="icon-[iconamoon--file-image-thin] size-5"
               aria-hidden="true"
-            ></span>
+            />
             Image Prompt
           </div>
 
@@ -110,7 +108,7 @@ export function NotesPromptSummary({ notes }: { notes: string }) {
           <span
             className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
           Notes Prompt
         </div>
         <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />
@@ -157,7 +155,7 @@ export function RemindersSummary({
           <span
             className="icon-[ph--chat-centered-text-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
           Reminders
         </div>
         <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />
@@ -210,7 +208,7 @@ export function EditRemindersSummary({
           <span
             className="icon-[ph--chat-centered-text-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
           Reminders
         </div>
         <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />

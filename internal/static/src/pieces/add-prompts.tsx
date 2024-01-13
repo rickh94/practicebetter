@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "preact/compat";
 import { useState, useCallback, useRef } from "preact/hooks";
-import { UseFormRegisterReturn } from "react-hook-form";
+import { type UseFormRegisterReturn } from "react-hook-form";
 import { cn } from "../common";
 import {
   AngryButton,
@@ -25,36 +25,30 @@ export function AddAudioPrompt({
   const ref = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const open = useCallback(
-    function () {
-      if (ref.current) {
-        ref.current.showModal();
-        globalThis.handleOpenModal();
-      }
-    },
-    [ref.current],
-  );
+  const open = useCallback(() => {
+    if (ref.current) {
+      ref.current.showModal();
+      globalThis.handleShowModal();
+    }
+  }, []);
 
-  const close = useCallback(
-    function () {
-      globalThis.handleCloseModal();
+  const close = useCallback(() => {
+    globalThis.handleCloseModal();
+    if (ref.current) {
       if (ref.current) {
         ref.current.classList.add("close");
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (ref.current) {
-              ref.current.classList.remove("close");
-              ref.current.close();
-            }
-          });
-        });
+        setTimeout(() => {
+          if (ref.current) {
+            ref.current.classList.remove("close");
+            ref.current.close();
+          }
+        }, 150);
       }
-    },
-    [ref.current],
-  );
+    }
+  }, []);
 
   const handleSubmit = useCallback(
-    async function (e: Event) {
+    async (e: Event) => {
       e.preventDefault();
       setIsUploading(true);
       if (!formRef.current) {
@@ -66,7 +60,22 @@ export function AddAudioPrompt({
         body: formData,
       });
       if (res.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const { filename, url } = await res.json();
+        if (!url || !filename) {
+          setIsUploading(false);
+          document.dispatchEvent(
+            new CustomEvent("ShowAlert", {
+              detail: {
+                message: "Upload failed!",
+                title: "Upload Failed",
+                variant: "error",
+                duration: 3000,
+              },
+            }),
+          );
+          return;
+        }
         setIsUploading(false);
         formRef.current.reset();
 
@@ -81,7 +90,7 @@ export function AddAudioPrompt({
           }),
         );
 
-        save(url);
+        save(url as string);
         close();
       } else {
         setIsUploading(false);
@@ -97,7 +106,7 @@ export function AddAudioPrompt({
         );
       }
     },
-    [formRef.current, setIsUploading, save, close],
+    [setIsUploading, save, close],
   );
 
   return (
@@ -157,14 +166,14 @@ export function AddAudioPrompt({
                 <span
                   className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
-                ></span>
+                />
                 Close
               </WarningButton>
               <AngryButton grow type="button" onClick={() => save("")}>
                 <span
                   className="icon-[iconamoon--trash-thin] -ml-1 size-6"
                   aria-hidden="true"
-                ></span>
+                />
                 Remove File
               </AngryButton>
             </div>
@@ -179,7 +188,6 @@ export function AddAudioPrompt({
               ref={formRef}
               action="#"
               enctype="multipart/form-data"
-              // @ts-ignore
               onSubmit={(e) => e.preventDefault()}
             >
               <input type="hidden" name="gorilla.csrf.Token" value={csrf} />
@@ -201,7 +209,7 @@ export function AddAudioPrompt({
                 <span
                   className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
-                ></span>
+                />
                 Close
               </WarningButton>
               <HappyButton
@@ -214,12 +222,12 @@ export function AddAudioPrompt({
                   <span
                     className="icon-[ph--arrows-clockwise-thin] -ml-1 size-6"
                     aria-hidden="true"
-                  ></span>
+                  />
                 ) : (
                   <span
                     className="icon-[iconamoon--cloud-upload-thin] -ml-1 size-6"
                     aria-hidden="true"
-                  ></span>
+                  />
                 )}
                 {isUploading ? "Please Wait..." : "Upload"}
               </HappyButton>
@@ -244,36 +252,28 @@ export function AddImagePrompt({
   const ref = useRef<HTMLDialogElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const open = useCallback(
-    function () {
-      if (ref.current) {
-        ref.current.showModal();
-        globalThis.handleOpenModal();
-      }
-    },
-    [ref.current],
-  );
+  const open = useCallback(() => {
+    if (ref.current) {
+      ref.current.showModal();
+      globalThis.handleShowModal();
+    }
+  }, []);
 
-  const close = useCallback(
-    function () {
-      globalThis.handleCloseModal();
+  const close = useCallback(() => {
+    globalThis.handleCloseModal();
+    if (ref.current) {
       if (ref.current) {
         ref.current.classList.add("close");
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (ref.current) {
-              ref.current.classList.remove("close");
-              ref.current.close();
-            }
-          });
-        });
+        setTimeout(() => {
+          ref.current?.classList.remove("close");
+          ref.current?.close();
+        }, 150);
       }
-    },
-    [ref.current],
-  );
+    }
+  }, []);
 
   const handleSubmit = useCallback(
-    async function (e: Event) {
+    async (e: Event) => {
       e.preventDefault();
       setIsUploading(true);
       if (!formRef.current) {
@@ -285,8 +285,22 @@ export function AddImagePrompt({
         body: formData,
       });
       if (res.ok) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const { filename, url } = await res.json();
         setIsUploading(false);
+        if (!filename || !url) {
+          document.dispatchEvent(
+            new CustomEvent("ShowAlert", {
+              detail: {
+                message: "Failed to upload image",
+                title: "Upload Failed",
+                variant: "error",
+                duration: 3000,
+              },
+            }),
+          );
+          return;
+        }
         formRef.current.reset();
 
         document.dispatchEvent(
@@ -300,7 +314,7 @@ export function AddImagePrompt({
           }),
         );
 
-        save(url);
+        save(url as string);
         close();
       } else {
         setIsUploading(false);
@@ -316,7 +330,7 @@ export function AddImagePrompt({
         );
       }
     },
-    [formRef.current, setIsUploading, save, close],
+    [setIsUploading, save, close],
   );
 
   return (
@@ -334,13 +348,13 @@ export function AddImagePrompt({
             <span
               className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
               aria-hidden="true"
-            ></span>
+            />
           </>
         ) : (
           <span
             className="icon-[iconamoon--file-image-thin] size-5"
             aria-hidden="true"
-          ></span>
+          />
         )}
         Image
       </ColorlessButton>
@@ -377,14 +391,14 @@ export function AddImagePrompt({
                 <span
                   className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
-                ></span>
+                />
                 Close
               </WarningButton>
               <AngryButton grow type="button" onClick={() => save("")}>
                 <span
                   className="icon-[iconamoon--trash-thin] -ml-1 size-6"
                   aria-hidden="true"
-                ></span>
+                />
                 Remove File
               </AngryButton>
             </div>
@@ -401,7 +415,6 @@ export function AddImagePrompt({
               ref={formRef}
               action="#"
               enctype="multipart/form-data"
-              // @ts-ignore
               onSubmit={(e) => e.preventDefault()}
             >
               <input type="hidden" name="gorilla.csrf.Token" value={csrf} />
@@ -422,7 +435,7 @@ export function AddImagePrompt({
                 <span
                   className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
-                ></span>
+                />
                 Close
               </WarningButton>
               <HappyButton
@@ -435,12 +448,12 @@ export function AddImagePrompt({
                   <span
                     className="icon-[ph--arrows-clockwise] -ml-1 size-6"
                     aria-hidden="true"
-                  ></span>
+                  />
                 ) : (
                   <span
                     className="icon-[iconamoon--cloud-upload-thin] -ml-1 size-6"
                     aria-hidden="true"
-                  ></span>
+                  />
                 )}
                 {isUploading ? "Please Wait..." : "Upload"}
               </HappyButton>
@@ -461,33 +474,31 @@ export function AddReminders({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
 
-  const open = useCallback(
-    function () {
-      if (ref.current) {
-        ref.current.showModal();
-        globalThis.handleShowModal();
-      }
-    },
-    [ref.current],
-  );
+  const open = useCallback(() => {
+    if (ref.current) {
+      ref.current.showModal();
+      globalThis.handleShowModal();
+    }
+  }, []);
 
-  const close = useCallback(
-    function () {
-      globalThis.handleCloseModal();
-      if (ref.current) {
-        ref.current.classList.add("close");
+  const close = useCallback(() => {
+    globalThis.handleCloseModal();
+    if (ref.current) {
+      requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (ref.current) {
-              ref.current.classList.remove("close");
-              ref.current.close();
-            }
-          });
+          if (ref.current) {
+            ref.current.classList.add("close");
+            setTimeout(() => {
+              if (ref.current) {
+                ref.current.classList.remove("close");
+                ref.current.close();
+              }
+            }, 150);
+          }
         });
-      }
-    },
-    [ref.current],
-  );
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -498,19 +509,19 @@ export function AddReminders({
           "text-lime-800",
         )}
       >
-        {!!textPrompt ? (
+        {textPrompt ? (
           <>
             <span className="sr-only">Checked</span>
             <span
               className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
               aria-hidden="true"
-            ></span>
+            />
           </>
         ) : (
           <span
             className="icon-[ph--chat-centered-text-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
         )}
         Reminders
       </ColorlessButton>
@@ -547,7 +558,7 @@ export function AddReminders({
           <span
             className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
           Done
         </HappyButton>
       </dialog>
@@ -564,33 +575,31 @@ export function AddNotesPrompt({
 }) {
   const ref = useRef<HTMLDialogElement>(null);
 
-  const open = useCallback(
-    function () {
-      if (ref.current) {
-        ref.current.showModal();
-        globalThis.handleShowModal();
-      }
-    },
-    [ref.current],
-  );
+  const open = useCallback(() => {
+    if (ref.current) {
+      ref.current.showModal();
+      globalThis.handleShowModal();
+    }
+  }, []);
 
-  const close = useCallback(
-    function () {
-      globalThis.handleCloseModal();
-      if (ref.current) {
-        ref.current.classList.add("close");
+  const close = useCallback(() => {
+    globalThis.handleCloseModal();
+    if (ref.current) {
+      requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (ref.current) {
-              ref.current.classList.remove("close");
-              ref.current.close();
-            }
-          });
+          if (ref.current) {
+            ref.current.classList.add("close");
+            setTimeout(() => {
+              if (ref.current) {
+                ref.current.classList.remove("close");
+                ref.current.close();
+              }
+            }, 150);
+          }
         });
-      }
-    },
-    [ref],
-  );
+      });
+    }
+  }, [ref]);
 
   return (
     <>
@@ -608,13 +617,13 @@ export function AddNotesPrompt({
             <span
               className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
               aria-hidden="true"
-            ></span>
+            />
           </>
         ) : (
           <span
             className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
         )}
         Notes
       </ColorlessButton>
@@ -676,7 +685,7 @@ export function AddNotesPrompt({
           <span
             className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-6"
             aria-hidden="true"
-          ></span>
+          />
           Done
         </HappyButton>
       </dialog>

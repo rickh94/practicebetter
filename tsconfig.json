@@ -3,27 +3,20 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "strictNullChecks": true,
     "noEmit": true,
     "allowJs": true,
     "checkJs": true,
-    /* Preact Config */
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "skipLibCheck": true,
+    "declaration": true,
+    "declarationDir": "./types",
     "paths": {
-      "react": [
-        "./node_modules/preact/compat/"
-      ],
-      "react-dom": [
-        "./node_modules/preact/compat/"
-      ]
+      "react": ["./node_modules/preact/compat/"],
+      "react-dom": ["./node_modules/preact/compat/"]
     }
   },
-  "include": [
-    "node_modules/vite/client.d.ts",
-    "**/*"
-  ],
-  "exclude": [
-    "internal/static/dist"
-  ]
+  "include": ["node_modules/vite/client.d.ts", "./.eslintrc.cjs", "**/*"],
+  "exclude": ["internal/static/dist"]
 }

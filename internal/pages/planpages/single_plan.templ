@@ -3,6 +3,7 @@ package planpages
 import "practicebetter/internal/components"
 import "strconv"
 import "time"
+import "practicebetter/internal/pages"
 
 type PracticePlanSpot struct {
 	ID               string
@@ -83,7 +84,7 @@ func canResume(planData PracticePlanData) bool {
 	return false
 }
 
-templ PracticePlanPage(planData PracticePlanData, csrf string) {
+templ PracticePlanPage(s pages.ServerUtil, planData PracticePlanData, csrf string) {
 	<title>Practice Plan | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
@@ -108,6 +109,7 @@ templ PracticePlanPage(planData PracticePlanData, csrf string) {
 			</div>
 		}
 	}
+	<script type="module" src={ s.StaticUrl("dist/practice-plan.js") }></script>
 }
 
 templ PracticePlanActions(planData PracticePlanData, csrf string) {
@@ -187,6 +189,7 @@ templ singlePlanContent(planData PracticePlanData, csrf string) {
 			<div class="px-8 w-full xs:mx-auto xs:max-w-xl">
 				<label id="progress-label" class="sr-only">Plan Progress</label>
 				<progress
+ 					id="plan-progress-bar"
  					value={ strconv.Itoa(planData.CompletedItems) }
  					max={ strconv.Itoa(planData.TotalItems) }
  					class="m-0 w-full progress-rounded progress-violet-600 progress-bg-violet-200"

@@ -9,7 +9,7 @@ import {
   SkyButton,
   WarningButton,
 } from "../ui/buttons";
-import { BasicSpot } from "../validators";
+import { type BasicSpot } from "../validators";
 import {
   BackToPiece,
   BackToPlan,
@@ -41,67 +41,55 @@ export function Repeat({
   const [startTime, setStartTime] = useState<number>(0);
   const [spot, setSpot] = useState<BasicSpot | null>(null);
 
-  useEffect(
-    function () {
-      if (initialspot) {
-        setSpot(JSON.parse(initialspot));
-      }
-    },
-    [initialspot],
-  );
+  useEffect(() => {
+    if (initialspot) {
+      setSpot(JSON.parse(initialspot) as BasicSpot);
+    }
+  }, [initialspot]);
 
-  const startPracticing = useCallback(
-    function () {
-      setStartTime(Date.now());
-      setMode("practice");
-    },
-    [setMode, setStartTime],
-  );
+  const startPracticing = useCallback(() => {
+    setStartTime(Date.now());
+    setMode("practice");
+  }, [setMode, setStartTime]);
 
-  const setModePrepare = useCallback(
-    function () {
-      setMode("prepare");
-    },
-    [setMode],
-  );
+  const setModePrepare = useCallback(() => {
+    setMode("prepare");
+  }, [setMode]);
 
-  const setModeBreakSuccess = useCallback(
-    function () {
-      setMode("break_success");
-      if (
-        spot?.stage !== "repeat" &&
-        spot?.stage !== "extra_repeat" &&
-        pieceid &&
-        csrf &&
-        startTime &&
-        spot?.id
-      ) {
-        const durationMinutes = Math.ceil(
-          (new Date().getTime() - startTime) / 1000 / 60,
-        );
-        document.dispatchEvent(
-          new CustomEvent("FinishedRepeatPracticing", {
-            detail: {
-              success: true,
-              durationMinutes,
-              csrf,
-              toStage: "",
-              endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
-            },
-          }),
-        );
-      }
-    },
-    [setMode, pieceid, csrf, startTime, spot, spot?.id],
-  );
+  const setModeBreakSuccess = useCallback(() => {
+    setMode("break_success");
+    if (
+      spot?.stage !== "repeat" &&
+      spot?.stage !== "extra_repeat" &&
+      pieceid &&
+      csrf &&
+      startTime &&
+      spot?.id
+    ) {
+      const durationMinutes = Math.ceil(
+        (new Date().getTime() - startTime) / 1000 / 60,
+      );
+      document.dispatchEvent(
+        new CustomEvent("FinishedRepeatPracticing", {
+          detail: {
+            success: true,
+            durationMinutes,
+            csrf,
+            toStage: "",
+            endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
+          },
+        }),
+      );
+    }
+  }, [setMode, pieceid, csrf, startTime, spot]);
 
   const promoteSpot = useCallback(
-    function (toStage: string) {
+    (toStage: string) => {
       if (pieceid && csrf && startTime && spot?.id) {
         const durationMinutes = Math.ceil(
           (new Date().getTime() - startTime) / 1000 / 60,
         );
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("FinishedRepeatPracticing", {
             detail: {
               success: true,
@@ -114,31 +102,28 @@ export function Repeat({
         );
       }
     },
-    [pieceid, csrf, startTime, spot, spot?.id],
+    [pieceid, csrf, startTime, spot],
   );
 
-  const setModeBreakFail = useCallback(
-    function () {
-      if (pieceid && csrf && startTime && spot?.id) {
-        const durationMinutes = Math.ceil(
-          (new Date().getTime() - startTime) / 1000 / 60,
-        );
-        document.dispatchEvent(
-          new CustomEvent("FinishedRepeatPracticing", {
-            detail: {
-              success: false,
-              durationMinutes,
-              csrf,
-              toStage: "",
-              endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
-            },
-          }),
-        );
-      }
-      setMode("break_fail");
-    },
-    [setMode, pieceid, csrf, startTime, spot, spot?.id],
-  );
+  const setModeBreakFail = useCallback(() => {
+    if (pieceid && csrf && startTime && spot?.id) {
+      const durationMinutes = Math.ceil(
+        (new Date().getTime() - startTime) / 1000 / 60,
+      );
+      globalThis.dispatchEvent(
+        new CustomEvent("FinishedRepeatPracticing", {
+          detail: {
+            success: false,
+            durationMinutes,
+            csrf,
+            toStage: "",
+            endpoint: `/library/pieces/${pieceid}/spots/${spot.id}/practice/repeat`,
+          },
+        }),
+      );
+    }
+    setMode("break_fail");
+  }, [setMode, pieceid, csrf, startTime, spot]);
 
   return (
     <div className="relative left-0 top-0 w-full sm:mx-auto sm:max-w-6xl">
@@ -196,7 +181,7 @@ function RepeatPrepare({
   piecetitle = "",
 }: {
   startPracticing: () => void;
-  spot?: BasicSpot;
+  spot?: BasicSpot | null;
   pieceid?: string;
   piecetitle?: string;
 }) {
@@ -238,7 +223,7 @@ function RepeatPractice({
   onSuccess: () => void;
   onFail: () => void;
   startTime: number;
-  spot?: BasicSpot;
+  spot?: BasicSpot | null;
   pieceid?: string;
   piecetitle?: string;
 }) {
@@ -250,38 +235,32 @@ function RepeatPractice({
     if (topRef.current) {
       window.scrollTo(0, topRef.current.offsetTop - 160);
     }
-  }, [topRef.current]);
+  }, []);
 
-  const succeed = useCallback(
-    function () {
-      if (numCompleted === 4) {
-        setCompleted((curr) => curr + 1);
-        setTimeout(onSuccess, 300);
-      } else {
-        setCompleted((curr) => curr + 1);
-        setWaitedLongEnough(false);
-        setTimeout(() => {
-          setWaitedLongEnough(true);
-        }, 1000);
-      }
-    },
-    [numCompleted, onSuccess, setWaitedLongEnough],
-  );
-
-  const fail = useCallback(
-    function () {
-      setCompleted(0);
+  const succeed = useCallback(() => {
+    if (numCompleted === 4) {
+      setCompleted((curr) => curr + 1);
+      setTimeout(onSuccess, 300);
+    } else {
+      setCompleted((curr) => curr + 1);
       setWaitedLongEnough(false);
       setTimeout(() => {
         setWaitedLongEnough(true);
-      }, 1500);
-      // if it's been more than five minutes + 30 seconds buffer, take a break
-      if (Date.now() - startTime > 5 * 60 * 1000 + 30 * 1000) {
-        onFail();
-      }
-    },
-    [setCompleted, onFail, startTime],
-  );
+      }, 1000);
+    }
+  }, [numCompleted, onSuccess, setWaitedLongEnough]);
+
+  const fail = useCallback(() => {
+    setCompleted(0);
+    setWaitedLongEnough(false);
+    setTimeout(() => {
+      setWaitedLongEnough(true);
+    }, 1500);
+    // if it's been more than five minutes + 30 seconds buffer, take a break
+    if (Date.now() - startTime > 5 * 60 * 1000 + 30 * 1000) {
+      onFail();
+    }
+  }, [setCompleted, onFail, startTime]);
 
   return (
     <>
@@ -367,7 +346,7 @@ function PracticeListItem({
     <AnimatePresence initial={false} mode="wait">
       {completed ? (
         <motion.li
-          // @ts-ignore
+          // @ts-expect-error It thinks it can't take a classname but it can
           className="flex size-10 items-center justify-center rounded-xl border-2 border-green-700 bg-green-500/50 text-green-700 transition-all duration-100 sm:size-12"
           key={`${num}-completed`}
           initial="initial"
@@ -380,7 +359,7 @@ function PracticeListItem({
         </motion.li>
       ) : (
         <motion.li
-          // @ts-ignore
+          // @ts-expect-error It thinks it can't take a classname but it can
           className="flex size-10 items-center justify-center rounded-xl border-2 border-neutral-700/10 bg-neutral-700/10 text-neutral-700/20 transition-all duration-100 sm:size-12"
           key={`${num}-incomplete`}
           initial="initial"
@@ -410,38 +389,29 @@ function RepeatBreakSuccess({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  const close = useCallback(
-    function () {
-      globalThis.handleCloseModal();
+  const close = useCallback(() => {
+    globalThis.handleCloseModal();
+    if (dialogRef.current) {
       if (dialogRef.current) {
         dialogRef.current.classList.add("close");
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (dialogRef.current) {
-              dialogRef.current.classList.remove("close");
-              dialogRef.current.close();
-            }
-          });
-        });
+        setTimeout(() => {
+          if (dialogRef.current) {
+            dialogRef.current.classList.remove("close");
+            dialogRef.current.close();
+          }
+        }, 150);
       }
-    },
-    [dialogRef],
-  );
+    }
+  }, [dialogRef]);
 
-  const handleRandom = useCallback(
-    function () {
-      promoteSpot("random");
-      close();
-    },
-    [close, promoteSpot],
-  );
-  const handleMoreRepeat = useCallback(
-    function () {
-      promoteSpot("extra_repeat");
-      close();
-    },
-    [close, promoteSpot],
-  );
+  const handleRandom = useCallback(() => {
+    promoteSpot("random");
+    close();
+  }, [close, promoteSpot]);
+  const handleMoreRepeat = useCallback(() => {
+    promoteSpot("extra_repeat");
+    close();
+  }, [close, promoteSpot]);
 
   useEffect(() => {
     if (dialogRef.current) {
@@ -450,7 +420,7 @@ function RepeatBreakSuccess({
         globalThis.handleShowModal();
       }
     }
-  }, [canPromote, dialogRef.current]);
+  }, [canPromote]);
 
   return (
     <>
@@ -479,7 +449,7 @@ function RepeatBreakSuccess({
             onClick={handleRandom}
             className="h-14 w-full text-lg"
           >
-            <span className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-6"></span>
+            <span className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-6" />
             Random
           </HappyButton>
           <SkyButton
@@ -487,7 +457,7 @@ function RepeatBreakSuccess({
             onClick={handleMoreRepeat}
             className="h-14 w-full text-lg"
           >
-            <span className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-6"></span>
+            <span className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-6" />
             More Repeat
           </SkyButton>
         </div>
@@ -614,14 +584,14 @@ function RepeatFinishedActionButtons({
           <span
             className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
           Try Random Practicing
         </WarningLink>
         <HappyLink href={`/library/pieces/${pieceid}/practice/repeat`}>
           <span
             className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-5"
             aria-hidden="true"
-          ></span>
+          />
           Practice Another Spot
         </HappyLink>
       </>
@@ -643,14 +613,14 @@ function RepeatFinishedActionButtons({
         <span
           className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-5"
           aria-hidden="true"
-        ></span>
+        />
         Try Random Practicing
       </WarningLink>
       <HappyButton onClick={restart}>
         <span
           className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-5"
           aria-hidden="true"
-        ></span>
+        />
         Practice Another Spot
       </HappyButton>
     </>

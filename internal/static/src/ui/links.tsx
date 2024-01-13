@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef } from "preact/compat";
+import { type ReactNode, useEffect, useRef } from "preact/compat";
 import { cn } from "../common";
 import * as htmx from "htmx.org";
 
@@ -24,7 +24,7 @@ export function Link({
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
   useEffect(() => {
-    if (htmx) {
+    if (ref.current) {
       htmx.process(ref.current);
     }
   }, [href, external, target, swap, pushUrl, children]);
@@ -49,7 +49,7 @@ export function TopNavLink({
   children,
 }: {
   href: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <Link className={topNavClasses} href={href}>
@@ -67,13 +67,13 @@ export function WarningLink({
   href: string;
   className?: string;
   grow?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <Link
       href={href}
       className={cn(
-        "focusable action-button bg-yellow-700/10 text-yellow-800 hover:bg-yellow-700/20",
+        "focusable action-button bg-yellow-700/10 text-yellow-800 transition duration-200 hover:bg-yellow-700/20",
         grow && "flex-grow",
         className,
       )}
@@ -92,7 +92,7 @@ export function HappyLink({
   href: string;
   className?: string;
   grow?: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <Link
@@ -117,7 +117,7 @@ export function BackToPiece({ pieceid }: { pieceid: string }) {
       <span
         className="icon-[custom--music-file] -mr-1 size-6"
         aria-hidden="true"
-      ></span>
+      />
       Back to Piece
     </Link>
   );
@@ -139,9 +139,9 @@ export function BackToPlan({
       )}
     >
       <span
-        className="icon-[custom--music-file-curly] -mr-1 size-5"
+        className="icon-[custom--music-file-curly] -ml-1 size-5"
         aria-hidden="true"
-      ></span>
+      />
       Back to Plan
     </Link>
   );

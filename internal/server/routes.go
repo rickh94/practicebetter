@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 	"practicebetter/internal/static"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/benbjohnson/hashfs"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
 	"github.com/gorilla/csrf"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mavolin/go-htmx"
@@ -45,7 +47,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.Get("/", s.index)
 	r.Get("/about", s.about)
 	r.Get("/browserconfig.xml", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<?xml version="1.0" encoding="utf-8"?>
+		if _, err := w.Write([]byte(`<?xml version="1.0" encoding="utf-8"?>
 <browserconfig>
     <msapplication>
         <tile>
@@ -54,7 +56,9 @@ func (s *Server) RegisterRoutes() http.Handler {
         </tile>
     </msapplication>
 </browserconfig>
-`))
+`)); err != nil {
+			log.Default().Println(err)
+		}
 	})
 	r.With(s.MaybeUser).With(s.MaybePracticePlan).Route("/practice", func(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +163,10 @@ func (s *Server) HxRender(w http.ResponseWriter, r *http.Request, mainContent te
 		mainContent = Page(s, mainContent, title)
 	}
 	w.Header().Set("Content-Type", "text/html")
-	mainContent.Render(r.Context(), w)
+	if err := mainContent.Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) Redirect(w http.ResponseWriter, r *http.Request, url string) {

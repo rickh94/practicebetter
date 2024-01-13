@@ -1,6 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
-import { SpotFormData, spotFormData } from "../validators";
+import { type SpotFormData, spotFormData } from "../validators";
 import SpotFormFields from "./spot-form";
 import { useState } from "preact/hooks";
 import * as htmx from "htmx.org";
@@ -22,7 +22,9 @@ export function EditSpotForm({
       mode: "onBlur",
       reValidateMode: "onBlur",
       resolver: yupResolver(spotFormData),
+      // eslint-disable-next-line @typescript-eslint/require-await
       defaultValues: async () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const spot: SpotFormData = JSON.parse(spotdata);
         return {
           name: spot.name ?? "",

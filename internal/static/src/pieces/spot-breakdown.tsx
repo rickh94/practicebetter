@@ -20,12 +20,12 @@ export function SpotBreakdown({
   return (
     <Suspense fallback={<div>Loading spot breakdown...</div>}>
       <SpotChart
-        repeat={parseInt(repeat) || 0}
-        extrarepeat={parseInt(extrarepeat) || 0}
-        random={parseInt(random) || 0}
-        interleave={parseInt(interleave) || 0}
-        infrequent={parseInt(infrequent) || 0}
-        completed={parseInt(completed) || 0}
+        repeat={parseInt(repeat, 10) || 0}
+        extrarepeat={parseInt(extrarepeat, 10) || 0}
+        random={parseInt(random, 10) || 0}
+        interleave={parseInt(interleave, 10) || 0}
+        infrequent={parseInt(infrequent, 10) || 0}
+        completed={parseInt(completed, 10) || 0}
       />
     </Suspense>
   );

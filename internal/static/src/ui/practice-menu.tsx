@@ -1,9 +1,4 @@
-import {
-  PlayListIcon,
-  RandomBoxesIcon,
-  RepeatIcon,
-  ShuffleIcon,
-} from "./icons";
+import { RandomBoxesIcon, RepeatIcon, ShuffleIcon } from "./icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as htmx from "htmx.org";
 
@@ -48,7 +43,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
           className="w-64 origin-top-right rounded-lg bg-white shadow-lg duration-200 animate-in fade-in zoom-in-95 focus-within:outline-none focus:outline-none"
         >
           {links.map((link) => (
-            <DropdownMenu.Item asChild>
+            <DropdownMenu.Item asChild key={link.href}>
               <a
                 href={link.href}
                 onClick={(e) => e.preventDefault()}

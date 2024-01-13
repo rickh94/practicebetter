@@ -17,14 +17,14 @@ templ SpotCardHeadingWithMeasures(name, pieceTitle, measures string, showTitle b
 			{ pieceTitle }
 		</h3>
 	}
-	<span class="inline-flex gap-1 items-center">
-		<h4 class="text-lg font-bold truncate">
-			{ name }
-		</h4>
-		if measures != "" {
-			<span class="px-2 text-xl">|</span> Measures: { measures }
-		}
-	</span>
+	<h4 class="text-lg font-bold truncate">
+		{ name }
+	</h4>
+	if measures != "" {
+		<span class="text-base font-medium">
+			Measure(s): { measures }
+		</span>
+	}
 }
 
 templ SpotCardHeading(name, pieceTitle string, showTitle bool) {

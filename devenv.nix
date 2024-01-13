@@ -11,6 +11,9 @@
     nodePackages.prettier
     mkcert
     caddy
+    golangci-lint
+    pre-commit
+    typescript
   ];
 
   # https://devenv.sh/scripts/

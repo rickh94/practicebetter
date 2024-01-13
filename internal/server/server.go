@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"practicebetter/internal/ck"
 	"practicebetter/internal/db"
 	"practicebetter/internal/static"
 	"strconv"
@@ -143,7 +144,7 @@ func NewServer() *http.Server {
 	return server
 }
 
-func (s *Server) SendEmail(to, subject, body string) error {
+func (s *Server) SendEmail(to, subject, body string) {
 
 	email := mail.NewMSG()
 
@@ -156,14 +157,11 @@ func (s *Server) SendEmail(to, subject, body string) error {
 	client, err := s.EmailSender.Connect()
 	if err != nil {
 		log.Default().Printf("failed to connect to email server: %v\n", err)
-		return err
 	}
 	err = email.Send(client)
 	if err != nil {
 		log.Default().Printf("failed to send email: %v\n", err)
-		return err
 	}
-	return nil
 }
 
 func (s *Server) StaticUrl(name string) string {
@@ -181,7 +179,7 @@ func (s *Server) LoginRequired(next http.Handler) http.Handler {
 			s.Redirect(w, r, "/auth/login?next="+location)
 			return
 		}
-		ctx := context.WithValue(r.Context(), "user", user)
+		ctx := context.WithValue(r.Context(), ck.UserKey, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -193,7 +191,7 @@ func (s *Server) MaybeUser(next http.Handler) http.Handler {
 		user, err := queries.GetUserByID(r.Context(), userID)
 		var ctx context.Context
 		if user.ID != "" && err == nil {
-			ctx = context.WithValue(r.Context(), "user", user)
+			ctx = context.WithValue(r.Context(), ck.UserKey, user)
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -210,11 +208,11 @@ func (s *Server) SetActivePracticePlanID(ctx context.Context, planID string, use
 
 func (s *Server) GetActivePracticePlanID(ctx context.Context) (string, bool) {
 	queries := db.New(s.DB)
-	practicePlanID, ok := ctx.Value("activePracticePlanID").(string)
+	practicePlanID, ok := ctx.Value(ck.ActivePlanKey).(string)
 	if ok && practicePlanID != "" {
 		return practicePlanID, true
 	}
-	user, ok := ctx.Value("user").(db.User)
+	user, ok := ctx.Value(ck.UserKey).(db.User)
 	if !ok || user.ID == "" {
 		return "", false
 	}
@@ -238,9 +236,9 @@ func (s *Server) MaybePracticePlan(next http.Handler) http.Handler {
 		practicePlanID, ok := s.GetActivePracticePlanID(r.Context())
 		var ctx context.Context
 		if ok {
-			ctx = context.WithValue(r.Context(), "activePracticePlanID", practicePlanID)
+			ctx = context.WithValue(r.Context(), ck.ActivePlanKey, practicePlanID)
 		} else {
-			ctx = context.WithValue(r.Context(), "activePracticePlanID", "")
+			ctx = context.WithValue(r.Context(), ck.ActivePlanKey, "")
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -248,7 +246,7 @@ func (s *Server) MaybePracticePlan(next http.Handler) http.Handler {
 
 func (s *Server) ContextPath(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), "currentPath", r.URL.Path)
+		ctx := context.WithValue(r.Context(), ck.CurrentPathKey, r.URL.Path)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

@@ -39,103 +39,89 @@ export default function Summary({
   const [demotionSpots, setDemotionSpots] = useState<PracticeSummaryItem[]>([]);
   const [hasSetup, setHasSetup] = useState(false);
 
-  const submit = useCallback(
-    function () {
-      if (pieceid && csrf && startTime) {
-        const seenIds = new Set();
-        const spots: { id: string; promote: boolean; demote: boolean }[] = [];
-        for (const spot of promotionSpots) {
-          if (seenIds.has(spot.id)) continue;
-          if (!initialSpotIds?.includes(spot.id)) continue;
-          spots.push({ id: spot.id, promote: true, demote: false });
-          seenIds.add(spot.id);
-        }
-        for (const spot of demotionSpots) {
-          if (seenIds.has(spot.id)) continue;
-          if (!initialSpotIds?.includes(spot.id)) continue;
-          spots.push({ id: spot.id, promote: false, demote: true });
-          seenIds.add(spot.id);
-        }
-        for (const spot of summary) {
-          if (seenIds.has(spot.id)) continue;
-          if (!initialSpotIds?.includes(spot.id)) continue;
-          spots.push({ id: spot.id, promote: false, demote: false });
-          seenIds.add(spot.id);
-        }
-        const durationMinutes = Math.ceil(
-          (new Date().getTime() - startTime.getTime()) / 1000 / 60,
-        );
-        document.dispatchEvent(
-          new CustomEvent("FinishedSpotPracticing", {
-            detail: {
-              spots,
-              durationMinutes,
-              csrf,
-              endpoint: `/library/pieces/${pieceid}/practice/random-single`,
-            },
-          }),
-        );
+  const submit = useCallback(() => {
+    if (pieceid && csrf && startTime) {
+      const seenIds = new Set();
+      const spots: { id: string; promote: boolean; demote: boolean }[] = [];
+      for (const spot of promotionSpots) {
+        if (seenIds.has(spot.id)) continue;
+        if (!initialSpotIds?.includes(spot.id)) continue;
+        spots.push({ id: spot.id, promote: true, demote: false });
+        seenIds.add(spot.id);
       }
-    },
-    [
-      promotionSpots,
-      demotionSpots,
-      pieceid,
-      csrf,
-      summary,
-      initialSpotIds,
-      startTime,
-    ],
-  );
+      for (const spot of demotionSpots) {
+        if (seenIds.has(spot.id)) continue;
+        if (!initialSpotIds?.includes(spot.id)) continue;
+        spots.push({ id: spot.id, promote: false, demote: true });
+        seenIds.add(spot.id);
+      }
+      for (const spot of summary) {
+        if (seenIds.has(spot.id)) continue;
+        if (!initialSpotIds?.includes(spot.id)) continue;
+        spots.push({ id: spot.id, promote: false, demote: false });
+        seenIds.add(spot.id);
+      }
+      const durationMinutes = Math.ceil(
+        (new Date().getTime() - startTime.getTime()) / 1000 / 60,
+      );
+      document.dispatchEvent(
+        new CustomEvent("FinishedSpotPracticing", {
+          detail: {
+            spots,
+            durationMinutes,
+            csrf,
+            endpoint: `/library/pieces/${pieceid}/practice/random-single`,
+          },
+        }),
+      );
+    }
+  }, [
+    promotionSpots,
+    demotionSpots,
+    pieceid,
+    csrf,
+    summary,
+    initialSpotIds,
+    startTime,
+  ]);
 
-  const close = useCallback(
-    function () {
-      globalThis.handleCloseModal();
+  const close = useCallback(() => {
+    globalThis.handleCloseModal();
+    if (dialogRef.current) {
       if (dialogRef.current) {
         dialogRef.current.classList.add("close");
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (dialogRef.current) {
-              dialogRef.current.classList.remove("close");
-              dialogRef.current.close();
-            }
-          });
-        });
+        setTimeout(() => {
+          dialogRef.current?.close();
+          dialogRef.current?.classList.remove("close");
+        }, 150);
       }
-    },
-    [dialogRef.current],
-  );
+    }
+  }, []);
 
-  const savePromotions = useCallback(
-    function () {
-      submit();
-      close();
-    },
-    [close, submit],
-  );
+  const savePromotions = useCallback(() => {
+    submit();
+    close();
+  }, [close, submit]);
 
-  const rejectPromotions = useCallback(
-    function () {
-      setPromotionSpots([]);
-      setDemotionSpots([]);
-      submit();
-      close();
-    },
-    [close, submit, setPromotionSpots, setDemotionSpots],
-  );
+  const rejectPromotions = useCallback(() => {
+    setPromotionSpots([]);
+    setDemotionSpots([]);
+    submit();
+    close();
+  }, [close, submit, setPromotionSpots, setDemotionSpots]);
 
   const removePromotionSpot = useCallback(
-    function (id: string) {
+    (id: string) => {
       setPromotionSpots((prev) => prev.filter((spot) => spot.id !== id));
     },
     [setPromotionSpots],
   );
 
   const removeDemotionSpot = useCallback(
-    function (id: string) {
+    (id: string) => {
       setDemotionSpots((prev) => prev.filter((spot) => spot.id !== id));
     },
-    [setPromotionSpots],
+    [setDemotionSpots],
   );
 
   /*
@@ -146,45 +132,49 @@ export default function Summary({
    * - always evict after three poors
    * - after day three, demote after three poors
    */
-  useEffect(
-    function () {
-      if (hasSetup) {
-        return;
+  useEffect(() => {
+    if (hasSetup) {
+      return;
+    }
+    setHasSetup(true);
+    const promote: PracticeSummaryItem[] = [];
+    const demote: PracticeSummaryItem[] = [];
+    for (const item of summary) {
+      if (!item.excellent || !item.poor || !item.fine || !item.day) continue;
+      if (
+        item.excellent > 2 &&
+        item.poor === 0 &&
+        item.fine < 2 &&
+        item.day > 5
+      ) {
+        promote.push(item);
+      } else if (
+        item.poor > 2 ||
+        (item.excellent === 0 && item.fine > 0 && item.poor > 0 && item.day > 6)
+      ) {
+        demote.push(item);
       }
-      setHasSetup(true);
-      const promote = [];
-      const demote = [];
-      for (const item of summary) {
-        if (
-          item.excellent > 2 &&
-          item.poor === 0 &&
-          item.fine < 2 &&
-          item.day > 4
-        ) {
-          promote.push(item);
-        } else if (
-          item.poor > 2 ||
-          (item.excellent === 0 &&
-            item.fine > 0 &&
-            item.poor > 0 &&
-            item.day > 6)
-        ) {
-          demote.push(item);
-        }
-      }
-      setPromotionSpots(promote);
-      setDemotionSpots(demote);
-      if (dialogRef.current && (promote.length > 0 || demote.length > 0)) {
-        globalThis.handleOpenModal();
-        dialogRef.current.showModal();
-      } else {
-        submit();
-      }
-    },
-    [dialogRef, setPromotionSpots, setDemotionSpots, summary, submit, hasSetup],
-  );
+    }
+    setPromotionSpots(promote);
+    setDemotionSpots(demote);
+    if (dialogRef.current && (promote.length > 0 || demote.length > 0)) {
+      globalThis.handleShowModal();
+      dialogRef.current.showModal();
+    } else {
+      submit();
+    }
+  }, [
+    dialogRef,
+    setPromotionSpots,
+    setDemotionSpots,
+    summary,
+    submit,
+    hasSetup,
+  ]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const [promotionListParent] = useAutoAnimate();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const [demotionListParent] = useAutoAnimate();
 
   // TODO: change save button conditionally
@@ -225,6 +215,7 @@ export default function Summary({
             {demotionSpots.length > 0 ? (
               <ul
                 className="flex list-none flex-col gap-2"
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 ref={demotionListParent}
               >
                 {demotionSpots.map((item) => (
@@ -259,6 +250,7 @@ export default function Summary({
             {promotionSpots.length > 0 ? (
               <ul
                 className="flex list-none flex-col gap-2"
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 ref={promotionListParent}
               >
                 {promotionSpots.map((item) => (
@@ -426,7 +418,7 @@ export function SummaryActions({
   practice,
   pieceid,
 }: {
-  planid: string;
+  planid?: string;
   pieceid?: string;
   setup: () => void;
   practice: () => void;
@@ -435,29 +427,28 @@ export function SummaryActions({
     return (
       <>
         {pieceid && <BackToPiece pieceid={pieceid} />}
-        <BackToPlan planid={planid} />
+        {planid && <BackToPlan planid={planid} />}
         <NextPlanItem planid={planid} />
       </>
     );
-  } else {
-    return (
-      <>
-        <WarningButton onClick={setup}>
-          <span
-            className="icon-[iconamoon--settings-thin] -ml-1 size-5"
-            aria-hidden="true"
-          />
-          Back to Setup
-        </WarningButton>
-        <VioletButton onClick={practice}>
-          <span
-            className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
-            aria-hidden="true"
-          />
-          Practice More
-        </VioletButton>
-        {pieceid && <BackToPiece pieceid={pieceid} />}
-      </>
-    );
   }
+  return (
+    <>
+      <WarningButton onClick={setup}>
+        <span
+          className="icon-[iconamoon--settings-thin] -ml-1 size-5"
+          aria-hidden="true"
+        />
+        Back to Setup
+      </WarningButton>
+      <VioletButton onClick={practice}>
+        <span
+          className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
+          aria-hidden="true"
+        />
+        Practice More
+      </VioletButton>
+      {pieceid && <BackToPiece pieceid={pieceid} />}
+    </>
+  );
 }

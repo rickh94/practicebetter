@@ -11,10 +11,11 @@ import { PracticeSpotDisplayWrapper } from "./practice/practice-spot-display";
 import "./input.css";
 import "htmx.org";
 import * as SimpleWebAuthnBrowser from "@simplewebauthn/browser";
-import {
+import type {
   PublicKeyCredentialRequestOptionsJSON,
   PublicKeyCredentialCreationOptionsJSON,
 } from "@simplewebauthn/typescript-types";
+import type { AlertVariant } from "./types";
 
 try {
   register(
@@ -134,7 +135,7 @@ export function showAlert(
   variant: AlertVariant,
   duration: number,
 ) {
-  const toastId = "toast-" + Math.random().toString(36).substring(2, 15);
+  const toastId = `toast-${Math.random().toString(36).substring(2, 15)}`;
   const icon = getIcon(variant);
 
   const toastHTML = `
@@ -162,7 +163,7 @@ export function showAlert(
   `;
   const toastDiv = document.createElement("div");
   toastDiv.className =
-    "overflow-hidden w-full max-w-sm bg-white rounded-xl ring-1 ring-black ring-opacity-5 shadow-lg transition-transform pointer-events-auto text-neutral-800 border-neutral-800 shadow-neutral-800/20";
+    "overflow-hidden w-full max-w-sm bg-white rounded-xl ring-1 ring-black ring-opacity-5 shadow-lg pointer-events-auto text-neutral-800 border-neutral-800 shadow-neutral-800/20";
   toastDiv.id = toastId;
   toastDiv.classList.add("transform", "ease-out", "duration-300", "transition");
   toastDiv.classList.add("-translate-y-2", "opacity-0");
@@ -196,38 +197,22 @@ export function closeAlert(id: string) {
   const toastDiv = document.getElementById(id);
   if (!toastDiv) return;
 
-  toastDiv.remove();
+  toastDiv.classList.add("transform", "ease-in", "duration-200", "transition");
+  toastDiv.classList.add("translate-y-0", "opacity-100");
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      toastDiv.classList.remove("translate-y-0", "opacity-100");
+      toastDiv.classList.add("-translate-y-2", "opacity-0");
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          toastDiv.remove();
+        });
+      }, 305);
+    });
+  });
 }
 
-function handleCloseAlertEvent(evt: CloseAlertEvent) {
-  if (!evt.detail) {
-    throw new Error("Invalid event received from server");
-  }
-  const { id } = evt.detail;
-  if (!id) {
-    throw new Error("Invalid event received from server");
-  }
-  closeAlert(id);
-}
-
-type CloseAlertEvent = Event & {
-  detail?: {
-    id?: string;
-  };
-};
-
-type ShowAlertEvent = Event & {
-  detail?: {
-    message?: string;
-    title?: string;
-    variant?: AlertVariant;
-    duration?: number;
-  };
-};
-
-type AlertVariant = "success" | "info" | "warning" | "error";
-
-function handleAlertEvent(evt: ShowAlertEvent) {
+globalThis.addEventListener("ShowAlert", (evt) => {
   if (!evt.detail) {
     throw new Error("Invalid event received from server");
   }
@@ -236,15 +221,18 @@ function handleAlertEvent(evt: ShowAlertEvent) {
     throw new Error("Invalid event received from server");
   }
   showAlert(message, title, variant, duration);
-}
-
-type FocusInputEvent = Event & {
-  detail?: {
-    id?: string;
-  };
-};
-
-function handleFocusInputEvent(evt: FocusInputEvent) {
+});
+globalThis.addEventListener("CloseAlert", (evt) => {
+  if (!evt.detail) {
+    throw new Error("Invalid event received from server");
+  }
+  const { id } = evt.detail;
+  if (!id) {
+    throw new Error("Invalid event received from server");
+  }
+  closeAlert(id);
+});
+globalThis.addEventListener("FocusInput", (evt) => {
   if (!evt.detail) {
     throw new Error("Invalid event received from server");
   }
@@ -258,37 +246,25 @@ function handleFocusInputEvent(evt: FocusInputEvent) {
   }
   foundInput.focus();
   foundInput.select();
-}
-// TODO: maybe switch this to a web component
-
-document.addEventListener("ShowAlert", handleAlertEvent);
-document.addEventListener("FocusInput", handleFocusInputEvent);
-document.addEventListener("CloseAlert", handleCloseAlertEvent);
-
-type HTMXConfirmEvent = Event & {
-  detail: {
-    question?: string;
-    issueRequest?: (response: boolean) => void;
-  };
-};
+});
 
 function closeModal(id: string) {
   globalThis.handleCloseModal();
   const modal = document.getElementById(id);
+  if (!(modal instanceof HTMLDialogElement)) {
+    return;
+  }
   if (!modal) return;
-  modal.classList.add("close");
 
-  requestAnimationFrame(function () {
-    requestAnimationFrame(function () {
-      modal.classList.remove("close");
-      // @ts-ignore
-      modal.close();
-      setTimeout(() => modal.remove(), 1000);
-    });
-  });
+  modal.classList.add("close");
+  setTimeout(() => {
+    modal.classList.remove("close");
+    modal.close();
+    setTimeout(() => modal.remove(), 1000);
+  }, 155);
 }
 
-document.addEventListener("htmx:confirm", function (e: HTMXConfirmEvent) {
+globalThis.addEventListener("htmx:confirm", (e) => {
   const { question, issueRequest } = e.detail;
   if (!question) {
     return;
@@ -303,7 +279,7 @@ document.addEventListener("htmx:confirm", function (e: HTMXConfirmEvent) {
 
   function onConfirm() {
     closeModal(id);
-    issueRequest(true);
+    issueRequest();
     document.removeEventListener(confirmevent, onConfirm);
     document.removeEventListener(cancelevent, onCancel);
   }
@@ -322,13 +298,13 @@ document.addEventListener("htmx:confirm", function (e: HTMXConfirmEvent) {
   dialog.setAttribute("confirmevent", confirmevent);
   dialog.setAttribute("cancelevent", cancelevent);
 
-  document.getElementById("main-content").appendChild(dialog);
+  document.getElementById("main-content")?.appendChild(dialog);
   (document.getElementById(id) as HTMLDialogElement).showModal();
   globalThis.handleShowModal();
 });
 
-document.addEventListener("htmx:afterSwap", (event: CustomEvent) => {
-  if (!(event.detail.target instanceof HTMLElement)) {
+globalThis.addEventListener("htmx:afterSwap", (event) => {
+  if (!event.detail?.target || !(event.detail.target instanceof HTMLElement)) {
     return;
   }
   if (event.detail?.target?.id === "main-content") {
@@ -337,7 +313,8 @@ document.addEventListener("htmx:afterSwap", (event: CustomEvent) => {
   }
 });
 
-document.addEventListener("htmx:beforeSwap", (event: CustomEvent) => {
+globalThis.addEventListener("htmx:beforeSwap", (event) => {
+  console.log("before swap");
   if (!(event.detail.target instanceof HTMLElement)) {
     return;
   }
@@ -365,9 +342,8 @@ globalThis.startPasskeyAuth = function (
         },
         body: JSON.stringify(attResp),
       })
-        .then((res) => res.json())
         .then((res) => {
-          if (res.status == "ok") {
+          if (res.ok) {
             window.location.href = nextLoc;
           } else {
             console.log(res);
@@ -439,9 +415,12 @@ globalThis.startPasskeyRegistration = function (
                 },
               }),
             );
-            document.getElementById("passkey-count").innerHTML = (
-              parseInt(document.getElementById("passkey-count").innerHTML) + 1
-            ).toString();
+            const passkeyCountEl = document.getElementById("passkey-count");
+            if (passkeyCountEl) {
+              passkeyCountEl.innerHTML = (
+                parseInt(passkeyCountEl.innerHTML, 10) + 1
+              ).toString();
+            }
           } else {
             console.log(res);
             document.dispatchEvent(
@@ -488,10 +467,9 @@ globalThis.startPasskeyRegistration = function (
 function handleShowModal() {
   document.body.style.position = "fixed;";
   document.body.style.top = `-${window.scrollY}px`;
-  document.body.style.height = "100vh";
+  document.body.style.height = "100dvh";
   document.body.style.overflowY = "hidden";
 }
-globalThis.handleOpenModal = handleShowModal;
 globalThis.handleShowModal = handleShowModal;
 
 globalThis.handleCloseModal = function () {
@@ -500,5 +478,5 @@ globalThis.handleCloseModal = function () {
   document.body.style.top = "";
   document.body.style.height = "";
   document.body.style.overflowY = "";
-  window.scrollTo(0, parseInt(scrollY || "0") * -1);
+  window.scrollTo(0, parseInt(scrollY || "0", 10) * -1);
 };

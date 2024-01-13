@@ -1,13 +1,13 @@
 import {
-  FormState,
-  UseFormSetValue,
-  UseFormWatch,
-  UseFormRegister,
+  type FormState,
+  type UseFormSetValue,
+  type UseFormWatch,
+  type UseFormRegister,
 } from "react-hook-form";
 import { cn, getStageDisplayName } from "../common";
 import { HappyButton } from "../ui/buttons";
 import { WarningLink } from "../ui/links";
-import { SpotFormData, spotStages } from "../validators";
+import { type SpotFormData, spotStages } from "../validators";
 import {
   AddAudioPrompt,
   AddImagePrompt,

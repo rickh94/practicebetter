@@ -11,51 +11,35 @@ export function ConfirmDialog({
   const ref = useRef<HTMLDialogElement>(null);
   const dialogid = useId();
 
-  const close = useCallback(
-    function () {
-      globalThis.handleCloseModal();
-      if (ref.current) {
-        ref.current.classList.add("close");
+  const close = useCallback(() => {
+    globalThis.handleCloseModal();
+    if (ref.current) {
+      ref.current?.classList.add("close");
+      setTimeout(() => {
+        ref.current?.classList.remove("close");
+        ref.current?.close();
+        ref.current?.remove();
+      }, 75);
+    }
+  }, [ref]);
 
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            ref.current.classList.remove("close");
-            // @ts-ignore
-            modal.close();
-            setTimeout(() => ref.current.remove(), 1000);
-          });
-        });
-      }
-    },
-    [ref],
-  );
-
-  const handleConfirm = useCallback(
-    function () {
-      onConfirm();
+  const handleConfirm = useCallback(() => {
+    onConfirm();
+    close();
+  }, [onConfirm, close]);
+  const handleCancel = useCallback(() => {
+    onCancel();
+    close();
+  }, [onCancel, close]);
+  useEffect(() => {
+    if (ref.current) {
+      globalThis.handleShowModal();
+      ref.current.showModal();
+    }
+    return function () {
       close();
-    },
-    [onConfirm, close],
-  );
-  const handleCancel = useCallback(
-    function () {
-      onCancel();
-      close();
-    },
-    [onCancel, close],
-  );
-  useEffect(
-    function () {
-      if (ref.current) {
-        globalThis.handleShowModal();
-        ref.current.showModal();
-      }
-      return function () {
-        close();
-      };
-    },
-    [ref.current],
-  );
+    };
+  }, [close]);
   return (
     <dialog
       id={dialogid}

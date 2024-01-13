@@ -1,5 +1,5 @@
 import { cn } from "../common";
-import { HTMLAttributes } from "preact/compat";
+import { type HTMLAttributes } from "preact/compat";
 
 type ButtonProps = HTMLAttributes<HTMLButtonElement> & {
   grow?: boolean;

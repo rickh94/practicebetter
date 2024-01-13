@@ -3,9 +3,11 @@ package server
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"math"
 	"net/http"
+	"practicebetter/internal/ck"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
 	"strconv"
@@ -22,9 +24,22 @@ func (s *Server) createPieceForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
+
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Variant:  "error",
+			Title:    "Invalid Data",
+			Message:  "Your submission was invalid",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	m, err := strconv.Atoi(r.Form.Get("measures"))
 	measures := sql.NullInt64{Int64: int64(m), Valid: true}
@@ -70,12 +85,14 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html")
 	htmx.PushURL(r, "/library/pieces/"+pieceID+"/spots/add")
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Successfully added piece: " + piece.Title,
 		Title:    "Piece Created!",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	// TODO: add spots message here for sure
@@ -85,7 +102,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 const piecesPerPage = 20
 
 func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	page := r.URL.Query().Get("page")
 	if page == "" {
 		page = "1"
@@ -100,6 +117,19 @@ func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 		Limit:  piecesPerPage,
 		Offset: int64((pageNum - 1) * piecesPerPage),
 	})
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not load pieces",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	totalPieces, err := queries.CountUserPieces(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
@@ -118,7 +148,7 @@ func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
 		PieceID: pieceID,
@@ -190,7 +220,7 @@ func getSpotBreakdown(piece []db.GetPieceByIDRow) librarypages.PieceSpotsBreakdo
 
 func (s *Server) pieceSpots(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
 		PieceID: pieceID,
@@ -279,7 +309,7 @@ func (s *Server) pieceSpots(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	err := queries.DeletePiece(r.Context(), db.DeletePieceParams{
 		ID:     pieceID,
@@ -296,6 +326,19 @@ func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 		Limit:  piecesPerPage,
 		Offset: 0,
 	})
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Something went wrong",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
+		return
+	}
 	totalPieces, err := queries.CountUserPieces(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
@@ -309,19 +352,21 @@ func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	htmx.PushURL(r, "/library/pieces")
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Successfully deleted piece",
 		Title:    "Piece Deleted!",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	w.WriteHeader(http.StatusOK)
 	s.HxRender(w, r, librarypages.PieceList(pieces, 1, totalPages), "Pieces")
 }
 
 func (s *Server) editPiece(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	piece, err := queries.GetPieceWithoutSpots(r.Context(), db.GetPieceWithoutSpotsParams{
 		ID:     pieceID,
@@ -340,17 +385,23 @@ func (s *Server) editPiece(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	user := r.Context().Value("user").(db.User)
-	tx, err := s.DB.Begin()
-	if err != nil {
-		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
+	user := r.Context().Value(ck.UserKey).(db.User)
+
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid data",
+			Title:    "Form Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
 		return
 	}
-	defer tx.Rollback()
 
 	queries := db.New(s.DB)
-	qtx := queries.WithTx(tx)
 
 	m, err := strconv.Atoi(r.Form.Get("measures"))
 	measures := sql.NullInt64{Int64: int64(m), Valid: true}
@@ -370,7 +421,7 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pieceID := chi.URLParam(r, "pieceID")
-	_, err = qtx.UpdatePiece(r.Context(), db.UpdatePieceParams{
+	_, err = queries.UpdatePiece(r.Context(), db.UpdatePieceParams{
 		ID:              pieceID,
 		Title:           r.Form.Get("title"),
 		Description:     sql.NullString{String: r.Form.Get("description"), Valid: true},
@@ -383,51 +434,54 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not update piece in the database",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Could not update piece", http.StatusInternalServerError)
 		return
 	}
 
-	piece, err := qtx.GetPieceByID(r.Context(), db.GetPieceByIDParams{
+	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
 		PieceID: pieceID,
 		UserID:  user.ID,
 	})
 	if err != nil || len(piece) == 0 {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching piece"))
+		http.Error(w, "Could not find matching piece", http.StatusNotFound)
 		return
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		log.Default().Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Failed to commit transaction"))
-		return
-	}
 	token := csrf.Token(r)
 
 	w.Header().Set("Content-Type", "text/html")
 	htmx.PushURL(r, "/library/pieces/"+pieceID)
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Successfully updated piece: " + piece[0].Title,
 		Title:    "Piece Updated!",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 
 	breakdown := getSpotBreakdown(piece)
 
 	w.WriteHeader(http.StatusCreated)
-	component := librarypages.SinglePiece(s, token, piece, breakdown)
-	component.Render(r.Context(), w)
-	return
+	if err := librarypages.SinglePiece(s, token, piece, breakdown).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	piece, err := queries.GetPieceWithRandomSpots(r.Context(), db.GetPieceWithRandomSpotsParams{
 		PieceID: pieceID,
@@ -512,7 +566,7 @@ type PieceSpotsPracticeInfo struct {
 }
 
 func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	pieceID := chi.URLParam(r, "pieceID")
 	var info PieceSpotsPracticeInfo
 	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
@@ -527,7 +581,11 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
 
 	qtx := queries.WithTx(tx)
 
@@ -581,16 +639,27 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 	}
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
-		http.Error(w, "Could not commit practice session", http.StatusInternalServerError)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not save your changes",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	if _, err := w.Write([]byte("OK")); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not write response", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) piecePracticeStartingPointPage(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	piece, err := queries.GetPieceWithoutSpots(r.Context(), db.GetPieceWithoutSpotsParams{
 		ID:     pieceID,
@@ -618,7 +687,7 @@ type PiecePracticeInfo struct {
 
 func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	var info PiecePracticeInfo
 	if err := json.NewDecoder(r.Body).Decode(&info); err != nil {
 		log.Default().Println(err)
@@ -632,9 +701,27 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
 
 	qtx := queries.WithTx(tx)
+	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
+	if ok && activePracticePlanID != "" {
+		if err := qtx.CompletePracticePlanPiece(r.Context(), db.CompletePracticePlanPieceParams{
+			UserID:       user.ID,
+			PlanID:       activePracticePlanID,
+			PieceID:      pieceID,
+			PracticeType: "starting_point",
+		}); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Could not complete practice plan piece", http.StatusInternalServerError)
+			return
+		}
+
+	}
 
 	if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
 		UserID:  user.ID,
@@ -644,19 +731,30 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 		http.Error(w, "Could not practice piece", http.StatusInternalServerError)
 		return
 	}
-
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
-		http.Error(w, "Could not commit practice session", http.StatusInternalServerError)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not save your changes",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	if _, err := w.Write([]byte("OK")); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not write response", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) piecePracticeRepeatPage(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	piece, err := queries.GetPieceWithIncompleteSpots(r.Context(), db.GetPieceWithIncompleteSpotsParams{
 		PieceID: pieceID,

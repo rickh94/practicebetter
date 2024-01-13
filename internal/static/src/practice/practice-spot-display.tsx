@@ -1,4 +1,4 @@
-import { BasicSpot } from "../validators";
+import { type BasicSpot } from "../validators";
 import {
   AudioPromptSummary,
   RemindersSummary,
@@ -6,6 +6,17 @@ import {
   ImagePromptSummary,
 } from "../ui/prompts";
 import { cn } from "../common";
+
+function getSpotNameTextSize(spot: BasicSpot) {
+  const length = spot?.name?.length ?? 20;
+  if (length < 10) {
+    return "text-4xl";
+  }
+  if (length < 20) {
+    return "text-3xl";
+  }
+  return "text-xl";
+}
 
 // TODO:: set some min heights so the layout doesn't shift around as much
 export function PracticeSpotDisplay({
@@ -40,13 +51,7 @@ export function PracticeSpotDisplay({
             {piecetitle}
           </h4>
         )}
-        <span
-          className={cn("text-pretty", {
-            "text-xl": spot.name.length > 20,
-            "text-3xl": spot.name.length <= 20 && spot.name.length > 10,
-            "text-4xl": spot.name.length <= 10,
-          })}
-        >
+        <span className={cn("text-pretty", getSpotNameTextSize(spot))}>
           {spot.name ?? "Something went wrong"}
         </span>
         {spot.measures && (
@@ -61,13 +66,13 @@ export function PracticeSpotDisplay({
             Prompts
           </h2>
           <RemindersSummary
-            text={spot.textPrompt}
-            spotid={spot.id}
+            text={spot.textPrompt ?? ""}
+            spotid={spot.id ?? undefined}
             pieceid={pieceid}
           />
-          <AudioPromptSummary url={spot.audioPromptUrl} />
-          <NotesPromptSummary notes={spot.notesPrompt} />
-          <ImagePromptSummary url={spot.imagePromptUrl} />
+          <AudioPromptSummary url={spot.audioPromptUrl ?? ""} />
+          <NotesPromptSummary notes={spot.notesPrompt ?? ""} />
+          <ImagePromptSummary url={spot.imagePromptUrl ?? ""} />
         </div>
       )}
     </div>
@@ -84,7 +89,7 @@ export function PracticeSpotDisplayWrapper({
   piecetitle?: string;
 }) {
   const spot = JSON.parse(spotjson) as BasicSpot;
-  if (!spot || !spot.name) {
+  if (!spot?.name) {
     return <>Missing Spot data</>;
   }
   return (

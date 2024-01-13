@@ -2,8 +2,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/preact";
 import { uniqueID } from "../common";
 import { AngryButton, BasicButton } from "../ui/buttons";
 import { useCallback, useRef } from "preact/compat";
-import { StateUpdater } from "preact/hooks";
-import { BasicSpot } from "../validators";
+import { type StateUpdater } from "preact/hooks";
+import { type BasicSpot } from "../validators";
 
 export function CreateSpots({
   setSpots,
@@ -14,47 +14,44 @@ export function CreateSpots({
 }) {
   const spotNameRef = useRef<HTMLInputElement>(null);
   const numSpotsRef = useRef<HTMLInputElement>(null);
-  const [parent] = useAutoAnimate();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const [parent] = useAutoAnimate<HTMLUListElement>();
 
-  const onAddSpot = useCallback(
-    function () {
-      if (!spotNameRef.current) return;
-      const name = spotNameRef.current.value;
-      setSpots((prev) => [...prev, { name, id: uniqueID(), stage: "random" }]);
-      spotNameRef.current.value = "";
-    },
-    [setSpots, spotNameRef],
-  );
+  const onAddSpot = useCallback(() => {
+    if (!spotNameRef.current) return;
+    const name = spotNameRef.current.value;
+    setSpots((prev) => [
+      ...prev,
+      { name, id: uniqueID(), stage: "random", measures: "" },
+    ]);
+    spotNameRef.current.value = "";
+  }, [setSpots, spotNameRef]);
 
-  const generateSomeSpots = useCallback(
-    function () {
-      if (!numSpotsRef.current) return;
-      const numSpots = parseInt(numSpotsRef.current?.value);
-      const tmpSpots: BasicSpot[] = [];
-      for (let i = spots.length; i < numSpots + spots.length; i++) {
-        tmpSpots.push({
-          name: `Spot #${i + 1}`,
-          id: uniqueID(),
-        });
-      }
-      setSpots((prev) => [...prev, ...tmpSpots]);
-    },
-    [setSpots, spots, numSpotsRef],
-  );
+  const generateSomeSpots = useCallback(() => {
+    if (!numSpotsRef.current) return;
+    const numSpots = parseInt(numSpotsRef.current?.value, 10);
+    const tmpSpots: BasicSpot[] = [];
+    for (let i = spots.length; i < numSpots + spots.length; i++) {
+      tmpSpots.push({
+        name: `Spot #${i + 1}`,
+        id: uniqueID(),
+        stage: "random",
+        measures: "",
+      });
+    }
+    setSpots((prev) => [...prev, ...tmpSpots]);
+  }, [setSpots, spots, numSpotsRef]);
 
   const deleteSpot = useCallback(
-    function (spotId: string) {
+    (spotId: string) => {
       setSpots((prev) => prev.filter((spot) => spot.id !== spotId));
     },
     [setSpots],
   );
 
-  const clearSpots = useCallback(
-    function () {
-      setSpots([]);
-    },
-    [setSpots],
-  );
+  const clearSpots = useCallback(() => {
+    setSpots([]);
+  }, [setSpots]);
 
   return (
     <div className="grid w-full grid-cols-1 gap-2 md:grid-cols-2">
@@ -80,14 +77,18 @@ export function CreateSpots({
           <p className="text-sm text-neutral-700">Add some spots below</p>
         )}
       </div>
-      <ul className="col-span-full flex w-full flex-wrap gap-3" ref={parent}>
+      <ul
+        className="col-span-full flex w-full flex-wrap gap-3"
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        ref={parent}
+      >
         {spots.map((spot) => (
           <li key={spot.id} className="flex h-10 items-center rounded-xl p-0">
             <div className="whitespace-nowrap rounded-l-xl border-neutral-800 bg-neutral-700/10 py-2 pl-3 pr-2">
               {spot.name}
             </div>
             <button
-              onClick={() => deleteSpot(spot.id)}
+              onClick={() => spot.id && deleteSpot(spot.id)}
               className="flex h-10 items-center rounded-r-xl border-red-800 bg-red-700/10 px-3 text-red-800 hover:bg-red-500/10 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-800 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-100"
             >
               <span className="sr-only">Delete {spot.name}</span>

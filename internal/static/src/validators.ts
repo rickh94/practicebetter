@@ -6,7 +6,9 @@ const optionalPosInt = yup
   .integer()
   .optional()
   .nullable()
-  .transform((_, val) => (val === Number(val) ? val : null));
+  .transform((_, val: number | undefined | null) =>
+    val === Number(val) ? val : null,
+  );
 
 export const spotStages = [
   "repeat",

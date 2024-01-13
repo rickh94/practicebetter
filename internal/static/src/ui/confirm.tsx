@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "preact/hooks";
+import { useCallback } from "preact/hooks";
 import { SkyButton, WarningButton } from "./buttons";
 
 export function ConfirmDialog({
@@ -12,18 +12,12 @@ export function ConfirmDialog({
   confirmevent: string;
   cancelevent: string;
 }) {
-  const onConfirm = useCallback(
-    function () {
-      document.dispatchEvent(new CustomEvent(confirmevent));
-    },
-    [confirmevent],
-  );
-  const onCancel = useCallback(
-    function () {
-      document.dispatchEvent(new CustomEvent(cancelevent));
-    },
-    [cancelevent],
-  );
+  const onConfirm = useCallback(() => {
+    document.dispatchEvent(new CustomEvent(confirmevent));
+  }, [confirmevent]);
+  const onCancel = useCallback(() => {
+    document.dispatchEvent(new CustomEvent(cancelevent));
+  }, [cancelevent]);
 
   return (
     <dialog

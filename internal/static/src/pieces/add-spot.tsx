@@ -1,19 +1,18 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
-import { SpotFormData, spotFormData } from "../validators";
+import { type SpotFormData, spotFormData } from "../validators";
 import SpotFormFields from "./spot-form";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import * as htmx from "htmx.org";
+import { type HTMXRequestEvent } from "../types";
 
 // TODO: remove spot idx
 export function AddSpotForm({
   pieceid,
   csrf,
-  initialspotcount,
 }: {
   pieceid: string;
   csrf: string;
-  initialspotcount: string;
 }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const {
@@ -61,52 +60,53 @@ export function AddSpotForm({
     });
     setIsUpdating(false);
     const spotsCountElement = document.getElementById("spot-count");
-    const spotsCount = parseInt(spotsCountElement.dataset.spotCount ?? "0");
+    if (!spotsCountElement) {
+      return;
+    }
+    const spotsCount = parseInt(spotsCountElement.dataset.spotCount ?? "0", 10);
     if (isNaN(spotsCount)) {
-      document.getElementById("spot-count").textContent = "(error)";
+      spotsCountElement.textContent = "(error)";
     } else {
       spotsCountElement.textContent = `(${spotsCount + 1})`;
       spotsCountElement.dataset.spotCount = `${spotsCount + 1}`;
     }
   }
 
-  const onBeforeUnload = useCallback(function (e: BeforeUnloadEvent) {
+  const onBeforeUnload = useCallback((e: BeforeUnloadEvent) => {
     e.preventDefault();
     e.returnValue = true;
   }, []);
 
-  const onBeforeHtmxRequest = useCallback(function (e: CustomEvent) {
-    if (
-      e.detail.requestConfig.verb === "post" &&
-      e.detail.requestConfig.path === `/library/pieces/${pieceid}/spots`
-    ) {
-      return;
-    }
-    if (confirm("You have unsaved changes. Are you sure you want to leave?")) {
-      return;
-    }
-    e.preventDefault();
-  }, []);
+  const onBeforeHtmxRequest = useCallback(
+    (e: HTMXRequestEvent) => {
+      if (
+        e.detail.requestConfig.verb === "post" &&
+        e.detail.requestConfig.path === `/library/pieces/${pieceid}/spots`
+      ) {
+        return;
+      }
+      if (
+        confirm("You have unsaved changes. Are you sure you want to leave?")
+      ) {
+        return;
+      }
+      e.preventDefault();
+    },
+    [pieceid],
+  );
 
-  useEffect(
-    function () {
-      if (isDirty && Object.keys(dirtyFields).length > 0) {
-        window.addEventListener("beforeunload", onBeforeUnload);
-        document.addEventListener("htmx:beforeRequest", onBeforeHtmxRequest);
-        return function () {
-          window.removeEventListener("beforeunload", onBeforeUnload);
-          document.removeEventListener(
-            "htmx:beforeRequest",
-            onBeforeHtmxRequest,
-          );
-        };
-      } else {
+  useEffect(() => {
+    if (isDirty && Object.keys(dirtyFields).length > 0) {
+      window.addEventListener("beforeunload", onBeforeUnload);
+      document.addEventListener("htmx:beforeRequest", onBeforeHtmxRequest);
+      return function () {
         window.removeEventListener("beforeunload", onBeforeUnload);
         document.removeEventListener("htmx:beforeRequest", onBeforeHtmxRequest);
-      }
-    },
-    [isDirty, Object.keys(dirtyFields)],
-  );
+      };
+    }
+    window.removeEventListener("beforeunload", onBeforeUnload);
+    document.removeEventListener("htmx:beforeRequest", onBeforeHtmxRequest);
+  }, [isDirty, onBeforeHtmxRequest, onBeforeUnload, dirtyFields]);
 
   return (
     <form

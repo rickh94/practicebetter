@@ -3,8 +3,10 @@ package server
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"practicebetter/internal/ck"
 	"practicebetter/internal/components"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
@@ -20,7 +22,7 @@ import (
 func (s *Server) singleSpot(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 
 	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
@@ -31,8 +33,15 @@ func (s *Server) singleSpot(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching spot"))
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not find matching spot",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
@@ -43,7 +52,7 @@ func (s *Server) singleSpot(w http.ResponseWriter, r *http.Request) {
 func (s *Server) addSpotPage(w http.ResponseWriter, r *http.Request) {
 	token := csrf.Token(r)
 	pieceID := chi.URLParam(r, "pieceID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	spots, err := queries.ListPieceSpots(r.Context(), db.ListPieceSpotsParams{
 		PieceID: pieceID,
@@ -74,22 +83,36 @@ func (s *Server) addSpotPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	pieceID := chi.URLParam(r, "pieceID")
 	queries := db.New(s.DB)
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not add spot",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Something went wrong", http.StatusBadRequest)
+		return
+	}
 	currentTempo := sql.NullInt64{Valid: false}
 	currentTempoVal := r.FormValue("currentTempo")
 	if currentTempoVal != "" && currentTempoVal != "null" {
 		currentTempoInt, err := strconv.Atoi(currentTempoVal)
 		if err != nil {
 			log.Default().Println(err)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Invalid Current Tempo",
 				Title:    "Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			http.Error(w, "Invalid current tempo", http.StatusBadRequest)
 			return
 		}
@@ -117,30 +140,55 @@ func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not add spot: " + err.Error(),
-			Title:    "Error",
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not add spot",
+			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Databse Error", http.StatusBadRequest)
 		return
 	}
 	outMeasures := librarypages.SpotMeasuresOrEmpty(spot.Measures)
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Added Spot: " + spot.Name,
 		Title:    "Spot Added!",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	w.WriteHeader(http.StatusCreated)
-	components.SmallSpotCard(spot.PieceID, spot.ID, spot.Name, outMeasures, spot.Stage).Render(r.Context(), w)
+	if err := components.SmallSpotCard(spot.PieceID, spot.ID, spot.Name, outMeasures, spot.Stage).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
+}
+
+func makeSpotFormDataFromSpot(row db.GetSpotRow) SpotFormData {
+	var spot SpotFormData
+	spot.ID = &row.ID
+	spot.Name = row.Name
+	spot.Stage = row.Stage
+	spot.TextPrompt = row.TextPrompt
+	spot.AudioPromptUrl = row.AudioPromptUrl
+	spot.ImagePromptUrl = row.ImagePromptUrl
+	spot.NotesPrompt = row.NotesPrompt
+	if row.CurrentTempo.Valid && row.CurrentTempo.Int64 > 0 {
+		spot.CurrentTempo = &row.CurrentTempo.Int64
+	}
+	if row.Measures.Valid {
+		spot.Measures = &row.Measures.String
+	}
+	return spot
 }
 
 func (s *Server) editSpot(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 
 	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
@@ -151,8 +199,15 @@ func (s *Server) editSpot(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching spot"))
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not find matching spot",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 	spotData := makeSpotFormDataFromSpot(spot)
@@ -170,21 +225,35 @@ func (s *Server) editSpot(w http.ResponseWriter, r *http.Request) {
 func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid Form",
+			Title:    "Invalid Input",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	currentTempo := sql.NullInt64{Valid: false}
 	currentTempoVal := r.FormValue("currentTempo")
 	if currentTempoVal != "" && currentTempoVal != "null" {
 		currentTempoInt, err := strconv.Atoi(currentTempoVal)
 		if err != nil {
 			log.Default().Println(err)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Invalid Current Tempo",
 				Title:    "Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			http.Error(w, "Invalid current tempo", http.StatusBadRequest)
 			return
 		}
@@ -205,12 +274,14 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not update spot: " + err.Error(),
 			Title:    "Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -235,13 +306,15 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not update spot: " + err.Error(),
-			Title:    "Error",
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not update spot.",
+			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusBadRequest)
 		return
 	}
 	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
@@ -256,12 +329,14 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	htmx.PushURL(r, "/library/pieces/"+pieceID+"/spots/"+spotID)
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "This spot has been updated with your new values",
 		Title:    "Spot Updated!",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	token := csrf.Token(r)
 	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token), spot.Name+" - "+spot.PieceTitle)
 }
@@ -269,7 +344,7 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 	err := queries.DeleteSpot(r.Context(), db.DeleteSpotParams{
 		UserID:  user.ID,
@@ -278,22 +353,26 @@ func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not delete spot: " + err.Error(),
-			Title:    "Error",
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not delete spot.",
+			Title:    "Delete Failed",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Delete Failed", http.StatusBadRequest)
 		return
 	}
 	htmx.PushURL(r, "/library/pieces/"+pieceID)
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "This spot has been deleted",
 		Title:    "Spot Deleted",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	// TODO: refactor to get and render piece function
 	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
 		PieceID: pieceID,
@@ -308,13 +387,16 @@ func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
 
 	breakdown := getSpotBreakdown(piece)
 	token := csrf.Token(r)
-	librarypages.SinglePiece(s, token, piece, breakdown).Render(r.Context(), w)
+	if err := librarypages.SinglePiece(s, token, piece, breakdown).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 
 	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
@@ -325,8 +407,15 @@ func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching spot"))
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not find matching spot",
+			Title:    "Not Found",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 	var measures *string
@@ -350,6 +439,19 @@ func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	spotJson, err := json.Marshal(spotData)
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get spot: " + err.Error(),
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	token := csrf.Token(r)
 	s.HxRender(w, r, librarypages.SpotPracticeRepeatPage(s, spot, token, string(spotJson)), spot.Name+" - "+spot.PieceTitle)
@@ -364,7 +466,7 @@ type RepeatPracticeInfo struct {
 func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 
 	queries := db.New(s.DB)
 	tx, err := s.DB.Begin()
@@ -372,7 +474,11 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
 
 	qtx := queries.WithTx(tx)
 
@@ -429,13 +535,15 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	if _, err := w.Write([]byte("OK")); err != nil {
+		log.Default().Println(err)
+	}
 }
 
 func (s *Server) getEditRemindersForm(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 
 	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
@@ -446,19 +554,29 @@ func (s *Server) getEditRemindersForm(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching spot"))
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not find matching spot",
+			Title:    "Not Found",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
 	token := csrf.Token(r)
-	librarypages.EditRemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, token, "").Render(r.Context(), w)
+	if err := librarypages.EditRemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, token, "").Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) updateReminders(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 
 	newText := r.FormValue("text")
@@ -470,28 +588,37 @@ func (s *Server) updateReminders(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Default().Println(err)
-		htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not update reminders",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		librarypages.EditRemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, csrf.Token(r), "Failed to Update").Render(r.Context(), w)
-		w.WriteHeader(http.StatusInternalServerError)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		if err := librarypages.EditRemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, csrf.Token(r), "Failed to Update").Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 
-	htmx.Trigger(r, "UpdateSpotRemindersField", map[string]string{
+	if err := htmx.Trigger(r, "UpdateSpotRemindersField", map[string]string{
 		"id":   spot.ID,
 		"text": newText,
-	})
-	librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w)
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	if err := librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) getReminders(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	queries := db.New(s.DB)
 
 	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
@@ -502,16 +629,26 @@ func (s *Server) getReminders(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Could not find matching spot"))
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not find matching spot",
+			Title:    "Not Found",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
-	librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w)
+	if err := librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) getPracticeSpotDisplay(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	spotID := chi.URLParam(r, "spotID")
 	pieceID := chi.URLParam(r, "pieceID")
 	queries := db.New(s.DB)
@@ -524,28 +661,35 @@ func (s *Server) getPracticeSpotDisplay(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		// TODO: create a pretty 404 handler
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not find matching spot",
-			Title:    "Error",
+			Title:    "Not Found",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		w.WriteHeader(http.StatusNotFound)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
 	spotJSON, err := json.Marshal(spot)
 	if err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Invalid Spot",
 			Title:    "Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	librarypages.PracticeSpotDisplay(string(spotJSON), spot.PieceID, spot.PieceTitle).Render(r.Context(), w)
+	if err := librarypages.PracticeSpotDisplay(string(spotJSON), spot.PieceID, spot.PieceTitle).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }

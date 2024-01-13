@@ -1,11 +1,12 @@
 package components
 
 import "practicebetter/internal/db"
+import "practicebetter/internal/ck"
 
 const navClasses = "flex text-base gap-2 items-center py-4 px-6 h-14 font-semibold rounded-xl transition-all duration-200 bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable"
 
 templ HomeOrInternalNav() {
-	if u, ok := ctx.Value("user").(db.User); ok && u.ID != "" {
+	if u, ok := ctx.Value(ck.UserKey).(db.User); ok && u.ID != "" {
 		@InternalNav()
 	} else {
 		@BackHomeLink()
@@ -47,7 +48,7 @@ templ LoginLink() {
 }
 
 func GetActivePracticePlan(ctx context.Context) string {
-	return ctx.Value("activePracticePlanID").(string)
+	return ctx.Value(ck.ActivePlanKey).(string)
 }
 
 templ LibraryLink() {
@@ -58,7 +59,7 @@ templ LibraryLink() {
 }
 
 func getCurrentPath(ctx context.Context) string {
-	return ctx.Value("currentPath").(string)
+	return ctx.Value(ck.CurrentPathKey).(string)
 }
 
 templ MaybePracticePlan() {

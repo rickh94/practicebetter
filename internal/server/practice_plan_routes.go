@@ -3,11 +3,14 @@ package server
 import (
 	"cmp"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"math"
 	"math/rand"
 	"net/http"
+	"practicebetter/internal/ck"
 	"practicebetter/internal/components"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/planpages"
@@ -22,7 +25,7 @@ import (
 )
 
 func (s *Server) createPracticePlanForm(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	token := csrf.Token(r)
 	queries := db.New(s.DB)
 
@@ -42,7 +45,7 @@ const (
 	LIGHT_MAX_INFREQUENT_SPOTS  = 7
 	MEDIUM_MAX_INFREQUENT_SPOTS = 14
 	HEAVY_MAX_INFREQUENT_SPOTS  = 20
-	LIGHT_MAX_INTERLEAVE_SPOTS  = 8
+	LIGHT_MAX_INTERLEAVE_SPOTS  = 10
 	MEDIUM_MAX_INTERLEAVE_SPOTS = 12
 	HEAVY_MAX_INTERLEAVE_SPOTS  = 20
 )
@@ -52,9 +55,93 @@ type PotentialInfrequentSpot struct {
 	TimeSince time.Duration
 }
 
+func (s *Server) fixSpotSkipDays(ctx context.Context, spotID string, userID string) {
+	queries := db.New(s.DB)
+	if err := queries.UpdateSpotSkipDays(ctx, db.UpdateSpotSkipDaysParams{
+		SkipDays: 1,
+		UserID:   userID,
+		SpotID:   spotID,
+	}); err != nil {
+		log.Default().Println("Error fixing spot skip days:", err)
+	}
+}
+
+type PlanPieceInfo struct {
+	NewSpotIDs               []string
+	ExtraRepeatSpotIDs       []string
+	InterleaveSpotIDs        []string
+	PotentialInfrequentSpots []PotentialInfrequentSpot
+	RandomSpotCount          int
+	ExtraRepeatSpotCount     int
+	CompletedSpotCount       int
+}
+
+func (s *Server) generatePiecePlanInfo(ctx context.Context, rows []db.GetPieceForPlanRow, failedNewSpotIDs map[string]struct{}, userID string) PlanPieceInfo {
+	pieceInfo := PlanPieceInfo{
+		NewSpotIDs:               make([]string, 0, len(rows)/2),
+		ExtraRepeatSpotIDs:       make([]string, 0, len(rows)/4),
+		InterleaveSpotIDs:        make([]string, 0, len(rows)/4),
+		PotentialInfrequentSpots: make([]PotentialInfrequentSpot, 0, len(rows)/4),
+		RandomSpotCount:          0,
+		ExtraRepeatSpotCount:     0,
+		CompletedSpotCount:       0,
+	}
+	for _, row := range rows {
+		if !row.SpotStage.Valid || !row.SpotID.Valid {
+			continue
+		}
+		switch row.SpotStage.String {
+		case "repeat":
+			// we're going to combine the lists later, so make need to prevent duplicates
+			if _, ok := failedNewSpotIDs[row.SpotID.String]; !ok {
+				pieceInfo.NewSpotIDs = append(pieceInfo.NewSpotIDs, row.SpotID.String)
+			}
+		case "extra_repeat":
+			pieceInfo.ExtraRepeatSpotIDs = append(pieceInfo.ExtraRepeatSpotIDs, row.SpotID.String)
+			pieceInfo.ExtraRepeatSpotCount++
+		case "interleave":
+			pieceInfo.InterleaveSpotIDs = append(pieceInfo.InterleaveSpotIDs, row.SpotID.String)
+		case "interleave_days":
+			if !row.SpotSkipDays.Valid {
+				go s.fixSpotSkipDays(ctx, row.SpotID.String, userID)
+			}
+
+			// we want to make sure that it has been more than the skip days value since the last time
+			// this spot was practiced. I've made the offset 12 hours as a reasonable way to avoid adding
+			// an extra day because someone practiced in the evening one day and in the morning the next
+			if !row.SpotLastPracticed.Valid ||
+				time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > time.Duration(row.SpotSkipDays.Int64)*24*time.Hour+12*time.Hour {
+				pieceInfo.PotentialInfrequentSpots = append(pieceInfo.PotentialInfrequentSpots, PotentialInfrequentSpot{
+					ID:        row.SpotID.String,
+					TimeSince: time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)),
+				})
+			}
+		case "random":
+			pieceInfo.RandomSpotCount++
+		case "completed":
+			pieceInfo.CompletedSpotCount++
+		default:
+			continue
+		}
+	}
+	return pieceInfo
+}
+
 func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
-	r.ParseForm()
+	user := r.Context().Value(ck.UserKey).(db.User)
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid information in form",
+			Title:    "Invalid Plan",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Invalid Form Data", http.StatusBadRequest)
+		return
+	}
 	pieceIDs := r.Form["pieces"]
 	tx, err := s.DB.Begin()
 	if err != nil {
@@ -62,7 +149,11 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println("Error in createPractciePlan rollback:", err)
+		}
+	}()
 	queries := db.New(s.DB)
 	qtx := queries.WithTx(tx)
 
@@ -76,7 +167,6 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Default().Println(err)
 	} else {
-		log.Default().Println("Found", len(failedNewSpots), "failed new spots")
 		for _, spot := range failedNewSpots {
 			failedNewSpotIDs[spot.SpotID] = struct{}{}
 		}
@@ -94,7 +184,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	maybeNewSpotIDs := make([]string, 0, len(pieceIDs)*10)
-	maybeInfrequentSpots := make([]PotentialInfrequentSpot, 0, len(pieceIDs)*10)
+	potentialInfrequentSpots := make([]PotentialInfrequentSpot, 0, len(pieceIDs)*10)
 	extraRepeatSpotIDs := make([]string, 0, len(pieceIDs)*10)
 	interleaveSpotIDs := make([]string, 0, len(pieceIDs)*10)
 	randomSpotPieceIDs := make([]string, 0, len(pieceIDs))
@@ -111,76 +201,24 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		pieceNewSpotIDs := make([]string, 0, len(pieceRows)/2)
-		pieceRandomSpotCount := 0
-		pieceExtraRepeatSpotCount := 0
-		pieceCompletedSpotCount := 0
+		pieceInfo := s.generatePiecePlanInfo(r.Context(), pieceRows, failedNewSpotIDs, user.ID)
 
-		for _, row := range pieceRows {
-			if !row.SpotStage.Valid || !row.SpotID.Valid {
-				continue
-			}
-			switch row.SpotStage.String {
-			case "repeat":
-				// we're going to combine the lists later, so make need to prevent duplicates
-				if _, ok := failedNewSpotIDs[row.SpotID.String]; !ok {
-					pieceNewSpotIDs = append(pieceNewSpotIDs, row.SpotID.String)
-				}
-			case "extra_repeat":
-				extraRepeatSpotIDs = append(extraRepeatSpotIDs, row.SpotID.String)
-				pieceExtraRepeatSpotCount++
-			case "interleave":
-				interleaveSpotIDs = append(interleaveSpotIDs, row.SpotID.String)
-			case "interleave_days":
-				if !row.SpotSkipDays.Valid {
-					err := qtx.UpdateSpotSkipDays(r.Context(), db.UpdateSpotSkipDaysParams{
-						SkipDays: 1,
-						SpotID:   row.SpotID.String,
-						UserID:   user.ID,
-					})
-					if err != nil {
-						log.Default().Printf("Database error: %v\n", err)
-						htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-							Message:  "Could not update invalid interleave days spot",
-							Title:    "Failed to update",
-							Variant:  "error",
-							Duration: 3000,
-						})
-						return
-					}
-				}
-
-				// we want to make sure that it has been more than the skip days value since the last time
-				// this spot was practiced. I've made the offset 12 hours as a reasonable way to avoid adding
-				// an extra day because someone practiced in the evening one day and in the morning the next
-				if !row.SpotLastPracticed.Valid ||
-					time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > time.Duration(row.SpotSkipDays.Int64)*24*time.Hour+12*time.Hour {
-					maybeInfrequentSpots = append(maybeInfrequentSpots, PotentialInfrequentSpot{
-						ID:        row.SpotID.String,
-						TimeSince: time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)),
-					})
-				}
-			case "random":
-				pieceRandomSpotCount++
-			case "completed":
-				pieceCompletedSpotCount++
-			default:
-				continue
-			}
-		}
+		extraRepeatSpotIDs = append(extraRepeatSpotIDs, pieceInfo.ExtraRepeatSpotIDs...)
+		interleaveSpotIDs = append(interleaveSpotIDs, pieceInfo.InterleaveSpotIDs...)
+		potentialInfrequentSpots = append(potentialInfrequentSpots, pieceInfo.PotentialInfrequentSpots...)
 
 		// Only new spots if there aren't too many extra repeat/random spots.
-		if pieceExtraRepeatSpotCount+pieceRandomSpotCount < 25 {
-			maybeNewSpotIDs = append(maybeNewSpotIDs, pieceNewSpotIDs...)
+		if pieceInfo.ExtraRepeatSpotCount+pieceInfo.RandomSpotCount < 25 {
+			maybeNewSpotIDs = append(maybeNewSpotIDs, pieceInfo.NewSpotIDs...)
 		}
 
 		if r.FormValue("practice_random_single") == "on" &&
-			pieceRandomSpotCount > 2 {
+			pieceInfo.RandomSpotCount > 2 {
 			randomSpotPieceIDs = append(randomSpotPieceIDs, pieceID)
 		}
 
 		if r.FormValue("practice_starting_point") == "on" &&
-			pieceCompletedSpotCount > 5 {
+			pieceInfo.CompletedSpotCount > 5 {
 			startingPointPieceIDs = append(startingPointPieceIDs, pieceID)
 		}
 	}
@@ -215,13 +253,15 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			Idx:            int64(i),
 		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Could not add extra repeat spot",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
@@ -241,24 +281,26 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			Idx:            int64(i),
 		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Could not add interleave spot",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 
 	// prioritize infrequent spots with the spots that are the lest recently practiced first
-	slices.SortFunc(maybeInfrequentSpots, func(a, b PotentialInfrequentSpot) int {
+	slices.SortFunc(potentialInfrequentSpots, func(a, b PotentialInfrequentSpot) int {
 		return cmp.Compare(b.TimeSince, a.TimeSince)
 	})
 
 	// infrequent spots
-	for i, spot := range maybeInfrequentSpots {
+	for i, spot := range potentialInfrequentSpots {
 		if i >= maxInfrequentSpots {
 			break
 		}
@@ -269,12 +311,14 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			Idx:            int64(i),
 		})
 		if err != nil {
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Failed to create Spot",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			http.Error(w, "Database Error", http.StatusInternalServerError)
 			return
 		}
@@ -302,12 +346,14 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			log.Default().Println(err)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Failed to add spot",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -327,12 +373,14 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Could not add random spot piece",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			return
 		}
 	}
@@ -349,12 +397,14 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Could not add random starting point piece",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			return
 		}
 	}
@@ -365,7 +415,19 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.SetActivePracticePlanID(r.Context(), newPlan.ID, user.ID)
+	if err := s.SetActivePracticePlanID(r.Context(), newPlan.ID, user.ID); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not set active plan",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	// update user (with newly added practice plan id) and practice plan manually before continuing
 	user, err = queries.GetUserByID(r.Context(), user.ID)
 	if err != nil {
@@ -375,31 +437,33 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := s.SM.RenewToken(r.Context()); err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not renew session",
 			Title:    "Failed to renew",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if r.FormValue("customize") == "on" {
 		htmx.PushURL(r, "/library/plans/"+newPlan.ID+"/edit")
-		ctx := context.WithValue(r.Context(), "activePracticePlanID", newPlan.ID)
-		ctx = context.WithValue(ctx, "user", user)
+		ctx := context.WithValue(r.Context(), ck.ActivePlanKey, newPlan.ID)
+		ctx = context.WithValue(ctx, ck.UserKey, user)
 		s.renderEditPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
 	} else {
 		htmx.PushURL(r, "/library/plans/"+newPlan.ID)
-		ctx := context.WithValue(r.Context(), "activePracticePlanID", newPlan.ID)
-		ctx = context.WithValue(ctx, "user", user)
+		ctx := context.WithValue(r.Context(), ck.ActivePlanKey, newPlan.ID)
+		ctx = context.WithValue(ctx, ck.UserKey, user)
 		s.renderPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
 	}
 }
 
 func (s *Server) singlePracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 
 	s.renderPracticePlanPage(w, r, planID, user.ID)
@@ -552,11 +616,11 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 	}
 
 	token := csrf.Token(r)
-	s.HxRender(w, r, planpages.PracticePlanPage(planData, token), "Practice Plan")
+	s.HxRender(w, r, planpages.PracticePlanPage(s, planData, token), "Practice Plan")
 }
 
 func (s *Server) editPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 
 	s.renderEditPracticePlanPage(w, r, planID, user.ID)
@@ -703,15 +767,13 @@ func (s *Server) renderEditPracticePlanPage(w http.ResponseWriter, r *http.Reque
 	s.HxRender(w, r, planpages.EditPracticePlanPage(planData, token), "Customize Practice Plan")
 }
 
-/*
-after day 4 it can increase
-excellent doubles until it reaches 7, on day 25 it can be completed
-interleave days spot list should be randomized
-
-*/
+type UpdatePlanProgressEvent struct {
+	Completed int `json:"completed"`
+	Total     int `json:"total"`
+}
 
 func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok || planID != activePlanID {
@@ -724,7 +786,11 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
 	queries := db.New(s.DB)
 	qtx := queries.WithTx(tx)
 
@@ -764,13 +830,15 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 
 			if err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not fix interleave days spot",
 					Title:    "Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Database Error", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -785,13 +853,15 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 			})
 			if err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not fix interleave days spot",
-					Title:    "Error",
+					Title:    "Database Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Database Error", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -809,13 +879,15 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 			})
 			if err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not update spot",
-					Title:    "Error",
+					Title:    "Database Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Database Error", http.StatusInternalServerError)
 				return
 			}
 			// poor quality resets days to 1 or demotes immediately
@@ -827,13 +899,15 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 				})
 				if err != nil {
 					log.Default().Println(err)
-					htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+					if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 						Message:  "Could not demote spot",
-						Title:    "Error",
+						Title:    "Database Error",
 						Variant:  "error",
 						Duration: 3000,
-					})
-					w.WriteHeader(http.StatusInternalServerError)
+					}); err != nil {
+						log.Default().Println(err)
+					}
+					http.Error(w, "Database Error", http.StatusInternalServerError)
 					return
 				}
 			} else {
@@ -845,13 +919,15 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 				})
 				if err != nil {
 					log.Default().Println(err)
-					htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+					if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 						Message:  "Could not update spot",
-						Title:    "Error",
+						Title:    "Database Error",
 						Variant:  "error",
 						Duration: 3000,
-					})
-					w.WriteHeader(http.StatusInternalServerError)
+					}); err != nil {
+						log.Default().Println(err)
+					}
+					http.Error(w, "Database Error", http.StatusInternalServerError)
 					return
 				}
 			}
@@ -863,13 +939,15 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 			})
 			if err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not promote spot",
-					Title:    "Error",
+					Title:    "Database Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Could not promote spot", http.StatusInternalServerError)
 				return
 			}
 		} else {
@@ -878,13 +956,15 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 				UserID: user.ID,
 			}); err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not update spot",
-					Title:    "Error",
+					Title:    "Database Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Database Error", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -901,6 +981,24 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 		})
 	}
 
+	plan, err := qtx.GetPracticePlanWithTodo(r.Context(), db.GetPracticePlanWithTodoParams{
+		ID:     planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get updated plan info",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
+		return
+	}
+
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Could not commit practice session", http.StatusInternalServerError)
@@ -908,17 +1006,28 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 	}
 
 	token := csrf.Token(r)
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
 		Message:  "You completed your interleaved days spots!",
 		Title:    "Completed!",
 		Variant:  "success",
 		Duration: 3000,
-	})
-	planpages.PracticePlanInterleaveDaysSpots(spotInfo, planID, token, true, true).Render(r.Context(), w)
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	if err := htmx.Trigger(r, "UpdatePlanProgress", UpdatePlanProgressEvent{
+		Completed: int(plan.CompletedSpotsCount + plan.CompletedPiecesCount),
+		Total:     int(plan.SpotsCount + plan.PiecesCount),
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	if err := planpages.PracticePlanInterleaveDaysSpots(spotInfo, planID, token, true, true).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 
 	queries := db.New(s.DB)
@@ -934,13 +1043,16 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not get next plan item",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -949,13 +1061,16 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not get next plan item",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
 	if len(extraRepeatSpots) > 0 {
@@ -970,13 +1085,16 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not get next plan item",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
 	if len(randomPieces) > 0 {
@@ -990,13 +1108,16 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not get next plan item",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
 	if len(startingPointPieces) > 0 {
@@ -1011,13 +1132,16 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not get next plan item",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
 	if len(newSpots) > 0 {
@@ -1028,12 +1152,14 @@ func (s *Server) getNextPlanItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "No more items to practice. Check you infrequent and interleave spots one last time and you are done.",
 		Title:    "Almost Done",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 
 	htmx.Redirect(r, "/library/plans/"+planID)
 	http.Redirect(w, r, "/library/plans/"+planID, http.StatusSeeOther)
@@ -1047,10 +1173,18 @@ fine after 10 days = demote
 */
 
 func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok || planID != activePlanID {
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Cannot update inactive plan",
+			Title:    "Invalid Request",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot update inactive plan", http.StatusBadRequest)
 		return
 	}
@@ -1060,7 +1194,11 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
 	queries := db.New(s.DB)
 	qtx := queries.WithTx(tx)
 
@@ -1069,12 +1207,14 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 		UserID: user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not get interleave spots",
-			Title:    "Error",
+			Title:    "Not Found",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -1087,13 +1227,15 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 			PlanID: planID,
 		}); err != nil {
 			log.Default().Println(err)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "Could not complete spot",
-				Title:    "Error",
+				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
-			w.WriteHeader(http.StatusInternalServerError)
+			}); err != nil {
+				log.Default().Println(err)
+			}
+			http.Error(w, "Database Error", http.StatusInternalServerError)
 			return
 		}
 		if !interleaveSpot.SpotStageStarted.Valid {
@@ -1103,31 +1245,37 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 			})
 			if err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not fix spot started time",
 					Title:    "Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Database Error", http.StatusInternalServerError)
 				return
 			}
 		}
 		quality := r.FormValue(fmt.Sprintf("%s.quality", interleaveSpot.SpotID))
-		if quality == "excellent" && interleaveSpot.SpotStageStarted.Valid && time.Since(time.Unix(interleaveSpot.SpotStageStarted.Int64, 0)) > 7*24*time.Hour {
+		if quality == "excellent" &&
+			interleaveSpot.SpotStageStarted.Valid &&
+			time.Since(time.Unix(interleaveSpot.SpotStageStarted.Int64, 0)) > 5*24*time.Hour {
 			err := qtx.PromoteSpotToInterleaveDays(r.Context(), db.PromoteSpotToInterleaveDaysParams{
 				SpotID: interleaveSpot.SpotID,
 				UserID: user.ID,
 			})
 			if err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not promote spot",
-					Title:    "Error",
+					Title:    "Database Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Database Error", http.StatusInternalServerError)
 				return
 			}
 		} else if quality == "poor" || quality == "fine" && interleaveSpot.SpotStageStarted.Valid && time.Since(time.Unix(interleaveSpot.SpotStageStarted.Int64, 0)) > 10*24*time.Hour {
@@ -1137,13 +1285,15 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 			})
 			if err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not demote spot",
 					Title:    "Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Database Error", http.StatusInternalServerError)
 				return
 			}
 		} else {
@@ -1152,13 +1302,15 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 				UserID: user.ID,
 			}); err != nil {
 				log.Default().Println(err)
-				htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 					Message:  "Could not update spot",
 					Title:    "Error",
 					Variant:  "error",
 					Duration: 3000,
-				})
-				w.WriteHeader(http.StatusInternalServerError)
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, "Database Error", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -1172,26 +1324,62 @@ func (s *Server) completeInterleavePlan(w http.ResponseWriter, r *http.Request) 
 			PieceTitle: interleaveSpot.SpotPieceTitle,
 		})
 	}
+	plan, err := qtx.GetPracticePlanWithTodo(r.Context(), db.GetPracticePlanWithTodoParams{
+		ID:     planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get updated plan info",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
+		return
+	}
 
 	if err := tx.Commit(); err != nil {
 		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not save your changes",
+			Title:    "Database Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Could not commit practice session", http.StatusInternalServerError)
 		return
 	}
 
-	token := csrf.Token(r)
-	htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "UpdatePlanProgress", UpdatePlanProgressEvent{
+		Completed: int(plan.CompletedSpotsCount + plan.CompletedPiecesCount),
+		Total:     int(plan.SpotsCount + plan.PiecesCount),
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "You completed your interleaved spots!",
 		Title:    "Completed!",
 		Variant:  "success",
 		Duration: 3000,
-	})
-	planpages.PracticePlanInterleaveSpots(spotInfo, planID, token, true, true, true).Render(r.Context(), w)
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	token := csrf.Token(r)
+	if err := planpages.PracticePlanInterleaveSpots(spotInfo, planID, token, true, true, true).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 
 }
 
 func (s *Server) getInterleaveList(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 	queries := db.New(s.DB)
 
@@ -1200,13 +1388,16 @@ func (s *Server) getInterleaveList(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not get interleave spots",
-			Title:    "Error",
+			Title:    "Not Found",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusNotFound)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
@@ -1236,13 +1427,16 @@ func (s *Server) getInterleaveList(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, fmt.Sprintf("/library/plans/%s", planID), http.StatusSeeOther)
 		return
 	}
-	planpages.PracticePlanInterleaveSpots(spotInfo, planID, token, allCompleted, false, false).Render(r.Context(), w)
+	if err := planpages.PracticePlanInterleaveSpots(spotInfo, planID, token, allCompleted, false, false).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 const plansPerPage = 20
 
 func (s *Server) planList(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	page := r.URL.Query().Get("page")
 	if page == "" {
 		page = "1"
@@ -1296,26 +1490,30 @@ func (s *Server) renderPlanListPage(w http.ResponseWriter, r *http.Request, user
 }
 
 func (s *Server) deletePracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 	queries := db.New(s.DB)
 	if err := queries.DeletePracticePlan(r.Context(), db.DeletePracticePlanParams{ID: planID, UserID: user.ID}); err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not delete practice plan",
 			Title:    "Error",
 			Variant:  "danger",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Could not delete practice plan", http.StatusInternalServerError)
 		return
 	}
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Practice plan deleted",
 		Title:    "Deleted!",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	htmx.PushURL(r, "/library/plans")
 
 	// refresh user from database in case the active plan was deleted
@@ -1325,16 +1523,16 @@ func (s *Server) deletePracticePlan(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
-	ctx := context.WithValue(r.Context(), "user", user)
+	ctx := context.WithValue(r.Context(), ck.UserKey, user)
 	if !user.ActivePracticePlanID.Valid {
-		ctx = context.WithValue(ctx, "activePracticePlanID", "")
+		ctx = context.WithValue(ctx, ck.ActivePlanKey, "")
 	}
 	w.WriteHeader(http.StatusOK)
 	s.renderPlanListPage(w, r.WithContext(ctx), user.ID, 1)
 }
 
 func (s *Server) resumePracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 	queries := db.New(s.DB)
 	plan, err := queries.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
@@ -1347,37 +1545,42 @@ func (s *Server) resumePracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if ok && activePlanID == plan.ID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You are already using this practice plan.",
 			Title:    "Already Active",
 			Variant:  "warning",
 			Duration: 3000,
-		})
-		w.WriteHeader(http.StatusBadRequest)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "You are already using this practice plan.", http.StatusBadRequest)
 		return
 
 	}
 	if time.Since(time.Unix(plan.Date, 0)) > 5*time.Hour {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot resume a practice plan this old. Please create a new one instead.",
 			Title:    "Too Old",
 			Variant:  "warning",
 			Duration: 3000,
-		})
-		w.WriteHeader(http.StatusBadRequest)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "You cannot resume a practice plan this old. Please create a new one instead.", http.StatusBadRequest)
 		return
 	}
 	err = s.SetActivePracticePlanID(r.Context(), planID, user.ID)
 	if err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not activate this practice plan.",
-			Title:    "Error",
+			Title:    "Database Error",
 			Variant:  "danger",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		w.WriteHeader(http.StatusInternalServerError)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
 	// update user (with newly added practice plan id) and practice plan manually before continuing
@@ -1388,19 +1591,21 @@ func (s *Server) resumePracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "You resumed your practice plan!",
 		Title:    "Resumed!",
 		Variant:  "success",
 		Duration: 3000,
-	})
-	ctx := context.WithValue(r.Context(), "activePracticePlanID", plan.ID)
-	ctx = context.WithValue(ctx, "user", user)
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	ctx := context.WithValue(r.Context(), ck.ActivePlanKey, plan.ID)
+	ctx = context.WithValue(ctx, ck.UserKey, user)
 	s.renderPracticePlanPage(w, r.WithContext(ctx), plan.ID, user.ID)
 }
 
 func (s *Server) stopPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 	queries := db.New(s.DB)
 	plan, err := queries.GetPracticePlan(r.Context(), db.GetPracticePlanParams{
@@ -1413,27 +1618,30 @@ func (s *Server) stopPracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok || activePlanID != plan.ID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "This plan is not active",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		w.WriteHeader(http.StatusBadRequest)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "This plan is not active", http.StatusBadRequest)
 		return
 
 	}
 	err = queries.ClearActivePracticePlan(r.Context(), user.ID)
 	if err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not stop this practice plan.",
-			Title:    "Error",
+			Title:    "Database Error",
 			Variant:  "danger",
 			Duration: 3000,
-		})
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		w.WriteHeader(http.StatusInternalServerError)
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
 	// update user (with removed practice plan id) and practice plan manually before continuing
@@ -1444,38 +1652,44 @@ func (s *Server) stopPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "You stopped your practice plan!",
 		Title:    "Stopped",
 		Variant:  "success",
 		Duration: 3000,
-	})
-	ctx := context.WithValue(r.Context(), "activePracticePlanID", "")
-	ctx = context.WithValue(ctx, "user", user)
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	ctx := context.WithValue(r.Context(), ck.ActivePlanKey, "")
+	ctx = context.WithValue(ctx, ck.UserKey, user)
 	s.renderPracticePlanPage(w, r.WithContext(ctx), plan.ID, user.ID)
 }
 
 func (s *Server) deleteSpotFromPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	planID := chi.URLParam(r, "planID")
 	if activePlanID != planID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
@@ -1489,45 +1703,53 @@ func (s *Server) deleteSpotFromPracticePlan(w http.ResponseWriter, r *http.Reque
 		PracticeType: practiceType,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "There was an error removing your spot",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Your spot has been removed from this practice plan.",
 		Title:    "Removed",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) deletePieceFromPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	planID := chi.URLParam(r, "planID")
 	if activePlanID != planID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
@@ -1541,46 +1763,54 @@ func (s *Server) deletePieceFromPracticePlan(w http.ResponseWriter, r *http.Requ
 		PracticeType: practiceType,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "There was an error removing your piece",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Your piece has been removed from this practice plan.",
 		Title:    "Removed",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 	w.WriteHeader(http.StatusOK)
 
 }
 
 func (s *Server) getNewSpotPiecesForPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	planID := chi.URLParam(r, "planID")
 	if activePlanID != planID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
@@ -1592,12 +1822,14 @@ func (s *Server) getNewSpotPiecesForPracticePlan(w http.ResponseWriter, r *http.
 	})
 	if err != nil {
 		log.Default().Println(err)
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "There was an error retrieving your spots",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
@@ -1616,30 +1848,37 @@ func (s *Server) getNewSpotPiecesForPracticePlan(w http.ResponseWriter, r *http.
 		}
 		pieceInfo = append(pieceInfo, piece)
 	}
-	planpages.AddNewSpotPieceList(pieceInfo, planID).Render(r.Context(), w)
+	if err := planpages.AddNewSpotPieceList(pieceInfo, planID).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) getNewSpotsForPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	planID := chi.URLParam(r, "planID")
 	if activePlanID != planID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
@@ -1652,12 +1891,14 @@ func (s *Server) getNewSpotsForPracticePlan(w http.ResponseWriter, r *http.Reque
 		PlanID:  planID,
 	})
 	if err != nil || len(spots) == 0 {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "There was an error retrieving your spots",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
@@ -1694,30 +1935,37 @@ func (s *Server) getNewSpotsForPracticePlan(w http.ResponseWriter, r *http.Reque
 		spotInfo = append(spotInfo, spot)
 	}
 	token := csrf.Token(r)
-	planpages.AddNewSpotFormList(spotInfo, token, spots[0].PieceTitle, planID).Render(r.Context(), w)
+	if err := planpages.AddNewSpotFormList(spotInfo, token, spots[0].PieceTitle, planID).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) getSpotsForPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	planID := chi.URLParam(r, "planID")
 	if activePlanID != planID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
@@ -1734,12 +1982,14 @@ func (s *Server) getSpotsForPracticePlan(w http.ResponseWriter, r *http.Request)
 	case "interleave":
 		spotStage = "interleave"
 	default:
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "That type of spot does not exist",
 			Title:    "Invalid Spot Practice Type",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Invalid Spot practice type", http.StatusBadRequest)
 		return
 	}
@@ -1749,12 +1999,14 @@ func (s *Server) getSpotsForPracticePlan(w http.ResponseWriter, r *http.Request)
 		PlanID: planID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "There was an error retrieving your spots",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
@@ -1791,37 +2043,56 @@ func (s *Server) getSpotsForPracticePlan(w http.ResponseWriter, r *http.Request)
 		spotInfo = append(spotInfo, spot)
 	}
 	token := csrf.Token(r)
-	planpages.AddSpotFormList(spotInfo, planID, practiceType, token).Render(r.Context(), w)
+	if err := planpages.AddSpotFormList(spotInfo, planID, practiceType, token).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) addSpotsToPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	planID := chi.URLParam(r, "planID")
 	if activePlanID != planID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	practiceType := chi.URLParam(r, "practiceType")
 	queries := db.New(s.DB)
 
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid Form",
+			Title:    "Invalid Input",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	maxIdxRes, err := queries.GetMaxSpotIdx(r.Context(), db.GetMaxSpotIdxParams{
 		PlanID: planID,
@@ -1839,23 +2110,27 @@ func (s *Server) addSpotsToPracticePlan(w http.ResponseWriter, r *http.Request) 
 			Idx:            maxIdx + int64(i) + 1,
 		})
 		if err != nil {
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "There was an error adding the spot",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			http.Error(w, "Database Error", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Spots added to practice plan",
 		Title:    "Success",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 
 	spots, err := queries.ListPracticePlanSpotsInCategory(r.Context(), db.ListPracticePlanSpotsInCategoryParams{
 		PracticeType: practiceType,
@@ -1863,12 +2138,14 @@ func (s *Server) addSpotsToPracticePlan(w http.ResponseWriter, r *http.Request) 
 		UserID:       user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "There was an error retrieving your spots",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
@@ -1906,16 +2183,28 @@ func (s *Server) addSpotsToPracticePlan(w http.ResponseWriter, r *http.Request) 
 
 	switch practiceType {
 	case "extra_repeat":
-		planpages.EditExtraRepeatSpotList(spotInfo, planID, csrf.Token(r)).Render(r.Context(), w)
+		if err := planpages.EditExtraRepeatSpotList(spotInfo, planID, csrf.Token(r)).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Render Error", http.StatusInternalServerError)
+		}
 		return
 	case "interleave_days":
-		planpages.EditInterleaveDaysSpotList(spotInfo, planID, csrf.Token(r)).Render(r.Context(), w)
+		if err := planpages.EditInterleaveDaysSpotList(spotInfo, planID, csrf.Token(r)).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Render Error", http.StatusInternalServerError)
+		}
 		return
 	case "interleave":
-		planpages.EditInterleaveSpotList(spotInfo, planID, csrf.Token(r)).Render(r.Context(), w)
+		if err := planpages.EditInterleaveSpotList(spotInfo, planID, csrf.Token(r)).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Render Error", http.StatusInternalServerError)
+		}
 		return
 	case "new":
-		planpages.EditNewSpotList(spotInfo, planID, csrf.Token(r)).Render(r.Context(), w)
+		if err := planpages.EditNewSpotList(spotInfo, planID, csrf.Token(r)).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Render Error", http.StatusInternalServerError)
+		}
 		return
 	default:
 		http.Error(w, "Invalid practice type", http.StatusBadRequest)
@@ -1923,26 +2212,30 @@ func (s *Server) addSpotsToPracticePlan(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *Server) getPiecesForPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	planID := chi.URLParam(r, "planID")
 	if activePlanID != planID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
@@ -1956,12 +2249,14 @@ func (s *Server) getPiecesForPracticePlan(w http.ResponseWriter, r *http.Request
 			PlanID: planID,
 		})
 		if err != nil {
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "There was an error retrieving your pieces",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			http.Error(w, "Database Error", http.StatusInternalServerError)
 			return
 		}
@@ -1983,12 +2278,14 @@ func (s *Server) getPiecesForPracticePlan(w http.ResponseWriter, r *http.Request
 		})
 		if err != nil {
 			log.Default().Println(err)
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "There was an error retrieving your pieces",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			http.Error(w, "Database Error", http.StatusInternalServerError)
 			return
 		}
@@ -2003,47 +2300,68 @@ func (s *Server) getPiecesForPracticePlan(w http.ResponseWriter, r *http.Request
 			pieceInfo = append(pieceInfo, piece)
 		}
 	default:
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "That type of piece does not exist",
 			Title:    "Invalid Piece Practice Type",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Invalid Spot practice type", http.StatusBadRequest)
 		return
 	}
 	token := csrf.Token(r)
-	planpages.AddPieceFormList(pieceInfo, token, planID, practiceType).Render(r.Context(), w)
+	if err := planpages.AddPieceFormList(pieceInfo, token, planID, practiceType).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) addPiecesToPracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	activePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if !ok {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	planID := chi.URLParam(r, "planID")
 	if activePlanID != planID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot modify an inactive practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot modify inactive plan", http.StatusBadRequest)
 		return
 	}
 	practiceType := chi.URLParam(r, "practiceType")
 	queries := db.New(s.DB)
 
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid Form",
+			Title:    "Invalid Input",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Invalid Form", http.StatusBadRequest)
+		return
+	}
 
 	maxIdxRes, err := queries.GetMaxPieceIdx(r.Context(), db.GetMaxPieceIdxParams{
 		PlanID: planID,
@@ -2062,23 +2380,27 @@ func (s *Server) addPiecesToPracticePlan(w http.ResponseWriter, r *http.Request)
 			Idx:            maxIdx + int64(i) + 1,
 		})
 		if err != nil {
-			htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 				Message:  "There was an error creating the piece",
 				Title:    "Database Error",
 				Variant:  "error",
 				Duration: 3000,
-			})
+			}); err != nil {
+				log.Default().Println(err)
+			}
 			http.Error(w, "Database Error", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Spots added to practice plan",
 		Title:    "Success",
 		Variant:  "success",
 		Duration: 3000,
-	})
+	}); err != nil {
+		log.Default().Println(err)
+	}
 
 	pieces, err := queries.ListPracticePlanPiecesInCategory(r.Context(), db.ListPracticePlanPiecesInCategoryParams{
 		PracticeType: practiceType,
@@ -2086,12 +2408,14 @@ func (s *Server) addPiecesToPracticePlan(w http.ResponseWriter, r *http.Request)
 		UserID:       user.ID,
 	})
 	if err != nil {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "There was an error retrieving your spots",
 			Title:    "Database Error",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Database Error", http.StatusInternalServerError)
 		return
 	}
@@ -2113,10 +2437,16 @@ func (s *Server) addPiecesToPracticePlan(w http.ResponseWriter, r *http.Request)
 
 	switch practiceType {
 	case "random_spots":
-		planpages.EditRandomPieceList(pieceInfo, true, planID, csrf.Token(r)).Render(r.Context(), w)
+		if err := planpages.EditRandomPieceList(pieceInfo, true, planID, csrf.Token(r)).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Render Error", http.StatusInternalServerError)
+		}
 		return
 	case "starting_point":
-		planpages.EditStartingPointList(pieceInfo, true, planID, csrf.Token(r)).Render(r.Context(), w)
+		if err := planpages.EditStartingPointList(pieceInfo, true, planID, csrf.Token(r)).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Render Error", http.StatusInternalServerError)
+		}
 		return
 	default:
 		http.Error(w, "Invalid practice type", http.StatusBadRequest)
@@ -2124,7 +2454,7 @@ func (s *Server) addPiecesToPracticePlan(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value("user").(db.User)
+	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
 
 	tx, err := s.DB.Begin()
@@ -2133,18 +2463,24 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
 		return
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
 	queries := db.New(s.DB)
 	qtx := queries.WithTx(tx)
 
 	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if ok && planID == activePracticePlanID {
-		htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot duplicate an active practice plan",
 			Title:    "Not Active",
 			Variant:  "error",
 			Duration: 3000,
-		})
+		}); err != nil {
+			log.Default().Println(err)
+		}
 		http.Error(w, "Cannot duplicate active plan", http.StatusBadRequest)
 		return
 	}
@@ -2227,7 +2563,19 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.SetActivePracticePlanID(r.Context(), newPlan.ID, user.ID)
+	if err := s.SetActivePracticePlanID(r.Context(), newPlan.ID, user.ID); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Failed to set active plan",
+			Title:    "Failed",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Failed to set active plan", http.StatusInternalServerError)
+		return
+	}
 	// update user (with newly added practice plan id) and practice plan manually before continuing
 	user, err = queries.GetUserByID(r.Context(), user.ID)
 	if err != nil {
@@ -2237,13 +2585,15 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	htmx.PushURL(r, "/library/plans/"+newPlan.ID)
-	htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  "Your plan has been successfully duplicated",
 		Title:    "Duplicated",
 		Variant:  "success",
 		Duration: 3000,
-	})
-	ctx := context.WithValue(r.Context(), "activePracticePlanID", newPlan.ID)
-	ctx = context.WithValue(ctx, "user", user)
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	ctx := context.WithValue(r.Context(), ck.ActivePlanKey, newPlan.ID)
+	ctx = context.WithValue(ctx, ck.UserKey, user)
 	s.renderPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
 }

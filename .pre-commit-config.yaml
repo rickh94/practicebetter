@@ -1,0 +1,39 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+      - id: check-json
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: check-case-conflict
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.55.2
+    hooks:
+      - id: golangci-lint
+        name: Golang Lint
+  - repo: local
+    hooks:
+      - id: do-not-commit
+        language: script
+        name: Do not commit comment
+        entry: .scripts/do-not-commit-comment.sh
+      - id: typecheck
+        language: script
+        name: Typecheck
+        entry: .scripts/tsc.sh
+        types_or: [ts, tsx]
+        pass_filenames: false
+      - id: lint
+        language: script
+        name: Typescript Lint
+        entry: .scripts/eslint.sh
+        types_or: [ts, tsx]
+        pass_filenames: false
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v4.0.0-alpha.8" # Use the sha or tag you want to point at
+    hooks:
+      - id: prettier

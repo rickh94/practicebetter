@@ -1,14 +1,10 @@
+import { type JSX } from "preact/jsx-runtime";
 import { cn } from "../common";
-import {
-  PlayListIcon,
-  RandomBoxesIcon,
-  RepeatIcon,
-  ShuffleIcon,
-} from "./icons";
+import { RandomBoxesIcon, RepeatIcon, ShuffleIcon } from "./icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as htmx from "htmx.org";
 
-const links = new Map<string, { label: string; icon: preact.JSX.Element }>([
+const links = new Map<string, { label: string; icon: JSX.Element }>([
   [
     "/practice/repeat",
 
@@ -47,7 +43,7 @@ export function PracticeToolNav({ activepath }: { activepath: string }) {
 
           {links.get(activepath) ? (
             <h1 className="text-xl font-semibold tracking-tight text-neutral-800 sm:text-2xl">
-              {links.get(activepath).label}
+              {links.get(activepath)?.label ?? "Something went wrong"}
             </h1>
           ) : (
             <span className="font-semibold text-neutral-700">
@@ -64,7 +60,7 @@ export function PracticeToolNav({ activepath }: { activepath: string }) {
           className="w-64 origin-top-left rounded-lg bg-white shadow-lg duration-200 animate-in fade-in zoom-in-95 focus-within:outline-none focus:outline-none"
         >
           {[...links.entries()].map(([href, info]) => (
-            <DropdownMenu.Item asChild>
+            <DropdownMenu.Item asChild key={href}>
               <a
                 href={href}
                 onClick={(e) => e.preventDefault()}

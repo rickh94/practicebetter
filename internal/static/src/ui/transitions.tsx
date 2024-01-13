@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ReactNode } from "preact/compat";
+import type { ReactNode } from "preact/compat";
 
 const scaleCrossFadeVariants = {
   initial: {
