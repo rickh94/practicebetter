@@ -50,7 +50,12 @@ templ CreatePieceFormContents(csrf string) {
 	<div class="grid grid-cols-1 sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-4">
 		<div class="flex flex-col gap-1 sm:col-span-1">
 			@PieceFormLabel("Stage", "stage")
-			<select required id="stage" name="stage" class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:bg-neutral-700/20">
+			<select
+ 				required
+ 				id="stage"
+ 				name="stage"
+ 				class="w-full basic-field custom-select"
+			>
 				<option value="future">
 					Not Started
 				</option>
@@ -76,11 +81,11 @@ templ CreatePieceFormContents(csrf string) {
 		</div>
 	</div>
 	<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
-		<button type="submit" class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable">
+		<button type="submit" class="green action-button focusable">
 			<span class="-ml-1 size-6 icon-[iconamoon--arrow-up-5-circle-thin]" aria-hidden="true"></span>
 			Save
 		</button>
-		@components.HxLink("action-button text-red-800 bg-red-700/10 hover:bg-red-700/20 focusable", "/library/pieces", "#main-content") {
+		@components.HxLink("action-button red focusable", "/library/pieces", "#main-content") {
 			<span class="-ml-1 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 			Cancel
 		}
@@ -94,5 +99,14 @@ templ PieceFormLabel(text string, labelFor string) {
 }
 
 templ PieceFormInput(name string, placeholder string, fieldType string, defaultValue string, required bool) {
-	<input value={ defaultValue } autocomplete="off" required?={ required } type={ fieldType } id={ name } name={ name } placeholder={ placeholder } class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 focusable focus:bg-neutral-700/20"/>
+	<input
+ 		value={ defaultValue }
+ 		autocomplete="off"
+ 		required?={ required }
+ 		type={ fieldType }
+ 		id={ name }
+ 		name={ name }
+ 		placeholder={ placeholder }
+ 		class="w-full basic-field"
+	/>
 }

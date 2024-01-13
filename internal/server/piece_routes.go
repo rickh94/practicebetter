@@ -46,7 +46,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		measures = sql.NullInt64{Valid: false}
 	}
-	b, err := strconv.Atoi(r.Form.Get("beatsPerMeasure"))
+	b, err := strconv.Atoi(r.Form.Get("beats"))
 	beatsPerMeasure := sql.NullInt64{Int64: int64(b), Valid: true}
 	if err != nil {
 		beatsPerMeasure = sql.NullInt64{Valid: false}
@@ -408,7 +408,7 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		measures = sql.NullInt64{Valid: false}
 	}
-	b, err := strconv.Atoi(r.Form.Get("beatsPerMeasure"))
+	b, err := strconv.Atoi(r.Form.Get("beats"))
 	beatsPerMeasure := sql.NullInt64{Int64: int64(b), Valid: true}
 	if err != nil {
 		beatsPerMeasure = sql.NullInt64{Valid: false}

@@ -80,11 +80,11 @@ templ EditPiecePage(s pages.ServerUtil, csrf string, piece db.Piece) {
 					</div>
 				</div>
 				<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
-					<button type="submit" class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable">
+					<button type="submit" class="action-button green focusable">
 						<span class="-ml-1 size-5 icon-[iconamoon--arrow-up-5-circle-thin]" aria-hidden="true"></span>
 						Save
 					</button>
-					@components.HxLink("action-button text-red-800 bg-red-700/10 hover:bg-red-700/20 focusable", "/library/pieces/"+piece.ID, "#main-content") {
+					@components.HxLink("action-button red focusable", "/library/pieces/"+piece.ID, "#main-content") {
 						<span class="-ml-1 size-5 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 						Cancel
 					}

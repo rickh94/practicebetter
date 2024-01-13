@@ -88,16 +88,16 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 				})
 			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ spot.PieceID }></back-to-piece>
-				@components.HxLink("focusable action-button bg-violet-700/10 text-violet-800 hover:bg-violet-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/practice/repeat", "#main-content") {
+				@components.HxLink("focusable action-button violet", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/practice/repeat", "#main-content") {
 					<span class="-ml-1 text-violet-800 size-5 icon-[iconamoon--playlist-repeat-list-thin]" aria-hidden="true"></span>
 					Practice
 				}
-				@components.HxLink( "focusable action-button bg-amber-700/10 text-amber-800 hover:bg-amber-700/20", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/edit", "#main-content") {
+				@components.HxLink( "focusable action-button amber", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/edit", "#main-content") {
 					<span class="-ml-1 size-5 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
 					Edit
 				}
 				<button
- 					class="text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
+ 					class="action-button red focusable"
  					hx-delete={ "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID }
  					hx-headers={ components.HxCsrfHeader(csrf) }
  					hx-confirm={ "Are you sure you want to delete spot " + spot.Name + "? This cannot be reversed" }
@@ -109,7 +109,7 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 			}
 		}
 		@components.NarrowContainer() {
-			<div class="grid grid-cols-1 gap-4 p-4 w-full rounded-xl border sm:grid-cols-5 border-neutral-500 bg-white/80 text-neutral-900">
+			<div class="grid grid-cols-1 gap-4 p-4 w-full bg-white rounded-xl border shadow-sm sm:grid-cols-5 border-neutral-500 shadow-black/20 text-neutral-900">
 				<div class="flex col-span-full justify-center text-center">
 					<h2 class="px-4 text-2xl font-bold border-b-2 border-neutral-500">
 						{ spot.Name }

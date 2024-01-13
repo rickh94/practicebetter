@@ -83,7 +83,7 @@ templ RedButton(buttonType string, onClick templ.ComponentScript) {
 templ BasicButton(class string, buttonType string) {
 	<button
  		type={ buttonType }
- 		class={ "focusable action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20", class }
+ 		class={ "focusable action-button neutral", class }
 	>
 		{ children... }
 	</button>
@@ -96,7 +96,7 @@ templ BasicButtonLink(href, hxTarget, hxSwap  string) {
  		hx-target={ hxTarget }
  		hx-push-url="true"
  		hx-swap={ hxSwap + " transition:true" }
- 		class="action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+ 		class="action-button neutral focusable"
 	>
 		{ children... }
 	</a>

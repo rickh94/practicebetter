@@ -23,7 +23,7 @@ templ EditPracticePlanPage(planData PracticePlanData, csrf string) {
 					{ Label: "Customize", Href: "/library/plans/"+planData.ID+"/edit", Active: true, IsDate: false },
 				})
 			@components.ActionButtonContainer() {
-				@components.HxLink("text-sky-800 action-button bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/plans/"+planData.ID, "#main-content") {
+				@components.HxLink("text-sky-800 action-button sky focusable", "/library/plans/"+planData.ID, "#main-content") {
 					<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 					Done
 				}
@@ -113,7 +113,7 @@ templ editPracticePlanPageContent(planData PracticePlanData, csrf string) {
 			@AddNewSpotWizard(planData.ID, "Add New Spots", "new-spot-list")
 		</section>
 		<div class="flex flex-row-reverse flex-wrap col-span-full">
-			@components.HxLink("text-sky-800 action-button bg-sky-700/10 hover:bg-sky-700/20 focusable", "/library/plans/"+planData.ID, "#main-content") {
+			@components.HxLink("action-button sky focusable", "/library/plans/"+planData.ID, "#main-content") {
 				<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 				Done
 			}

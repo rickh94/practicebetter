@@ -14,7 +14,7 @@ templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int
 					{ Label: "Pieces", Href: "/library/pieces", Active: true },
 				})
 			@components.ActionButtonContainer() {
-				@components.HxLink("flex gap-2 justify-center items-center py-3 px-6 font-medium text-center text-green-700 rounded-xl bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/create", "#main-content") {
+				@components.HxLink("action-button green focusable", "/library/pieces/create", "#main-content") {
 					<span class="-ml-1 size-6 icon-[iconamoon--file-add-thin]" aria-hidden="true"></span>
 					New Piece
 				}

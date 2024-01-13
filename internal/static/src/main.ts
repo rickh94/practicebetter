@@ -115,13 +115,13 @@ try {
 function getIcon(variant: AlertVariant) {
   switch (variant) {
     case "success":
-      return `<span class="text-green-500 size-6 icon-[iconamoon--check-circle-1-thin]"></span>`;
+      return `<span class="text-green-500 size-6 icon-[iconamoon--check-circle-1-fill]"></span>`;
     case "error":
-      return `<span class="text-red-500 size-6 icon-[iconamoon--shield-no-thin]"></span>`;
+      return `<span class="text-red-500 size-6 icon-[iconamoon--shield-no-fill]"></span>`;
     case "warning":
-      return `<span class="text-yellow-500 size-6 icon-[ph--warning-thin]"></span>`;
+      return `<span class="text-yellow-500 size-6 icon-[ph--warning-fill]"></span>`;
     default:
-      return `<span class="text-blue-500 size-6 icon-[iconamoon--information-circle-thin]"></span>`;
+      return `<span class="text-blue-500 size-6 icon-[iconamoon--information-circle-fill]"></span>`;
   }
 }
 // TODO: maybe make this a component
@@ -135,7 +135,7 @@ export function showAlert(
   variant: AlertVariant,
   duration: number,
 ) {
-  const toastId = `toast-${Math.random().toString(36).substring(2, 15)}`;
+  const toastId = `toast-${uniqueID()}`;
   const icon = getIcon(variant);
 
   const toastHTML = `
@@ -149,13 +149,11 @@ export function showAlert(
         <div class="flex flex-shrink-0 ml-4">
           <button
             type="button"
-            class="inline-flex hover:text-red-800 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none text-red-800/50"
+            class="inline-flex hover:text-red-500 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none text-red-500/50"
             onclick="globalThis.dispatchEvent(new CustomEvent('CloseAlert', { detail: { id: '${toastId}' } }))"
           >
             <span class="sr-only">Close</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-            <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z" clip-rule="evenodd" />
-          </svg>
+            <span class="icon-[iconamoon--sign-times-circle-fill] size-6"></span>
           </button>
         </div>
       </div>

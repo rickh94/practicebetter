@@ -102,12 +102,12 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 	<div class="flex flex-row-reverse col-span-full gap-4 justify-start py-4">
 		<button
  			type="submit"
- 			class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 			class="action-button green focusable"
 		>
 			<span class="-ml-1 size-6 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>
 			Create
 		</button>
-		@components.HxLink("action-button text-yellow-800 bg-yellow-700/10 hover:bg-yellow-700/20 focusable", "/library", "#main-content") {
+		@components.HxLink("action-button amber focusable", "/library", "#main-content") {
 			<span class="-ml-1 size-6 icon-[iconamoon--arrow-left-5-circle-thin]" aria-hidden="true"></span>
 			Go Back
 		}

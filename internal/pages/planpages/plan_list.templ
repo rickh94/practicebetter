@@ -13,7 +13,7 @@ templ PlanList(plans []components.PracticePlanCardInfo, page int, totalPages int
 					{ Label: "Practice Plans", Href: "/library/plans", Active: true },
 				})
 			@components.ActionButtonContainer() {
-				@components.HxLink("action-button text-green-700 bg-green-700/10 hover:bg-green-700/20 focusable", "/library/plans/create", "#main-content") {
+				@components.HxLink("action-button green focusable", "/library/plans/create", "#main-content") {
 					<span class="-ml-1 size-6 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>
 					New Plan
 				}

@@ -46,8 +46,8 @@ export function InternalNav({ activepath }: { activepath: string }) {
     <DropdownMenu.Root onOpenChange={processLinks}>
       <DropdownMenu.Trigger asChild>
         <button
-          className="focusable inline-flex h-14 w-full items-center justify-center gap-x-1.5 rounded-xl bg-neutral-700/10 px-6 py-4 text-neutral-800 transition duration-200 hover:bg-neutral-700/20"
-          aria-label="Open Nav"
+          className="focusable action-button neutral h-14 gap-x-1.5 rounded-xl px-6"
+          aria-label="Menu"
         >
           <div className="sr-only">Open Nav Menu</div>
           <span

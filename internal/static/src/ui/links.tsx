@@ -73,7 +73,7 @@ export function WarningLink({
     <Link
       href={href}
       className={cn(
-        "focusable action-button bg-yellow-700/10 text-yellow-800 transition duration-200 hover:bg-yellow-700/20",
+        "focusable action-button amber",
         grow && "flex-grow",
         className,
       )}
@@ -98,7 +98,7 @@ export function HappyLink({
     <Link
       href={href}
       className={cn(
-        "focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20",
+        "focusable action-button green",
         grow && "flex-grow",
         className,
       )}
@@ -112,7 +112,7 @@ export function BackToPiece({ pieceid }: { pieceid: string }) {
   return (
     <Link
       href={`/library/pieces/${pieceid}`}
-      className="focusable action-button bg-sky-700/10 text-sky-800 hover:bg-sky-700/20"
+      className="focusable action-button indigo"
     >
       <span
         className="icon-[custom--music-file] -mr-1 size-6"
@@ -133,10 +133,7 @@ export function BackToPlan({
   return (
     <Link
       href={`/library/plans/${planid}`}
-      className={cn(
-        "focusable action-button bg-violet-700/10  text-violet-800 hover:bg-violet-700/20",
-        grow && "flex-grow",
-      )}
+      className={cn("focusable action-button violet", grow && "flex-grow")}
     >
       <span
         className="icon-[custom--music-file-curly] -ml-1 size-5"

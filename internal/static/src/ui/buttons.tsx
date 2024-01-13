@@ -21,7 +21,7 @@ export function BasicButton({
         "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20",
+          : "neutral",
         grow && "flex-grow",
         className,
       )}
@@ -48,7 +48,7 @@ export function HappyButton({
         "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-green-700/10 text-green-800 hover:bg-green-700/20",
+          : "green",
         grow && "flex-grow",
         className,
       )}
@@ -75,7 +75,7 @@ export function VioletButton({
         "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-violet-700/10 text-violet-800 hover:bg-violet-700/20",
+          : "violet",
         grow && "flex-grow",
         className,
       )}
@@ -129,7 +129,7 @@ export function AngryButton({
         "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-red-700/10 text-red-800 hover:bg-red-700/20",
+          : "red",
         grow && "flex-grow",
         className,
       )}
@@ -156,7 +156,7 @@ export function WarningButton({
         "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-yellow-700/10 text-yellow-800 hover:bg-yellow-700/20",
+          : "amber",
         grow && "flex-grow",
         className,
       )}
@@ -183,7 +183,7 @@ export function SkyButton({
         "focusable action-button",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-sky-700/10 text-sky-800 hover:bg-sky-700/20",
+          : "sky",
         grow && "flex-grow",
         className,
       )}
@@ -309,7 +309,7 @@ export function GiantSkyButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-8 py-4 text-2xl font-semibold transition duration-200",
+        "focusable action-button flex px-8 py-4 text-2xl",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
           : "bg-sky-700/10 text-sky-800 hover:bg-sky-700/20",
@@ -336,10 +336,10 @@ export function BigAngryButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-6 py-4 text-2xl font-medium transition duration-200",
+        "focusable action-button h-16 px-6 py-4 text-2xl",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-red-700/10 text-red-800 hover:bg-red-700/20",
+          : "red",
         grow && "flex-grow",
         className,
       )}
@@ -363,10 +363,10 @@ export function BigHappyButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-6 py-4 text-2xl font-medium transition duration-200",
+        "focusable action-button h-16 px-6 py-4 text-2xl",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-green-700/10 text-green-800 hover:bg-green-700/20",
+          : "green",
         grow && "flex-grow",
         className,
       )}
@@ -390,10 +390,10 @@ export function BigSkyButton({
       disabled={disabled}
       type={type}
       className={cn(
-        "focusable flex items-center justify-center gap-1 rounded-xl px-6 py-4 text-2xl font-semibold transition duration-200",
+        "focusable action-button h-16 px-6 py-4 text-2xl",
         disabled
           ? "pointer-events-none bg-neutral-700/50 text-neutral-800"
-          : "bg-sky-700/10 text-sky-800 hover:bg-sky-700/20",
+          : "sky",
         grow && "flex-grow",
         className,
       )}

@@ -10,7 +10,7 @@ templ UploadImageForm(csrf string) {
 			</p>
 			<form action="/library/upload/image" method="POST" enctype="multipart/form-data">
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
-				<input type="file" name="file" accept="image/*" class="py-4"/>
+				<input type="file" name="file" accept="image/*" class="py-4 neutral"/>
 				@components.BasicButton("", "submit") {
 					Upload
 				}

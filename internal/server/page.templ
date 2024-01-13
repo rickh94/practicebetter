@@ -2,10 +2,12 @@ package server
 
 templ Page(s *Server, contents templ.Component, title string) {
 	<!DOCTYPE html>
-	@Head(s, title)
-	@Body(s) {
-		@contents
-	}
+	<html lang="en">
+		@Head(s, title)
+		@Body(s) {
+			@contents
+		}
+	</html>
 }
 
 /*
@@ -46,6 +48,7 @@ templ Head(s *Server, title string) {
 		<meta name="theme-color" content="#ffefce"/>
 		<meta name="apple-mobile-web-app-title" content="Practice Better"/>
 		<meta name="application-name" content="Practice Better"/>
+		<meta name="description" content="Organize your music practicing to be more effective and prevent bad habits."/>
 		<meta property="og:title" content="Practice Better"/>
 		<meta property="og:description" content="Organize your music practicing to be more effective and prevent bad habits."/>
 		<meta property="og:url" content="https://practicebetter.rickhenry.dev"/>

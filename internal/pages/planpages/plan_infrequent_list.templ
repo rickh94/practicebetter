@@ -37,7 +37,7 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 				<button
  					onClick={ components.ShowModal(completeInterleaveDaysFormId) }
  					type="button"
- 					class="text-green-900 action-button bg-green-500/30 hover:bg-green-500/50 focusable"
+ 					class="green action-button focusable"
 				>
 					<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 					Complete
@@ -73,17 +73,17 @@ templ CompleteInterleaveDaysForm(planID string, csrf string, spots []PracticePla
 			<section class="flex flex-col-reverse gap-2 mt-4 w-full xs:grid xs:grid-cols-2">
 				<button
  					onclick={ components.CloseModal(completeInterleaveDaysFormId) }
- 					class="flex-grow text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
+ 					class="flex-grow action-button red focusable"
  					type="button"
 				>
-					<span class="-ml-1 text-red-800 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+					<span class="-ml-1 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 					Cancel
 				</button>
 				<button
- 					class="flex-grow text-green-800 action-button bg-green-500/30 hover:bg-green-500/50 focusable"
+ 					class="flex-grow action-button green focusable"
  					type="submit"
 				>
-					<span class="-ml-1 text-green-800 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
+					<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 					Save
 				</button>
 			</section>

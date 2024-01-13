@@ -124,7 +124,7 @@
     pointer-events: inherit;
     overflow-y: auto;
     transition-property: transform, opacity;
-    @apply h-max translate-y-0 scale-100 duration-150;
+    @apply h-max translate-y-0 scale-100 shadow-2xl shadow-white/20 duration-150;
   }
 
   dialog[open]::backdrop {
@@ -229,6 +229,20 @@
 }
 
 @layer components {
+  .custom-select {
+    appearance: none;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23262626"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd" /></svg>');
+    background-repeat: no-repeat;
+    background-position: right 0.7rem top 50%;
+    background-size: 1rem auto;
+    -webkit-appearance: "none";
+    text-indent: 1;
+    text-overflow: "";
+  }
+
+  .edit-plan-chooser {
+    max-height: calc(75svh - 10rem);
+  }
   .radio-option.checked {
     @apply bg-neutral-700/20 shadow;
   }
@@ -392,49 +406,370 @@
     @apply flex items-center gap-1 rounded-xl border-2 border-neutral-300 bg-neutral-50 px-4 py-4 text-black shadow-sm shadow-black/20 transition-all duration-100;
   }
 
-  .action-button {
-    @apply flex h-12 items-center justify-center gap-1 rounded-xl px-5 text-lg font-medium transition duration-200;
+  .basic-field {
+    @apply cursor-auto rounded-xl border border-neutral-400 bg-white px-4 py-2 font-medium shadow-sm shadow-neutral-900/30 transition duration-200;
   }
 
-  .custom-select {
-    appearance: none;
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23262626"><path fill-rule="evenodd" d="M12.53 16.28a.75.75 0 01-1.06 0l-7.5-7.5a.75.75 0 011.06-1.06L12 14.69l6.97-6.97a.75.75 0 111.06 1.06l-7.5 7.5z" clip-rule="evenodd" /></svg>');
-    background-repeat: no-repeat;
-    background-position: right 0.7rem top 50%;
-    background-size: 1rem auto;
-    -webkit-appearance: "none";
-    text-indent: 1;
-    text-overflow: "";
+  .basic-field::placeholder {
+    @apply font-thin text-neutral-400;
   }
 
-  .edit-plan-chooser {
-    max-height: calc(75svh - 10rem);
+  .basic-field:disabled {
+    @apply border-neutral-100 bg-neutral-100 text-neutral-400;
+  }
+
+  .basic-field:focus {
+    @apply border-neutral-500 shadow shadow-neutral-900/50 outline outline-1 outline-offset-0 outline-neutral-500;
+  }
+
+  .basic-field:focus::placeholder {
+    @apply text-transparent;
+  }
+
+  .action-button,
+  input::file-selector-button {
+    @apply flex h-12 cursor-pointer items-center justify-center gap-1 rounded-xl border px-5 text-lg font-medium shadow-sm transition duration-200;
+  }
+
+  .action-button:hover input::file-selector-button:hover {
+    @apply shadow;
+  }
+
+  .action-button.slate,
+  input.slate::file-selector-button {
+    @apply border-slate-400 bg-slate-200 text-slate-800 shadow-slate-900/30;
+  }
+
+  .action-button.slate:hover,
+  input.slate::file-selector-button:hover {
+    @apply border-slate-500 bg-slate-300 shadow-slate-900/50;
+  }
+
+  .action-button.gray,
+  input.gray::file-selector-button {
+    @apply border-gray-400 bg-gray-200 text-gray-800 shadow-gray-900/30;
+  }
+
+  .action-button.gray:hover,
+  input.gray::file-selector-button:hover {
+    @apply border-gray-500 bg-gray-300 shadow-gray-900/50;
+  }
+
+  .action-button.zinc,
+  input.zinc::file-selector-button {
+    @apply border-zinc-400 bg-zinc-200 text-zinc-800 shadow-zinc-900/30;
+  }
+
+  .action-button.zinc:hover,
+  input.zinc::file-selector-button:hover {
+    @apply border-zinc-500 bg-zinc-300 shadow-zinc-900/50;
+  }
+
+  .action-button.neutral,
+  input.neutral::file-selector-button {
+    @apply border-neutral-400 bg-neutral-200 text-neutral-800 shadow-neutral-900/30;
+  }
+
+  .action-button.neutral:hover,
+  input.neutral::file-selector-button:hover {
+    @apply border-neutral-500 bg-neutral-300 shadow-neutral-900/50;
+  }
+
+  .action-button.stone,
+  input.stone::file-selector-button {
+    @apply border-stone-400 bg-slate-200 text-slate-800 shadow-slate-900/30;
+  }
+
+  .action-button.stone:hover,
+  input.stone::file-selector-button:hover {
+    @apply border-stone-500 bg-slate-300 shadow-slate-900/50;
+  }
+
+  .action-button.red,
+  input.red::file-selector-button {
+    @apply border-red-400 bg-red-200 text-red-800 shadow-red-900/30;
+  }
+
+  .action-button.red:hover,
+  input.red::file-selector-button:hover {
+    @apply border-red-500 bg-red-300 shadow-red-900/50;
+  }
+
+  .action-button.orange,
+  input.orange::file-selector-button {
+    @apply border-orange-400 bg-orange-200 text-orange-800 shadow-orange-900/30;
+  }
+
+  .action-button.orange:hover,
+  input.orange::file-selector-button:hover {
+    @apply border-orange-500 bg-orange-300 shadow-orange-900/50;
+  }
+
+  .action-button.amber,
+  input.amber::file-selector-button {
+    @apply border-amber-400 bg-amber-200 text-amber-800 shadow-amber-900/30;
+  }
+
+  .action-button.amber:hover,
+  input.amber::file-selector-button:hover {
+    @apply border-amber-500 bg-amber-300 shadow-amber-900/50;
+  }
+
+  .action-button.yellow,
+  input.yellow::file-selector-button {
+    @apply border-yellow-400 bg-yellow-200 text-yellow-800 shadow-yellow-900/30;
+  }
+
+  .action-button.yellow:hover,
+  input.yellow::file-selector-button:hover {
+    @apply border-yellow-500 bg-yellow-300 shadow-yellow-900/50;
+  }
+
+  .action-button.lime,
+  input.lime::file-selector-button {
+    @apply border-lime-400 bg-lime-200 text-lime-800 shadow-lime-900/30;
+  }
+
+  .action-button.lime:hover,
+  input.lime::file-selector-button:hover {
+    @apply border-lime-500 bg-lime-300 shadow-lime-900/50;
+  }
+
+  .action-button.green,
+  input.green::file-selector-button {
+    @apply border-green-400 bg-green-200 text-green-800 shadow-green-900/30;
+  }
+
+  .action-button.green:hover,
+  input.green::file-selector-button:hover {
+    @apply border-green-500 bg-green-300 shadow-green-900/50;
+  }
+
+  .action-button.emerald,
+  input.emerald::file-selector-button {
+    @apply border-emerald-400 bg-slate-200 text-slate-800 shadow-slate-900/30;
+  }
+
+  .action-button.emerald:hover,
+  input.emerald::file-selector-button:hover {
+    @apply border-emerald-500 bg-slate-300 shadow-slate-900/50;
+  }
+
+  .action-button.teal,
+  input.teal::file-selector-button {
+    @apply border-teal-400 bg-teal-200 text-teal-800 shadow-teal-900/30;
+  }
+
+  .action-button.teal:hover,
+  input.teal::file-selector-button:hover {
+    @apply border-teal-500 bg-teal-300 shadow-teal-900/50;
+  }
+
+  .action-button.cyan,
+  input.cyan::file-selector-button {
+    @apply border-cyan-400 bg-cyan-200 text-cyan-800 shadow-cyan-900/30;
+  }
+
+  .action-button.cyan:hover,
+  input.cyan::file-selector-button:hover {
+    @apply border-cyan-500 bg-cyan-300 shadow-cyan-900/50;
+  }
+
+  .action-button.sky,
+  input.sky::file-selector-button {
+    @apply border-sky-400 bg-sky-200 text-sky-800 shadow-sky-900/30;
+  }
+
+  .action-button.sky:hover,
+  input.sky::file-selector-button:hover {
+    @apply border-sky-500 bg-sky-300 shadow-sky-900/50;
+  }
+
+  .action-button.blue,
+  input.blue::file-selector-button {
+    @apply border-blue-400 bg-blue-200 text-blue-800 shadow-blue-900/30;
+  }
+
+  .action-button.blue:hover,
+  input.blue::file-selector-button:hover {
+    @apply border-blue-500 bg-blue-300 shadow-blue-900/50;
+  }
+
+  .action-button.indigo,
+  input.indigo::file-selector-button {
+    @apply border-indigo-400 bg-indigo-200 text-indigo-800 shadow-indigo-900/30;
+  }
+
+  .action-button.indigo:hover,
+  input.indigo::file-selector-button:hover {
+    @apply border-indigo-500 bg-indigo-300 shadow-indigo-900/50;
+  }
+
+  .action-button.violet,
+  input.violet::file-selector-button {
+    @apply border-violet-400 bg-violet-200 text-violet-800 shadow-violet-900/30;
+  }
+
+  .action-button.violet:hover,
+  input.violet::file-selector-button:hover {
+    @apply border-violet-500 bg-violet-300 shadow-violet-900/50;
+  }
+
+  .action-button.purple,
+  input.purple::file-selector-button {
+    @apply border-purple-400 bg-purple-200 text-purple-800 shadow-purple-900/30;
+  }
+
+  .action-button.purple:hover,
+  input.purple::file-selector-button:hover {
+    @apply border-purple-500 bg-purple-300 shadow-purple-900/50;
+  }
+
+  .action-button.fuchsia,
+  input.fuchsia::file-selector-button {
+    @apply border-fuchsia-400 bg-fuchsia-200 text-fuchsia-800 shadow-fuchsia-900/30;
+  }
+
+  .action-button.fuchsia:hover,
+  input.fuchsia::file-selector-button:hover {
+    @apply border-fuchsia-500 bg-fuchsia-300 shadow-fuchsia-900/50;
+  }
+
+  .action-button.pink,
+  input.pink::file-selector-button {
+    @apply border-pink-400 bg-pink-200 text-pink-800 shadow-pink-900/30;
+  }
+
+  .action-button.pink:hover,
+  input.pink::file-selector-button:hover {
+    @apply border-pink-500 bg-pink-300 shadow-pink-900/50;
+  }
+
+  .action-button.rose,
+  input.rose::file-selector-button {
+    @apply border-rose-400 bg-rose-200 text-rose-800 shadow-rose-900/30;
+  }
+
+  .action-button.rose:hover,
+  input.rose::file-selector-button:hover {
+    @apply border-rose-500 bg-rose-300 shadow-rose-900/50;
   }
 }
 
 @layer utilities {
-  .focusable:focus-visible {
-    --tw-ring-color: rgba(38, 38, 38, 0.8);
-    --tw-ring-offset-width: 2px;
-    --tw-ring-offset-color: #ffefce;
-    box-shadow:
-      0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color),
-      var(--tw-ring-shadow);
-    box-shadow: var(--tw-ring-inset) 0 0 0
-      calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-    @apply outline-none ring-2;
+  .focusable:focus-visible,
+  .focusable:has(:focus-visible) {
+    @apply outline outline-2 outline-offset-1;
   }
 
+  .focusable.slate:focus-visible,
+  .focusable.slate:has(:focus-visible) {
+    @apply outline-slate-600;
+  }
+
+  .focusable.gray:focus-visible,
+  .focusable.gray:has(:focus-visible) {
+    @apply outline-gray-600;
+  }
+
+  .focusable.zinc:focus-visible,
+  .focusable.zinc:has(:focus-visible) {
+    @apply outline-zinc-600;
+  }
+
+  .focusable.neutral:focus-visible,
+  .focusable.neutral:has(:focus-visible) {
+    @apply outline-neutral-600;
+  }
+
+  .focusable.stone:focus-visible,
+  .focusable.stone:has(:focus-visible) {
+    @apply outline-stone-600;
+  }
+
+  .focusable.orange:focus-visible,
+  .focusable.orange:has(:focus-visible) {
+    @apply outline-orange-600;
+  }
+
+  .focusable.amber:focus-visible,
+  .focusable.amber:has(:focus-visible) {
+    @apply outline-amber-600;
+  }
+
+  .focusable.yellow:focus-visible,
+  .focusable.yellow:has(:focus-visible) {
+    @apply outline-yellow-600;
+  }
+
+  .focusable.lime:focus-visible,
+  .focusable.lime:has(:focus-visible) {
+    @apply outline-lime-600;
+  }
+
+  .focusable.green:focus-visible,
+  .focusable.green:has(:focus-visible) {
+    @apply outline-green-600;
+  }
+
+  .focusable.emerald:focus-visible,
+  .focusable.emerald:has(:focus-visible) {
+    @apply outline-emerald-600;
+  }
+
+  .focusable.teal:focus-visible,
+  .focusable.teal:has(:focus-visible) {
+    @apply outline-teal-600;
+  }
+
+  .focusable.cyan:focus-visible,
+  .focusable.cyan:has(:focus-visible) {
+    @apply outline-cyan-600;
+  }
+
+  .focusable.sky:focus-visible,
+  .focusable.sky:has(:focus-visible) {
+    @apply outline-sky-600;
+  }
+
+  .focusable.blue:focus-visible,
+  .focusable.blue:has(:focus-visible) {
+    @apply outline-blue-600;
+  }
+
+  .focusable.indigo:focus-visible,
+  .focusable.indigo:has(:focus-visible) {
+    @apply outline-indigo-600;
+  }
+
+  .focusable.violet:focus-visible,
+  .focusable.violet:has(:focus-visible) {
+    @apply outline-violet-600;
+  }
+
+  .focusable.purple:focus-visible,
+  .focusable.purple:has(:focus-visible) {
+    @apply outline-purple-600;
+  }
+
+  .focusable.fuchsia:focus-visible,
+  .focusable.fuchsia:has(:focus-visible) {
+    @apply outline-fuchsia-600;
+  }
+
+  .focusable.pink:focus-visible,
+  .focusable.pink:has(:focus-visible) {
+    @apply outline-pink-600;
+  }
+
+  .focusable.rose:focus-visible,
+  .focusable.rose:has(:focus-visible) {
+    @apply outline-rose-600;
+  }
+
+  .focusable:focus-visible,
   .focusable:has(:focus-visible) {
-    --tw-ring-color: rgba(38, 38, 38, 0.8);
-    --tw-ring-offset-width: 2px;
-    --tw-ring-offset-color: #ffefce;
-    box-shadow:
-      0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color),
-      var(--tw-ring-shadow);
-    box-shadow: var(--tw-ring-inset) 0 0 0
-      calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
-    @apply outline-none ring-2;
+    @apply outline-black;
   }
 
   .hazard-background {

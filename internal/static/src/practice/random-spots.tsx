@@ -15,7 +15,6 @@ import {
   BigAngryButton,
   BigHappyButton,
   BigSkyButton,
-  GiantBasicButton,
   VioletButton,
   WarningButton,
 } from "../ui/buttons";
@@ -360,7 +359,7 @@ export function SingleSetupForm({
             </BasicButton>
             <input
               id="num-sessions"
-              className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20 xs:w-20"
+              className="basic-field w-full xs:w-20"
               type="number"
               min="1"
               defaultValue={`${numSessions}`}
@@ -376,10 +375,14 @@ export function SingleSetupForm({
           </div>
         </div>
         <div className="col-span-full my-8 flex w-full items-center justify-center">
-          <GiantBasicButton onClick={handleSubmit}>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="action-button violet focusable h-20 px-8 text-3xl"
+          >
             Start Practicing
             <span className="icon-[iconamoon--player-play-thin] size-8" />
-          </GiantBasicButton>
+          </button>
         </div>
       </div>
     </>
@@ -406,7 +409,7 @@ function findNeglectedSpot(
 ): [boolean, string] {
   let maxReps = -Infinity;
   let minReps = Infinity;
-  let minId = Math.random().toString(36);
+  let minId = "";
   for (const spot of spots) {
     if (!eligibleSpotIds.includes(spot.id) || !spot.id) {
       continue;

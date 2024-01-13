@@ -53,7 +53,7 @@ templ UserInfo(user db.User, csrf string) {
  				hx-headers={ components.HxCsrfHeader(csrf) }
  				hx-swap="outerHTML transition:true"
  				hx-target="#user-info"
- 				class="w-full text-yellow-800 action-button bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+ 				class="w-full action-button amber focusable"
 			>
 				<span class="-ml-1 size-5 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
 				Edit
@@ -99,7 +99,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
  							name="name"
  							autoComplete="name"
  							placeholder="Enter your Name"
- 							class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-700 focusable focus:bg-neutral-700/20"
+ 							class="w-full basic-field"
 						/>
 						if errors["name"] != "" {
 							<p class="mt-2 text-sm text-red-600">{ errors["name"] }</p>
@@ -123,7 +123,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
  							name="email"
  							autoComplete="home email"
  							placeholder="test@example.com"
- 							class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-700 focusable focus:bg-neutral-700/20"
+ 							class="w-full basic-field"
 						/>
 						if errors["email"] != "" {
 							<p class="mt-2 text-sm text-red-600">{ errors["email"] }</p>
@@ -134,7 +134,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
 			<div class="flex flex-row-reverse gap-4 pt-4 pb-0 w-full">
 				<button
  					type="submit"
- 					class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 					class="action-button green focusable"
 				>
 					<span class="-ml-1 size-6 icon-[iconamoon--arrow-up-5-circle-thin]" aria-hidden="true"></span>
 					Save
@@ -144,7 +144,7 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
  					hx-headers={ components.HxCsrfHeader(csrf) }
  					hx-swap="outerHTML transition:true"
  					hx-target="#user-info"
- 					class="text-yellow-800 action-button bg-yellow-700/10 hover:bg-yellow-700/20 focusable"
+ 					class="action-button amber focusable"
 				>
 					<span class="-ml-1 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 					Cancel
@@ -186,7 +186,7 @@ templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf st
 							<button
  								type="button"
  								onclick={ startRegistration(creationOptions, csrf) }
- 								class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 								class="w-full action-button green focusable"
 							>
 								<span class="-ml-1 size-5 icon-[ph--fingerprint-thin]" aria-hidden="true"></span>
 								Register a Passkey
@@ -205,7 +205,7 @@ templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf st
  								hx-swap="none"
  								hx-confirm="Are you sure you want to delete all your passkeys?"
  								hx-on::after-request={ deletePasskeys() }
- 								class="w-full text-red-800 action-button bg-red-700/10 hover:bg-red-700/20 focusable"
+ 								class="w-full action-button red focusable"
 							>
 								<span class="-ml-1 size-5 icon-[iconamoon--trash-thin]" aria-hidden="true"></span>
 								Delete All Passkeys

@@ -1,13 +1,7 @@
 import { lazy, Suspense } from "preact/compat";
 import { useState, useCallback, useRef } from "preact/hooks";
 import { type UseFormRegisterReturn } from "react-hook-form";
-import { cn } from "../common";
-import {
-  AngryButton,
-  ColorlessButton,
-  HappyButton,
-  WarningButton,
-} from "../ui/buttons";
+import { AngryButton, HappyButton, WarningButton } from "../ui/buttons";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
 // TODO: this might be possible without custom elements
@@ -111,12 +105,10 @@ export function AddAudioPrompt({
 
   return (
     <>
-      <ColorlessButton
+      <button
+        type="button"
+        class="action-button purple focusable"
         onClick={open}
-        className={cn(
-          audioPromptUrl ? "bg-yellow-500/50" : "bg-yellow-700/10",
-          "text-yellow-800",
-        )}
       >
         {audioPromptUrl ? (
           <>
@@ -133,7 +125,7 @@ export function AddAudioPrompt({
           />
         )}
         Audio
-      </ColorlessButton>
+      </button>
       <dialog
         ref={ref}
         aria-labelledby="add-audio-prompt-title"
@@ -195,7 +187,7 @@ export function AddAudioPrompt({
                 type="file"
                 name="file"
                 accept="audio/mpeg"
-                class="py-4"
+                class="purple py-4"
                 required
               />
             </form>
@@ -335,12 +327,10 @@ export function AddImagePrompt({
 
   return (
     <>
-      <ColorlessButton
+      <button
+        type="button"
         onClick={open}
-        className={cn(
-          imagePromptUrl ? "bg-indigo-500/50" : "bg-indigo-700/10",
-          "text-indigo-800",
-        )}
+        className="action-button focusable cyan"
       >
         {imagePromptUrl ? (
           <>
@@ -357,7 +347,7 @@ export function AddImagePrompt({
           />
         )}
         Image
-      </ColorlessButton>
+      </button>
 
       <dialog
         ref={ref}
@@ -422,7 +412,7 @@ export function AddImagePrompt({
                 type="file"
                 name="file"
                 accept="image/png,image/jpg,image/jpeg,image/gif"
-                class="py-4"
+                class="cyan py-4"
               />
             </form>
             <div class="mt-4 flex w-full gap-2">
@@ -502,12 +492,10 @@ export function AddReminders({
 
   return (
     <>
-      <ColorlessButton
+      <button
+        type="button"
         onClick={open}
-        className={cn(
-          textPrompt ? "bg-lime-500/50" : "bg-lime-700/10",
-          "text-lime-800",
-        )}
+        className="action-button blue focusable"
       >
         {textPrompt ? (
           <>
@@ -524,7 +512,7 @@ export function AddReminders({
           />
         )}
         Reminders
-      </ColorlessButton>
+      </button>
       <dialog
         ref={ref}
         aria-labelledby="add-reminders-title"
@@ -603,13 +591,10 @@ export function AddNotesPrompt({
 
   return (
     <>
-      <ColorlessButton
+      <button
         type="button"
         onClick={open}
-        className={cn(
-          notesPrompt ? "bg-sky-500/50" : "bg-sky-700/10",
-          "text-sky-800",
-        )}
+        className="focusable action-button fuchsia"
       >
         {notesPrompt ? (
           <>
@@ -626,7 +611,7 @@ export function AddNotesPrompt({
           />
         )}
         Notes
-      </ColorlessButton>
+      </button>
       <dialog
         ref={ref}
         aria-labelledby="add-notes-prompt-title"

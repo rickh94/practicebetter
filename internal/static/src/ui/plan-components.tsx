@@ -17,10 +17,7 @@ export function NextPlanItem({ planid }: { planid: string }) {
   }, [dialogRef]);
   return (
     <>
-      <button
-        className="focusable action-button bg-green-700/10 text-green-800 hover:bg-green-700/20"
-        onClick={openDialog}
-      >
+      <button className="focusable action-button green" onClick={openDialog}>
         Go On
         <span
           className="icon-[iconamoon--player-next-thin] -mr-1 size-5"
@@ -53,7 +50,7 @@ export function NextPlanItem({ planid }: { planid: string }) {
         <div className="grid w-full grid-cols-1 gap-2 xs:grid-cols-2">
           <BackToPlan grow planid={planid} />
           <Link
-            className="focusable action-button flex-grow bg-green-700/10 text-green-800 hover:bg-green-700/20"
+            className="focusable action-button green flex-grow"
             href={`/library/plans/${planid}/next`}
           >
             Go On

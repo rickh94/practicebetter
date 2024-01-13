@@ -6,7 +6,7 @@ import "strconv"
 templ AddSpotWizard(practiceType string, planID string, id string, title string) {
 	<button
  		type="button"
- 		class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 		class="action-button green focusable"
  		hx-get={ "/library/plans/" + planID + "/spots/" + practiceType + "/add" }
  		hx-target={ "#" + id + "-chooser" }
  		hx-swap="innerHTML"
@@ -24,7 +24,7 @@ templ AddSpotWizard(practiceType string, planID string, id string, title string)
 		</header>
 		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id={ id + "-chooser" }></div>
 		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
-			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal(id) }>
+			<button class="w-full action-button green focusable" onClick={ components.CloseModal(id) }>
 				<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 				Done
 			</button>
@@ -42,6 +42,8 @@ templ AddSpotFormList(spots []PracticePlanSpot, planID string, practiceType stri
 		<p class="text-center">No Spots Available</p>
 	}
 }
+
+// TODO: make this prettier
 
 templ AddSpotItem(spot PracticePlanSpot, planID string, practiceType string, csrf string) {
 	<li id={ "add-spot-" + spot.ID } class={ "block transition-all duration-200 spot-card" }>
@@ -93,7 +95,7 @@ templ AddSpotItem(spot PracticePlanSpot, planID string, practiceType string, csr
 templ AddNewSpotWizard(planID string, title string, listID string) {
 	<button
  		type="button"
- 		class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 		class="action-button green focusable"
  		hx-get={ "/library/plans/" + planID + "/spots/new/add/pieces" }
  		hx-target={ "#add-new-spots-chooser" }
  		hx-swap="innerHTML"
@@ -108,7 +110,7 @@ templ AddNewSpotWizard(planID string, title string, listID string) {
 		</header>
 		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id="add-new-spots-chooser"></div>
 		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
-			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal("add-new-spots-dialog") }>
+			<button class="w-full action-button green focusable" onClick={ components.CloseModal("add-new-spots-dialog") }>
 				<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 				Done
 			</button>
@@ -209,7 +211,7 @@ templ AddNewSpotFormList(spots []PracticePlanSpot, csrf string, pieceTitle strin
 	<div id="spot-chooser">
 		<div class="flex flex-col gap-2 py-2 w-full sm:flex-row sm:items-center">
 			<button
- 				class="flex-shrink-0 text-xl action-button bg-neutral-900/10 text-neutral-800 hover:bg-neutral-900/20 focusable"
+ 				class="flex-shrink-0 text-xl action-button neutral focusable"
  				hx-get={ "/library/plans/" + planID + "/spots/new/add/pieces" }
  				hx-target="#spot-chooser"
  				hx-swap="outerHTML transition:true"

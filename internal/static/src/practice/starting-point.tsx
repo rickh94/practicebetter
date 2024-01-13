@@ -1,12 +1,7 @@
 import { ScaleCrossFadeContent } from "../ui/transitions";
-import {
-  BasicButton,
-  GiantBasicButton,
-  GiantHappyButton,
-  WarningButton,
-} from "../ui/buttons";
+import { BasicButton, GiantHappyButton, WarningButton } from "../ui/buttons";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { cn, uniqueID } from "../common";
+import { uniqueID } from "../common";
 import dayjs from "dayjs";
 import { BreakDialog, ResumeDialog } from "./practice-dialogs";
 import { SummaryActions } from "./summary";
@@ -336,12 +331,7 @@ export function StartingPointSetupForm({
           <input
             id="measures"
             name="measures"
-            className={cn(
-              "focusable w-24 rounded-xl px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20",
-              preconfigured
-                ? "bg-black/30 text-neutral-500"
-                : "bg-neutral-700/10",
-            )}
+            className="focusable basic-field w-24"
             type="number"
             min="2"
             defaultValue={`${measures}`}
@@ -372,12 +362,7 @@ export function StartingPointSetupForm({
         <div className="col-span-1 row-span-1 flex items-center gap-2 sm:col-start-2 sm:row-start-2">
           <input
             id="beats"
-            className={cn(
-              "focusable w-24 rounded-xl px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20",
-              preconfigured
-                ? "bg-black/30 text-neutral-500"
-                : "bg-neutral-700/10",
-            )}
+            className="basic-field focusable w-24"
             type="number"
             min="1"
             name="beats"
@@ -404,7 +389,7 @@ export function StartingPointSetupForm({
             <input
               id="maxLength"
               name="maxLength"
-              className="focusable w-24 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20"
+              className="focusable basic-field w-24"
               type="number"
               min="1"
               defaultValue={`${maxLength}`}
@@ -432,7 +417,7 @@ export function StartingPointSetupForm({
             <input
               id="lowerBound"
               name="lowerBound"
-              className="focusable w-24 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-400 transition duration-200 focus:bg-neutral-700/20"
+              className="focusable basic-field w-24"
               type="number"
               min="1"
               placeholder="mm"
@@ -451,7 +436,7 @@ export function StartingPointSetupForm({
             <input
               id="upperBound"
               name="upperBound"
-              className="focusable w-24 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-400 transition duration-200 focus:bg-neutral-700/20"
+              className="focusable basic-field w-24"
               type="number"
               min="1"
               max={measures}
@@ -497,7 +482,7 @@ export function StartingPointSetupForm({
             <input
               id="num-sessions"
               name="numSessions"
-              className="focusable w-20 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20"
+              className="focusable basic-field w-20"
               type="number"
               min="1"
               defaultValue={`${numSessions}`}
@@ -505,10 +490,13 @@ export function StartingPointSetupForm({
           </div>
         </div>
         <div className="col-span-full my-8 flex w-full items-center justify-center">
-          <GiantBasicButton type="submit">
+          <button
+            type="submit"
+            className="action-button violet focusable h-20 px-8 text-3xl"
+          >
             Start Practicing
             <span className="icon-[iconamoon--player-play-thin] size-8" />
-          </GiantBasicButton>
+          </button>
         </div>
       </form>
     </>

@@ -6,7 +6,7 @@ import "strconv"
 templ AddPieceWizard(practiceType string, planID string, id string, title string) {
 	<button
  		type="button"
- 		class="text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable"
+ 		class="action-button green focusable"
  		hx-get={ "/library/plans/" + planID + "/pieces/" + practiceType + "/add" }
  		hx-target={ "#" + id + "-chooser" }
  		hx-swap="innerHTML"
@@ -22,7 +22,10 @@ templ AddPieceWizard(practiceType string, planID string, id string, title string
 		</header>
 		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id={ id + "-chooser" }></div>
 		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
-			<button class="w-full text-green-800 action-button bg-green-700/10 hover:bg-green-700/20 focusable" onClick={ components.CloseModal(id) }>
+			<button
+ 				class="w-full green action-button focusable"
+ 				onClick={ components.CloseModal(id) }
+			>
 				<span class="-ml-1 size-5 icon-[iconamoon--check-circle-1-thin]"></span>
 				Done
 			</button>
@@ -31,7 +34,7 @@ templ AddPieceWizard(practiceType string, planID string, id string, title string
 }
 
 templ AddPieceItem(piece PracticePlanPiece, planID string, csrf string, practiceType string) {
-	<li id={ "add-piece-" + piece.ID } class={ "block transition-all duration-200 spot-card" }>
+	<li id={ "add-piece-" + piece.ID } class={ "block transition-all duration-200" }>
 		<form
  			hx-put={ "/library/plans/" + planID + "/pieces/" + practiceType }
  			hx-target={ "#" + practiceType + "-list" }
@@ -46,9 +49,9 @@ templ AddPieceItem(piece PracticePlanPiece, planID string, csrf string, practice
 			<input type="hidden" name="add-pieces" value={ piece.ID }/>
 			<button
  				type="submit"
- 				class="flex items-center py-4 px-6 w-full h-full text-left rounded-xl transition-all duration-200 text-neutral-700 bg-green-500/10 hover:bg-green-500/20 focusable"
+ 				class="flex flex-grow py-4 px-6 w-full text-black bg-green-200 rounded-xl border border-green-300 shadow-sm transition-all duration-200 hover:bg-green-300 hover:border-green-400 hover:shadow shadow-black/20 hover:shadow-green-900/30 focusable"
 			>
-				<div class="flex flex-col flex-1 flex-grow gap-1">
+				<div class="flex flex-col flex-1 flex-grow gap-1 text-left">
 					<div>
 						<strong class="text-xl font-bold">{ piece.Title }</strong>
 						<span class="whitespace-nowrap">
@@ -72,7 +75,7 @@ templ AddPieceItem(piece PracticePlanPiece, planID string, csrf string, practice
 
 templ AddPieceFormList(pieces []PracticePlanPiece, csrf string, planID string, practiceType string) {
 	<div id="piece-chooser">
-		<ul id="add-piece-list" class="grid overflow-y-scroll grid-cols-1 gap-2 w-full list-none lg:grid-cols-2">
+		<ul id="add-piece-list" class="grid overflow-y-scroll grid-cols-1 gap-2 py-2 w-full list-none lg:grid-cols-2">
 			for _, piece := range pieces {
 				@AddPieceItem(piece, planID, csrf, practiceType)
 			}

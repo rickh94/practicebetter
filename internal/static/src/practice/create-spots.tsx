@@ -114,7 +114,8 @@ export function CreateSpots({
           <input
             id="spot-name"
             ref={spotNameRef}
-            className="focusable w-44 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20"
+            className="basic-field w-44"
+            placeholder="Spot #1"
             type="text"
             onKeyUp={(e) => {
               if (e.key === "Enter" || e.key === ",") {
@@ -144,7 +145,8 @@ export function CreateSpots({
         <div className="flex gap-2">
           <input
             id="num-spots"
-            className="focusable w-20 rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 transition duration-200 focus:bg-neutral-700/20"
+            className="basic-field w-20"
+            placeholder="10"
             type="number"
             min="1"
             ref={numSpotsRef}

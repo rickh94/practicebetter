@@ -22,14 +22,14 @@ templ FinishCodeLoginPage(csrf string, nextLoc string) {
 			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 			<input type="hidden" name="next" value={ nextLoc }/>
 			<label for="code" class="hidden">Sign-in Code</label>
-			<input type="text" inputmode="numeric" name="code" placeholder="123456" required class="py-2 px-4 font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-700 focusable focus:bg-neutral-700/20" autofocus/>
+			<input type="text" inputmode="numeric" name="code" placeholder="123456" required class="basic-field" autofocus/>
 			@components.BasicButton("", "submit") {
 				Complete Sign In
 				<span class="-mr-1 size-6 icon-[iconamoon--enter-thin]" aria-hidden="true"></span>
 			}
 			<a
  				href={ templ.URL("/auth/forget") }
- 				class="action-button bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+ 				class="action-button neutral focusable"
 			>
 				Switch Account
 				<span class="-mr-1 size-6 icon-[ph--arrows-left-right-thin]" aria-hidden="true"></span>

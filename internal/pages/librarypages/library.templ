@@ -18,8 +18,8 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 				if hasActivePlan {
 					@components.PracticePlanCard(activePracticePlan)
 				} else {
-					@components.HxLink("flex gap-2 justify-center items-center py-6 px-6 text-2xl font-semibold text-center text-violet-700 rounded-xl bg-violet-700/10 hover:bg-violet-700/20 transition duration-200 focusable", "/library/plans/create", "#main-content") {
-						<span class="-mr-1 size-10 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>
+					@components.HxLink("gap-2 py-6 px-6 h-16 sm:h-20 md:h-24 text-2xl sm:text-3xl font-semibold action-button violet focusable", "/library/plans/create", "#main-content") {
+						<span class="-mr-1 size-8 icon-[custom--music-file-curly-pencil] sm:size-10" aria-hidden="true"></span>
 						Start Practicing
 					}
 				}
@@ -28,7 +28,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 					for _, plan := range recentPracticePlans {
 						@components.PracticePlanCard(plan)
 					}
-					@components.HxLink("action-button text-violet-700 bg-violet-700/10 hover:bg-violet-700/20 focusable", "/library/plans", "#main-content") {
+					@components.HxLink("action-button violet focusable", "/library/plans", "#main-content") {
 						<span class="-ml-1 size-8 icon-[iconamoon--calendar-2-thin]" aria-hidden="true"></span>
 						Past Practice Plans
 					}
@@ -37,11 +37,11 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 			<div class="flex flex-col gap-4">
 				@LibraryPieceList(pieces)
 				<div class="grid grid-cols-1 gap-2 w-full xs:grid-cols-2">
-					@components.HxLink("flex-grow action-button text-indigo-700 bg-indigo-700/10 hover:bg-indigo-700/20 focusable", "/library/pieces", "#main-content") {
+					@components.HxLink("flex-grow action-button violet focusable", "/library/pieces", "#main-content") {
 						<span class="-ml-1 size-8 icon-[custom--music-folder]" aria-hidden="true"></span>
 						All Pieces
 					}
-					@components.HxLink("flex-grow text-green-700 action-button bg-green-700/10 hover:bg-green-700/20 focusable", "/library/pieces/create", "#main-content") {
+					@components.HxLink("flex-grow action-button green focusable", "/library/pieces/create", "#main-content") {
 						<span class="-ml-1 size-8 icon-[custom--music-note-edit]" aria-hidden="true"></span>
 						New Piece
 					}

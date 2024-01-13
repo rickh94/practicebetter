@@ -11,7 +11,7 @@ export function AudioPromptSummary({ url }: { url: string }) {
   }
   return (
     <details>
-      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-yellow-500/50 py-2 pl-4 pr-2 font-medium text-yellow-800 transition duration-200 hover:bg-yellow-300/50">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl  border border-purple-400 bg-purple-200 py-2 pl-4 pr-2 font-medium text-purple-800 shadow-sm shadow-purple-900/30 transition duration-200 hover:border-purple-500 hover:bg-purple-300 hover:shadow hover:shadow-purple-900/50">
         <div className="flex items-center gap-2">
           <span
             className="-ml icon-[iconamoon--volume-up-thin] size-5"
@@ -56,7 +56,7 @@ export function ImagePromptSummary({ url }: { url: string }) {
   return (
     <>
       <details>
-        <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-medium text-indigo-800 transition duration-200 hover:bg-indigo-300/50">
+        <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl  border border-cyan-400 bg-cyan-200 py-2 pl-4 pr-2 font-medium text-cyan-800 shadow-sm shadow-cyan-900/30 transition duration-200 hover:border-cyan-500 hover:bg-cyan-300 hover:shadow hover:shadow-cyan-900/50">
           <div className="flex items-center gap-2">
             <span
               className="icon-[iconamoon--file-image-thin] size-5"
@@ -97,13 +97,14 @@ export function ImagePromptSummary({ url }: { url: string }) {
     </>
   );
 }
+
 export function NotesPromptSummary({ notes }: { notes: string }) {
   if (!notes) {
     return <div>No Notes Prompt</div>;
   }
   return (
     <details>
-      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-sky-500/50 py-2 pl-4 pr-2 font-medium text-sky-800 transition duration-200 hover:bg-sky-300/50">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl  border border-fuchsia-400 bg-fuchsia-200 py-2 pl-4 pr-2 font-medium text-fuchsia-800 shadow-sm shadow-fuchsia-900/30 transition duration-200 hover:border-fuchsia-500 hover:bg-fuchsia-300 hover:shadow hover:shadow-fuchsia-900/50">
         <div className="flex items-center gap-2">
           <span
             className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
@@ -150,7 +151,7 @@ export function RemindersSummary({
   }
   return (
     <details open id={`reminder-details-${pieceid}-${spotid}`}>
-      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-medium text-lime-800 transition duration-200 hover:bg-lime-300/50">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl  border border-blue-400 bg-blue-200 py-2 pl-4 pr-2 font-medium text-blue-800 shadow-sm shadow-blue-900/30 transition duration-200 hover:border-blue-500 hover:bg-blue-300 hover:shadow hover:shadow-blue-900/50">
         <div className="flex items-center gap-2">
           <span
             className="icon-[ph--chat-centered-text-thin] -ml-1 size-5"
@@ -170,7 +171,7 @@ export function RemindersSummary({
         {!!pieceid && !!spotid && (
           <Link
             pushUrl={false}
-            className="focusable flex items-center justify-center gap-1 rounded-xl bg-lime-700/10 px-6 py-2 font-medium text-lime-800 transition duration-200 hover:bg-lime-700/20"
+            className="focusable action-button blue px-6 py-2"
             href={`/library/pieces/${pieceid}/spots/${spotid}/reminders/edit`}
             target={`#${targetId}`}
           >
@@ -203,7 +204,7 @@ export function EditRemindersSummary({
 }) {
   return (
     <details open>
-      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl bg-lime-500/50 py-2 pl-4 pr-2 font-medium text-lime-800 transition duration-200 hover:bg-lime-300/50">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl  border border-blue-400 bg-blue-200 py-2 pl-4 pr-2 font-medium text-blue-800 shadow-sm shadow-blue-900/30 transition duration-200 hover:border-blue-500 hover:bg-blue-300 hover:shadow hover:shadow-blue-900/50">
         <div className="flex items-center gap-2">
           <span
             className="icon-[ph--chat-centered-text-thin] -ml-1 size-5"
@@ -228,16 +229,13 @@ export function EditRemindersSummary({
             defaultValue={text ?? ""}
             placeholder="Add some reminders"
             className={cn(
-              "focusable min-h-[5.25rem] w-full flex-grow rounded-xl bg-neutral-700/10 px-4 py-2 font-medium text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20",
+              "focusable basic-field min-h-[5.25rem] w-full flex-grow",
             )}
           />
           {!!error && <p className="italic text-red-600">{error}</p>}
         </div>
         <div className="flex min-h-20 flex-grow-0 flex-col justify-center gap-1">
-          <button
-            className="focusable action-button bg-lime-700/10 text-lime-800 hover:bg-lime-700/20"
-            type="submit"
-          >
+          <button className="focusable action-button blue" type="submit">
             <span
               className="icon-[iconamoon--arrow-up-5-circle-thin] -ml-1 size-6"
               aria-hidden="true"
@@ -246,7 +244,7 @@ export function EditRemindersSummary({
           </button>
           <Link
             pushUrl={false}
-            className="focusable action-button bg-red-700/10 text-red-800 hover:bg-red-700/20"
+            className="focusable action-button red"
             href={`/library/pieces/${pieceid}/spots/${spotid}/reminders`}
             target={`#${id}`}
           >

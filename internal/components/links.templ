@@ -64,14 +64,14 @@ func getCurrentPath(ctx context.Context) string {
 
 templ MaybePracticePlan() {
 	if GetActivePracticePlan(ctx) != "" {
-		@HxLink("flex-shrink-0 h-14 text-violet-800 bg-white rounded-lg border-2 border-violet-700 shadow-sm hover:shadow action-button shadow-black/20 hover:shadow-violet-400 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
+		@HxLink("flex flex-shrink-0 gap-1 font-medium px-5 justify-center items-center h-14 text-violet-800 bg-white rounded-lg text-lg border-2 border-violet-700 shadow-sm hover:shadow shadow-black/20 hover:shadow-violet-400 focusable", "/library/plans/" + GetActivePracticePlan(ctx), "#main-content") {
 			<span>
 				<span class="hidden xs:inline">Practice</span> Plan
 			</span>
 			<span class="-mr-1 size-6 icon-[custom--music-file-curly]" aria-hidden="true"></span>
 		}
 	} else {
-		@HxLink("action-button flex-shrink-0 h-14 bg-violet-700/10 text-violet-700 hover:bg-violet-700/20 focusable", "/library/plans/create", "#main-content") {
+		@HxLink("action-button flex-shrink-0 h-14 violet focusable", "/library/plans/create", "#main-content") {
 			<span class="hidden xs:inline">Start Practicing</span>
 			<span class="xs:hidden">Practice</span>
 			<span class="-mr-1 size-6 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>

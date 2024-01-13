@@ -4,7 +4,6 @@ import { RepeatPrepareText } from "./repeat-prepare-text";
 import {
   BigAngryButton,
   BigHappyButton,
-  GiantBasicButton,
   HappyButton,
   SkyButton,
   WarningButton,
@@ -203,10 +202,14 @@ function RepeatPrepare({
       </div>
       <RepeatPrepareText open={!spot} />
       <div className="col-span-full flex w-full items-center justify-center py-8">
-        <GiantBasicButton type="button" onClick={startPracticing}>
+        <button
+          type="button"
+          onClick={startPracticing}
+          className="action-button violet focusable h-20 px-8 text-3xl"
+        >
           Start Practicing
           <span className="icon-[iconamoon--player-play-thin] size-8" />
-        </GiantBasicButton>
+        </button>
       </div>
     </div>
   );
@@ -599,10 +602,7 @@ function RepeatFinishedActionButtons({
   }
   return (
     <>
-      <Link
-        className="focusable action-button bg-sky-700/10 text-sky-800 hover:bg-sky-700/20"
-        href="/library"
-      >
+      <Link className="focusable action-button sky" href="/library">
         <span
           className="icon-[custom--music-note-screen] -ml-1 size-5"
           aria-hidden="true"
