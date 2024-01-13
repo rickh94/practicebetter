@@ -415,7 +415,7 @@
   }
 
   .basic-field:disabled {
-    @apply border-neutral-100 bg-neutral-100 text-neutral-400;
+    @apply cursor-auto border-neutral-100 bg-neutral-100 text-neutral-400;
   }
 
   .basic-field:focus {

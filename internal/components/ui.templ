@@ -104,7 +104,7 @@ templ BasicButtonLink(href, hxTarget, hxSwap  string) {
 
 templ ReadMoreButton(id string) {
 	<button
- 		class={ navClasses }
+ 		class="action-button neutral focusable"
  		onclick={ ShowModal(id) }
 	>
 		Read More
@@ -122,7 +122,7 @@ type BreadcrumbInfo struct {
 
 templ BreadcrumbWrapper() {
 	<nav aria-label="Breadcrumb" class="hidden flex-grow-0 md:flex">
-		<ul class="flex flex-grow-0 flex-shrink justify-around items-center py-2 px-4 min-w-0 text-sm rounded-xl sm:justify-start sm:text-xl bg-neutral-900/10">
+		<ul class="flex flex-grow-0 flex-shrink justify-around items-center py-1 px-3 min-w-0 h-12 text-sm rounded-xl border sm:justify-start sm:text-xl drop-shadow-sm border-neutral-300 bg-neutral-50">
 			{ children... }
 		</ul>
 	</nav>
@@ -130,8 +130,8 @@ templ BreadcrumbWrapper() {
 
 templ LittleBreadcrumbButton( href string) {
 	<nav aria-label="Breadcrumb" class="flex overflow-x-hidden flex-grow-0 min-w-0 md:hidden">
-		@HxLink("focusable rounded-xl min-w-0 h-12 flex items-center px-5 text-lg bg-neutral-900/10 hover:bg-neutral-900/20 text-neutral-800", href, "#main-content") {
-			<span class="flex-shrink-0 -ml-2 size-8 icon-[iconamoon--arrow-left-2-thin]" aria-hidden="true"></span>
+		@HxLink("flex items-center px-4 font-medium min-w-0 gap-1 h-12 text-lg rounded-xl border text-neutral-600 drop-shadow-sm border-neutral-300 bg-neutral-50 hover:bg-neutral-200 hover:border-neutral-400 focusable", href, "#main-content") {
+			<span class="flex-shrink-0 -ml-1 size-6 icon-[iconamoon--arrow-left-5-circle-thin]" aria-hidden="true"></span>
 			<span class="truncate">
 				{ children... }
 			</span>
@@ -178,7 +178,7 @@ templ BreadcrumbWithDates(bc []BreadcrumbWithDatesInfo) {
 
 templ BreadcrumbItem(label string, href string, active bool, isLast bool, isDate bool) {
 	<li
- 		class={ "flex items-center max-w-[12rem]", templ.KV("text-neutral-900", active), templ.KV("text-neutral-900/50", !active) }
+ 		class={ "flex items-center max-w-[12rem]", templ.KV("text-neutral-700", active), templ.KV("text-neutral-500 hover:text-neutral-700 focus-visible:text-neutral-700", !active) }
  		aria-current?={ active }
 	>
 		@HxLink("truncate focusable rounded-xl p-1", href, "#main-content") {
@@ -190,8 +190,8 @@ templ BreadcrumbItem(label string, href string, active bool, isLast bool, isDate
 		}
 	</li>
 	if !isLast {
-		<span class="flex items-center -mx-2 h-full text-neutral-900/50" aria-hidden="true">
-			<span class="size-6 icon-[iconamoon--arrow-right-2-thin] sm:size-8" aria-hidden="true"></span>
+		<span class="flex items-center h-full text-2xl text-neutral-400" aria-hidden="true">
+			/
 		</span>
 	}
 }
