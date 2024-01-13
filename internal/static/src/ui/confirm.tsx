@@ -13,10 +13,10 @@ export function ConfirmDialog({
   cancelevent: string;
 }) {
   const onConfirm = useCallback(() => {
-    document.dispatchEvent(new CustomEvent(confirmevent));
+    globalThis.dispatchEvent(new CustomEvent(confirmevent));
   }, [confirmevent]);
   const onCancel = useCallback(() => {
-    document.dispatchEvent(new CustomEvent(cancelevent));
+    globalThis.dispatchEvent(new CustomEvent(cancelevent));
   }, [cancelevent]);
 
   return (

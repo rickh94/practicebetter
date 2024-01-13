@@ -64,7 +64,7 @@ export default function Summary({
       const durationMinutes = Math.ceil(
         (new Date().getTime() - startTime.getTime()) / 1000 / 60,
       );
-      document.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("FinishedSpotPracticing", {
           detail: {
             spots,

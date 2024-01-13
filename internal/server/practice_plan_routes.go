@@ -536,12 +536,12 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 			piece.ActiveSpots = row.PieceActiveSpots
 			piece.CompletedSpots = row.PieceCompletedSpots
 			piece.RandomSpots = row.PieceRandomSpots
+			piece.Completed = row.PieceCompleted
 			if row.PieceComposer.Valid {
 				piece.Composer = row.PieceComposer.String
 			} else {
 				piece.Composer = "Unknown"
 			}
-			piece.Completed = row.PieceCompleted
 
 			if row.PiecePracticeType == "random_spots" {
 				planData.RandomSpotsPieces = append(planData.RandomSpotsPieces, piece)

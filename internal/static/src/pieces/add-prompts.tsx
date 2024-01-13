@@ -64,7 +64,7 @@ export function AddAudioPrompt({
         const { filename, url } = await res.json();
         if (!url || !filename) {
           setIsUploading(false);
-          document.dispatchEvent(
+          globalThis.dispatchEvent(
             new CustomEvent("ShowAlert", {
               detail: {
                 message: "Upload failed!",
@@ -79,7 +79,7 @@ export function AddAudioPrompt({
         setIsUploading(false);
         formRef.current.reset();
 
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               message: `${filename} has been uploaded successfully!`,
@@ -94,7 +94,7 @@ export function AddAudioPrompt({
         close();
       } else {
         setIsUploading(false);
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               message: "Upload failed!",
@@ -289,7 +289,7 @@ export function AddImagePrompt({
         const { filename, url } = await res.json();
         setIsUploading(false);
         if (!filename || !url) {
-          document.dispatchEvent(
+          globalThis.dispatchEvent(
             new CustomEvent("ShowAlert", {
               detail: {
                 message: "Failed to upload image",
@@ -303,7 +303,7 @@ export function AddImagePrompt({
         }
         formRef.current.reset();
 
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               message: `${filename} has been uploaded successfully!`,
@@ -318,7 +318,7 @@ export function AddImagePrompt({
         close();
       } else {
         setIsUploading(false);
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               message: "Failed to upload image",

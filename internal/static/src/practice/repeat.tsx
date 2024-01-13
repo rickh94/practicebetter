@@ -69,7 +69,7 @@ export function Repeat({
       const durationMinutes = Math.ceil(
         (new Date().getTime() - startTime) / 1000 / 60,
       );
-      document.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("FinishedRepeatPracticing", {
           detail: {
             success: true,

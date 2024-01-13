@@ -54,8 +54,9 @@ globalThis.addEventListener("FinishedSpotPracticing", (e) => {
     body: JSON.stringify({ spots, durationMinutes }),
   })
     .then((res) => {
+      console.log(res);
       if (res.ok) {
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               variant: "success",
@@ -67,7 +68,7 @@ globalThis.addEventListener("FinishedSpotPracticing", (e) => {
         );
       } else {
         res.text().then(console.error).catch(console.error);
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               variant: "error",
@@ -81,7 +82,7 @@ globalThis.addEventListener("FinishedSpotPracticing", (e) => {
     })
     .catch((err) => {
       console.error(err);
-      document.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("ShowAlert", {
           detail: {
             variant: "error",
@@ -110,7 +111,7 @@ globalThis.addEventListener("FinishedStartingPointPracticing", (evt) => {
   })
     .then((res) => {
       if (res.ok) {
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               variant: "success",
@@ -122,7 +123,7 @@ globalThis.addEventListener("FinishedStartingPointPracticing", (evt) => {
         );
       } else {
         res.text().then(console.error).catch(console.error);
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               variant: "error",
@@ -136,7 +137,7 @@ globalThis.addEventListener("FinishedStartingPointPracticing", (evt) => {
     })
     .catch((err) => {
       console.error(err);
-      document.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("ShowAlert", {
           detail: {
             variant: "error",
@@ -166,7 +167,7 @@ globalThis.addEventListener("FinishedRepeatPracticing", (evt) => {
     .then((res) => {
       if (res.ok) {
         if (success) {
-          document.dispatchEvent(
+          globalThis.dispatchEvent(
             new CustomEvent("ShowAlert", {
               detail: {
                 variant: "success",
@@ -178,7 +179,7 @@ globalThis.addEventListener("FinishedRepeatPracticing", (evt) => {
             }),
           );
         } else {
-          document.dispatchEvent(
+          globalThis.dispatchEvent(
             new CustomEvent("ShowAlert", {
               detail: {
                 variant: "info",
@@ -192,7 +193,7 @@ globalThis.addEventListener("FinishedRepeatPracticing", (evt) => {
         }
       } else {
         res.text().then(console.error).catch(console.error);
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               variant: "error",
@@ -206,7 +207,7 @@ globalThis.addEventListener("FinishedRepeatPracticing", (evt) => {
     })
     .catch((err) => {
       console.error(err);
-      document.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("ShowAlert", {
           detail: {
             variant: "error",

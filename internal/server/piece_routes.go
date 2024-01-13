@@ -591,6 +591,7 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 
 	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
 	if ok && activePracticePlanID != "" {
+		log.Default().Println("Completing practice plan piece")
 		if err := qtx.CompletePracticePlanPiece(r.Context(), db.CompletePracticePlanPieceParams{
 			UserID:       user.ID,
 			PlanID:       activePracticePlanID,

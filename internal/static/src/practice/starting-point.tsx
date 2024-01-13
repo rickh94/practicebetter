@@ -181,7 +181,7 @@ export function StartingPoint({
             start === end ? `${start}` : `${start}-${end}`,
           )
           .join(", ");
-        document.dispatchEvent(
+        globalThis.dispatchEvent(
           new CustomEvent("FinishedStartingPointPracticing", {
             detail: {
               measuresPracticed: mp,

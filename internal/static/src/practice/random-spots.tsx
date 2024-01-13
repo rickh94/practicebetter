@@ -79,7 +79,7 @@ export function RandomSpots({
     (finalSummary: PracticeSummaryItem[]) => {
       setSummary(finalSummary);
       setMode("summary");
-      document.removeEventListener(
+      globalThis.removeEventListener(
         "UpdateSpotRemindersField",
         updateSpotRemindersField,
       );
@@ -90,7 +90,7 @@ export function RandomSpots({
   const startPracticing = useCallback(() => {
     setStartTime(new Date());
     setMode("practice");
-    document.addEventListener(
+    globalThis.addEventListener(
       "UpdateSpotRemindersField",
       updateSpotRemindersField,
     );
@@ -184,7 +184,6 @@ export function GetReadyDialog({
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
 
   const openDialog = useCallback(() => {
-    console.log("opening dialog");
     if (dialogRef.current) {
       globalThis.handleShowModal();
       dialogRef.current.showModal();
@@ -291,7 +290,7 @@ export function SingleSetupForm({
       } else {
         setNumSessions(parseInt(numSessionsRef.current.value, 10));
       }
-      document.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("ShowAlert", {
           detail: {
             variant: "error",
@@ -398,30 +397,33 @@ function hash(s: string) {
 
 type SpotNeglectInfo = {
   reps: number;
-  evicted: boolean;
+  id: string;
 };
 
-function findNeglectedSpot(spots: SpotNeglectInfo[]): [boolean, number] {
+function findNeglectedSpot(
+  spots: SpotNeglectInfo[],
+  eligibleSpotIds: string[],
+): [boolean, string] {
   let maxReps = -Infinity;
   let minReps = Infinity;
-  let minIdx = 0;
-  for (let i = 0; i < spots.length; i++) {
-    if (spots[i].evicted) {
+  let minId = Math.random().toString(36);
+  for (const spot of spots) {
+    if (!eligibleSpotIds.includes(spot.id) || !spot.id) {
       continue;
     }
-    if (spots[i].reps > maxReps) {
-      maxReps = spots[i].reps;
+    if (spot.reps > maxReps) {
+      maxReps = spot.reps;
     }
-    if (spots[i].reps < minReps) {
-      minReps = spots[i].reps;
-      minIdx = i;
+    if (spot.reps < minReps) {
+      minReps = spot.reps;
+      minId = spot.id;
     }
   }
 
   if (maxReps - minReps > 2) {
-    return [true, minIdx];
+    return [true, minId];
   }
-  return [false, -1];
+  return [false, ""];
 }
 
 // TODO: This should probably be a few components at this point
@@ -441,18 +443,14 @@ export function SinglePractice({
   numSessions: number;
   planid?: string;
 }) {
-  const [currentSpotIdx, setCurrentSpotIdx] = useState(
-    Math.floor(Math.random() * spots.length),
-  );
-  const [neglectInfo, setNeglectInfo] = useState<SpotNeglectInfo[]>(
-    new Array(spots.length).fill({ reps: 0, evicted: false }),
-  );
+  const [currentSpot, setCurrentSpot] = useState<BasicSpot | null>(null);
+  const [neglectInfo, setNeglectInfo] = useState<SpotNeglectInfo[]>([]);
+  const [eligibleSpots, setEligibleSpots] = useState<BasicSpot[]>(spots);
   const [practiceSummary, setPracticeSummary] = useState<
     Map<string, { excellent: number; fine: number; poor: number }>
   >(new Map());
   // This counter ensures that the animation runs, even if the same spot is generated twice in a row.
   const [counter, setCounter] = useState(0);
-  const [skipSpotIds, setSkipSpotIds] = useState<string[]>([]);
   const [lastTwoSpots, setLastTwoSpots] = useState<string[]>([]);
 
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
@@ -532,18 +530,18 @@ export function SinglePractice({
     }
     if (pieceid) {
       localStorage.removeItem(`${pieceid}.${spotIdsHash}.practiceSummary`);
-      localStorage.removeItem(`${pieceid}.${spotIdsHash}.skipSpotIds`);
+      localStorage.removeItem(`${pieceid}.${spotIdsHash}.eligibleSpotIds`);
       localStorage.removeItem(`${pieceid}.${spotIdsHash}.sessionsCompleted`);
       localStorage.removeItem(`${pieceid}.${spotIdsHash}.savedAt`);
     }
     finish(finalSummary);
   }, [practiceSummary, finish, spots, pieceid, spotIdsHash]);
 
-  const nextSpot = useCallback(
-    (nextSkipSpotIds: string[]) => {
+  const goToNextSpot = useCallback(
+    (nextEligibleSpots: BasicSpot[]) => {
       setCounter((curr) => curr + 1);
-      if (nextSkipSpotIds.length >= spots.length) {
-        document.dispatchEvent(
+      if (nextEligibleSpots.length === 0) {
+        globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
             detail: {
               message: "You practiced every spot!",
@@ -556,37 +554,51 @@ export function SinglePractice({
         handleDone();
         return;
       }
-      const [hasNeglectedSpot, neglectedSpotIdx] =
-        findNeglectedSpot(neglectInfo);
-      let nextSpotIdx: number;
-      let nextSpotId: string;
-      if (hasNeglectedSpot) {
-        nextSpotIdx = neglectedSpotIdx;
-        nextSpotId = spots[nextSpotIdx]?.id ?? "";
-      } else {
-        nextSpotIdx = Math.floor(Math.random() * spots.length);
-        nextSpotId = spots[nextSpotIdx]?.id ?? "";
-        while (
-          !nextSpotId ||
-          (nextSpotId && nextSkipSpotIds.includes(nextSpotId)) ||
-          // check if the last two spots are the same and also the same as the next spot
-          // but only if the skip spots is more than one smaller than the spots, otherwise
-          // there is only one spot left and it will infinitely loop
-          (nextSpotId &&
-            spots.length - 1 > nextSkipSpotIds.length &&
-            lastTwoSpots[0] === lastTwoSpots[1] &&
-            lastTwoSpots[1] === nextSpotId)
-        ) {
-          nextSpotIdx = Math.floor(Math.random() * spots.length);
+
+      const eligibleSpotIds: string[] = [];
+      for (const spot of nextEligibleSpots) {
+        if (!spot.id) {
+          continue;
+        }
+        if (!lastTwoSpots.includes(spot.id)) {
+          eligibleSpotIds.push(spot.id);
         }
       }
-      setCurrentSpotIdx(nextSpotIdx);
-      setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
+      const [hasNeglectedSpot, neglectedSpotId] = findNeglectedSpot(
+        neglectInfo,
+        eligibleSpotIds,
+      );
+      if (hasNeglectedSpot) {
+        const nextSpot = nextEligibleSpots.find(
+          (spot) => spot.id === neglectedSpotId,
+        );
+        if (nextSpot) {
+          setCurrentSpot(nextSpot);
+          setLastTwoSpots([neglectedSpotId, lastTwoSpots[0]]);
+          return;
+        }
+        console.error("invalid neglected spot id");
+      }
+      const nextSpotId =
+        eligibleSpotIds[Math.floor(Math.random() * eligibleSpotIds.length)];
+      const nextSpot = nextEligibleSpots.find((spot) => spot.id === nextSpotId);
+      if (!nextSpot) {
+        console.error("invalid next spot id");
+        return;
+      }
+      setCurrentSpot(nextSpot);
+      if (nextSpotId) {
+        setLastTwoSpots([nextSpotId, lastTwoSpots[0]]);
+      }
     },
-    [handleDone, spots, lastTwoSpots, neglectInfo],
+    [neglectInfo, handleDone, lastTwoSpots],
   );
 
   const handleResume = useCallback(() => {
+    if (hasShownResume) {
+      return;
+    }
+    setHasShownResume(true);
     const summary = loadFromStorage("practiceSummary");
     if (summary) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -598,19 +610,38 @@ export function SinglePractice({
           ][],
         ),
       );
-    }
-    const skipSpotIds = loadFromStorage("skipSpotIds");
-    if (skipSpotIds) {
-      setSkipSpotIds(JSON.parse(skipSpotIds) as string[]);
-      nextSpot(JSON.parse(skipSpotIds) as string[]);
     } else {
-      nextSpot([]);
+      return;
     }
     const sessionsCompleted = loadFromStorage("sessionsCompleted");
     if (sessionsCompleted) {
       setSessionsCompleted(parseInt(sessionsCompleted, 10));
     }
-  }, [loadFromStorage, nextSpot]);
+    const esi = loadFromStorage("eligibleSpotIds");
+    if (esi) {
+      const eligibleSpotIds = JSON.parse(esi) as string[];
+      const nextEligibleSpots = eligibleSpots.filter((spot) => {
+        if (!spot.id) {
+          return false;
+        }
+        return eligibleSpotIds.includes(spot.id);
+      });
+      if (nextEligibleSpots.length === 0) {
+        goToNextSpot(eligibleSpots);
+        return;
+      }
+      setEligibleSpots(nextEligibleSpots);
+      goToNextSpot(nextEligibleSpots);
+    } else {
+      goToNextSpot(eligibleSpots);
+    }
+  }, [
+    eligibleSpots,
+    hasShownResume,
+    loadFromStorage,
+    goToNextSpot,
+    setEligibleSpots,
+  ]);
 
   useEffect(() => {
     setHasShownResume(true);
@@ -629,18 +660,50 @@ export function SinglePractice({
       }
     } else {
       localStorage.removeItem(`${pieceid}.${spotIdsHash}.practiceSummary`);
-      localStorage.removeItem(`${pieceid}.${spotIdsHash}.skipSpotIds`);
+      localStorage.removeItem(`${pieceid}.${spotIdsHash}.eligibleSpotIds`);
       localStorage.removeItem(`${pieceid}.${spotIdsHash}.savedAt`);
-      return;
     }
-  }, [spotIdsHash, pieceid, hasShownResume, loadFromStorage, handleResume]);
+  }, [
+    spotIdsHash,
+    pieceid,
+    hasShownResume,
+    loadFromStorage,
+    handleResume,
+    spots,
+    setNeglectInfo,
+    goToNextSpot,
+    eligibleSpots,
+  ]);
+
+  useEffect(() => {
+    if (!currentSpot) {
+      const nextSpotIdx = Math.floor(Math.random() * eligibleSpots.length);
+      const nextSpot = eligibleSpots[nextSpotIdx];
+      setCurrentSpot(nextSpot);
+    }
+    if (neglectInfo.length === 0) {
+      const spotNeglect: SpotNeglectInfo[] = [];
+      for (const spot of spots) {
+        if (!spot.id) {
+          continue;
+        }
+        spotNeglect.push({
+          id: spot.id,
+          reps: 0,
+        });
+      }
+      setNeglectInfo(spotNeglect);
+    }
+  }, [currentSpot, eligibleSpots, neglectInfo.length, spots]);
 
   const addSpotRep = useCallback(
     (id: string | undefined, quality: "excellent" | "fine" | "poor") => {
-      setNeglectInfo((curr) => {
-        curr[currentSpotIdx].reps++;
-        return curr;
-      });
+      const currentSpotIdx = neglectInfo.findIndex((spot) => spot.id === id);
+      if (currentSpotIdx > -1) {
+        const nextNeglectInfo = [...neglectInfo];
+        nextNeglectInfo[currentSpotIdx].reps++;
+        setNeglectInfo(nextNeglectInfo);
+      }
       if (!id || !quality) {
         return;
       }
@@ -660,27 +723,25 @@ export function SinglePractice({
       setPracticeSummary(practiceSummary);
       return summary;
     },
-    [practiceSummary, pieceid, currentSpotIdx, saveToStorage],
+    [practiceSummary, pieceid, saveToStorage, neglectInfo],
   );
 
   const evictSpot = useCallback(
     (spotId: string) => {
       // going to need a copy of this because the it won't be updated by setstate until after the function finishes
-      const newSkipSpotIds = [...skipSpotIds];
-      if (spotId) {
-        newSkipSpotIds.push(spotId);
-      }
+      const nextEligibleSpots = eligibleSpots.filter(
+        (spot) => spot.id !== spotId,
+      );
       if (pieceid) {
-        saveToStorage("skipSpotIds", JSON.stringify(newSkipSpotIds));
+        saveToStorage(
+          "eligibleSpotIds",
+          JSON.stringify(nextEligibleSpots.map((spot) => spot.id)),
+        );
       }
-      setNeglectInfo((curr) => {
-        curr[currentSpotIdx].evicted = true;
-        return curr;
-      });
-      setSkipSpotIds(newSkipSpotIds);
-      return newSkipSpotIds;
+      setEligibleSpots(nextEligibleSpots);
+      return nextEligibleSpots;
     },
-    [skipSpotIds, pieceid, saveToStorage, currentSpotIdx],
+    [eligibleSpots, pieceid, saveToStorage, setEligibleSpots],
   );
 
   const takeABreak = useCallback(() => {
@@ -717,7 +778,7 @@ export function SinglePractice({
   ]);
 
   const handleExcellent = useCallback(() => {
-    const currentSpotId = spots[currentSpotIdx]?.id;
+    const currentSpotId = currentSpot?.id;
     if (!currentSpotId) {
       return;
     }
@@ -725,41 +786,39 @@ export function SinglePractice({
     if (!summary) {
       return;
     }
-    let nextSkipSpotIds = skipSpotIds;
+    let nextEligibleSpots = eligibleSpots;
     if (summary.excellent - summary.poor > 4) {
-      nextSkipSpotIds = evictSpot(currentSpotId);
+      nextEligibleSpots = evictSpot(currentSpotId);
     }
     maybeTakeABreak();
-    nextSpot(nextSkipSpotIds);
+    goToNextSpot(nextEligibleSpots);
   }, [
-    spots,
-    currentSpotIdx,
-    skipSpotIds,
+    currentSpot?.id,
     addSpotRep,
-    nextSpot,
-    evictSpot,
+    eligibleSpots,
     maybeTakeABreak,
+    goToNextSpot,
+    evictSpot,
   ]);
 
   const handleFine = useCallback(() => {
-    const currentSpotId = spots[currentSpotIdx]?.id;
+    const currentSpotId = currentSpot?.id;
     if (!currentSpotId) {
       return;
     }
     addSpotRep(currentSpotId, "fine");
     maybeTakeABreak();
-    nextSpot(skipSpotIds);
+    goToNextSpot(eligibleSpots);
   }, [
-    spots,
-    currentSpotIdx,
-    skipSpotIds,
+    currentSpot?.id,
     addSpotRep,
-    nextSpot,
     maybeTakeABreak,
+    goToNextSpot,
+    eligibleSpots,
   ]);
 
   const handlePoor = useCallback(() => {
-    const currentSpotId = spots[currentSpotIdx]?.id;
+    const currentSpotId = currentSpot?.id;
     if (!currentSpotId) {
       return;
     }
@@ -767,20 +826,19 @@ export function SinglePractice({
     if (!summary) {
       return;
     }
-    let nextSkipSpotIds = skipSpotIds;
+    let nextEligibleSpots = eligibleSpots;
     if (summary.poor > 2) {
-      nextSkipSpotIds = evictSpot(currentSpotId);
+      nextEligibleSpots = evictSpot(currentSpotId);
     }
     maybeTakeABreak();
-    nextSpot(nextSkipSpotIds);
+    goToNextSpot(nextEligibleSpots);
   }, [
-    spots,
-    currentSpotIdx,
-    skipSpotIds,
     addSpotRep,
-    nextSpot,
+    currentSpot?.id,
+    eligibleSpots,
     evictSpot,
     maybeTakeABreak,
+    goToNextSpot,
   ]);
 
   const startSession = useCallback(() => {
@@ -806,12 +864,13 @@ export function SinglePractice({
         <div className="relative w-full py-4">
           <ScaleCrossFadeContent
             component={
-              <PracticeSpotDisplay
-                spot={spots[currentSpotIdx]}
-                pieceid={pieceid}
-              />
+              currentSpot ? (
+                <PracticeSpotDisplay spot={currentSpot} pieceid={pieceid} />
+              ) : (
+                <p className="text-center">Something went wrong</p>
+              )
             }
-            id={`${currentSpotIdx}-${counter}`}
+            id={`${currentSpot?.id}-${counter}`}
           />
         </div>
         <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 xs:flex-row-reverse xs:px-0">

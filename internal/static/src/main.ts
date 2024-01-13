@@ -150,7 +150,7 @@ export function showAlert(
           <button
             type="button"
             class="inline-flex hover:text-red-800 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:outline-none text-red-800/50"
-            onclick="document.dispatchEvent(new CustomEvent('CloseAlert', { detail: { id: '${toastId}' } }))"
+            onclick="globalThis.dispatchEvent(new CustomEvent('CloseAlert', { detail: { id: '${toastId}' } }))"
           >
             <span class="sr-only">Close</span>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
@@ -314,7 +314,6 @@ globalThis.addEventListener("htmx:afterSwap", (event) => {
 });
 
 globalThis.addEventListener("htmx:beforeSwap", (event) => {
-  console.log("before swap");
   if (!(event.detail.target instanceof HTMLElement)) {
     return;
   }
@@ -347,7 +346,7 @@ globalThis.startPasskeyAuth = function (
             window.location.href = nextLoc;
           } else {
             console.log(res);
-            document.dispatchEvent(
+            globalThis.dispatchEvent(
               new CustomEvent("ShowAlert", {
                 detail: {
                   message: "Could not login",
@@ -361,7 +360,7 @@ globalThis.startPasskeyAuth = function (
         })
         .catch((err) => {
           console.log(err);
-          document.dispatchEvent(
+          globalThis.dispatchEvent(
             new CustomEvent("ShowAlert", {
               detail: {
                 message: "Could not login",
@@ -375,7 +374,7 @@ globalThis.startPasskeyAuth = function (
     })
     .catch((err) => {
       console.log(err);
-      document.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("ShowAlert", {
           detail: {
             message: "Could not login",
@@ -405,7 +404,7 @@ globalThis.startPasskeyRegistration = function (
         .then((res) => {
           console.log(res);
           if (res.ok) {
-            document.dispatchEvent(
+            globalThis.dispatchEvent(
               new CustomEvent("ShowAlert", {
                 detail: {
                   message: "Use your passkey to login in the future!",
@@ -423,7 +422,7 @@ globalThis.startPasskeyRegistration = function (
             }
           } else {
             console.log(res);
-            document.dispatchEvent(
+            globalThis.dispatchEvent(
               new CustomEvent("ShowAlert", {
                 detail: {
                   message: "Could not register your new passkey",
@@ -437,7 +436,7 @@ globalThis.startPasskeyRegistration = function (
         })
         .catch((err) => {
           console.log(err);
-          document.dispatchEvent(
+          globalThis.dispatchEvent(
             new CustomEvent("ShowAlert", {
               detail: {
                 message: "Could not regsiter your passkey",
@@ -451,7 +450,7 @@ globalThis.startPasskeyRegistration = function (
     })
     .catch((err) => {
       console.log(err);
-      document.dispatchEvent(
+      globalThis.dispatchEvent(
         new CustomEvent("ShowAlert", {
           detail: {
             message: "Could not register your passkey",

@@ -1,13 +1,13 @@
 package components
 
-const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-black shadow-sm shadow-black/20 hover:shadow transition-all duration-200"
+const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-black shadow-sm shadow-black/20  transition-all duration-200"
 
 func getSpotCardClass(completed bool, stage string) string {
 	if completed {
-		return baseSpotCardClass + " bg-green-300 border-green-700 shadow-black/50"
+		return baseSpotCardClass + " bg-green-200 border-green-700"
 	} else {
 
-		return baseSpotCardClass + " " + getStageColor(stage) + " border-neutral-800"
+		return baseSpotCardClass + " " + getStageColor(stage) + " border-neutral-800 hover:shadow"
 	}
 }
 
