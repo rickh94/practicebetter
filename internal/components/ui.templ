@@ -12,10 +12,10 @@ script CloseModal(id string) {
 
 	globalThis.handleCloseModal();
 	modal.classList.add('close');
-	setTimeout(function () {
+	setTimeout(() => {
 		modal.close();
 		modal.classList.remove('close');
-	}, 155);
+	}, 150);
 }
 
 templ ClearButton(buttonType string) {

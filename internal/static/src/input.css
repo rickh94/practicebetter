@@ -106,7 +106,7 @@
     opacity: 0;
     overflow: hidden;
     transition-property: transform, opacity;
-    @apply h-0 w-0 translate-y-4 rounded-xl duration-200 ease-out;
+    @apply h-0 w-0 translate-y-4 rounded-xl duration-150 ease-out;
   }
 
   dialog:focus {
@@ -131,24 +131,28 @@
     animation: backdrop-fade 250ms ease forwards;
     height: 100dvh;
     width: 100vw;
+    @apply bg-neutral-800/70 backdrop-blur-sm;
   }
 
-  dialog::backdrop {
-    animation: backdrop-fade 250ms ease backwards;
+  dialog[open].close::backdrop {
+    animation: backdrop-fade 150ms ease backwards;
     animation-direction: reverse;
   }
 
   dialog[open].close {
     transition-property: transform, opacity;
-    @apply translate-y-4;
+    @apply translate-y-4 scale-100 opacity-0;
+  }
+  dialog::backdrop {
+    @apply bg-neutral-800/70 opacity-0;
   }
 
   @keyframes backdrop-fade {
     from {
-      background: transparent;
+      @apply opacity-0;
     }
     to {
-      @apply bg-neutral-800/70 backdrop-blur-sm;
+      @apply opacity-100;
     }
   }
 
@@ -156,7 +160,7 @@
     dialog {
       overflow: hidden;
       transition-property: transform, opacity;
-      @apply translate-y-0 scale-95 duration-200;
+      @apply translate-y-0 scale-95 duration-150;
     }
 
     dialog[open] {
@@ -171,7 +175,7 @@
 
     dialog[open].close {
       transition-property: transform, opacity;
-      @apply translate-y-0 scale-95;
+      @apply translate-y-0 scale-95 opacity-0;
     }
   }
 
