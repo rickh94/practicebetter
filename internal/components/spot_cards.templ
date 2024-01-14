@@ -1,6 +1,6 @@
 package components
 
-const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-black shadow-sm shadow-black/20  transition-all duration-200"
+const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-black shadow-sm shadow-black/20 transition-all duration-200"
 
 func getSpotCardClass(completed bool, stage string) string {
 	if completed {
@@ -110,7 +110,7 @@ templ PracticePlanSpotCard(pieceID, spotID, name, measures, stage string, pieceT
 }
 
 templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool) {
-	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration-200 spot-card overflow-hidden" }>
+	<li id={ "spot-" + spotID } data-spot-stage={ stage } class={ "block transition-all duration-200 spot-card" }>
 		if practiced {
 			@HxLink(getSpotCardClass(practiced, stage), "/library/pieces"+pieceID+"/spots/"+spotID, "#main-content") {
 				@InterleaveSpotItem(name, pieceTitle, measures, stage, practiced)

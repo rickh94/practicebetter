@@ -1,13 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { RepeatPrepareText } from "./repeat-prepare-text";
-import {
-  BigAngryButton,
-  BigHappyButton,
-  HappyButton,
-  SkyButton,
-  WarningButton,
-} from "../ui/buttons";
+import { HappyButton, SkyButton, WarningButton } from "../ui/buttons";
 import { type BasicSpot } from "../validators";
 import {
   BackToPiece,
@@ -284,22 +278,22 @@ function RepeatPractice({
         <div className="flex w-full flex-col items-center pt-4 sm:mx-auto sm:max-w-xl">
           <h2 className="text-center text-3xl font-semibold">How did it go?</h2>
           <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 xs:flex-row-reverse xs:px-0">
-            <BigHappyButton
+            <button
               disabled={!waitedLongEnough}
               onClick={succeed}
-              className="sm:gap-2"
+              className="action-button focusable green h-16 px-6 py-4 text-2xl"
             >
               <span className="icon-[iconamoon--like-thin] -ml-1 -mt-1 size-8" />
               <span>Correct</span>
-            </BigHappyButton>
-            <BigAngryButton
+            </button>
+            <button
               disabled={!waitedLongEnough}
               onClick={fail}
-              className="sm:gap-2"
+              className="action-button focusable red h-16 px-6 py-4 text-2xl"
             >
               <span className="icon-[iconamoon--dislike-thin] -mb-1 -ml-1 size-8" />
               <span>Mistake</span>
-            </BigAngryButton>
+            </button>
           </div>
         </div>
       </div>
@@ -350,27 +344,27 @@ function PracticeListItem({
       {completed ? (
         <motion.li
           // @ts-expect-error It thinks it can't take a classname but it can
-          className="flex size-10 items-center justify-center rounded-xl border-2 border-green-700 bg-green-500/50 text-green-700 transition-all duration-100 sm:size-12"
+          className="flex size-10 select-none items-center justify-center rounded-xl border border-green-600 bg-green-300 text-green-600 shadow shadow-green-900/50 transition-all duration-100 sm:size-12"
           key={`${num}-completed`}
           initial="initial"
           animate="animate"
           exit="exit"
           variants={variants}
         >
-          <span className="icon-[iconamoon--check-bold] size-6 sm:size-8" />
+          <span className="icon-[iconamoon--check-light] size-6 sm:size-8" />
           <span className="sr-only">Checked</span>
         </motion.li>
       ) : (
         <motion.li
           // @ts-expect-error It thinks it can't take a classname but it can
-          className="flex size-10 items-center justify-center rounded-xl border-2 border-neutral-700/10 bg-neutral-700/10 text-neutral-700/20 transition-all duration-100 sm:size-12"
+          className="flex size-10 select-none items-center justify-center rounded-xl border border-neutral-400 bg-neutral-200 text-neutral-400 opacity-80 transition-all duration-100 sm:size-12"
           key={`${num}-incomplete`}
           initial="initial"
           animate="animate"
           exit="exit"
           variants={variants}
         >
-          <div className="m-0 p-0 text-2xl font-bold ">{num}</div>
+          <div className="m-0 p-0 text-2xl font-medium">{num}</div>
         </motion.li>
       )}
     </AnimatePresence>

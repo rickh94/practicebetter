@@ -38,13 +38,10 @@ export function NextPlanItem({ planid }: { planid: string }) {
           </h3>
         </header>
         <div className="flex w-full flex-shrink-0 flex-col gap-2 text-left text-neutral-700 sm:w-[32rem]">
-          <p className="inline-block">What to do next?</p>
-          <ul className="block list-disc pl-4">
-            <li>Practice your interleave spots</li>
-            <li>Take a short break</li>
-            <li>Go on to the next item</li>
-            <li>Go back to your practice plan</li>
-          </ul>
+          <p className="text-sm">
+            You can take this opportunity to go through your interleave spots,
+            or move on.
+          </p>
           <InterleaveSpotsList planid={planid} shouldFetch={true} />
         </div>
         <div className="grid w-full grid-cols-1 gap-2 xs:grid-cols-2">
@@ -91,7 +88,7 @@ export const InterleaveSpotsList = forwardRef(
 
     return (
       <details className="my-1 w-full" ref={ref}>
-        <summary className="focusable flex cursor-pointer items-center justify-between gap-1 rounded-xl bg-indigo-500/50 py-2 pl-4 pr-2 font-semibold text-indigo-800 transition duration-200 hover:bg-indigo-300/50 focus:outline-none">
+        <summary className="focusable indigo flex cursor-pointer select-none items-center justify-between gap-1 rounded-xl border border-indigo-400 bg-indigo-200 py-2 pl-4 pr-2 font-medium text-indigo-800 shadow-sm shadow-purple-900/30 transition duration-200 hover:border-indigo-500 hover:bg-indigo-300 hover:shadow-indigo-900/50">
           <div className="flex items-center gap-2 focus:outline-none">
             <span className="icon-[iconamoon--bookmark-thin] -ml-1 size-5" />
             Interleave Spots
@@ -112,9 +109,3 @@ export const InterleaveSpotsList = forwardRef(
     );
   },
 );
-/*
- *
-          hx-trigger="revealed"
-          hx-swap="innterHTML transition:true"
-          hx-get={`/library/plans/${planid}/interleave`}
-*/

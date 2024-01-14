@@ -654,6 +654,10 @@
   input.rose::file-selector-button:hover {
     @apply border-rose-500 bg-rose-300 shadow-rose-900/50;
   }
+
+  .action-button:disabled {
+    @apply pointer-events-none border-neutral-100 bg-neutral-100 text-neutral-400 shadow-none;
+  }
 }
 
 @layer utilities {
