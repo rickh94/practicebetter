@@ -149,10 +149,15 @@ func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	user := r.Context().Value(ck.UserKey).(db.User)
+
+	s.renderPiece(w, r, pieceID, user.ID)
+}
+
+func (s *Server) renderPiece(w http.ResponseWriter, r *http.Request, pieceID string, userID string) {
 	queries := db.New(s.DB)
 	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
 		PieceID: pieceID,
-		UserID:  user.ID,
+		UserID:  userID,
 	})
 	if err != nil || len(piece) == 0 {
 		// TODO: create a pretty 404 handler
@@ -160,32 +165,67 @@ func (s *Server) singlePiece(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Could not find matching piece", http.StatusNotFound)
 		return
 	}
-	/*
-		sessions1, err := queries.ListRecentPracticeSessionsForPiece(r.Context(), db.ListRecentPracticeSessionsForPieceParams{
-			UserID:  user.ID,
-			PieceID: piece[0].ID,
-		})
-		if err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Something went wrong", http.StatusInternalServerError)
-			return
+	pieceInfo := librarypages.SinglePieceInfo{
+		Title:           piece[0].Title,
+		ID:              pieceID,
+		Composer:        piece[0].Composer,
+		Measures:        piece[0].Measures,
+		BeatsPerMeasure: piece[0].BeatsPerMeasure,
+		GoalTempo:       piece[0].GoalTempo,
+		LastPracticed:   piece[0].LastPracticed,
+		Stage:           piece[0].Stage,
+		SpotBreakdown: librarypages.PieceSpotsBreakdown{
+			Repeat:      0,
+			ExtraRepeat: 0,
+			Random:      0,
+			Interleave:  0,
+			Infrequent:  0,
+			Completed:   0,
+		},
+		Spots: make([]librarypages.PiecePageSpot, 0, len(piece)),
+	}
+	for _, row := range piece {
+		if !row.SpotID.Valid || !row.SpotStage.Valid || !row.SpotName.Valid {
+			continue
 		}
-		sessions2, err := queries.ListRecentPracticeSessionsForPieceSpots(r.Context(), db.ListRecentPracticeSessionsForPieceSpotsParams{
-			UserID:  user.ID,
-			PieceID: piece[0].ID,
-		})
+		spotInfo := librarypages.PiecePageSpot{
+			ID:       row.SpotID.String,
+			Name:     row.SpotName.String,
+			Measures: "",
+			Stage:    row.SpotStage.String,
+		}
+		if row.SpotMeasures.Valid {
+			spotInfo.Measures = row.SpotMeasures.String
+		}
+		switch row.SpotStage.String {
+		case "repeat":
+			pieceInfo.SpotBreakdown.Repeat++
+		case "extra_repeat":
+			pieceInfo.SpotBreakdown.ExtraRepeat++
+		case "random":
+			pieceInfo.SpotBreakdown.Random++
+		case "interleave":
+			pieceInfo.SpotBreakdown.Interleave++
+		case "interleave_days":
+			pieceInfo.SpotBreakdown.Infrequent++
+		case "completed":
+			pieceInfo.SpotBreakdown.Completed++
+		}
+		if row.SpotLastPracticed.Valid &&
+			(!pieceInfo.LastPracticed.Valid ||
+				row.SpotLastPracticed.Int64 > pieceInfo.LastPracticed.Int64) {
+			log.Default().Println(row.SpotLastPracticed.Int64)
+			pieceInfo.LastPracticed = sql.NullInt64{
+				Int64: row.SpotLastPracticed.Int64,
+				Valid: true,
+			}
+		}
+		pieceInfo.Spots = append(pieceInfo.Spots, spotInfo)
 
-		for _, s := range sessions1 {
-			log.Default().Println(s)
-		}
-		for _, s := range sessions2 {
-			log.Default().Println(s)
-		}
-	*/
-	breakdown := getSpotBreakdown(piece)
-
+	}
+	log.Default().Println(pieceInfo.LastPracticed.Int64)
 	token := csrf.Token(r)
-	s.HxRender(w, r, librarypages.SinglePiece(s, token, piece, breakdown), piece[0].Title)
+	s.HxRender(w, r, librarypages.SinglePiece(s, pieceInfo, token), pieceInfo.Title)
 }
 
 func getSpotBreakdown(piece []db.GetPieceByIDRow) librarypages.PieceSpotsBreakdown {
@@ -446,23 +486,10 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
-		PieceID: pieceID,
-		UserID:  user.ID,
-	})
-	if err != nil || len(piece) == 0 {
-		// TODO: create a pretty 404 handler
-		log.Default().Println(err)
-		http.Error(w, "Could not find matching piece", http.StatusNotFound)
-		return
-	}
-
-	token := csrf.Token(r)
-
 	w.Header().Set("Content-Type", "text/html")
 	htmx.PushURL(r, "/library/pieces/"+pieceID)
 	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-		Message:  "Successfully updated piece: " + piece[0].Title,
+		Message:  "Successfully updated piece: " + r.Form.Get("title"),
 		Title:    "Piece Updated!",
 		Variant:  "success",
 		Duration: 3000,
@@ -470,13 +497,7 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		log.Default().Println(err)
 	}
 
-	breakdown := getSpotBreakdown(piece)
-
-	w.WriteHeader(http.StatusCreated)
-	if err := librarypages.SinglePiece(s, token, piece, breakdown).Render(r.Context(), w); err != nil {
-		log.Default().Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	s.renderPiece(w, r, pieceID, user.ID)
 }
 
 func (s *Server) piecePracticeRandomSpotsPage(w http.ResponseWriter, r *http.Request) {

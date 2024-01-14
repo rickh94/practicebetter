@@ -373,24 +373,8 @@ func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
 	}); err != nil {
 		log.Default().Println(err)
 	}
-	// TODO: refactor to get and render piece function
-	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
-		PieceID: pieceID,
-		UserID:  user.ID,
-	})
-	if err != nil || len(piece) == 0 {
-		// TODO: create a pretty 404 handler
-		log.Default().Println(err)
-		http.Error(w, "Could not find matching piece", http.StatusNotFound)
-		return
-	}
 
-	breakdown := getSpotBreakdown(piece)
-	token := csrf.Token(r)
-	if err := librarypages.SinglePiece(s, token, piece, breakdown).Render(r.Context(), w); err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Render Error", http.StatusInternalServerError)
-	}
+	s.renderPiece(w, r, pieceID, user.ID)
 }
 
 func (s *Server) repeatPracticeSpot(w http.ResponseWriter, r *http.Request) {

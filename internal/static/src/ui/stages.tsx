@@ -1,5 +1,4 @@
 import { getPieceStageDisplayName, getStageDisplayName } from "../common";
-import { RepeatIcon, ShuffleIcon } from "./icons";
 
 export function PieceStage({ stage }: { stage: string }) {
   return <>{getPieceStageDisplayName(stage)}</>;
@@ -13,21 +12,27 @@ export function SpotStage({
   icon?: boolean;
 }) {
   return (
-    <>
+    <span className="flex items-center gap-1">
       {icon && <SpotStageIcon stage={stage} />}
       {getStageDisplayName(stage)}
-    </>
+    </span>
   );
 }
 
 export function SpotStageIcon({ stage }: { stage: string }) {
   switch (stage) {
     case "repeat":
-      return <RepeatIcon className="mx-1 inline size-4" />;
+      return (
+        <span className="icon-[iconamoon--playlist-repeat-list-thin] mx-1 size-4" />
+      );
     case "extra_repeat":
-      return <RepeatIcon className="mx-1 inline size-4" />;
+      return (
+        <span className="icon-[iconamoon--playlist-repeat-list-thin] mx-1 size-4" />
+      );
     case "random":
-      return <ShuffleIcon className="mx-1 inline size-4" />;
+      return (
+        <span className="icon-[iconamoon--playlist-shuffle-thin] mx-1 size-4" />
+      );
     case "interleave":
       return (
         <span

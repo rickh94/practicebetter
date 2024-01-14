@@ -83,17 +83,20 @@ export function CreateSpots({
         ref={parent}
       >
         {spots.map((spot) => (
-          <li key={spot.id} className="flex h-10 items-center rounded-xl p-0">
-            <div className="whitespace-nowrap rounded-l-xl border-neutral-800 bg-neutral-700/10 py-2 pl-3 pr-2">
+          <li
+            key={spot.id}
+            className="flex h-10 items-center rounded-xl p-0 shadow-sm shadow-neutral-900/30"
+          >
+            <div className="flex h-10 items-center whitespace-nowrap rounded-l-xl border-y border-l border-neutral-400 bg-neutral-200 pl-3 pr-3 shadow-sm">
               {spot.name}
             </div>
             <button
               onClick={() => spot.id && deleteSpot(spot.id)}
-              className="flex h-10 items-center rounded-r-xl border-red-800 bg-red-700/10 px-3 text-red-800 hover:bg-red-500/10 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-800 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-100"
+              className="flex h-10 items-center rounded-r-xl border-y border-r border-red-400 bg-red-200 px-3 text-red-800 hover:border-red-500 hover:bg-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-800 focus-visible:ring-offset-1 focus-visible:ring-offset-neutral-100"
             >
               <span className="sr-only">Delete {spot.name}</span>
               <span
-                className="icon-[iconamoon--sign-minus-circle-thin] size-5"
+                className="icon-[iconamoon--sign-minus-circle-thin] size-6"
                 aria-hidden="true"
               />
             </button>

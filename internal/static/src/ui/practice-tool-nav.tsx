@@ -37,10 +37,9 @@ export function PracticeToolNav({ activepath }: { activepath: string }) {
   return (
     <DropdownMenu.Root onOpenChange={processLinks}>
       <DropdownMenu.Trigger asChild>
-        <button className="focusable inline-flex h-14 items-center justify-start gap-x-1.5 rounded-xl bg-neutral-700/10 px-6 py-4 shadow-sm hover:bg-neutral-700/20">
+        <button className="focusable mx-auto flex h-14 items-center justify-center gap-x-1.5 rounded-xl border border-neutral-300 bg-neutral-50 px-6 text-neutral-700 drop-shadow-sm hover:border-neutral-500 hover:bg-neutral-200 hover:drop-shadow-md">
           <div className="sr-only">Open Practice Tools Menu</div>
           <span className="icon-[iconamoon--playlist-thin] -ml-2 size-8 text-neutral-800" />
-
           {links.get(activepath) ? (
             <h1 className="text-xl font-semibold tracking-tight text-neutral-800 sm:text-2xl">
               {links.get(activepath)?.label ?? "Something went wrong"}
@@ -57,7 +56,7 @@ export function PracticeToolNav({ activepath }: { activepath: string }) {
           side="bottom"
           align="start"
           sideOffset={5}
-          className="w-64 origin-top-left rounded-lg bg-white shadow-lg duration-200 animate-in fade-in zoom-in-95 focus-within:outline-none focus:outline-none"
+          className="dropdown w-64 origin-top-left rounded-lg bg-white shadow-lg focus-within:outline-none focus:outline-none"
         >
           {[...links.entries()].map(([href, info]) => (
             <DropdownMenu.Item asChild key={href}>

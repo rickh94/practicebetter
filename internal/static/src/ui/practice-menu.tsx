@@ -40,7 +40,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
           side="bottom"
           align="end"
           sideOffset={5}
-          className="w-64 origin-top-right rounded-lg bg-white shadow-lg duration-200 animate-in fade-in zoom-in-95 focus-within:outline-none focus:outline-none"
+          className="dropdown w-64 origin-top-right rounded-lg bg-white shadow-lg duration-200 focus-within:outline-none focus:outline-none"
         >
           {links.map((link) => (
             <DropdownMenu.Item asChild key={link.href}>

@@ -64,7 +64,7 @@ export function InternalNav({ activepath }: { activepath: string }) {
           side="bottom"
           align="start"
           sideOffset={5}
-          className="nav-menu w-64 origin-top-left rounded-lg bg-white shadow-lg duration-200 focus-within:outline-none focus:outline-none"
+          className="dropdown w-64 origin-top-left rounded-lg bg-white shadow-lg duration-200 focus-within:outline-none focus:outline-none"
         >
           {links.map(({ href, label, icon }) => (
             <DropdownMenu.Item asChild key={href}>

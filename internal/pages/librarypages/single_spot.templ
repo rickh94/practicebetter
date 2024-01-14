@@ -68,8 +68,10 @@ templ StageReadMoreDialog() {
 		</div>
 		<button
  			onclick={ components.CloseModal(stageModalID) }
- 			class="flex flex-grow gap-1 justify-center items-center py-2 px-4 mt-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 hover:bg-neutral-700/20 focusable"
+ 			class="action-button amber focusable"
+ 			type="button"
 		>
+			<span class="-ml-1 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 			Done Reading
 		</button>
 	</dialog>
@@ -116,40 +118,7 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 					</h2>
 				</div>
 				<div class="sm:col-span-2">
-					<dl class="text-base divide-y divide-neutral-700 border-y border-neutral-700">
-						<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
-							<dt class="font-medium leading-6 text-neutral-900">
-								Measures
-							</dt>
-							<dd class="mt-1 leading-6 sm:mt-0 text-neutral-700">
-								if spot.Measures.Valid {
-									{ spot.Measures.String }
-								}
-							</dd>
-						</div>
-						<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
-							<dt class="font-medium leading-6 text-neutral-900">
-								Current Tempo
-							</dt>
-							<dd class="mt-1 leading-6 sm:mt-0 text-neutral-700">
-								if spot.CurrentTempo.Valid {
-									{ strconv.FormatInt(spot.CurrentTempo.Int64, 10)  }
-								}
-							</dd>
-						</div>
-						<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
-							<dt class="font-medium leading-6 text-neutral-900">
-								Stage
-							</dt>
-							<dd class="flex gap-1 items-center mt-1 leading-6 sm:mt-0 text-neutral-700">
-								<span class="font-medium"><spot-stage icon="true" stage={ spot.Stage }></spot-stage></span>
-								<button class="text-neutral-400 hover:text-neutral-500" onClick={ components.ShowModal(stageModalID) }>
-									<span class="size-4 icon-[iconamoon--information-circle-thin]" aria-hidden="true"></span>
-									<span class="sr-only">Read More</span>
-								</button>
-							</dd>
-						</div>
-					</dl>
+					@SpotAboutSection(spot)
 				</div>
 				<div class="flex flex-col gap-2 sm:col-span-3">
 					@RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID)
@@ -162,6 +131,55 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 		@StageReadMoreDialog()
 		<script type="module" src={ s.StaticUrl("dist/prompts.js") }></script>
 	}
+}
+
+templ SpotAboutSection(spot db.GetSpotRow) {
+	<dl class="text-base divide-y divide-neutral-700 border-y border-neutral-700">
+		<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+			<dt class="font-medium leading-6 text-neutral-900">
+				Measures
+			</dt>
+			<dd class="mt-1 leading-6 sm:mt-0 text-neutral-700">
+				if spot.Measures.Valid {
+					{ spot.Measures.String }
+				}
+			</dd>
+		</div>
+		<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+			<dt class="font-medium leading-6 text-neutral-900">
+				Current Tempo
+			</dt>
+			<dd class="mt-1 leading-6 sm:mt-0 text-neutral-700">
+				if spot.CurrentTempo.Valid {
+					{ strconv.FormatInt(spot.CurrentTempo.Int64, 10)  }
+				}
+			</dd>
+		</div>
+		<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+			<dt class="font-medium leading-6 text-neutral-900">
+				Last Practiced
+			</dt>
+			<dd class="mt-1 leading-6 sm:mt-0 text-neutral-700">
+				if spot.LastPracticed.Valid {
+					<date-from-now epoch={ strconv.FormatInt(spot.LastPracticed.Int64, 10) }></date-from-now>
+				} else {
+					Not Practiced
+				}
+			</dd>
+		</div>
+		<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+			<dt class="font-medium leading-6 text-neutral-900">
+				Stage
+			</dt>
+			<dd class="flex gap-1 items-center mt-1 leading-6 sm:mt-0 text-neutral-700">
+				<span class="font-medium"><spot-stage icon="true" stage={ spot.Stage }></spot-stage></span>
+				<button class="flex items-center p-1 rounded-full text-neutral-600 hover:text-neutral-700 hover:bg-neutral-200" onClick={ components.ShowModal(stageModalID) }>
+					<span class="size-4 icon-[iconamoon--information-circle-thin]" aria-hidden="true"></span>
+					<span class="sr-only">Read More</span>
+				</button>
+			</dd>
+		</div>
+	</dl>
 }
 
 templ RemindersSummary(text, pieceid, spotid string) {

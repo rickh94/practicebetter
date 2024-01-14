@@ -876,7 +876,7 @@ export function SinglePractice({
             id={`${currentSpot?.id}-${counter}`}
           />
         </div>
-        <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 xs:flex-row-reverse xs:px-0">
+        <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 xs:w-auto xs:px-0 sm:w-full sm:flex-row-reverse">
           <BigHappyButton type="button" onClick={handleExcellent}>
             <span
               className="icon-[iconamoon--like-thin] -ml-1 -mt-1 size-8"

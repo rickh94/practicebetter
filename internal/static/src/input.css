@@ -869,13 +869,13 @@
     @apply hidden;
   }
 
-  .nav-menu[data-state="open"] {
+  .dropdown[data-state="open"] {
     animation:
       fadeIn 250ms ease forwards,
       scaleIn 250ms ease forwards;
   }
 
-  .nav-menu[data-state="closed"] {
+  .dropdown[data-state="closed"] {
     animation:
       fadeOut 250ms ease backwards,
       scaleOut 250ms ease backwards;
