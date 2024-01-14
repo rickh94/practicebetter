@@ -39,12 +39,14 @@ func (s *Server) createPracticePlanForm(w http.ResponseWriter, r *http.Request) 
 
 // Consider making these configurable
 const (
-	LIGHT_MAX_NEW_SPOTS         = 0
-	MEDIUM_MAX_NEW_SPOTS        = 5
-	HEAVY_MAX_NEW_SPOTS         = 10
+	LIGHT_MAX_NEW_SPOTS  int64 = 2
+	MEDIUM_MAX_NEW_SPOTS int64 = 5
+	HEAVY_MAX_NEW_SPOTS  int64 = 10
+
 	LIGHT_MAX_INFREQUENT_SPOTS  = 7
 	MEDIUM_MAX_INFREQUENT_SPOTS = 14
 	HEAVY_MAX_INFREQUENT_SPOTS  = 20
+
 	LIGHT_MAX_INTERLEAVE_SPOTS  = 10
 	MEDIUM_MAX_INTERLEAVE_SPOTS = 12
 	HEAVY_MAX_INTERLEAVE_SPOTS  = 20
@@ -183,7 +185,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	maybeNewSpotIDs := make([]string, 0, len(pieceIDs)*10)
+	maybeNewSpotLists := make([][]string, 0, len(pieceIDs)*10)
 	potentialInfrequentSpots := make([]PotentialInfrequentSpot, 0, len(pieceIDs)*10)
 	extraRepeatSpotIDs := make([]string, 0, len(pieceIDs)*10)
 	interleaveSpotIDs := make([]string, 0, len(pieceIDs)*10)
@@ -209,7 +211,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 
 		// Only new spots if there aren't too many extra repeat/random spots.
 		if pieceInfo.ExtraRepeatSpotCount+pieceInfo.RandomSpotCount < 25 {
-			maybeNewSpotIDs = append(maybeNewSpotIDs, pieceInfo.NewSpotIDs...)
+			maybeNewSpotLists = append(maybeNewSpotLists, pieceInfo.NewSpotIDs)
 		}
 
 		if r.FormValue("practice_random_single") == "on" &&
@@ -222,7 +224,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			startingPointPieceIDs = append(startingPointPieceIDs, pieceID)
 		}
 	}
-	var maxNewSpots int
+	var maxNewSpots int64
 	var maxInfrequentSpots int
 	var maxInterleaveSpots int
 	switch r.FormValue("intensity") {
@@ -324,25 +326,14 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// new spots
-	// Randomly select the new spots from new spots, but the spots from yesterday should go first and not be randomized
-	rand.Shuffle(len(maybeNewSpotIDs), func(i, j int) {
-		maybeNewSpotIDs[i], maybeNewSpotIDs[j] = maybeNewSpotIDs[j], maybeNewSpotIDs[i]
-	})
-	failedNewSpotIDList := make([]string, 0, len(failedNewSpots))
+	var newSpotIdx int64 = 0
+	// Put in all the failed spots from the previous day
 	for spotID := range failedNewSpotIDs {
-		failedNewSpotIDList = append(failedNewSpotIDList, spotID)
-	}
-	maybeNewSpotIDs = append(failedNewSpotIDList, maybeNewSpotIDs...)
-	for i, spotID := range maybeNewSpotIDs {
-		if i >= maxNewSpots {
-			break
-		}
 		_, err := qtx.CreatePracticePlanSpotWithIdx(r.Context(), db.CreatePracticePlanSpotWithIdxParams{
 			PracticePlanID: newPlan.ID,
 			SpotID:         spotID,
 			PracticeType:   "new",
-			Idx:            int64(i),
+			Idx:            newSpotIdx,
 		})
 		if err != nil {
 			log.Default().Println(err)
@@ -357,6 +348,83 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		newSpotIdx++
+	}
+
+	// then if there's room, put in one spot from each piece, and save the others to be randomized
+	additionalNewSpots := make([]string, 0, len(maybeNewSpotLists)*10)
+	for _, pieceSpotList := range maybeNewSpotLists {
+		if newSpotIdx >= maxNewSpots {
+			break
+		}
+		// shuffle the spots will be random
+		rand.Shuffle(len(pieceSpotList), func(i, j int) {
+			pieceSpotList[i], pieceSpotList[j] = pieceSpotList[j], pieceSpotList[i]
+		})
+		for i, spotID := range pieceSpotList {
+			if newSpotIdx >= maxNewSpots {
+				break
+			}
+			if i == 0 {
+				_, err := qtx.CreatePracticePlanSpotWithIdx(r.Context(), db.CreatePracticePlanSpotWithIdxParams{
+					PracticePlanID: newPlan.ID,
+					SpotID:         spotID,
+					PracticeType:   "new",
+					Idx:            newSpotIdx,
+				})
+				if err != nil {
+					log.Default().Println(err)
+					if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+						Message:  "Failed to add spot",
+						Title:    "Database Error",
+						Variant:  "error",
+						Duration: 3000,
+					}); err != nil {
+						log.Default().Println(err)
+					}
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				newSpotIdx++
+			} else {
+				additionalNewSpots = append(additionalNewSpots, spotID)
+			}
+		}
+
+	}
+
+	// new spots
+	// if there's room, shuffle the remaining spots and add them until it's full
+	if newSpotIdx < maxNewSpots {
+		rand.Shuffle(len(additionalNewSpots), func(i, j int) {
+			additionalNewSpots[i], additionalNewSpots[j] = additionalNewSpots[j], additionalNewSpots[i]
+		})
+		for _, spotID := range additionalNewSpots {
+			if newSpotIdx >= maxNewSpots {
+				break
+			}
+			_, err := qtx.CreatePracticePlanSpotWithIdx(r.Context(), db.CreatePracticePlanSpotWithIdxParams{
+				PracticePlanID: newPlan.ID,
+				SpotID:         spotID,
+				PracticeType:   "new",
+				Idx:            newSpotIdx,
+			})
+			if err != nil {
+				log.Default().Println(err)
+				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+					Message:  "Failed to add spot",
+					Title:    "Database Error",
+					Variant:  "error",
+					Duration: 3000,
+				}); err != nil {
+					log.Default().Println(err)
+				}
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			newSpotIdx++
+		}
+
 	}
 
 	// add pieces

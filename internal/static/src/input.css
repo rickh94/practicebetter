@@ -415,7 +415,7 @@
   }
 
   .basic-field:disabled {
-    @apply cursor-auto border-neutral-100 bg-neutral-100 text-neutral-400;
+    @apply border-neutral-100 bg-neutral-100 text-neutral-400;
   }
 
   .basic-field:focus {
@@ -867,5 +867,53 @@
 
   .checked .checked-hidden {
     @apply hidden;
+  }
+
+  .nav-menu[data-state="open"] {
+    animation:
+      fadeIn 250ms ease forwards,
+      scaleIn 250ms ease forwards;
+  }
+
+  .nav-menu[data-state="closed"] {
+    animation:
+      fadeOut 250ms ease backwards,
+      scaleOut 250ms ease backwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.95);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes scaleOut {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(0.95);
+    }
   }
 }

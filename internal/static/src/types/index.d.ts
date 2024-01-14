@@ -17,7 +17,7 @@ export interface HTMXConfirmEvent extends Event {
   detail: {
     elt: HTMLElement;
     etc: object;
-    issueRequest: () => void;
+    issueRequest: (confirmed: boolean) => void;
     path: string;
     target: HTMLElement;
     triggeringEvent: Event;

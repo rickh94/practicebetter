@@ -26,6 +26,12 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
  				method="post"
  				class="flex flex-col gap-2 p-4 rounded-xl shadow-sm sm:mx-auto sm:max-w-3xl bg-neutral-100 shadow-black/20"
 			>
+				<header id="form-title" class="flex flex-col col-span-full gap-2 items-center w-full">
+					<h3 class="px-4 pb-1 text-2xl font-bold border-b border-black">Create Piece</h3>
+					<p class="text-sm">
+						Enter your piece information below then click save, then you’ll add your practice spots.
+					</p>
+				</header>
 				@CreatePieceFormContents(csrf)
 			</form>
 		}
@@ -33,9 +39,6 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 }
 
 templ CreatePieceFormContents(csrf string) {
-	<p class="text-lg">
-		Enter your piece information below then click save. Afterwards you’ll add your practice spots.
-	</p>
 	<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 	<div class="grid-cols-1 gap-x-0 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-2 md:gap-x-4">
 		<div class="flex flex-col gap-1">

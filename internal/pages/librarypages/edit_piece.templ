@@ -24,6 +24,9 @@ templ EditPiecePage(s pages.ServerUtil, csrf string, piece db.Piece) {
  				action="#"
  				class="flex flex-col gap-2 p-4 rounded-xl shadow-sm sm:mx-auto sm:max-w-3xl shadow-black/20 bg-neutral-100"
 			>
+				<header id="form-title" class="flex col-span-full justify-center w-full">
+					<h3 class="px-4 pb-1 text-2xl font-bold border-b border-black">Edit Piece</h3>
+				</header>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<div class="grid-cols-1 gap-x-0 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-2 md:gap-x-4">
 					<div class="flex flex-col gap-1">
@@ -42,7 +45,12 @@ templ EditPiecePage(s pages.ServerUtil, csrf string, piece db.Piece) {
 				<div class="grid grid-cols-1 sm:grid-cols-2 sm:gap-4 sm:px-0 md:grid-cols-4">
 					<div class="flex flex-col gap-1 sm:col-span-1">
 						@PieceFormLabel("Stage", "stage")
-						<select required id="stage" name="stage" class="py-2 px-4 w-full font-semibold rounded-xl transition duration-200 bg-neutral-700/10 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:bg-neutral-700/20">
+						<select
+ 							required
+ 							id="stage"
+ 							name="stage"
+ 							class="basic-field custom-select"
+						>
 							<option value="future" selected?={ piece.Stage == "future" }>
 								Not Started
 							</option>

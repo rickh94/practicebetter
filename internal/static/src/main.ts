@@ -263,6 +263,7 @@ function closeModal(id: string) {
 }
 
 globalThis.addEventListener("htmx:confirm", (e) => {
+  console.log("confirming");
   const { question, issueRequest } = e.detail;
   if (!question) {
     return;
@@ -276,19 +277,21 @@ globalThis.addEventListener("htmx:confirm", (e) => {
   const cancelevent = `${id}cancel`;
 
   function onConfirm() {
+    console.log("confirm");
     closeModal(id);
-    issueRequest();
+    issueRequest(true);
     document.removeEventListener(confirmevent, onConfirm);
     document.removeEventListener(cancelevent, onCancel);
   }
   function onCancel() {
+    console.log("cancel");
     closeModal(id);
     document.removeEventListener(confirmevent, onConfirm);
     document.removeEventListener(cancelevent, onCancel);
   }
 
-  document.addEventListener(confirmevent, onConfirm);
-  document.addEventListener(cancelevent, onCancel);
+  globalThis.addEventListener(confirmevent, onConfirm);
+  globalThis.addEventListener(cancelevent, onCancel);
 
   const dialog = document.createElement("confirm-dialog");
   dialog.setAttribute("dialogid", id);
