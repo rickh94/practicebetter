@@ -1,9 +1,9 @@
-FROM oven/bun:latest AS bunbuilder
+FROM node:latest AS bunbuilder
 WORKDIR /app
-COPY package.json bun.lockb .
-RUN bun install
+COPY package.json package-lock.json .
+RUN npm install
 COPY . .
-RUN bun run build
+RUN npm run build
 
 FROM golang:1.21.5 AS gobuilder
 
