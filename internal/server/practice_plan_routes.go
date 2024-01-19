@@ -210,7 +210,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		potentialInfrequentSpots = append(potentialInfrequentSpots, pieceInfo.PotentialInfrequentSpots...)
 
 		// Only new spots if there aren't too many extra repeat/random spots.
-		if pieceInfo.ExtraRepeatSpotCount+pieceInfo.RandomSpotCount < 25 {
+		if pieceInfo.ExtraRepeatSpotCount+pieceInfo.RandomSpotCount < 20 {
 			maybeNewSpotLists = append(maybeNewSpotLists, pieceInfo.NewSpotIDs)
 		}
 
