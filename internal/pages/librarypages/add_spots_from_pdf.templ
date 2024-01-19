@@ -1,0 +1,25 @@
+package librarypages
+
+import "practicebetter/internal/components"
+import "practicebetter/internal/pages"
+
+templ AddSpotsFromPDFPage(s pages.ServerUtil, csrf string, pieceID string, pieceTitle string) {
+	<title>Add Spots - { pieceTitle } | Practice Better</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Add Spots - " + pieceTitle) , components.MaybePracticePlan())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Pieces", Href: "/library/pieces", Active: false },
+					{ Label: pieceTitle, Href: "/library/pieces/" + pieceID, Active: false },
+					{ Label: "Add Spots", Href: "/library/pieces/" + pieceID + "/spots/add", Active: true },
+				})
+			@components.ActionButtonContainer() {
+				<back-to-piece pieceid={ pieceID }></back-to-piece>
+			}
+		}
+		@components.NormalContainer() {
+			<add-spots-from-pdf class="mx-auto" pieceid={ pieceID } csrf={ csrf }></add-spots-from-pdf>
+		}
+		<script type="module" src={ s.StaticUrl("dist/add-spots-from-pdf.js") }></script>
+	}
+}

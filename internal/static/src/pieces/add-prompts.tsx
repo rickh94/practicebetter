@@ -1,7 +1,6 @@
 import { lazy, Suspense } from "preact/compat";
 import { useState, useCallback, useRef } from "preact/hooks";
 import { type UseFormRegisterReturn } from "react-hook-form";
-import { AngryButton, HappyButton, WarningButton } from "../ui/buttons";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
 // TODO: this might be possible without custom elements
@@ -154,20 +153,28 @@ export function AddAudioPrompt({
               Remove this file first to upload a different one
             </div>
             <div class="mt-4 flex w-full gap-2">
-              <WarningButton grow type="button" onClick={close}>
+              <button
+                className="action-button amber focusable flex-grow"
+                type="button"
+                onClick={close}
+              >
                 <span
                   className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
                 />
                 Close
-              </WarningButton>
-              <AngryButton grow type="button" onClick={() => save("")}>
+              </button>
+              <button
+                className="action-button red focusable flex-grow"
+                type="button"
+                onClick={() => save("")}
+              >
                 <span
                   className="icon-[iconamoon--trash-thin] -ml-1 size-6"
                   aria-hidden="true"
                 />
                 Remove File
-              </AngryButton>
+              </button>
             </div>
           </>
         ) : (
@@ -192,8 +199,8 @@ export function AddAudioPrompt({
               />
             </form>
             <div class="mt-4 flex w-full gap-2">
-              <WarningButton
-                grow
+              <button
+                className="action-button amber focusable flex-grow"
                 disabled={isUploading}
                 type="button"
                 onClick={close}
@@ -203,9 +210,9 @@ export function AddAudioPrompt({
                   aria-hidden="true"
                 />
                 Close
-              </WarningButton>
-              <HappyButton
-                grow
+              </button>
+              <button
+                className="action-button green focusable flex-grow"
                 disabled={isUploading}
                 type="button"
                 onClick={handleSubmit}
@@ -222,7 +229,7 @@ export function AddAudioPrompt({
                   />
                 )}
                 {isUploading ? "Please Wait..." : "Upload"}
-              </HappyButton>
+              </button>
             </div>
           </>
         )}
@@ -377,20 +384,28 @@ export function AddImagePrompt({
               Remove this file first to upload a different one
             </div>
             <div class="mt-4 flex w-full gap-2">
-              <WarningButton grow type="button" onClick={close}>
+              <button
+                className="action-button amber flex-grow"
+                type="button"
+                onClick={close}
+              >
                 <span
                   className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
                   aria-hidden="true"
                 />
                 Close
-              </WarningButton>
-              <AngryButton grow type="button" onClick={() => save("")}>
+              </button>
+              <button
+                className="action-button red focusable flex-grow"
+                type="button"
+                onClick={() => save("")}
+              >
                 <span
                   className="icon-[iconamoon--trash-thin] -ml-1 size-6"
                   aria-hidden="true"
                 />
                 Remove File
-              </AngryButton>
+              </button>
             </div>
           </>
         ) : (
@@ -416,8 +431,8 @@ export function AddImagePrompt({
               />
             </form>
             <div class="mt-4 flex w-full gap-2">
-              <WarningButton
-                grow
+              <button
+                className="action-button amber focusable flex-grow"
                 disabled={isUploading}
                 type="button"
                 onClick={close}
@@ -427,9 +442,9 @@ export function AddImagePrompt({
                   aria-hidden="true"
                 />
                 Close
-              </WarningButton>
-              <HappyButton
-                grow
+              </button>
+              <button
+                className="action-button green focusable flex-grow"
                 disabled={isUploading}
                 type="button"
                 onClick={handleSubmit}
@@ -446,7 +461,7 @@ export function AddImagePrompt({
                   />
                 )}
                 {isUploading ? "Please Wait..." : "Upload"}
-              </HappyButton>
+              </button>
             </div>
           </>
         )}
@@ -542,13 +557,16 @@ export function AddReminders({
             className="focusable w-full rounded-xl bg-neutral-700/10 px-4 py-2 font-semibold text-neutral-800 placeholder-neutral-700 transition duration-200 focus:bg-neutral-700/20"
           />
         </div>
-        <HappyButton grow onClick={close} className="mt-4 w-full">
+        <button
+          onClick={close}
+          className="action-button green focusable mt-4 w-full flex-grow"
+        >
           <span
             className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
             aria-hidden="true"
           />
           Done
-        </HappyButton>
+        </button>
       </dialog>
     </>
   );
@@ -666,13 +684,16 @@ export function AddNotesPrompt({
             />
           </Suspense>
         </div>
-        <HappyButton grow onClick={close} className="mt-4 w-full">
+        <button
+          onClick={close}
+          className="action-button green focusable mt-4 w-full flex-grow"
+        >
           <span
             className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-6"
             aria-hidden="true"
           />
           Done
-        </HappyButton>
+        </button>
       </dialog>
     </>
   );

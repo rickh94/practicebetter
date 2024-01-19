@@ -2,9 +2,18 @@ import { defineConfig } from "vite";
 import autoprefixer from "autoprefixer";
 import tailwindcss from "tailwindcss";
 import preact from "@preact/preset-vite";
+import topLevelAwait from "vite-plugin-top-level-await";
 
 export default defineConfig({
-  plugins: [preact()],
+  plugins: [
+    preact(),
+    topLevelAwait({
+      // The export name of top-level await promise for each chunk module
+      promiseExportName: "__tla",
+      // The function to generate import names of top-level await promise in each chunk module
+      promiseImportName: (i) => `__tla_${i}`,
+    }),
+  ],
   base: "/static/dist",
   root: "internal/static",
   esbuild: {
@@ -23,6 +32,7 @@ export default defineConfig({
         "notes-display": "src/notes-display.ts",
         "practice-menu": "src/practice-menu.ts",
         "add-spot": "src/add-spot.ts",
+        "add-spots-from-pdf": "src/add-spots-from-pdf.ts",
         "edit-spot": "src/edit-spot.ts",
         prompts: "src/prompts.ts",
         "spot-breakdown": "src/spot-breakdown.ts",

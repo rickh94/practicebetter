@@ -67,7 +67,10 @@ export function ImagePromptSummary({ url }: { url: string }) {
 
           <span className="summary-icon icon-[iconamoon--arrow-right-6-circle-thin] size-6 transition-transform" />
         </summary>
-        <button onClick={showBig} className="m-0 p-0">
+        <button
+          onClick={showBig}
+          className="focusable cyan mt-2 rounded-xl p-2"
+        >
           <figure className="my-2 w-full">
             <img
               src={url}
@@ -81,7 +84,10 @@ export function ImagePromptSummary({ url }: { url: string }) {
         </button>
       </details>
       <dialog ref={lightboxRef} className="p-0">
-        <button onClick={closeBig} className="m-0 p-0">
+        <button
+          onClick={closeBig}
+          className="focusable cyan m-0 rounded-xl p-0"
+        >
           <figure className="w-full sm:max-w-3xl">
             <img
               src={url}

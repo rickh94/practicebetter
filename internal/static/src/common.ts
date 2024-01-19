@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
+import { type JSX } from "preact/jsx-runtime";
 
 export type BasicSpot = {
   id: string;
@@ -60,6 +61,22 @@ export function getPieceStageDisplayName(stage: string) {
 export type NavItem = {
   label: string;
   href: string;
-  icon: preact.JSX.Element;
+  icon: JSX.Element;
   highlight?: boolean;
+};
+
+export type CroppedImageData = {
+  data: string;
+  id: string;
+  width: number;
+  height: number;
+  x?: number;
+  y?: number;
+  transformationMatrix?: number[];
+};
+
+export type PageImage = {
+  src: string;
+  alt: string;
+  id: string;
 };

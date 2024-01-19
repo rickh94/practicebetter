@@ -1,10 +1,4 @@
 import { cn, type PracticeSummaryItem } from "../common";
-import {
-  AngryButton,
-  HappyButton,
-  VioletButton,
-  WarningButton,
-} from "../ui/buttons";
 import { BackToPiece, BackToPlan } from "../ui/links";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { useAutoAnimate } from "@formkit/auto-animate/preact";
@@ -278,28 +272,26 @@ export default function Summary({
           </div>
         </div>
         <div className="mt-2 flex w-full flex-col-reverse gap-2 xs:grid xs:grid-cols-2">
-          <AngryButton
-            grow
+          <button
             onClick={rejectPromotions}
-            className="h-14 w-full text-lg"
+            className="action-button red w-full flex-grow text-lg"
           >
             <span
               className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Reject All
-          </AngryButton>
-          <HappyButton
-            grow
+          </button>
+          <button
             onClick={savePromotions}
-            className="h-14 w-full text-lg"
+            className="action-button green w-full flex-grow text-lg"
           >
             <span
               className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Accept
-          </HappyButton>
+          </button>
         </div>
       </dialog>
       <div className="flex w-full flex-col justify-center gap-x-8 gap-y-2 px-4 pt-4 sm:flex-row sm:gap-x-6 sm:px-0">
@@ -434,20 +426,28 @@ export function SummaryActions({
   }
   return (
     <>
-      <WarningButton onClick={setup}>
+      <button
+        onClick={setup}
+        type="button"
+        className="action-button red focusable"
+      >
         <span
           className="icon-[iconamoon--settings-thin] -ml-1 size-5"
           aria-hidden="true"
         />
         Back to Setup
-      </WarningButton>
-      <VioletButton onClick={practice}>
+      </button>
+      <button
+        onClick={practice}
+        type="button"
+        className="action-button violet focusable"
+      >
         <span
           className="icon-[iconamoon--music-2-thin] -ml-1 size-5"
           aria-hidden="true"
         />
         Practice More
-      </VioletButton>
+      </button>
       {pieceid && <BackToPiece pieceid={pieceid} />}
     </>
   );

@@ -99,7 +99,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 		r.Get("/pieces/{pieceID}/spots", s.pieceSpots)
 		r.Post("/pieces/{pieceID}/spots", s.addSpot)
-		r.Get("/pieces/{pieceID}/spots/add", s.addSpotPage)
+		r.Get("/pieces/{pieceID}/spots/add-single", s.addSingleSpotPage)
+		r.Get("/pieces/{pieceID}/spots/add", s.addSpotsFromPDFPage)
+		r.Post("/pieces/{pieceID}/spots/pdf", s.addSpotsFromPDF)
 		r.Get("/pieces/{pieceID}/spots/{spotID}/edit", s.editSpot)
 		r.Get("/pieces/{pieceID}/spots/{spotID}", s.singleSpot)
 		r.Put("/pieces/{pieceID}/spots/{spotID}", s.updateSpot)

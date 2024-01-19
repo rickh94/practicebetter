@@ -1,5 +1,4 @@
 import { useCallback } from "preact/hooks";
-import { SkyButton, WarningButton } from "./buttons";
 
 export function ConfirmDialog({
   question,
@@ -37,12 +36,20 @@ export function ConfirmDialog({
         <p>{question}</p>
       </main>
       <section className="mt-4 flex w-full flex-wrap gap-2">
-        <WarningButton onClick={onCancel} grow>
+        <button
+          onClick={onCancel}
+          className="action-button amber focusable flex-grow"
+          type="button"
+        >
           Cancel
-        </WarningButton>
-        <SkyButton onClick={onConfirm} grow>
+        </button>
+        <button
+          onClick={onConfirm}
+          className="action-button sky focusable flex-grow"
+          type="button"
+        >
           Confirm
-        </SkyButton>
+        </button>
       </section>
     </dialog>
   );

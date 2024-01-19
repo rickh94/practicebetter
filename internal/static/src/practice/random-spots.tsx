@@ -10,14 +10,6 @@ import { type PracticeSummaryItem, type RandomMode } from "../common";
 import { type BasicSpot } from "../validators";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { CreateSpots } from "./create-spots";
-import {
-  BasicButton,
-  BigAngryButton,
-  BigHappyButton,
-  BigSkyButton,
-  VioletButton,
-  WarningButton,
-} from "../ui/buttons";
 import Summary from "./summary";
 import { PracticeSpotDisplay } from "./practice-spot-display";
 import dayjs from "dayjs";
@@ -253,13 +245,17 @@ export function GetReadyDialog({
         </progress>
       </div>
       <div className="mt-2 flex w-full flex-row-reverse flex-wrap gap-2 sm:gap-2">
-        <VioletButton grow onClick={closeDialog} className="text-lg">
+        <button
+          type="button"
+          onClick={closeDialog}
+          className="action-button violet px-text-lg flex-grow"
+        >
           Start Practicing
           <span
             className="icon-[iconamoon--player-play-thin] -ml-1 size-5"
             aria-hidden="true"
           />
-        </VioletButton>
+        </button>
       </div>
     </dialog>
   );
@@ -350,13 +346,17 @@ export function SingleSetupForm({
             minute breaks.
           </p>
           <div className="flex flex-col gap-2 xs:flex-row">
-            <BasicButton onClick={decreaseSessions}>
+            <button
+              className="action-button neutral focusable"
+              onClick={decreaseSessions}
+              type="button"
+            >
               <span
                 className="icon-[iconamoon--sign-minus-circle-thin] -ml-1 size-5"
                 aria-hidden="true"
               />
               Decrease
-            </BasicButton>
+            </button>
             <input
               id="num-sessions"
               className="basic-field w-full xs:w-20"
@@ -365,13 +365,17 @@ export function SingleSetupForm({
               defaultValue={`${numSessions}`}
               ref={numSessionsRef}
             />
-            <BasicButton onClick={increaseSessions}>
+            <button
+              className="action-button neutral focusable"
+              type="button"
+              onClick={increaseSessions}
+            >
               <span
                 className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-5"
                 aria-hidden="true"
               />
               Increase
-            </BasicButton>
+            </button>
           </div>
         </div>
         <div className="col-span-full my-8 flex w-full items-center justify-center">
@@ -877,43 +881,63 @@ export function SinglePractice({
           />
         </div>
         <div className="flex w-full flex-col justify-center gap-4 px-4 pt-8 xs:w-auto xs:px-0 sm:w-full sm:flex-row-reverse">
-          <BigHappyButton type="button" onClick={handleExcellent}>
+          <button
+            type="button"
+            onClick={handleExcellent}
+            className="action-button green focusable h-16 px-6 text-2xl"
+          >
             <span
               className="icon-[iconamoon--like-thin] -ml-1 -mt-1 size-8"
               aria-hidden="true"
             />
             Excellent
-          </BigHappyButton>
-          <BigSkyButton type="button" onClick={handleFine}>
+          </button>
+          <button
+            type="button"
+            onClick={handleFine}
+            className="action-button focusable sky h-16 px-6 text-2xl"
+          >
             <span
               className="icon-[iconamoon--sign-minus-thin] -ml-1 size-8"
               aria-hidden="true"
             />
             Fine
-          </BigSkyButton>
-          <BigAngryButton type="button" onClick={handlePoor}>
+          </button>
+          <button
+            type="button"
+            onClick={handlePoor}
+            className="action-button red focusable h-16 px-6 text-2xl"
+          >
             <span
               className="icon-[iconamoon--dislike-thin] -mb-1 -ml-1 size-8"
               aria-hidden="true"
             />
             Poor
-          </BigAngryButton>
+          </button>
         </div>
         <div className="flex justify-center gap-4 pb-12 pt-8">
-          <BasicButton onClick={setup}>
+          <button
+            className="action-button neutral focusable"
+            type="button"
+            onClick={setup}
+          >
             <span
               className="icon-[iconamoon--settings-thin] -ml-1 size-5"
               aria-hidden="true"
             />{" "}
             Back to setup
-          </BasicButton>
-          <WarningButton grow onClick={handleDone}>
+          </button>
+          <button
+            className="action-button focusable amber"
+            type="button"
+            onClick={handleDone}
+          >
             <span
               className="icon-[iconamoon--player-stop-thin] -ml-1 size-5"
               aria-hidden="true"
             />
             Finish
-          </WarningButton>
+          </button>
         </div>
       </div>
     </div>

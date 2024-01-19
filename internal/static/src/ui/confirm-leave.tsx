@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useId, useRef } from "preact/hooks";
-import { SkyButton, WarningButton } from "./buttons";
 
 export function ConfirmDialog({
   onConfirm,
@@ -61,12 +60,18 @@ export function ConfirmDialog({
         </p>
       </main>
       <section className="mt-4 flex w-full gap-2">
-        <WarningButton onClick={handleCancel} grow>
+        <button
+          onClick={handleCancel}
+          className="action-button sky focusable flex-grow"
+        >
           Stay
-        </WarningButton>
-        <SkyButton onClick={handleConfirm} grow>
+        </button>
+        <button
+          onClick={handleConfirm}
+          className="action-button amber focusable flex-grow"
+        >
           Leave
-        </SkyButton>
+        </button>
       </section>
     </dialog>
   );

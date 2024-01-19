@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"practicebetter/internal/ck"
@@ -49,7 +50,32 @@ func (s *Server) singleSpot(w http.ResponseWriter, r *http.Request) {
 	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token), spot.Name+" - "+spot.PieceTitle)
 }
 
-func (s *Server) addSpotPage(w http.ResponseWriter, r *http.Request) {
+func (s *Server) addSpotsFromPDFPage(w http.ResponseWriter, r *http.Request) {
+	token := csrf.Token(r)
+	pieceID := chi.URLParam(r, "pieceID")
+	user := r.Context().Value(ck.UserKey).(db.User)
+	queries := db.New(s.DB)
+	piece, err := queries.GetPieceWithoutSpots(r.Context(), db.GetPieceWithoutSpotsParams{
+		ID:     pieceID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not find matching piece",
+			Title:    "Not Found",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Could not find piece", http.StatusNotFound)
+		return
+	}
+	s.HxRender(w, r, librarypages.AddSpotsFromPDFPage(s, token, piece.ID, piece.Title), "Add Spots from PDF")
+}
+
+func (s *Server) addSingleSpotPage(w http.ResponseWriter, r *http.Request) {
 	token := csrf.Token(r)
 	pieceID := chi.URLParam(r, "pieceID")
 	user := r.Context().Value(ck.UserKey).(db.User)
@@ -164,6 +190,110 @@ func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
 	if err := components.SmallSpotCard(spot.PieceID, spot.ID, spot.Name, outMeasures, spot.Stage).Render(r.Context(), w); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
+}
+
+const MAX_SPOTS_AT_ONCE = 100
+
+func (s *Server) addSpotsFromPDF(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+	pieceID := chi.URLParam(r, "pieceID")
+	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE*MAX_SPOTS_AT_ONCE+1024)
+	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE*MAX_SPOTS_AT_ONCE + 1024); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Too many large spot images to process at once.",
+			Title:    "Max Upload Exceeded",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "File too large", http.StatusBadRequest)
+		return
+	}
+
+	queries := db.New(s.DB)
+	tx, err := s.DB.Begin()
+	if err != nil {
+		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
+		return
+	}
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
+
+	qtx := queries.WithTx(tx)
+
+	numSpots, err := strconv.Atoi(r.FormValue("numSpots"))
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Invalid number of spots", http.StatusBadRequest)
+		return
+	}
+
+	hasErr := false
+	for i := 0; i < numSpots; i++ {
+		spotNameField := fmt.Sprintf("spots.%d.name", i)
+		spotImageField := fmt.Sprintf("spots.%d.image", i)
+		spotName := r.FormValue(spotNameField)
+		if spotName == "" {
+			continue
+		}
+		spotImageFile, spotImageHeader, err := r.FormFile(spotImageField)
+		if err != nil {
+			log.Default().Println(err)
+			hasErr = true
+			continue
+		}
+		spotImageHeader.Filename = fmt.Sprintf("%s-spot%d.png", pieceID, i)
+		_, spotImageURL, err := s.saveImage(spotImageFile, spotImageHeader, user.ID)
+		if err != nil {
+			log.Default().Println(err)
+			hasErr = true
+			continue
+		}
+		spotID := cuid2.Generate()
+		_, err = qtx.CreateSpot(r.Context(), db.CreateSpotParams{
+			UserID:         user.ID,
+			PieceID:        pieceID,
+			ID:             spotID,
+			Name:           spotName,
+			Stage:          "repeat",
+			AudioPromptUrl: "",
+			ImagePromptUrl: spotImageURL,
+			NotesPrompt:    "",
+			TextPrompt:     "",
+			CurrentTempo:   sql.NullInt64{},
+			Measures:       sql.NullString{},
+		})
+
+		if err != nil {
+			hasErr = true
+			log.Default().Println(err)
+			continue
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		http.Error(w, "Failed to commit to database", http.StatusInternalServerError)
+		return
+	}
+
+	body, err := json.Marshal(map[string]bool{"error": hasErr})
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+
+	if _, err = w.Write(body); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 

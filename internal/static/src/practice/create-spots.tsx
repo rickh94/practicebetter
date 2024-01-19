@@ -1,6 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/preact";
 import { uniqueID } from "../common";
-import { AngryButton, BasicButton } from "../ui/buttons";
 import { useCallback, useRef } from "preact/compat";
 import { type StateUpdater } from "preact/hooks";
 import { type BasicSpot } from "../validators";
@@ -62,14 +61,18 @@ export function CreateSpots({
           </div>
           <div>
             {spots.length > 0 && (
-              <AngryButton onClick={() => clearSpots()}>
+              <button
+                className="action-button red focusable"
+                type="button"
+                onClick={() => clearSpots()}
+              >
                 <div>Remove All</div>
                 <span className="sr-only">Remove All Spots</span>
                 <span
                   className="icon-[iconamoon--sign-minus-circle-thin] -mr-2 size-5"
                   aria-hidden="true"
                 />
-              </AngryButton>
+              </button>
             )}
           </div>
         </div>
@@ -126,13 +129,17 @@ export function CreateSpots({
               }
             }}
           />
-          <BasicButton onClick={onAddSpot} className="flex-shrink-0">
+          <button
+            className="action-button neutral focusable"
+            type="button"
+            onClick={onAddSpot}
+          >
             <span
               className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Add Spot
-          </BasicButton>
+          </button>
         </div>
       </div>
       <div className="flex flex-col">
@@ -159,13 +166,17 @@ export function CreateSpots({
               }
             }}
           />
-          <BasicButton onClick={generateSomeSpots}>
+          <button
+            type="button"
+            className="action-button neutral focusable"
+            onClick={generateSomeSpots}
+          >
             <span
               className="icon-[iconamoon--sign-plus-circle-thin] -ml-1 size-6"
               aria-hidden="true"
             />
             Add Spots
-          </BasicButton>
+          </button>
         </div>
       </div>
     </div>

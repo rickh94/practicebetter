@@ -1,7 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ScaleCrossFadeContent } from "../ui/transitions";
 import { RepeatPrepareText } from "./repeat-prepare-text";
-import { HappyButton, SkyButton, WarningButton } from "../ui/buttons";
 import { type BasicSpot } from "../validators";
 import {
   BackToPiece,
@@ -308,10 +307,14 @@ function RepeatPractice({
       )}
       <div className="flex w-full flex-col py-12 sm:mx-auto sm:max-w-3xl">
         <div className="mx-auto flex w-full max-w-lg flex-wrap items-center justify-center">
-          <WarningButton onClick={onFail}>
+          <button
+            onClick={onFail}
+            className="action-button red focusable"
+            type="button"
+          >
             <span>Move On</span>
             <span className="icon-[iconamoon--arrow-top-right-1-thin] -ml-1 size-6" />
-          </WarningButton>
+          </button>
         </div>
       </div>
     </>
@@ -441,22 +444,21 @@ function RepeatBreakSuccess({
           practicing.
         </div>
         <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row-reverse sm:gap-2">
-          <HappyButton
-            grow
+          <button
             onClick={handleRandom}
-            className="h-14 w-full text-lg"
+            className="action-button green w-full flex-grow text-lg"
+            type="button"
           >
             <span className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-6" />
             Random
-          </HappyButton>
-          <SkyButton
-            grow
+          </button>
+          <button
             onClick={handleMoreRepeat}
-            className="h-14 w-full text-lg"
+            className="action-button sky focusable w-full flex-grow text-lg"
           >
             <span className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-6" />
             More Repeat
-          </SkyButton>
+          </button>
         </div>
       </dialog>
       <div className="flex w-full flex-col items-center sm:mx-auto sm:max-w-3xl">
@@ -610,13 +612,17 @@ function RepeatFinishedActionButtons({
         />
         Try Random Practicing
       </WarningLink>
-      <HappyButton onClick={restart}>
+      <button
+        onClick={restart}
+        type="button"
+        className="focusable action-button green"
+      >
         <span
           className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-5"
           aria-hidden="true"
         />
         Practice Another Spot
-      </HappyButton>
+      </button>
     </>
   );
 }

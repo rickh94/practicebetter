@@ -1,5 +1,4 @@
 import { type Ref, useCallback, useRef, useState } from "preact/hooks";
-import { HappyButton, AngryButton, WarningButton } from "../ui/buttons";
 import { InterleaveSpotsList } from "../ui/plan-components";
 import { BackToPlan } from "../ui/links";
 
@@ -49,20 +48,26 @@ export function ResumeDialog({
         it?
       </div>
       <div className="mt-2 flex w-full flex-row-reverse flex-wrap gap-2 sm:gap-2">
-        <HappyButton grow onClick={handleResume} className="text-lg">
+        <button
+          onClick={handleResume}
+          className="action-button green focusable flex-grow text-lg"
+        >
           <span
             className="icon-[iconamoon--player-play-thin] -ml-1 size-5"
             aria-hidden="true"
           />
           Resume
-        </HappyButton>
-        <AngryButton grow onClick={closeDialog} className="text-lg">
+        </button>
+        <button
+          onClick={closeDialog}
+          className="action-button green focusable flex-grow text-lg"
+        >
           <span
             className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-5"
             aria-hidden="true"
           />
           Close
-        </AngryButton>
+        </button>
       </div>
     </dialog>
   );
@@ -145,25 +150,29 @@ export function BreakDialog({
       </div>
       {canContinue ? (
         <div className="flex w-full flex-col flex-wrap gap-2 sm:flex-row-reverse">
-          <HappyButton
-            grow
+          <button
             onClick={handleContinue}
-            className="text-lg"
+            className="action-button green focusable flex-grow text-lg"
             disabled={!canContinue}
+            type="button"
           >
             <span
               className="icon-[iconamoon--player-play-thin] -ml-1 size-5"
               aria-hidden="true"
             />
             Continue
-          </HappyButton>
-          <WarningButton grow onClick={handleDone}>
+          </button>
+          <button
+            onClick={handleDone}
+            type="button"
+            className="action-button amber focusable flex-grow text-lg"
+          >
             <span
               className="icon-[iconamoon--player-stop-thin] -ml-1 size-5"
               aria-hidden="true"
             />
             Finish
-          </WarningButton>
+          </button>
           {!!planid && <BackToPlan planid={planid} grow />}
         </div>
       ) : (

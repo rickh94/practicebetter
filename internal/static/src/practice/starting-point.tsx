@@ -1,5 +1,4 @@
 import { ScaleCrossFadeContent } from "../ui/transitions";
-import { BasicButton, GiantHappyButton, WarningButton } from "../ui/buttons";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { uniqueID } from "../common";
 import dayjs from "dayjs";
@@ -447,7 +446,8 @@ export function StartingPointSetupForm({
             />
           </div>
           <div className="flex h-full flex-col justify-end gap-1 sm:pb-2">
-            <BasicButton
+            <button
+              className="action-button neutral focusable"
               onClick={() => {
                 if (lowerBoundRef.current) {
                   lowerBoundRef.current.value = "";
@@ -463,7 +463,7 @@ export function StartingPointSetupForm({
                 aria-hidden="true"
               />
               Clear
-            </BasicButton>
+            </button>
           </div>
         </div>
 
@@ -738,25 +738,35 @@ export function StartingPointPractice({
           />
         </div>
         <div className="pt-8">
-          <GiantHappyButton onClick={nextStartingPoint}>
+          <button
+            className="action-button green focusable h-16 px-6 text-2xl"
+            onClick={nextStartingPoint}
+          >
             Next Section
-          </GiantHappyButton>
+          </button>
         </div>
         <div className="flex flex-wrap justify-center gap-2 pt-8">
-          <BasicButton onClick={setup} type="button">
+          <button
+            onClick={setup}
+            type="button"
+            className="action-button neutral focusable"
+          >
             <span
               className="icon-[iconamoon--arrow-left-5-circle-thin] -ml-1 size-5"
               aria-hidden="true"
             />{" "}
             Back to setup
-          </BasicButton>
-          <WarningButton onClick={handleDone}>
+          </button>
+          <button
+            onClick={handleDone}
+            className="action-button amber focusable"
+          >
             <span
               className="icon-[iconamoon--player-stop-thin] -ml-1 size-5"
               aria-hidden="true"
             />
             Finish
-          </WarningButton>
+          </button>
         </div>
       </div>
     </div>

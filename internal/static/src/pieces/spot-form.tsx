@@ -5,7 +5,6 @@ import {
   type UseFormRegister,
 } from "react-hook-form";
 import { cn, getStageDisplayName } from "../common";
-import { HappyButton } from "../ui/buttons";
 import { WarningLink } from "../ui/links";
 import { type SpotFormData, spotStages } from "../validators";
 import {
@@ -165,13 +164,13 @@ export default function SpotFormFields({
         className="flex flex-row-reverse justify-start gap-2 pt-4"
         id="spot-form-button-row"
       >
-        <HappyButton type="submit">
+        <button type="submit" className="action-button green focusable">
           <span
             className="icon-[iconamoon--arrow-up-5-circle-thin] -ml-1 size-5"
             aria-hidden="true"
           />
           {isUpdating ? "Saving..." : "Save"}
-        </HappyButton>
+        </button>
         <WarningLink href={backTo}>
           <span
             className="icon-[iconamoon--arrow-left-5-circle-thin] -ml-1 size-5"

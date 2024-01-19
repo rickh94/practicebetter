@@ -86,8 +86,8 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	htmx.PushURL(r, "/library/pieces/"+pieceID+"/spots/add")
 	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-		Message:  "Successfully added piece: " + piece.Title,
-		Title:    "Piece Created!",
+		Message:  "Successfully added piece: " + piece.Title + ". Now add some spots and start practicing!",
+		Title:    "Piece Created",
 		Variant:  "success",
 		Duration: 3000,
 	}); err != nil {
@@ -95,8 +95,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	// TODO: add spots message here for sure
-	s.HxRender(w, r, librarypages.AddSpotPage(s, token, pieceID, piece.Title, make([]db.ListPieceSpotsRow, 0)), piece.Title)
+	s.HxRender(w, r, librarypages.AddSpotsFromPDFPage(s, token, pieceID, piece.Title), piece.Title)
 }
 
 const piecesPerPage = 20
@@ -214,7 +213,6 @@ func (s *Server) renderPiece(w http.ResponseWriter, r *http.Request, pieceID str
 		if row.SpotLastPracticed.Valid &&
 			(!pieceInfo.LastPracticed.Valid ||
 				row.SpotLastPracticed.Int64 > pieceInfo.LastPracticed.Int64) {
-			log.Default().Println(row.SpotLastPracticed.Int64)
 			pieceInfo.LastPracticed = sql.NullInt64{
 				Int64: row.SpotLastPracticed.Int64,
 				Valid: true,

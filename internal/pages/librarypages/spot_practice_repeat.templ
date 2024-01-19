@@ -12,6 +12,7 @@ templ SpotPracticeRepeatPage(s pages.ServerUtil, spot db.GetSpotRow, csrf string
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: spot.PieceTitle, Href: "/library/pieces/"+spot.PieceID, Active: false },
+					{ Label: "Spots", Href: "/library/pieces/"+spot.PieceID+"/spots/", Active: false },
 					{ Label: spot.Name, Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID, Active: false },
 					{ Label: "Repeat Practice", Href: "/library/pieces/"+spot.PieceID+"/spots/"+spot.ID+"/practice/repeat", Active: true },
 				})
