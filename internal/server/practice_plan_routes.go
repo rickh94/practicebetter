@@ -79,15 +79,14 @@ type PlanPieceInfo struct {
 }
 
 func (s *Server) generatePiecePlanInfo(ctx context.Context, rows []db.GetPieceForPlanRow, failedNewSpotIDs map[string]struct{}, userID string) PlanPieceInfo {
-	pieceInfo := PlanPieceInfo{
-		NewSpotIDs:               make([]string, 0, len(rows)/2),
-		ExtraRepeatSpotIDs:       make([]string, 0, len(rows)/4),
-		InterleaveSpotIDs:        make([]string, 0, len(rows)/4),
-		PotentialInfrequentSpots: make([]PotentialInfrequentSpot, 0, len(rows)/4),
-		RandomSpotCount:          0,
-		ExtraRepeatSpotCount:     0,
-		CompletedSpotCount:       0,
-	}
+
+	newSpotIDs := make([]string, 0, len(rows)/2)
+	extraRepeatSpotIDs := make([]string, 0, len(rows)/4)
+	interleaveSpotIDs := make([]string, 0, len(rows)/4)
+	potentialInfrequentSpots := make([]PotentialInfrequentSpot, 0, len(rows)/4)
+	randomSpotCount := 0
+	extraRepeatSpotCount := 0
+	completedSpotCount := 0
 	for _, row := range rows {
 		if !row.SpotStage.Valid || !row.SpotID.Valid {
 			continue
@@ -96,13 +95,13 @@ func (s *Server) generatePiecePlanInfo(ctx context.Context, rows []db.GetPieceFo
 		case "repeat":
 			// we're going to combine the lists later, so make need to prevent duplicates
 			if _, ok := failedNewSpotIDs[row.SpotID.String]; !ok {
-				pieceInfo.NewSpotIDs = append(pieceInfo.NewSpotIDs, row.SpotID.String)
+				newSpotIDs = append(newSpotIDs, row.SpotID.String)
 			}
 		case "extra_repeat":
-			pieceInfo.ExtraRepeatSpotIDs = append(pieceInfo.ExtraRepeatSpotIDs, row.SpotID.String)
-			pieceInfo.ExtraRepeatSpotCount++
+			extraRepeatSpotIDs = append(extraRepeatSpotIDs, row.SpotID.String)
+			extraRepeatSpotCount += 1
 		case "interleave":
-			pieceInfo.InterleaveSpotIDs = append(pieceInfo.InterleaveSpotIDs, row.SpotID.String)
+			interleaveSpotIDs = append(interleaveSpotIDs, row.SpotID.String)
 		case "interleave_days":
 			if !row.SpotSkipDays.Valid {
 				go s.fixSpotSkipDays(ctx, row.SpotID.String, userID)
@@ -112,21 +111,30 @@ func (s *Server) generatePiecePlanInfo(ctx context.Context, rows []db.GetPieceFo
 			// this spot was practiced. I've made the offset 12 hours as a reasonable way to avoid adding
 			// an extra day because someone practiced in the evening one day and in the morning the next
 			if !row.SpotLastPracticed.Valid ||
-				time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > time.Duration(row.SpotSkipDays.Int64)*24*time.Hour+12*time.Hour {
-				pieceInfo.PotentialInfrequentSpots = append(pieceInfo.PotentialInfrequentSpots, PotentialInfrequentSpot{
+				time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > (time.Duration(row.SpotSkipDays.Int64)+1)*24*time.Hour+12*time.Hour {
+				potentialInfrequentSpots = append(potentialInfrequentSpots, PotentialInfrequentSpot{
 					ID:        row.SpotID.String,
 					TimeSince: time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)),
 				})
 			}
 		case "random":
-			pieceInfo.RandomSpotCount++
+			randomSpotCount += 1
 		case "completed":
-			pieceInfo.CompletedSpotCount++
+			completedSpotCount += 1
 		default:
 			continue
 		}
 	}
-	return pieceInfo
+	return PlanPieceInfo{
+		NewSpotIDs:               newSpotIDs,
+		ExtraRepeatSpotIDs:       extraRepeatSpotIDs,
+		InterleaveSpotIDs:        interleaveSpotIDs,
+		PotentialInfrequentSpots: potentialInfrequentSpots,
+		RandomSpotCount:          randomSpotCount,
+		ExtraRepeatSpotCount:     extraRepeatSpotCount,
+		CompletedSpotCount:       completedSpotCount,
+	}
+
 }
 
 func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
@@ -185,7 +193,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	maybeNewSpotLists := make([][]string, 0, len(pieceIDs)*10)
+	maybeNewSpotLists := make([][]string, 0, len(pieceIDs))
 	potentialInfrequentSpots := make([]PotentialInfrequentSpot, 0, len(pieceIDs)*10)
 	extraRepeatSpotIDs := make([]string, 0, len(pieceIDs)*10)
 	interleaveSpotIDs := make([]string, 0, len(pieceIDs)*10)
@@ -210,7 +218,8 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		potentialInfrequentSpots = append(potentialInfrequentSpots, pieceInfo.PotentialInfrequentSpots...)
 
 		// Only new spots if there aren't too many extra repeat/random spots.
-		if pieceInfo.ExtraRepeatSpotCount+pieceInfo.RandomSpotCount < 20 {
+		if (pieceInfo.ExtraRepeatSpotCount + pieceInfo.RandomSpotCount) < 20 {
+			log.Default().Printf("Adding new spots for %s", pieceRows[0].Title)
 			maybeNewSpotLists = append(maybeNewSpotLists, pieceInfo.NewSpotIDs)
 		}
 
