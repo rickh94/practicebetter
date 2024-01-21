@@ -206,7 +206,7 @@ templ StopPracticingForm(planID string, csrf string, planNotes string) {
 			</textarea>
 			<section class="flex flex-col-reverse gap-2 mt-4 w-full xs:grid xs:grid-cols-2">
 				<button
- 					onclick={ components.CloseModal(completeInterleaveFormId) }
+ 					onclick={ components.CloseModal(stopPracticingDialogID) }
  					class="flex-grow action-button red focusable"
  					type="button"
 				>
