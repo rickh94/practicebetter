@@ -32,11 +32,12 @@ type Piece struct {
 }
 
 type PracticePlan struct {
-	ID        string `json:"id"`
-	UserID    string `json:"userId"`
-	Intensity string `json:"intensity"`
-	Date      int64  `json:"date"`
-	Completed bool   `json:"completed"`
+	ID            string         `json:"id"`
+	UserID        string         `json:"userId"`
+	Intensity     string         `json:"intensity"`
+	Date          int64          `json:"date"`
+	Completed     bool           `json:"completed"`
+	PracticeNotes sql.NullString `json:"practiceNotes"`
 }
 
 type PracticePlanPiece struct {

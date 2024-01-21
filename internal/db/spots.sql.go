@@ -859,6 +859,25 @@ func (q *Queries) UpdateSpotSkipDays(ctx context.Context, arg UpdateSpotSkipDays
 	return err
 }
 
+const updateSpotSkipDaysAndPractice = `-- name: UpdateSpotSkipDaysAndPractice :exec
+UPDATE spots
+SET
+    skip_days = ?1,
+    last_practiced = unixepoch('now')
+WHERE spots.id = ?2 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?3)
+`
+
+type UpdateSpotSkipDaysAndPracticeParams struct {
+	SkipDays int64  `json:"skipDays"`
+	SpotID   string `json:"spotId"`
+	UserID   string `json:"userId"`
+}
+
+func (q *Queries) UpdateSpotSkipDaysAndPractice(ctx context.Context, arg UpdateSpotSkipDaysAndPracticeParams) error {
+	_, err := q.db.ExecContext(ctx, updateSpotSkipDaysAndPractice, arg.SkipDays, arg.SpotID, arg.UserID)
+	return err
+}
+
 const updateTextPrompt = `-- name: UpdateTextPrompt :one
 UPDATE spots
 SET

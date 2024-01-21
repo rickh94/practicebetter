@@ -69,7 +69,7 @@ INSERT INTO practice_plans (
     intensity,
     date
 ) VALUES (?, ?, ?, unixepoch('now'))
-RETURNING id, user_id, intensity, date, completed
+RETURNING id, user_id, intensity, date, completed, practice_notes
 `
 
 type CreatePracticePlanParams struct {
@@ -87,6 +87,7 @@ func (q *Queries) CreatePracticePlan(ctx context.Context, arg CreatePracticePlan
 		&i.Intensity,
 		&i.Date,
 		&i.Completed,
+		&i.PracticeNotes,
 	)
 	return i, err
 }
@@ -283,7 +284,7 @@ func (q *Queries) DeletePracticePlanSpot(ctx context.Context, arg DeletePractice
 }
 
 const getLatestPracticePlan = `-- name: GetLatestPracticePlan :one
-SELECT id, user_id, intensity, date, completed
+SELECT id, user_id, intensity, date, completed, practice_notes
 FROM practice_plans
 WHERE user_id = ?
 ORDER BY date DESC
@@ -299,6 +300,7 @@ func (q *Queries) GetLatestPracticePlan(ctx context.Context, userID string) (Pra
 		&i.Intensity,
 		&i.Date,
 		&i.Completed,
+		&i.PracticeNotes,
 	)
 	return i, err
 }
@@ -338,7 +340,7 @@ func (q *Queries) GetMaxSpotIdx(ctx context.Context, arg GetMaxSpotIdxParams) (i
 }
 
 const getPracticePlan = `-- name: GetPracticePlan :one
-SELECT id, user_id, intensity, date, completed
+SELECT id, user_id, intensity, date, completed, practice_notes
 FROM practice_plans
 WHERE id = ? AND user_id = ?
 `
@@ -357,6 +359,7 @@ func (q *Queries) GetPracticePlan(ctx context.Context, arg GetPracticePlanParams
 		&i.Intensity,
 		&i.Date,
 		&i.Completed,
+		&i.PracticeNotes,
 	)
 	return i, err
 }
@@ -756,7 +759,7 @@ func (q *Queries) GetPracticePlanInterleaveSpots(ctx context.Context, arg GetPra
 
 const getPracticePlanWithPieces = `-- name: GetPracticePlanWithPieces :many
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
     practice_plan_pieces.practice_type as piece_practice_type,
     practice_plan_pieces.completed AS piece_completed,
     pieces.title AS piece_title,
@@ -783,6 +786,7 @@ type GetPracticePlanWithPiecesRow struct {
 	Intensity           string         `json:"intensity"`
 	Date                int64          `json:"date"`
 	Completed           bool           `json:"completed"`
+	PracticeNotes       sql.NullString `json:"practiceNotes"`
 	PiecePracticeType   string         `json:"piecePracticeType"`
 	PieceCompleted      bool           `json:"pieceCompleted"`
 	PieceTitle          sql.NullString `json:"pieceTitle"`
@@ -808,6 +812,7 @@ func (q *Queries) GetPracticePlanWithPieces(ctx context.Context, arg GetPractice
 			&i.Intensity,
 			&i.Date,
 			&i.Completed,
+			&i.PracticeNotes,
 			&i.PiecePracticeType,
 			&i.PieceCompleted,
 			&i.PieceTitle,
@@ -832,7 +837,7 @@ func (q *Queries) GetPracticePlanWithPieces(ctx context.Context, arg GetPractice
 
 const getPracticePlanWithSpots = `-- name: GetPracticePlanWithSpots :many
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
     practice_plan_spots.practice_type as spot_practice_type,
     practice_plan_spots.completed as spot_completed,
     spots.name AS spot_name,
@@ -861,6 +866,7 @@ type GetPracticePlanWithSpotsRow struct {
 	Intensity        string         `json:"intensity"`
 	Date             int64          `json:"date"`
 	Completed        bool           `json:"completed"`
+	PracticeNotes    sql.NullString `json:"practiceNotes"`
 	SpotPracticeType string         `json:"spotPracticeType"`
 	SpotCompleted    bool           `json:"spotCompleted"`
 	SpotName         sql.NullString `json:"spotName"`
@@ -888,6 +894,7 @@ func (q *Queries) GetPracticePlanWithSpots(ctx context.Context, arg GetPracticeP
 			&i.Intensity,
 			&i.Date,
 			&i.Completed,
+			&i.PracticeNotes,
 			&i.SpotPracticeType,
 			&i.SpotCompleted,
 			&i.SpotName,
@@ -914,7 +921,7 @@ func (q *Queries) GetPracticePlanWithSpots(ctx context.Context, arg GetPracticeP
 
 const getPracticePlanWithTodo = `-- name: GetPracticePlanWithTodo :one
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
@@ -932,17 +939,18 @@ type GetPracticePlanWithTodoParams struct {
 }
 
 type GetPracticePlanWithTodoRow struct {
-	ID                   string      `json:"id"`
-	UserID               string      `json:"userId"`
-	Intensity            string      `json:"intensity"`
-	Date                 int64       `json:"date"`
-	Completed            bool        `json:"completed"`
-	CompletedSpotsCount  int64       `json:"completedSpotsCount"`
-	SpotsCount           int64       `json:"spotsCount"`
-	CompletedPiecesCount int64       `json:"completedPiecesCount"`
-	PiecesCount          int64       `json:"piecesCount"`
-	PieceTitles          interface{} `json:"pieceTitles"`
-	SpotPieceTitles      interface{} `json:"spotPieceTitles"`
+	ID                   string         `json:"id"`
+	UserID               string         `json:"userId"`
+	Intensity            string         `json:"intensity"`
+	Date                 int64          `json:"date"`
+	Completed            bool           `json:"completed"`
+	PracticeNotes        sql.NullString `json:"practiceNotes"`
+	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
+	SpotsCount           int64          `json:"spotsCount"`
+	CompletedPiecesCount int64          `json:"completedPiecesCount"`
+	PiecesCount          int64          `json:"piecesCount"`
+	PieceTitles          interface{}    `json:"pieceTitles"`
+	SpotPieceTitles      interface{}    `json:"spotPieceTitles"`
 }
 
 func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePlanWithTodoParams) (GetPracticePlanWithTodoRow, error) {
@@ -954,6 +962,7 @@ func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePl
 		&i.Intensity,
 		&i.Date,
 		&i.Completed,
+		&i.PracticeNotes,
 		&i.CompletedSpotsCount,
 		&i.SpotsCount,
 		&i.CompletedPiecesCount,
@@ -966,7 +975,7 @@ func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePl
 
 const listPaginatedPracticePlans = `-- name: ListPaginatedPracticePlans :many
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
@@ -986,17 +995,18 @@ type ListPaginatedPracticePlansParams struct {
 }
 
 type ListPaginatedPracticePlansRow struct {
-	ID                   string      `json:"id"`
-	UserID               string      `json:"userId"`
-	Intensity            string      `json:"intensity"`
-	Date                 int64       `json:"date"`
-	Completed            bool        `json:"completed"`
-	CompletedSpotsCount  int64       `json:"completedSpotsCount"`
-	SpotsCount           int64       `json:"spotsCount"`
-	CompletedPiecesCount int64       `json:"completedPiecesCount"`
-	PiecesCount          int64       `json:"piecesCount"`
-	PieceTitles          interface{} `json:"pieceTitles"`
-	SpotPieceTitles      interface{} `json:"spotPieceTitles"`
+	ID                   string         `json:"id"`
+	UserID               string         `json:"userId"`
+	Intensity            string         `json:"intensity"`
+	Date                 int64          `json:"date"`
+	Completed            bool           `json:"completed"`
+	PracticeNotes        sql.NullString `json:"practiceNotes"`
+	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
+	SpotsCount           int64          `json:"spotsCount"`
+	CompletedPiecesCount int64          `json:"completedPiecesCount"`
+	PiecesCount          int64          `json:"piecesCount"`
+	PieceTitles          interface{}    `json:"pieceTitles"`
+	SpotPieceTitles      interface{}    `json:"spotPieceTitles"`
 }
 
 func (q *Queries) ListPaginatedPracticePlans(ctx context.Context, arg ListPaginatedPracticePlansParams) ([]ListPaginatedPracticePlansRow, error) {
@@ -1014,6 +1024,7 @@ func (q *Queries) ListPaginatedPracticePlans(ctx context.Context, arg ListPagina
 			&i.Intensity,
 			&i.Date,
 			&i.Completed,
+			&i.PracticeNotes,
 			&i.CompletedSpotsCount,
 			&i.SpotsCount,
 			&i.CompletedPiecesCount,
@@ -1169,7 +1180,7 @@ func (q *Queries) ListPracticePlanSpotsInCategory(ctx context.Context, arg ListP
 
 const listRecentPracticePlans = `-- name: ListRecentPracticePlans :many
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
@@ -1188,17 +1199,18 @@ type ListRecentPracticePlansParams struct {
 }
 
 type ListRecentPracticePlansRow struct {
-	ID                   string      `json:"id"`
-	UserID               string      `json:"userId"`
-	Intensity            string      `json:"intensity"`
-	Date                 int64       `json:"date"`
-	Completed            bool        `json:"completed"`
-	CompletedSpotsCount  int64       `json:"completedSpotsCount"`
-	SpotsCount           int64       `json:"spotsCount"`
-	CompletedPiecesCount int64       `json:"completedPiecesCount"`
-	PiecesCount          int64       `json:"piecesCount"`
-	PieceTitles          interface{} `json:"pieceTitles"`
-	SpotPieceTitles      interface{} `json:"spotPieceTitles"`
+	ID                   string         `json:"id"`
+	UserID               string         `json:"userId"`
+	Intensity            string         `json:"intensity"`
+	Date                 int64          `json:"date"`
+	Completed            bool           `json:"completed"`
+	PracticeNotes        sql.NullString `json:"practiceNotes"`
+	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
+	SpotsCount           int64          `json:"spotsCount"`
+	CompletedPiecesCount int64          `json:"completedPiecesCount"`
+	PiecesCount          int64          `json:"piecesCount"`
+	PieceTitles          interface{}    `json:"pieceTitles"`
+	SpotPieceTitles      interface{}    `json:"spotPieceTitles"`
 }
 
 func (q *Queries) ListRecentPracticePlans(ctx context.Context, arg ListRecentPracticePlansParams) ([]ListRecentPracticePlansRow, error) {
@@ -1216,6 +1228,7 @@ func (q *Queries) ListRecentPracticePlans(ctx context.Context, arg ListRecentPra
 			&i.Intensity,
 			&i.Date,
 			&i.Completed,
+			&i.PracticeNotes,
 			&i.CompletedSpotsCount,
 			&i.SpotsCount,
 			&i.CompletedPiecesCount,

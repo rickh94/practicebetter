@@ -949,7 +949,7 @@ func (s *Server) completeInterleaveDaysPlan(w http.ResponseWriter, r *http.Reque
 			timeSinceStarted > 4*24*time.Hour &&
 			interleaveDaysSpot.SpotSkipDays.Int64 < 7 {
 			skipDays *= 2
-			err := qtx.UpdateSpotSkipDays(r.Context(), db.UpdateSpotSkipDaysParams{
+			err := qtx.UpdateSpotSkipDaysAndPractice(r.Context(), db.UpdateSpotSkipDaysAndPracticeParams{
 				SkipDays: skipDays,
 				SpotID:   interleaveDaysSpot.SpotID,
 				UserID:   user.ID,

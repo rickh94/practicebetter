@@ -92,6 +92,7 @@
 
   html {
     overscroll-behavior-y: none;
+    scrollbar-gutter: stable;
   }
 
   body {
@@ -99,6 +100,7 @@
     height: 100%;
     width: 100%;
     overflow: auto;
+    scrollbar-gutter: stable;
   }
 
   dialog {

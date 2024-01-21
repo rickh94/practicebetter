@@ -179,11 +179,7 @@ function RepeatPrepare({
 }) {
   return (
     <div className="flex w-full flex-col" id="repeat-prepare-wrapper">
-      <h2 className="py-1 text-left text-2xl font-bold">Repeat Practicing</h2>
-      <p className="text-left text-base">
-        Repeat practicing is an important part of learning, but you need to do
-        it carefully!
-      </p>
+      <RepeatPracticeTitle stage={spot?.stage} />
       <div className="py-2">
         {spot && (
           <PracticeSpotDisplay
@@ -206,6 +202,44 @@ function RepeatPrepare({
       </div>
     </div>
   );
+}
+
+function RepeatPracticeTitle(props: { stage?: string | null }) {
+  switch (props.stage) {
+    case "repeat":
+      return (
+        <>
+          <h2 className="py-1 text-left text-2xl font-bold">New Spot</h2>
+          <p className="text-left text-base">
+            Make a plan to play this spot correctly, then start practicing.
+          </p>
+        </>
+      );
+    case "extra_repeat":
+      return (
+        <>
+          <h2 className="py-1 text-left text-2xl font-bold">
+            Extra Repeat Practicing
+          </h2>
+          <p className="text-left text-base">
+            Try to remember what made this spot successful last time so you can
+            recreate that
+          </p>
+        </>
+      );
+    default:
+      return (
+        <>
+          <h2 className="py-1 text-left text-2xl font-bold">
+            Repeat Practicing
+          </h2>
+          <p className="text-left text-base">
+            Repeat practicing is an important part of learning, but you need to
+            do it carefully!
+          </p>
+        </>
+      );
+  }
 }
 
 function RepeatPractice({

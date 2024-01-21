@@ -191,6 +191,13 @@ SET
     skip_days = :skip_days
 WHERE spots.id = :spot_id AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
 
+-- name: UpdateSpotSkipDaysAndPractice :exec
+UPDATE spots
+SET
+    skip_days = :skip_days,
+    last_practiced = unixepoch('now')
+WHERE spots.id = :spot_id AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id);
+
 -- name: UpdateSpotPracticed :exec
 UPDATE spots
 SET last_practiced = unixepoch('now')

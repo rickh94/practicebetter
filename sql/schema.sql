@@ -90,6 +90,7 @@ CREATE TABLE practice_plans (
     intensity TEXT NOT NULL,
     date INTEGER NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT 0,
+    practice_notes TEXT,
     CHECK (intensity IN ('light', 'medium', 'heavy')),
     PRIMARY KEY (id),
     CONSTRAINT user FOREIGN KEY (user_id) REFERENCES users (
@@ -132,4 +133,3 @@ CREATE TABLE practice_plan_pieces (
         id
     ) ON UPDATE NO ACTION ON DELETE CASCADE
 );
-
