@@ -4,6 +4,7 @@ import "practicebetter/internal/components"
 import "strconv"
 import "time"
 import "practicebetter/internal/pages"
+import "strings"
 
 type PracticePlanSpot struct {
 	ID               string
@@ -42,6 +43,8 @@ type PracticePlanData struct {
 	CompletedItems               int
 	TotalItems                   int
 	Intensity                    string
+	PlanNotes                    string
+	PreviousNotes                string
 }
 
 // TODO: create interleave/interleave days practice page for a spot
@@ -112,6 +115,8 @@ templ PracticePlanPage(s pages.ServerUtil, planData PracticePlanData, csrf strin
 	<script type="module" src={ s.StaticUrl("dist/practice-plan.js") }></script>
 }
 
+const stopPracticingDialogID = "stop-practicing-dialog"
+
 templ PracticePlanActions(planData PracticePlanData, csrf string) {
 	if canResume(planData) {
 		<button
@@ -132,11 +137,9 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
 		}
 		if planData.CompletedItems == planData.TotalItems {
 			<button
+ 				type="button"
  				class="action-button green focusable"
- 				hx-post={ "/library/plans/" + planData.ID + "/stop" }
- 				hx-headers={ components.HxCsrfHeader(csrf) }
- 				hx-target="#main-content"
- 				hx-swap="outerHTML transition:true"
+ 				onClick={ components.ShowModal(stopPracticingDialogID) }
 			>
 				<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
 				Finish Practicing
@@ -144,15 +147,13 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
 		} else {
 			<button
  				class="action-button red focusable"
- 				hx-post={ "/library/plans/" + planData.ID + "/stop" }
- 				hx-headers={ components.HxCsrfHeader(csrf) }
- 				hx-target="#main-content"
- 				hx-swap="outerHTML transition:true"
+ 				onClick={ components.ShowModal(stopPracticingDialogID) }
 			>
 				<span class="-ml-1 size-6 icon-[iconamoon--player-stop-thin]" aria-hidden="true"></span>
 				Stop Practicing
 			</button>
 		}
+		@StopPracticingForm(planData.ID, csrf, planData.PlanNotes)
 	} else {
 		<button
  			class="green action-button focusable"
@@ -178,6 +179,52 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
 	}
 }
 
+templ StopPracticingForm(planID string, csrf string, planNotes string) {
+	<dialog
+ 		id={ stopPracticingDialogID }
+ 		aria-labelledby="stop-practicing-dialog-title"
+ 		class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left"
+	>
+		<header class="p-4 mt-2 text-left sm:max-w-lg">
+			<h3 id="stop-practicing-dialog-title" class="text-2xl font-semibold leading-6 text-neutral-900">Done Practicing</h3>
+			<p class="text-sm">
+				You can enter notes to yourself below, but it isn’t required.
+				This will be saved with this plan and displayed next time you practice.
+			</p>
+		</header>
+		<form
+ 			hx-post={ "/library/plans/" + planID + "/stop" }
+ 			hx-target="#main-content"
+ 			hx-swap="outerHTML transition:true"
+ 			hx-on::after-request={ components.CloseModal(stopPracticingDialogID) }
+ 			class="flex flex-col gap-2 p-4 w-full sm:max-w-lg"
+		>
+			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+			<label class="sr-only" for="practice_notes">Practice Notes</label>
+			<textarea class="w-full basic-field focusable" id="practice_notes" name="practice_notes" placeholder="Practice Notes...">
+				{ planNotes }
+			</textarea>
+			<section class="flex flex-col-reverse gap-2 mt-4 w-full xs:grid xs:grid-cols-2">
+				<button
+ 					onclick={ components.CloseModal(completeInterleaveFormId) }
+ 					class="flex-grow action-button red focusable"
+ 					type="button"
+				>
+					<span class="-ml1 size-5 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+					Cancel
+				</button>
+				<button
+ 					class="flex-grow action-button green focusable"
+ 					type="submit"
+				>
+					<span class="-ml-1 size-5 icon-[iconamoon--arrow-up-5-circle-thin]" aria-hidden="true"></span>
+					Finish
+				</button>
+			</section>
+		</form>
+	</dialog>
+}
+
 templ singlePlanContent(planData PracticePlanData, csrf string) {
 	<div class="grid grid-cols-1 gap-4 p-4 w-full sm:grid-cols-2 lg:grid-cols-3">
 		<header class="flex flex-col col-span-full justify-center items-center pb-2 w-full">
@@ -200,6 +247,26 @@ templ singlePlanContent(planData PracticePlanData, csrf string) {
 				<p class="py-2 text-base">Click the items below start practicing.</p>
 			}
 		</header>
+		if planData.PreviousNotes != "" {
+			<section id="previous-notes" class="flex flex-col gap-2 py-2 px-2 bg-yellow-200 rounded shadow shadow-yellow-900/20">
+				<h3 class="py-1 px-2 text-xl font-semibold text-center border-b-2 border-black">Notes from Last Time</h3>
+				<div class="flex-col gap-1">
+					for _, para := range strings.Split(planData.PreviousNotes, "\n") {
+						<p class="w-full text-base">{ para }</p>
+					}
+				</div>
+			</section>
+		}
+		if planData.PlanNotes != "" {
+			<section id="current-notes" class="flex flex-col gap-2 py-2 px-2 bg-yellow-200 rounded shadow shadow-yellow-900/20">
+				<h3 class="py-1 px-2 text-xl font-semibold text-center border-b-2 border-black">Practice Notes</h3>
+				<div class="flex-col gap-1">
+					for _, para := range strings.Split(planData.PlanNotes, "\n") {
+						<p class="w-full text-base">{ para }</p>
+					}
+				</div>
+			</section>
+		}
 		if len(planData.InterleaveDaysSpots) > 0 {
 			@PracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)
 		}

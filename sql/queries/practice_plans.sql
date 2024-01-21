@@ -237,6 +237,13 @@ WHERE user_id = ?
 ORDER BY date DESC
 LIMIT 1;
 
+-- name: GetPreviousPlanNotes :one
+SELECT practice_notes
+FROM practice_plans
+WHERE user_id = ? AND id != :plan_id
+ORDER BY date DESC
+LIMIT 1;
+
 -- name: UpdatePlanPieceIdx :exec
 UPDATE practice_plan_pieces
 SET idx = ?
@@ -267,6 +274,12 @@ WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE pra
 UPDATE practice_plan_pieces
 SET completed = true
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id) AND piece_id = ? AND practice_type = ?;
+
+-- name: CompletePracticePlan :exec
+UPDATE practice_plans
+SET completed = true,
+    practice_notes = ?
+WHERE id = ? AND user_id = ?;
 
 -- name: DeletePracticePlanSpot :exec
 DELETE FROM practice_plan_spots

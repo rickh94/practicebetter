@@ -90,12 +90,12 @@ templ CompleteInterleaveForm(planID string, csrf string, spots []PracticePlanSpo
 		</header>
 		<form
  			hx-post={ "/library/plans/" + planID + "/interleave/complete-all" }
- 			hx-headers={ components.HxCsrfHeader(csrf) }
  			hx-target="#interleave-spots"
  			hx-swap="outerHTML transition:true"
  			hx-on::after-request={ components.CloseModal(completeInterleaveFormId) }
  			class="flex flex-col gap-2 p-4 w-full sm:max-w-lg"
 		>
+			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 			<ul id="evaluate-interleave-spot-list" class="flex flex-col gap-4 w-full list-none">
 				for _, spot := range spots {
 					@CompleteInterleaveSpotItem(spot)

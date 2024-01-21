@@ -11,6 +11,24 @@ import (
 	"strings"
 )
 
+const completePracticePlan = `-- name: CompletePracticePlan :exec
+UPDATE practice_plans
+SET completed = true,
+    practice_notes = ?
+WHERE id = ? AND user_id = ?
+`
+
+type CompletePracticePlanParams struct {
+	PracticeNotes sql.NullString `json:"practiceNotes"`
+	ID            string         `json:"id"`
+	UserID        string         `json:"userId"`
+}
+
+func (q *Queries) CompletePracticePlan(ctx context.Context, arg CompletePracticePlanParams) error {
+	_, err := q.db.ExecContext(ctx, completePracticePlan, arg.PracticeNotes, arg.ID, arg.UserID)
+	return err
+}
+
 const completePracticePlanPiece = `-- name: CompletePracticePlanPiece :exec
 UPDATE practice_plan_pieces
 SET completed = true
@@ -971,6 +989,26 @@ func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePl
 		&i.SpotPieceTitles,
 	)
 	return i, err
+}
+
+const getPreviousPlanNotes = `-- name: GetPreviousPlanNotes :one
+SELECT practice_notes
+FROM practice_plans
+WHERE user_id = ? AND id != ?
+ORDER BY date DESC
+LIMIT 1
+`
+
+type GetPreviousPlanNotesParams struct {
+	UserID string `json:"userId"`
+	PlanID string `json:"planId"`
+}
+
+func (q *Queries) GetPreviousPlanNotes(ctx context.Context, arg GetPreviousPlanNotesParams) (sql.NullString, error) {
+	row := q.db.QueryRowContext(ctx, getPreviousPlanNotes, arg.UserID, arg.PlanID)
+	var practice_notes sql.NullString
+	err := row.Scan(&practice_notes)
+	return practice_notes, err
 }
 
 const listPaginatedPracticePlans = `-- name: ListPaginatedPracticePlans :many
