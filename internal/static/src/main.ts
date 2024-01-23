@@ -263,7 +263,6 @@ function closeModal(id: string) {
 }
 
 globalThis.addEventListener("htmx:confirm", (e) => {
-  console.log("confirming");
   const { question, issueRequest } = e.detail;
   if (!question) {
     return;

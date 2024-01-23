@@ -130,11 +130,23 @@ export default function Summary({
     if (hasSetup) {
       return;
     }
+    console.log(summary);
     setHasSetup(true);
     const promote: PracticeSummaryItem[] = [];
     const demote: PracticeSummaryItem[] = [];
     for (const item of summary) {
-      if (!item.excellent || !item.poor || !item.fine || !item.day) continue;
+      if (!item.excellent) {
+        item.excellent = 0;
+      }
+      if (!item.poor) {
+        item.poor = 0;
+      }
+      if (!item.fine) {
+        item.fine = 0;
+      }
+      if (!item.day) {
+        item.day = 0;
+      }
       if (
         item.excellent > 2 &&
         item.poor === 0 &&

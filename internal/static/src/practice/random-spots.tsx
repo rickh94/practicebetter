@@ -564,10 +564,10 @@ export function SinglePractice({
 
       const eligibleSpotIds: string[] = [];
       for (const spot of nextEligibleSpots) {
-        if (!spot.id) {
+        if (spot.id === undefined || spot.id === null) {
           continue;
         }
-        if (!lastTwoSpots.includes(spot.id)) {
+        if (!lastTwoSpots.includes(spot.id) || eligibleSpotIds.length <= 2) {
           eligibleSpotIds.push(spot.id);
         }
       }
@@ -590,7 +590,7 @@ export function SinglePractice({
         eligibleSpotIds[Math.floor(Math.random() * eligibleSpotIds.length)];
       const nextSpot = nextEligibleSpots.find((spot) => spot.id === nextSpotId);
       if (!nextSpot) {
-        console.error("invalid next spot id");
+        console.error("invalid next spot id", nextSpotId);
         return;
       }
       setCurrentSpot(nextSpot);
