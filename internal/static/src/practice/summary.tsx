@@ -135,18 +135,6 @@ export default function Summary({
     const promote: PracticeSummaryItem[] = [];
     const demote: PracticeSummaryItem[] = [];
     for (const item of summary) {
-      if (!item.excellent) {
-        item.excellent = 0;
-      }
-      if (!item.poor) {
-        item.poor = 0;
-      }
-      if (!item.fine) {
-        item.fine = 0;
-      }
-      if (!item.day) {
-        item.day = 0;
-      }
       if (
         item.excellent > 2 &&
         item.poor === 0 &&

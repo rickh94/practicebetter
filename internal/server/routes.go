@@ -123,6 +123,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointFinished)
 
 		r.Get("/pieces/{pieceID}/practice/repeat", s.piecePracticeRepeatPage)
+		r.Get("/pieces/{pieceID}/export", s.exportPiece)
 
 		r.Get("/upload/audio", s.uploadAudioForm)
 		r.Post("/upload/audio", s.uploadAudio)

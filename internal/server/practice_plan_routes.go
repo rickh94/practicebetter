@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"practicebetter/internal/ck"
 	"practicebetter/internal/components"
+	"practicebetter/internal/config"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/planpages"
 	"slices"
@@ -36,21 +37,6 @@ func (s *Server) createPracticePlanForm(w http.ResponseWriter, r *http.Request) 
 	}
 	s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces), "Create Practice Plan")
 }
-
-// Consider making these configurable
-const (
-	LIGHT_MAX_NEW_SPOTS  int64 = 2
-	MEDIUM_MAX_NEW_SPOTS int64 = 5
-	HEAVY_MAX_NEW_SPOTS  int64 = 10
-
-	LIGHT_MAX_INFREQUENT_SPOTS  = 7
-	MEDIUM_MAX_INFREQUENT_SPOTS = 14
-	HEAVY_MAX_INFREQUENT_SPOTS  = 20
-
-	LIGHT_MAX_INTERLEAVE_SPOTS  = 10
-	MEDIUM_MAX_INTERLEAVE_SPOTS = 12
-	HEAVY_MAX_INTERLEAVE_SPOTS  = 20
-)
 
 type PotentialInfrequentSpot struct {
 	ID        string
@@ -111,7 +97,7 @@ func (s *Server) generatePiecePlanInfo(ctx context.Context, rows []db.GetPieceFo
 			// this spot was practiced. I've made the offset 12 hours as a reasonable way to avoid adding
 			// an extra day because someone practiced in the evening one day and in the morning the next
 			if !row.SpotLastPracticed.Valid ||
-				time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > (time.Duration(row.SpotSkipDays.Int64)+1)*24*time.Hour+12*time.Hour {
+				time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)) > (time.Duration(row.SpotSkipDays.Int64)+1)*24*time.Hour+config.INFREQUENT_SPOT_OFFSET {
 				potentialInfrequentSpots = append(potentialInfrequentSpots, PotentialInfrequentSpot{
 					ID:        row.SpotID.String,
 					TimeSince: time.Since(time.Unix(row.SpotLastPracticed.Int64, 0)),
@@ -218,7 +204,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		potentialInfrequentSpots = append(potentialInfrequentSpots, pieceInfo.PotentialInfrequentSpots...)
 
 		// Only new spots if there aren't too many extra repeat/random spots.
-		if (pieceInfo.ExtraRepeatSpotCount + pieceInfo.RandomSpotCount) < 20 {
+		if (pieceInfo.ExtraRepeatSpotCount + pieceInfo.RandomSpotCount) < config.MAX_ALLOWED_RANDOM_SPOTS {
 			log.Default().Printf("Adding new spots for %s", pieceRows[0].Title)
 			maybeNewSpotLists = append(maybeNewSpotLists, pieceInfo.NewSpotIDs)
 		}
@@ -238,17 +224,17 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	var maxInterleaveSpots int
 	switch r.FormValue("intensity") {
 	case "light":
-		maxNewSpots = LIGHT_MAX_NEW_SPOTS
-		maxInfrequentSpots = LIGHT_MAX_INFREQUENT_SPOTS
-		maxInterleaveSpots = LIGHT_MAX_INTERLEAVE_SPOTS
+		maxNewSpots = config.LIGHT_MAX_NEW_SPOTS
+		maxInfrequentSpots = config.LIGHT_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = config.LIGHT_MAX_INTERLEAVE_SPOTS
 	case "medium":
-		maxNewSpots = MEDIUM_MAX_NEW_SPOTS
-		maxInfrequentSpots = MEDIUM_MAX_INFREQUENT_SPOTS
-		maxInterleaveSpots = MEDIUM_MAX_INTERLEAVE_SPOTS
+		maxNewSpots = config.MEDIUM_MAX_NEW_SPOTS
+		maxInfrequentSpots = config.MEDIUM_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = config.MEDIUM_MAX_INTERLEAVE_SPOTS
 	case "heavy":
-		maxNewSpots = HEAVY_MAX_NEW_SPOTS
-		maxInfrequentSpots = HEAVY_MAX_INFREQUENT_SPOTS
-		maxInterleaveSpots = HEAVY_MAX_INTERLEAVE_SPOTS
+		maxNewSpots = config.HEAVY_MAX_NEW_SPOTS
+		maxInfrequentSpots = config.HEAVY_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = config.HEAVY_MAX_INTERLEAVE_SPOTS
 	}
 
 	// Add Spots
@@ -545,10 +531,6 @@ func (s *Server) singlePracticePlan(w http.ResponseWriter, r *http.Request) {
 
 	s.renderPracticePlanPage(w, r, planID, user.ID)
 }
-
-// TODO: find some way to decide whether to random spot or random starting point a piece depending on spot stages.
-
-// TODO: make a distinction between practice the active practice plans and past practice plans
 
 func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, planID string, userID string) {
 	queries := db.New(s.DB)
@@ -1525,8 +1507,6 @@ func (s *Server) getInterleaveList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-const plansPerPage = 20
-
 func (s *Server) planList(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
 	page := r.URL.Query().Get("page")
@@ -1544,8 +1524,8 @@ func (s *Server) renderPlanListPage(w http.ResponseWriter, r *http.Request, user
 	queries := db.New(s.DB)
 	plans, err := queries.ListPaginatedPracticePlans(r.Context(), db.ListPaginatedPracticePlansParams{
 		UserID: userID,
-		Limit:  piecesPerPage,
-		Offset: int64((pageNum - 1) * piecesPerPage),
+		Limit:  config.ItemsPerPage,
+		Offset: int64((pageNum - 1) * config.ItemsPerPage),
 	})
 	if err != nil {
 		log.Default().Println(err)
@@ -1558,7 +1538,7 @@ func (s *Server) renderPlanListPage(w http.ResponseWriter, r *http.Request, user
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	totalPages := int(math.Ceil(float64(totalPlans) / float64(plansPerPage)))
+	totalPages := int(math.Ceil(float64(totalPlans) / float64(config.ItemsPerPage)))
 	if err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -1649,7 +1629,7 @@ func (s *Server) resumePracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	if time.Since(time.Unix(plan.Date, 0)) > 5*time.Hour {
+	if time.Since(time.Unix(plan.Date, 0)) > config.RESUME_PLAN_TIME_LIMIT {
 		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "You cannot resume a practice plan this old. Please create a new one instead.",
 			Title:    "Too Old",

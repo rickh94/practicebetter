@@ -8,6 +8,7 @@ import (
 	"math"
 	"net/http"
 	"practicebetter/internal/ck"
+	"practicebetter/internal/config"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
 	"strconv"
@@ -98,8 +99,6 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 	s.HxRender(w, r, librarypages.AddSpotsFromPDFPage(s, token, pieceID, piece.Title), piece.Title)
 }
 
-const piecesPerPage = 20
-
 func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
 	page := r.URL.Query().Get("page")
@@ -113,8 +112,8 @@ func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 	queries := db.New(s.DB)
 	pieces, err := queries.ListPaginatedUserPieces(r.Context(), db.ListPaginatedUserPiecesParams{
 		UserID: user.ID,
-		Limit:  piecesPerPage,
-		Offset: int64((pageNum - 1) * piecesPerPage),
+		Limit:  config.ItemsPerPage,
+		Offset: int64((pageNum - 1) * config.ItemsPerPage),
 	})
 	if err != nil {
 		log.Default().Println(err)
@@ -135,7 +134,7 @@ func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	totalPages := int(math.Ceil(float64(totalPieces) / float64(piecesPerPage)))
+	totalPages := int(math.Ceil(float64(totalPieces) / float64(config.ItemsPerPage)))
 	if err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -361,7 +360,7 @@ func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 
 	pieces, err := queries.ListPaginatedUserPieces(r.Context(), db.ListPaginatedUserPiecesParams{
 		UserID: user.ID,
-		Limit:  piecesPerPage,
+		Limit:  config.ItemsPerPage,
 		Offset: 0,
 	})
 	if err != nil {
@@ -383,7 +382,7 @@ func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
-	totalPages := int(math.Ceil(float64(totalPieces) / float64(piecesPerPage)))
+	totalPages := int(math.Ceil(float64(totalPieces) / float64(config.ItemsPerPage)))
 	if err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -803,4 +802,138 @@ func (s *Server) piecePracticeRepeatPage(w http.ResponseWriter, r *http.Request)
 	}
 
 	s.HxRender(w, r, librarypages.PiecePracticeRepeatPage(piece), piece[0].Title)
+}
+
+type ImportExportSpot struct {
+	Name           string `json:"name"`
+	Stage          string `json:"stage"`
+	Measures       string `json:"measures"`
+	AudioPromptUrl string `json:"audioPromptUrl"`
+	ImagePromptUrl string `json:"imagePromptUrl"`
+	NotesPrompt    string `json:"notesPrompt"`
+	TextPrompt     string `json:"textPrompt"`
+	CurrentTempo   int64  `json:"currentTempo"`
+	Priority       int64  `json:"priority"`
+}
+
+type ImportExportPiece struct {
+	Title           string             `json:"title"`
+	Description     string             `json:"description"`
+	Composer        string             `json:"composer"`
+	Measures        int64              `json:"measures"`
+	BeatsPerMeasure int64              `json:"beatsPerMeasure"`
+	GoalTempo       int64              `json:"goal_tempo"`
+	Stage           string             `json:"stage"`
+	Spots           []ImportExportSpot `json:"spots"`
+}
+
+func (s *Server) exportPiece(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+	pieceID := chi.URLParam(r, "pieceID")
+	queries := db.New(s.DB)
+	piece, err := queries.GetPieceByID(r.Context(), db.GetPieceByIDParams{
+		PieceID: pieceID,
+		UserID:  user.ID,
+	})
+	if err != nil || len(piece) == 0 {
+		if err != nil || len(piece) == 0 {
+			// TODO: create a pretty 404 handler
+			log.Default().Println(err)
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Could not find matching piece",
+				Title:    "Not Found",
+				Variant:  "error",
+				Duration: 3000,
+			}); err != nil {
+				log.Default().Println(err)
+			}
+			http.Error(w, "Could not find matching piece", http.StatusNotFound)
+			return
+		}
+	}
+	exportPiece := ImportExportPiece{
+		Title: piece[0].Title,
+		Stage: piece[0].Stage,
+		Spots: make([]ImportExportSpot, 0, len(piece)),
+	}
+	if piece[0].Description.Valid {
+		exportPiece.Description = piece[0].Description.String
+	} else {
+		exportPiece.Description = ""
+	}
+	if piece[0].Composer.Valid {
+		exportPiece.Composer = piece[0].Composer.String
+	} else {
+		exportPiece.Composer = ""
+	}
+	if piece[0].Measures.Valid {
+		exportPiece.Measures = piece[0].Measures.Int64
+	} else {
+		exportPiece.Measures = 0
+	}
+	if piece[0].GoalTempo.Valid {
+		exportPiece.GoalTempo = piece[0].GoalTempo.Int64
+	} else {
+		exportPiece.GoalTempo = 0
+	}
+	if piece[0].BeatsPerMeasure.Valid {
+		exportPiece.BeatsPerMeasure = piece[0].BeatsPerMeasure.Int64
+	} else {
+		exportPiece.BeatsPerMeasure = 0
+	}
+	for _, row := range piece {
+		if !row.SpotID.Valid || !row.SpotName.Valid {
+			continue
+		}
+		exportSpot := ImportExportSpot{
+			Name:           row.SpotName.String,
+			Stage:          "repeat",
+			Measures:       "",
+			AudioPromptUrl: "",
+			ImagePromptUrl: "",
+			NotesPrompt:    "",
+			TextPrompt:     "",
+			CurrentTempo:   0,
+			Priority:       0,
+		}
+		if row.SpotMeasures.Valid {
+			exportSpot.Measures = row.SpotMeasures.String
+		}
+		if row.SpotAudioPromptUrl.Valid {
+			exportSpot.AudioPromptUrl = row.SpotAudioPromptUrl.String
+		}
+		if row.SpotImagePromptUrl.Valid {
+			exportSpot.ImagePromptUrl = row.SpotImagePromptUrl.String
+		}
+		if row.SpotNotesPrompt.Valid {
+			exportSpot.NotesPrompt = row.SpotNotesPrompt.String
+		}
+		if row.SpotTextPrompt.Valid {
+			exportSpot.TextPrompt = row.SpotTextPrompt.String
+		}
+		if row.SpotCurrentTempo.Valid {
+			exportSpot.CurrentTempo = row.SpotCurrentTempo.Int64
+		}
+		exportPiece.Spots = append(exportPiece.Spots, exportSpot)
+	}
+
+	bytes, err := json.Marshal(exportPiece)
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not find matching piece",
+			Title:    "Not Found",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(bytes); err != nil {
+		log.Default().Println(err)
+	}
 }

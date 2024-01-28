@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"practicebetter/internal/ck"
+	"practicebetter/internal/config"
 	"practicebetter/internal/db"
 	"practicebetter/internal/static"
 	"strconv"
@@ -192,8 +193,10 @@ func (s *Server) MaybeUser(next http.Handler) http.Handler {
 		var ctx context.Context
 		if user.ID != "" && err == nil {
 			ctx = context.WithValue(r.Context(), ck.UserKey, user)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			next.ServeHTTP(w, r)
 		}
-		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
@@ -217,7 +220,7 @@ func (s *Server) GetActivePracticePlanID(ctx context.Context) (string, bool) {
 		return "", false
 	}
 	if user.ActivePracticePlanID.Valid {
-		if !user.ActivePracticePlanStarted.Valid || time.Since(time.Unix(user.ActivePracticePlanStarted.Int64, 0)) > 5*time.Hour {
+		if !user.ActivePracticePlanStarted.Valid || time.Since(time.Unix(user.ActivePracticePlanStarted.Int64, 0)) > config.RESUME_PLAN_TIME_LIMIT {
 			err := queries.ClearActivePracticePlan(ctx, user.ID)
 			if err != nil {
 				log.Default().Printf("failed to clear active practice plan: %v\n", err)

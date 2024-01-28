@@ -4,6 +4,7 @@ import "practicebetter/internal/components"
 import "strconv"
 import "time"
 import "practicebetter/internal/pages"
+import "practicebetter/internal/config"
 import "strings"
 
 type PracticePlanSpot struct {
@@ -47,15 +48,11 @@ type PracticePlanData struct {
 	PreviousNotes                string
 }
 
-// TODO: create interleave/interleave days practice page for a spot
-// TODO: create variants of all the cards that swap the link icon for a check and disable or change color
-// TODO: add piece title to spot card
-
 func canResume(planData PracticePlanData) bool {
 	if planData.IsActive {
 		return false
 	}
-	if time.Since(time.Unix(planData.Date, 0)) > 5*time.Hour {
+	if time.Since(time.Unix(planData.Date, 0)) > config.RESUME_PLAN_TIME_LIMIT {
 		return false
 	}
 	if !planData.InterleaveDaysSpotsCompleted {
