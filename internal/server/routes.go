@@ -45,6 +45,9 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.With(middleware.SetHeader("Cache-Control", "max-age=31536000")).Mount("/uploads", uf)
 
 	r.Get("/", s.index)
+	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/static/img/favicon.ico", http.StatusMovedPermanently)
+	})
 	r.Get("/about", s.about)
 	r.Get("/browserconfig.xml", func(w http.ResponseWriter, r *http.Request) {
 		if _, err := w.Write([]byte(`<?xml version="1.0" encoding="utf-8"?>
@@ -92,10 +95,14 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Get("/pieces", s.pieces)
 		r.Post("/pieces", s.createPiece)
 		r.Get("/pieces/create", s.createPieceForm)
+		r.Get("/pieces/import", s.importPiece)
+		r.Get("/pieces/import-file", s.uploadPieceFile)
+		r.Post("/pieces/import-file", s.importPieceFromFile)
 		r.Get("/pieces/{pieceID}", s.singlePiece)
 		r.Get("/pieces/{pieceID}/edit", s.editPiece)
 		r.Put("/pieces/{pieceID}", s.updatePiece)
 		r.Delete("/pieces/{pieceID}", s.deletePiece)
+		r.Get("/pieces/{pieceID}/export.json", s.exportPiece)
 
 		r.Get("/pieces/{pieceID}/spots", s.pieceSpots)
 		r.Post("/pieces/{pieceID}/spots", s.addSpot)
@@ -123,7 +130,6 @@ func (s *Server) RegisterRoutes() http.Handler {
 		r.Post("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointFinished)
 
 		r.Get("/pieces/{pieceID}/practice/repeat", s.piecePracticeRepeatPage)
-		r.Get("/pieces/{pieceID}/export", s.exportPiece)
 
 		r.Get("/upload/audio", s.uploadAudioForm)
 		r.Post("/upload/audio", s.uploadAudio)

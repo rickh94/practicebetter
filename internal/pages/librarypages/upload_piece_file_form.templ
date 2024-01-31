@@ -1,0 +1,21 @@
+
+package librarypages
+
+import "practicebetter/internal/components"
+
+templ UploadPieceFileForm(csrf string) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Upload Audio") , components.MaybePracticePlan())) {
+		@components.NormalContainer() {
+			<p class="text-lg">
+				Upload a piece export json file
+			</p>
+			<form action="/library/pieces/import-file" method="POST" enctype="multipart/form-data">
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="file" name="file" accept="application/json" class="py-4 neutral"/>
+				@components.BasicButton("", "submit") {
+					Upload
+				}
+			</form>
+		}
+	}
+}

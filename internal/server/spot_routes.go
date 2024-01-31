@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"practicebetter/internal/ck"
 	"practicebetter/internal/components"
+	"practicebetter/internal/config"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
 	"strconv"
@@ -198,8 +199,8 @@ const MAX_SPOTS_AT_ONCE = 100
 func (s *Server) addSpotsFromPDF(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
 	pieceID := chi.URLParam(r, "pieceID")
-	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE*MAX_SPOTS_AT_ONCE+1024)
-	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE*MAX_SPOTS_AT_ONCE + 1024); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, config.MAX_UPLOAD_SIZE*MAX_SPOTS_AT_ONCE+1024)
+	if err := r.ParseMultipartForm(config.MAX_UPLOAD_SIZE*MAX_SPOTS_AT_ONCE + 1024); err != nil {
 		log.Default().Println(err)
 		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Too many large spot images to process at once.",

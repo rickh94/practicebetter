@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -807,22 +808,22 @@ func (s *Server) piecePracticeRepeatPage(w http.ResponseWriter, r *http.Request)
 type ImportExportSpot struct {
 	Name           string `json:"name"`
 	Stage          string `json:"stage"`
-	Measures       string `json:"measures"`
-	AudioPromptUrl string `json:"audioPromptUrl"`
-	ImagePromptUrl string `json:"imagePromptUrl"`
-	NotesPrompt    string `json:"notesPrompt"`
-	TextPrompt     string `json:"textPrompt"`
+	Measures       string `json:"measures,omitempty"`
+	AudioPromptUrl string `json:"audioPromptUrl,omitempty"`
+	ImagePromptUrl string `json:"imagePromptUrl,omitempty"`
+	NotesPrompt    string `json:"notesPrompt,omitempty"`
+	TextPrompt     string `json:"textPrompt,omitempty"`
 	CurrentTempo   int64  `json:"currentTempo"`
 	Priority       int64  `json:"priority"`
 }
 
 type ImportExportPiece struct {
 	Title           string             `json:"title"`
-	Description     string             `json:"description"`
-	Composer        string             `json:"composer"`
+	Description     string             `json:"description,omitempty"`
+	Composer        string             `json:"composer,omitempty"`
 	Measures        int64              `json:"measures"`
 	BeatsPerMeasure int64              `json:"beatsPerMeasure"`
-	GoalTempo       int64              `json:"goal_tempo"`
+	GoalTempo       int64              `json:"goalTempo"`
 	Stage           string             `json:"stage"`
 	Spots           []ImportExportSpot `json:"spots"`
 }
@@ -917,7 +918,7 @@ func (s *Server) exportPiece(w http.ResponseWriter, r *http.Request) {
 		exportPiece.Spots = append(exportPiece.Spots, exportSpot)
 	}
 
-	bytes, err := json.Marshal(exportPiece)
+	jsonBytes, err := json.Marshal(exportPiece)
 	if err != nil {
 		log.Default().Println(err)
 		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
@@ -931,9 +932,190 @@ func (s *Server) exportPiece(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// b64Bytes := make([]byte, base64.URLEncoding.EncodedLen(len(jsonBytes)))
+	// base64.URLEncoding.Encode(b64Bytes, jsonBytes)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", `attachment; filename="`+exportPiece.Title+`.json"`)
 	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(bytes); err != nil {
+	if _, err := w.Write(jsonBytes); err != nil {
 		log.Default().Println(err)
 	}
+	// cborBytes, err := cbor.Marshal(exportPiece)
+	// if err != nil {
+	// 	log.Default().Println(err)
+	// 	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+	// 		Message:  "Could not find matching piece",
+	// 		Title:    "Not Found",
+	// 		Variant:  "error",
+	// 		Duration: 3000,
+	// 	}); err != nil {
+	// 		log.Default().Println(err)
+	// 	}
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	// b64Bytes := make([]byte, base64.URLEncoding.EncodedLen(len(cborBytes)))
+	// base64.URLEncoding.Encode(b64Bytes, cborBytes)
+	// w.WriteHeader(http.StatusOK)
+	// w.Header().Set("Content-Type", "application/octet-stream")
+	// if _, err := w.Write(cborBytes); err != nil {
+	// 	log.Default().Println(err)
+	// }
+}
+
+func (s *Server) importPiece(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+
+	url := r.URL.Query().Get("url")
+	if url != "" {
+		resp, err := http.Get(url)
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		defer resp.Body.Close()
+		var p ImportExportPiece
+		if err := json.NewDecoder(resp.Body).Decode(&p); err != nil {
+			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		pieceID, err := s.createPieceWithSpots(r.Context(), p, user.ID)
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		// 	Message:  "Your piece has been imported and you can start practicing!",
+		// 	Title:    "Imported Piece",
+		// 	Variant:  "success",
+		// 	Duration: 3000,
+		// }); err != nil {
+		// 	log.Default().Println(err)
+		// }
+		//
+		// htmx.PushURL(r, "/library/pieces/"+pieceID)
+		// TODO: show an alert
+		http.Redirect(w, r, "/library/pieces/"+pieceID, http.StatusSeeOther)
+		return
+	}
+
+	w.WriteHeader(http.StatusBadRequest)
+}
+
+func (s *Server) createPieceWithSpots(ctx context.Context, p ImportExportPiece, userID string) (string, error) {
+	queries := db.New(s.DB)
+
+	measures := sql.NullInt64{Int64: 0, Valid: false}
+	if p.Measures > 0 {
+		measures = sql.NullInt64{Int64: p.Measures, Valid: true}
+	}
+
+	beatsPerMeasure := sql.NullInt64{Int64: 0, Valid: false}
+	if p.BeatsPerMeasure > 0 {
+		beatsPerMeasure = sql.NullInt64{Int64: p.BeatsPerMeasure, Valid: true}
+	}
+	goalTempo := sql.NullInt64{Int64: 0, Valid: false}
+	if p.GoalTempo > 0 {
+		goalTempo = sql.NullInt64{Int64: p.GoalTempo, Valid: true}
+	}
+	description := sql.NullString{String: "", Valid: false}
+	if p.Description != "" {
+		description = sql.NullString{String: p.Description, Valid: true}
+	}
+	composer := sql.NullString{String: "", Valid: false}
+	if p.Composer != "" {
+		composer = sql.NullString{String: p.Composer, Valid: true}
+	}
+
+	pieceID := cuid2.Generate()
+
+	piece, err := queries.CreatePiece(ctx, db.CreatePieceParams{
+		ID:              pieceID,
+		Title:           p.Title,
+		Description:     description,
+		Composer:        composer,
+		Measures:        measures,
+		BeatsPerMeasure: beatsPerMeasure,
+		GoalTempo:       goalTempo,
+		UserID:          userID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	for _, spot := range p.Spots {
+		_, err := queries.CreateSpot(ctx, db.CreateSpotParams{
+			ID:          cuid2.Generate(),
+			Name:        spot.Name,
+			Stage:       spot.Stage,
+			NotesPrompt: spot.NotesPrompt,
+			TextPrompt:  spot.TextPrompt,
+			CurrentTempo: sql.NullInt64{
+				Int64: spot.CurrentTempo,
+				Valid: true,
+			},
+			Measures: sql.NullString{
+				String: spot.Measures,
+				Valid:  true,
+			},
+			AudioPromptUrl: spot.AudioPromptUrl,
+			ImagePromptUrl: spot.ImagePromptUrl,
+			PieceID:        pieceID,
+			UserID:         userID,
+		})
+		if err != nil {
+			return "", err
+		}
+	}
+	return piece.ID, nil
+}
+
+func (s *Server) uploadPieceFile(w http.ResponseWriter, r *http.Request) {
+	token := csrf.Token(r)
+	s.HxRender(w, r, librarypages.UploadPieceFileForm(token), "Upload Piece File")
+
+}
+
+func (s *Server) importPieceFromFile(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+
+	r.Body = http.MaxBytesReader(w, r.Body, config.MAX_UPLOAD_SIZE)
+
+	if err := r.ParseMultipartForm(config.MAX_UPLOAD_SIZE); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "The uploaded file is too big. Please choose an file that's less than 1MB in size", http.StatusBadRequest)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "invalid file", http.StatusBadRequest)
+		return
+	}
+	if fileHeader.Filename[len(fileHeader.Filename)-4:] != "json" {
+		log.Default().Println(err)
+		http.Error(w, "The file must be a JSON file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	var p ImportExportPiece
+	if err := json.NewDecoder(file).Decode(&p); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Could not decode file", http.StatusBadRequest)
+		return
+	}
+
+	pieceID, err := s.createPieceWithSpots(r.Context(), p, user.ID)
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/library/pieces/"+pieceID, http.StatusSeeOther)
+
 }

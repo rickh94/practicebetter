@@ -13,6 +13,7 @@ import (
 	"path"
 	"practicebetter/internal/ck"
 	"practicebetter/internal/components"
+	"practicebetter/internal/config"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
 	"strings"
@@ -102,12 +103,10 @@ type SpotFormData struct {
 	StageStarted   *int64  `json:"stageStarted,omitempty"`
 }
 
-const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MiB
-
 func (s *Server) uploadAudio(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
-	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, config.MAX_UPLOAD_SIZE)
+	if err := r.ParseMultipartForm(config.MAX_UPLOAD_SIZE); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "The uploaded file is too big. Please choose an file that's less than 1MB in size", http.StatusBadRequest)
 		return
@@ -248,8 +247,8 @@ func (s *Server) saveImage(file multipart.File, fileHeader *multipart.FileHeader
 
 func (s *Server) uploadImage(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
-	r.Body = http.MaxBytesReader(w, r.Body, MAX_UPLOAD_SIZE)
-	if err := r.ParseMultipartForm(MAX_UPLOAD_SIZE); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, config.MAX_UPLOAD_SIZE)
+	if err := r.ParseMultipartForm(config.MAX_UPLOAD_SIZE); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "The uploaded file is too big. Please choose an file that's less than 1MB in size", http.StatusBadRequest)
 		return

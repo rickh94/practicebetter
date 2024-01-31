@@ -20,4 +20,5 @@ const (
 	INFREQUENT_SPOT_OFFSET = 12 * time.Hour
 
 	MAX_ALLOWED_RANDOM_SPOTS = 20
+	MAX_UPLOAD_SIZE          = 1024 * 1024 // 1MiB
 )
