@@ -922,4 +922,20 @@
       transform: scale(0.95);
     }
   }
+
+  @keyframes confetti {
+    0% {
+      transform: translateY(var(--cyinit, 0)) translateX(var(--cxinit, 0))
+        rotate(var(--crotinit));
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(var(--cy, 25px)) translateX(var(--cx, 25px))
+        rotate(var(--crot, 360deg));
+      opacity: 0;
+    }
+  }
 }

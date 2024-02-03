@@ -104,9 +104,11 @@ CREATE TABLE practice_plan_spots (
     practice_plan_id TEXT NOT NULL,
     spot_id TEXT NOT NULL,
     practice_type TEXT NOT NULL,
+    evaluation TEXT,
     completed BOOLEAN NOT NULL DEFAULT 0,
     idx INTEGER NOT NULL DEFAULT 0,
     CHECK (practice_type IN ('new', 'extra_repeat', 'interleave', 'interleave_days')),
+    CHECK (evaluation = NULL OR evaluation IN ('poor', 'fine', 'excellent')),
     PRIMARY KEY (practice_plan_id, spot_id),
     CONSTRAINT plan FOREIGN KEY (practice_plan_id) REFERENCES practice_plans (
         id

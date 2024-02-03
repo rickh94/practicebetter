@@ -21,47 +21,7 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Interleave Spots</h3>
 			<p class="w-full text-sm">Play these spots throughout your practicing. Try to play them correctly the first time.</p>
 		}
-		<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none overflow-x-clip">
-			for i := 0; i*4 < len(interleaveSpots); i++ {
-				<div data-interleave-page={ strconv.Itoa(i) } class={ "flex flex-col gap-2", templ.KV("hidden", i != 0) }>
-					for j := i*4; j < (i+1)*4 && j < len(interleaveSpots); j++ {
-						@components.InterleaveSpotCard(
-							interleaveSpots[j].PieceID,
-							interleaveSpots[j].ID,
-							interleaveSpots[j].Name,
-							interleaveSpots[j].Measures,
-							"interleave",
-							interleaveSpots[j].PieceTitle,
-							interleaveSpots[j].Completed,
-						)
-					}
-					<div class="flex justify-between w-full">
-						if i != 0 {
-							<button
- 								onClick={ interleaveShowPrev(i) }
- 								type="button"
- 								class="action-button neutral focusable"
-							>
-								<span class="-ml-1 size-6 icon-[iconamoon--arrow-left-6-circle-thin]" aria-hidden="true"></span>
-								Previous
-							</button>
-						} else {
-							<div></div>
-						}
-						if (i+1)*4 < len(interleaveSpots) {
-							<button
- 								onClick={ interleaveShowNext(i) }
- 								type="button"
- 								class="action-button neutral focusable"
-							>
-								Next
-								<span class="-mr-1 size-6 icon-[iconamoon--arrow-right-6-circle-thin]" aria-hidden="true"></span>
-							</button>
-						}
-					</div>
-				</div>
-			}
-		</ul>
+		@InterleaveSpotsList(interleaveSpots)
 		if active && len(interleaveSpots) > 0 {
 			if allCompleted {
 				@CompletedButtonDiv()
@@ -78,6 +38,54 @@ templ PracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID str
 			}
 		}
 	</section>
+}
+
+templ InterleaveSpotsList(interleaveSpots []PracticePlanSpot) {
+	<ul id="interleave-spot-list" class="flex flex-col gap-2 w-full list-none overflow-x-clip">
+		for i := 0; i*4 < len(interleaveSpots); i++ {
+			@InterleaveListPage(i, interleaveSpots)
+		}
+	</ul>
+}
+
+templ InterleaveListPage(i int, interleaveSpots []PracticePlanSpot) {
+	<div data-interleave-page={ strconv.Itoa(i) } class={ "flex flex-col gap-2", templ.KV("hidden", i != 0) }>
+		for j := i*4; j < (i+1)*4 && j < len(interleaveSpots); j++ {
+			@components.InterleaveSpotCard(
+				interleaveSpots[j].PieceID,
+				interleaveSpots[j].ID,
+				interleaveSpots[j].Name,
+				interleaveSpots[j].Measures,
+				"interleave",
+				interleaveSpots[j].PieceTitle,
+				interleaveSpots[j].Completed,
+			)
+		}
+		<div class="flex justify-between w-full">
+			if i != 0 {
+				<button
+ 					onClick={ interleaveShowPrev(i) }
+ 					type="button"
+ 					class="action-button neutral focusable"
+				>
+					<span class="-ml-1 size-6 icon-[iconamoon--arrow-left-6-circle-thin]" aria-hidden="true"></span>
+					Previous
+				</button>
+			} else {
+				<div></div>
+			}
+			if (i+1)*4 < len(interleaveSpots) {
+				<button
+ 					onClick={ interleaveShowNext(i) }
+ 					type="button"
+ 					class="action-button neutral focusable"
+				>
+					Next
+					<span class="-mr-1 size-6 icon-[iconamoon--arrow-right-6-circle-thin]" aria-hidden="true"></span>
+				</button>
+			}
+		</div>
+	</div>
 }
 
 // TODO: add icons on larger (or all) screens.

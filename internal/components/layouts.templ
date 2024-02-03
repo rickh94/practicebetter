@@ -10,7 +10,7 @@ templ SingleColumnLayout(nav templ.Component) {
 templ HeroLayout(nav templ.Component) {
 	<main class="flex flex-col justify-center items-center min-h-screen" id="main-content">
 		@nav
-		<div class="container flex flex-col gap-12 justify-center items-center py-16 px-4">
+		<div class="container flex flex-col flex-grow gap-12 justify-center items-center py-16 px-4">
 			{ children... }
 		</div>
 	</main>
@@ -52,7 +52,7 @@ templ LeftButtonBar(left templ.Component, header templ.Component) {
 }
 
 templ TwoColumnContainer() {
-	<div class="grid relative grid-cols-1 gap-x-2 gap-y-4 px-4 pb-12 w-full sm:mx-auto sm:max-w-6xl md:grid-cols-2">
+	<div class="grid relative grid-cols-1 gap-x-2 gap-y-4 px-4 pt-4 pb-12 w-full sm:mx-auto sm:max-w-6xl md:grid-cols-2">
 		{ children... }
 	</div>
 }

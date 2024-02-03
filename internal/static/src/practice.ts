@@ -19,7 +19,7 @@ try {
   register(
     Repeat,
     "repeat-practice",
-    ["initialspot", "pieceid", "csrf", "piecetitle", "planid"],
+    ["initialspot", "pieceid", "csrf", "piecetitle", "planid", "kidmode"],
     {
       shadow: false,
     },

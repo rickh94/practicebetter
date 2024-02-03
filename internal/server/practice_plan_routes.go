@@ -575,18 +575,12 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 		planData.InterleaveDaysSpotsCompleted = true
 		planData.InterleaveSpotsCompleted = true
 		planData.Intensity = plan.Intensity
-		if plan.PracticeNotes.Valid {
-			planData.PlanNotes = plan.PracticeNotes.String
-		}
 	} else {
 		planData.Date = planPieces[0].Date
 		planData.Completed = planPieces[0].Completed
 		planData.InterleaveDaysSpotsCompleted = true
 		planData.InterleaveSpotsCompleted = true
 		planData.Intensity = planPieces[0].Intensity
-		if planPieces[0].PracticeNotes.Valid {
-			planData.PlanNotes = planPieces[0].PracticeNotes.String
-		}
 	}
 
 	for _, row := range planPieces {
@@ -678,15 +672,6 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 		rand.Shuffle(len(planData.InterleaveSpots), func(i, j int) {
 			planData.InterleaveSpots[i], planData.InterleaveSpots[j] = planData.InterleaveSpots[j], planData.InterleaveSpots[i]
 		})
-		prevPlanNotes, err := queries.GetPreviousPlanNotes(r.Context(), db.GetPreviousPlanNotesParams{
-			UserID: userID,
-			PlanID: planID,
-		})
-		if err == nil {
-			if prevPlanNotes.Valid {
-				planData.PreviousNotes = prevPlanNotes.String
-			}
-		}
 	}
 
 	token := csrf.Token(r)
