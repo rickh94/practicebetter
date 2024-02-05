@@ -51,6 +51,12 @@ export interface CloseAlertEvent extends Event {
   };
 }
 
+export interface CloseModalEvent extends Event {
+  detail?: {
+    value?: string;
+  };
+}
+
 export interface FocusInputEvent extends Event {
   detail?: {
     id?: string;
@@ -88,6 +94,7 @@ export interface FinishedRepeatPracticingEvent extends Event {
 declare global {
   function handleCloseModal(): void;
   function handleShowModal(): void;
+  function closeModal(id: string): void;
   interface WindowEventMap {
     "htmx:beforeSwap": HTMXBeforeSwapEvent;
     "htmx:confirm": HTMXConfirmEvent;
@@ -96,6 +103,9 @@ declare global {
     "htmx:afterRequestSwap": HTMXRequestEvent;
     ShowAlert: ShowAlertEvent;
     CloseAlert: CloseAlertEvent;
+    CloseModal: CloseModalEvent;
+    FinishedInterleave: Event;
+    FinishedInfrequent: Event;
     FocusInput: FocusInputEvent;
     FinishedSpotPracticing: FinishedSpotPracticingEvent;
     FinishedStartingPointPracticing: FinishedStartingPointPracticingEvent;

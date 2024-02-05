@@ -135,6 +135,30 @@ LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plan_spots.practice_type = 'interleave_days' AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
 ORDER BY practice_plan_spots.idx;
 
+-- name: GetNextInfrequentSpot :one
+SELECT spots.name,
+    spots.measures,
+    spots.piece_id,
+    spots.stage,
+    spots.stage_started,
+    spots.skip_days,
+    spots.id,
+    (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS piece_title
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'interleave_days'
+    AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+    AND practice_plan_spots.completed = false
+ORDER BY practice_plan_spots.idx
+LIMIT 1;
+
+-- name: HasIncompleteInfrequentSpots :one
+SELECT  COUNT(*) > 0
+FROM practice_plan_spots
+WHERE practice_plan_spots.practice_type = 'interleave_days'
+    AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+    AND practice_plan_spots.completed = false;
+
 -- name: GetPracticePlanInterleaveSpots :many
 SELECT practice_plan_spots.*,
     spots.name AS spot_name,
@@ -225,6 +249,17 @@ AND spots.stage = 'repeat'
 AND spots.piece_id IN (sqlc.slice('pieceIDs'))
 ORDER BY practice_plan_spots.idx;
 
+-- name: GetPracticePlanEvaluatedInterleaveSpots :many
+SELECT practice_plan_spots.*,
+    spots.stage_started AS spot_stage_started
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'interleave'
+AND practice_plan_spots.evaluation IS NOT NULL
+AND practice_plan_spots.completed = false
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+ORDER BY practice_plan_spots.idx;
+
 -- name: GetPracticePlan :one
 SELECT *
 FROM practice_plans
@@ -251,6 +286,12 @@ WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE pra
 AND piece_id = ?
 AND practice_type = ?;
 
+-- name: UpdateSpotEvaluation :exec
+UPDATE practice_plan_spots
+SET evaluation = CASE WHEN evaluation IS NULL OR evaluation <> 'poor' THEN :evaluation ELSE evaluation END
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id)
+AND spot_id = :spot_id;
+
 -- name: UpdatePlanSpotIdx :exec
 UPDATE practice_plan_spots
 SET idx = ?
@@ -267,7 +308,8 @@ WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE pra
 
 -- name: CompletePracticePlanSpot :exec
 UPDATE practice_plan_spots
-SET completed = true
+SET completed = true,
+evaluation = NULL
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id) AND spot_id = ?;
 
 -- name: CompletePracticePlanPiece :exec

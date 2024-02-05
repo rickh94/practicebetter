@@ -1,5 +1,5 @@
-import { type Ref, useCallback, useRef, useState } from "preact/hooks";
-import { InterleaveSpotsList } from "../ui/plan-components";
+import { type Ref, useCallback } from "preact/hooks";
+import { StartPracticingInterleave } from "../ui/plan-components";
 import { BackToPlan } from "../ui/links";
 
 export function ResumeDialog({
@@ -88,14 +88,9 @@ export function BreakDialog({
   canContinue: boolean;
   length?: string;
 }) {
-  const [shouldFetch, setShouldFetch] = useState(true);
-  const interleaveSpotsRef = useRef<HTMLDetailsElement>(null);
   const closeDialog = useCallback(() => {
     if (dialogRef.current) {
       globalThis.handleCloseModal();
-      if (interleaveSpotsRef.current) {
-        interleaveSpotsRef.current.open = false;
-      }
       if (dialogRef.current) {
         dialogRef.current.classList.add("close");
         setTimeout(() => {
@@ -105,7 +100,6 @@ export function BreakDialog({
           }
         }, 150);
       }
-      setShouldFetch(true);
     }
   }, [dialogRef]);
 
@@ -139,12 +133,7 @@ export function BreakDialog({
         {!!planid && (
           <>
             <p>This is a great time to practice your interleave spots!</p>
-            <InterleaveSpotsList
-              planid={planid}
-              shouldFetch={shouldFetch}
-              setShouldFetch={setShouldFetch}
-              ref={interleaveSpotsRef}
-            />
+            <StartPracticingInterleave planid={planid} />
           </>
         )}
       </div>

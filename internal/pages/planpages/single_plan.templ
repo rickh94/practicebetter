@@ -120,7 +120,7 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
  			hx-target="#main-content"
  			hx-swap="outerHTML transition:true"
 		>
-			<span class="-ml-1 size-6 icon-[custom--music-file-curly-pencil]"></span>
+			<span class="-ml-1 size-6 icon-[iconamoon--player-play-thin]" aria-hidden="true"></span>
 			Resume Practicing
 		</button>
 	}
@@ -129,30 +129,16 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
 			<span class="-ml-1 size-6 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
 			Customize
 		}
-		if planData.CompletedItems == planData.TotalItems {
-			<button
- 				type="button"
- 				class="action-button green focusable"
- 				hx-post={ "/library/plans/" + planData.ID + "/stop" }
- 				hx-headers={ components.HxCsrfHeader(csrf) }
- 				hx-target="#main-content"
- 				hx-swap="outerHTML transition:true"
-			>
-				<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
-				Finish Practicing
-			</button>
-		} else {
-			<button
- 				class="action-button red focusable"
- 				hx-post={ "/library/plans/" + planData.ID + "/stop" }
- 				hx-headers={ components.HxCsrfHeader(csrf) }
- 				hx-target="#main-content"
- 				hx-swap="outerHTML transition:true"
-			>
-				<span class="-ml-1 size-6 icon-[iconamoon--player-stop-thin]" aria-hidden="true"></span>
-				Stop Practicing
-			</button>
-		}
+		<button
+ 			class="action-button blue focusable"
+ 			hx-post={ "/library/plans/" + planData.ID + "/stop" }
+ 			hx-headers={ components.HxCsrfHeader(csrf) }
+ 			hx-target="#main-content"
+ 			hx-swap="outerHTML transition:true"
+		>
+			<span class="-ml-1 size-6 icon-[iconamoon--player-stop-thin]" aria-hidden="true"></span>
+			Done Practicing
+		</button>
 	} else {
 		<button
  			class="green action-button focusable"

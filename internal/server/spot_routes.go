@@ -116,14 +116,14 @@ func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		log.Default().Println(err)
 		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not add spot",
-			Title:    "Database Error",
+			Message:  "Could not get information from the form",
+			Title:    "Invalid Form",
 			Variant:  "error",
 			Duration: 3000,
 		}); err != nil {
 			log.Default().Println(err)
 		}
-		http.Error(w, "Something went wrong", http.StatusBadRequest)
+		http.Error(w, "Invalid Form", http.StatusBadRequest)
 		return
 	}
 	currentTempo := sql.NullInt64{Valid: false}
@@ -166,16 +166,7 @@ func (s *Server) addSpot(w http.ResponseWriter, r *http.Request) {
 		Measures:       measures,
 	})
 	if err != nil {
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not add spot",
-			Title:    "Database Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, "Databse Error", http.StatusBadRequest)
+		s.DatabaseError(w, r, err, "Could not add spot")
 		return
 	}
 	outMeasures := librarypages.SpotMeasuresOrEmpty(spot.Measures)
@@ -436,16 +427,7 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 		PieceID:        pieceID,
 	})
 	if err != nil {
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not update spot.",
-			Title:    "Database Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, "Database Error", http.StatusBadRequest)
+		s.DatabaseError(w, r, err, "Could not update spot")
 		return
 	}
 	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
@@ -702,6 +684,7 @@ func (s *Server) updateReminders(w http.ResponseWriter, r *http.Request) {
 		TextPrompt: newText,
 	})
 	if err != nil {
+		s.DatabaseError(w, r, err, "Could not update reminders")
 		log.Default().Println(err)
 		if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not update reminders",
@@ -766,6 +749,7 @@ func (s *Server) getPracticeSpotDisplay(w http.ResponseWriter, r *http.Request) 
 	user := r.Context().Value(ck.UserKey).(db.User)
 	spotID := chi.URLParam(r, "spotID")
 	pieceID := chi.URLParam(r, "pieceID")
+
 	queries := db.New(s.DB)
 
 	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{

@@ -202,8 +202,17 @@ function RepeatPrepare({
           />
         )}
       </div>
-      <RepeatPrepareText open={!spot} />
 
+      <div className="col-span-full flex w-full items-center justify-center py-8">
+        <button
+          type="button"
+          onClick={startPracticing}
+          className="action-button violet focusable h-20 px-8 text-3xl"
+        >
+          Start Practicing
+          <span className="icon-[iconamoon--player-play-thin] size-8" />
+        </button>
+      </div>
       <div className="flex justify-center">
         <div className="mt-2 flex flex-col gap-2 rounded-xl bg-neutral-700/5 p-4">
           <label
@@ -216,10 +225,10 @@ function RepeatPrepare({
             <button
               onClick={() => setKidMode(false)}
               className={cn(
-                "flex items-center gap-1 border-b-2 pb-2 text-xl",
+                "flex items-center gap-1 border-b-2 pb-2 text-xl font-semibold",
                 kidMode
-                  ? "border-transparent font-medium text-neutral-800"
-                  : "border-green-500 font-semibold text-green-600",
+                  ? "border-transparent text-neutral-800"
+                  : "border-green-500 text-green-600",
               )}
             >
               Simple
@@ -231,7 +240,7 @@ function RepeatPrepare({
                     : "border border-green-600 bg-green-300 text-green-600 shadow-green-900/50",
                 )}
               >
-                <span className="icon-[iconamoon--check-light] size-6 sm:size-8 lg:size-12" />
+                <span className="icon-[iconamoon--check-bold] size-6 sm:size-8 lg:size-12" />
               </span>
             </button>
             <div className="border-b-2 border-transparent pb-2">
@@ -252,10 +261,10 @@ function RepeatPrepare({
             <button
               onClick={() => setKidMode(true)}
               className={cn(
-                "flex items-center gap-1 border-b-2 pb-2 text-xl",
+                "flex items-center gap-1 border-b-2 pb-2 text-xl font-semibold",
                 kidMode
-                  ? "border-yellow-500 font-semibold text-yellow-600"
-                  : "border-transparent font-medium text-neutral-800",
+                  ? "border-yellow-500 text-yellow-600"
+                  : "border-transparent text-neutral-800",
               )}
             >
               <span
@@ -273,16 +282,7 @@ function RepeatPrepare({
           </div>
         </div>
       </div>
-      <div className="col-span-full flex w-full items-center justify-center py-8">
-        <button
-          type="button"
-          onClick={startPracticing}
-          className="action-button violet focusable h-20 px-8 text-3xl"
-        >
-          Start Practicing
-          <span className="icon-[iconamoon--player-play-thin] size-8" />
-        </button>
-      </div>
+      <RepeatPrepareText open={!spot} />
     </div>
   );
 }
@@ -689,7 +689,7 @@ function PracticeListItem({
               <span className="icon-[iconamoon--star-duotone] z-10 size-6 sm:size-8 lg:size-12" />
             </>
           ) : (
-            <span className="icon-[iconamoon--check-light] size-6 sm:size-8 lg:size-12" />
+            <span className="icon-[iconamoon--check-fill] size-6 sm:size-8 lg:size-12" />
           )}
           <span className="sr-only">Checked</span>
         </motion.li>
@@ -728,6 +728,7 @@ function RepeatBreakSuccess({
   kidMode?: boolean;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const close = useCallback(() => {
     globalThis.handleCloseModal();
@@ -738,6 +739,7 @@ function RepeatBreakSuccess({
           if (dialogRef.current) {
             dialogRef.current.classList.remove("close");
             dialogRef.current.close();
+            setShowConfetti(true);
           }
         }, 150);
       }
@@ -758,13 +760,15 @@ function RepeatBreakSuccess({
       if (canPromote) {
         dialogRef.current.showModal();
         globalThis.handleShowModal();
+      } else {
+        setShowConfetti(true);
       }
     }
-  }, [canPromote]);
+  }, [canPromote, setShowConfetti]);
 
   return (
     <>
-      {kidMode ? (
+      {kidMode && showConfetti ? (
         <>
           {getRandomConfettiPositions().map(([x, y], i) => (
             <div

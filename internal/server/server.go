@@ -20,6 +20,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/gomodule/redigo/redis"
+	"github.com/mavolin/go-htmx"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -252,4 +253,17 @@ func (s *Server) ContextPath(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), ck.CurrentPathKey, r.URL.Path)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (s *Server) DatabaseError(w http.ResponseWriter, r *http.Request, err error, message string) {
+	log.Default().Println(err)
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		Message:  message,
+		Title:    "Database Error",
+		Variant:  "error",
+		Duration: 3000,
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	http.Error(w, "Database Error", http.StatusInternalServerError)
 }

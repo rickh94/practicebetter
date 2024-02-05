@@ -117,16 +117,7 @@ func (s *Server) pieces(w http.ResponseWriter, r *http.Request) {
 		Offset: int64((pageNum - 1) * config.ItemsPerPage),
 	})
 	if err != nil {
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not load pieces",
-			Title:    "Database Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		w.WriteHeader(http.StatusInternalServerError)
+		s.DatabaseError(w, r, err, "Could not load pieces")
 		return
 	}
 	totalPieces, err := queries.CountUserPieces(r.Context(), user.ID)
@@ -365,16 +356,7 @@ func (s *Server) deletePiece(w http.ResponseWriter, r *http.Request) {
 		Offset: 0,
 	})
 	if err != nil {
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Something went wrong",
-			Title:    "Database Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, "Database Error", http.StatusInternalServerError)
+		s.DatabaseError(w, r, err, "Could not find matching piece")
 		return
 	}
 	totalPieces, err := queries.CountUserPieces(r.Context(), user.ID)
@@ -471,16 +453,7 @@ func (s *Server) updatePiece(w http.ResponseWriter, r *http.Request) {
 		Stage:           r.Form.Get("stage"),
 	})
 	if err != nil {
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not update piece in the database",
-			Title:    "Database Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, "Could not update piece", http.StatusInternalServerError)
+		s.DatabaseError(w, r, err, "Could not update piece")
 		return
 	}
 
@@ -658,16 +631,7 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 
 	}
 	if err := tx.Commit(); err != nil {
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not save your changes",
-			Title:    "Database Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		s.DatabaseError(w, r, err, "Could not save changes")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -752,16 +716,7 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 		return
 	}
 	if err := tx.Commit(); err != nil {
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not save your changes",
-			Title:    "Database Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		s.DatabaseError(w, r, err, "Could not save changes")
 		return
 	}
 
@@ -932,35 +887,12 @@ func (s *Server) exportPiece(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// b64Bytes := make([]byte, base64.URLEncoding.EncodedLen(len(jsonBytes)))
-	// base64.URLEncoding.Encode(b64Bytes, jsonBytes)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+exportPiece.Title+`.json"`)
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write(jsonBytes); err != nil {
 		log.Default().Println(err)
 	}
-	// cborBytes, err := cbor.Marshal(exportPiece)
-	// if err != nil {
-	// 	log.Default().Println(err)
-	// 	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-	// 		Message:  "Could not find matching piece",
-	// 		Title:    "Not Found",
-	// 		Variant:  "error",
-	// 		Duration: 3000,
-	// 	}); err != nil {
-	// 		log.Default().Println(err)
-	// 	}
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-	// b64Bytes := make([]byte, base64.URLEncoding.EncodedLen(len(cborBytes)))
-	// base64.URLEncoding.Encode(b64Bytes, cborBytes)
-	// w.WriteHeader(http.StatusOK)
-	// w.Header().Set("Content-Type", "application/octet-stream")
-	// if _, err := w.Write(cborBytes); err != nil {
-	// 	log.Default().Println(err)
-	// }
 }
 
 func (s *Server) importPiece(w http.ResponseWriter, r *http.Request) {

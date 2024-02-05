@@ -1,5 +1,251 @@
 package librarypages
 
+import "practicebetter/internal/components"
+
 templ PracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string) {
-	<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piece-title={ pieceTitle }></practice-spot-display>
+	<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
+}
+
+// TODO: needs a transition
+
+templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
+	<div>
+		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
+		<div class="flex flex-col gap-4 justify-center px-4 pt-8 w-full sm:flex-row-reverse sm:w-full xs:w-auto xs:px-0">
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/interleave/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INTERLEAVE_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="excellent"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button green focusable"
+				>
+					<span
+ 						class="-mt-1 -ml-1 icon-[iconamoon--like-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Excellent
+				</button>
+			</form>
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/interleave/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INTERLEAVE_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="fine"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button sky focusable"
+				>
+					<span
+ 						class="-ml-1 icon-[iconamoon--sign-minus-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Fine
+				</button>
+			</form>
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/interleave/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INTERLEAVE_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="poor"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button red focusable"
+				>
+					<span
+ 						class="-mb-1 -ml-1 icon-[iconamoon--dislike-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Poor
+				</button>
+			</form>
+		</div>
+	</div>
+}
+
+templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
+	<div>
+		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
+		<div class="flex flex-col gap-4 justify-center px-4 pt-8 w-full sm:flex-row-reverse sm:w-full xs:w-auto xs:px-0">
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="excellent"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button green focusable"
+				>
+					<span
+ 						class="-mt-1 -ml-1 icon-[iconamoon--like-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Excellent
+				</button>
+			</form>
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="fine"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button sky focusable"
+				>
+					<span
+ 						class="-ml-1 icon-[iconamoon--sign-minus-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Fine
+				</button>
+			</form>
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="poor"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button red focusable"
+				>
+					<span
+ 						class="-mb-1 -ml-1 icon-[iconamoon--dislike-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Poor
+				</button>
+			</form>
+		</div>
+	</div>
+}
+
+type FinishedSpotInfo struct {
+	SpotID     string
+	PieceID    string
+	PieceTitle string
+	Name       string
+	Measures   string
+}
+
+templ InfrequentPracticeSpotDisplayWithOOBFinished(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string, finishedSpot FinishedSpotInfo) {
+	<div>
+		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
+		<div class="flex flex-col gap-4 justify-center px-4 pt-8 w-full sm:flex-row-reverse sm:w-full xs:w-auto xs:px-0">
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="excellent"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button green focusable"
+				>
+					<span
+ 						class="-mt-1 -ml-1 icon-[iconamoon--like-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Excellent
+				</button>
+			</form>
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="fine"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button sky focusable"
+				>
+					<span
+ 						class="-ml-1 icon-[iconamoon--sign-minus-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Fine
+				</button>
+			</form>
+			<form
+ 				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }
+ 				action="#"
+ 				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML swap:155ms settle:155ms"
+ 				class="w-full xs:w-auto"
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="hidden" name="spotID" value={ spotID }/>
+				<input type="hidden" name="pieceID" value={ pieceid }/>
+				<input type="hidden" name="evaluation" value="poor"/>
+				<button
+ 					type="submit"
+ 					class="px-6 h-16 text-2xl action-button red focusable"
+				>
+					<span
+ 						class="-mb-1 -ml-1 icon-[iconamoon--dislike-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Poor
+				</button>
+			</form>
+		</div>
+	</div>
+	if finishedSpot.SpotID != "" {
+		@components.InterleaveSpotCardOOB(
+			finishedSpot.PieceID,
+			finishedSpot.SpotID,
+			finishedSpot.Name,
+			finishedSpot.Measures,
+			"interleave_days",
+			finishedSpot.PieceTitle,
+			true,
+			true,
+		)
+	}
 }

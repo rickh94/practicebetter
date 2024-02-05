@@ -12,7 +12,7 @@ templ PiecePracticeRandomSpotsPage(s pages.ServerUtil, csrf string, piece []db.G
 					{ Label: "Library", Href: "/library", Active: false },
 					{ Label: "Pieces", Href: "/library/pieces", Active: false },
 					{ Label: piece[0].Title, Href: "/library/pieces/" + piece[0].ID, Active: false },
-					{ Label: "Random Spots", Href: "/library/pieces/" + piece[0].ID+"/practice/random-single", Active: true },
+					{ Label: "Random", Href: "/library/pieces/" + piece[0].ID+"/practice/random-single", Active: true },
 				})
 			@components.ActionButtonContainer() {
 				<back-to-piece pieceid={ piece[0].ID }></back-to-piece>

@@ -54,7 +54,8 @@ func (q *Queries) CompletePracticePlanPiece(ctx context.Context, arg CompletePra
 
 const completePracticePlanSpot = `-- name: CompletePracticePlanSpot :exec
 UPDATE practice_plan_spots
-SET completed = true
+SET completed = true,
+evaluation = NULL
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ? AND practice_plans.user_id = ?) AND spot_id = ?
 `
 
@@ -181,7 +182,7 @@ INSERT INTO practice_plan_spots (
     spot_id,
     practice_type
 ) VALUES (?, ?, ?)
-RETURNING practice_plan_id, spot_id, practice_type, completed, idx
+RETURNING practice_plan_id, spot_id, practice_type, evaluation, completed, idx
 `
 
 type CreatePracticePlanSpotParams struct {
@@ -197,6 +198,7 @@ func (q *Queries) CreatePracticePlanSpot(ctx context.Context, arg CreatePractice
 		&i.PracticePlanID,
 		&i.SpotID,
 		&i.PracticeType,
+		&i.Evaluation,
 		&i.Completed,
 		&i.Idx,
 	)
@@ -210,7 +212,7 @@ INSERT INTO practice_plan_spots (
     practice_type,
     idx
 ) VALUES (?, ?, ?, ?)
-RETURNING practice_plan_id, spot_id, practice_type, completed, idx
+RETURNING practice_plan_id, spot_id, practice_type, evaluation, completed, idx
 `
 
 type CreatePracticePlanSpotWithIdxParams struct {
@@ -232,6 +234,7 @@ func (q *Queries) CreatePracticePlanSpotWithIdx(ctx context.Context, arg CreateP
 		&i.PracticePlanID,
 		&i.SpotID,
 		&i.PracticeType,
+		&i.Evaluation,
 		&i.Completed,
 		&i.Idx,
 	)
@@ -357,6 +360,56 @@ func (q *Queries) GetMaxSpotIdx(ctx context.Context, arg GetMaxSpotIdxParams) (i
 	return max, err
 }
 
+const getNextInfrequentSpot = `-- name: GetNextInfrequentSpot :one
+SELECT spots.name,
+    spots.measures,
+    spots.piece_id,
+    spots.stage,
+    spots.stage_started,
+    spots.skip_days,
+    spots.id,
+    (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS piece_title
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'interleave_days'
+    AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+    AND practice_plan_spots.completed = false
+ORDER BY practice_plan_spots.idx
+LIMIT 1
+`
+
+type GetNextInfrequentSpotParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+type GetNextInfrequentSpotRow struct {
+	Name         string         `json:"name"`
+	Measures     sql.NullString `json:"measures"`
+	PieceID      string         `json:"pieceId"`
+	Stage        string         `json:"stage"`
+	StageStarted sql.NullInt64  `json:"stageStarted"`
+	SkipDays     int64          `json:"skipDays"`
+	ID           string         `json:"id"`
+	PieceTitle   string         `json:"pieceTitle"`
+}
+
+func (q *Queries) GetNextInfrequentSpot(ctx context.Context, arg GetNextInfrequentSpotParams) (GetNextInfrequentSpotRow, error) {
+	row := q.db.QueryRowContext(ctx, getNextInfrequentSpot, arg.PlanID, arg.UserID)
+	var i GetNextInfrequentSpotRow
+	err := row.Scan(
+		&i.Name,
+		&i.Measures,
+		&i.PieceID,
+		&i.Stage,
+		&i.StageStarted,
+		&i.SkipDays,
+		&i.ID,
+		&i.PieceTitle,
+	)
+	return i, err
+}
+
 const getPracticePlan = `-- name: GetPracticePlan :one
 SELECT id, user_id, intensity, date, completed, practice_notes
 FROM practice_plans
@@ -382,8 +435,66 @@ func (q *Queries) GetPracticePlan(ctx context.Context, arg GetPracticePlanParams
 	return i, err
 }
 
+const getPracticePlanEvaluatedInterleaveSpots = `-- name: GetPracticePlanEvaluatedInterleaveSpots :many
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.evaluation, practice_plan_spots.completed, practice_plan_spots.idx,
+    spots.stage_started AS spot_stage_started
+FROM practice_plan_spots
+INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'interleave'
+AND practice_plan_spots.evaluation IS NOT NULL
+AND practice_plan_spots.completed = false
+AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+ORDER BY practice_plan_spots.idx
+`
+
+type GetPracticePlanEvaluatedInterleaveSpotsParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+type GetPracticePlanEvaluatedInterleaveSpotsRow struct {
+	PracticePlanID   string         `json:"practicePlanId"`
+	SpotID           string         `json:"spotId"`
+	PracticeType     string         `json:"practiceType"`
+	Evaluation       sql.NullString `json:"evaluation"`
+	Completed        bool           `json:"completed"`
+	Idx              int64          `json:"idx"`
+	SpotStageStarted sql.NullInt64  `json:"spotStageStarted"`
+}
+
+func (q *Queries) GetPracticePlanEvaluatedInterleaveSpots(ctx context.Context, arg GetPracticePlanEvaluatedInterleaveSpotsParams) ([]GetPracticePlanEvaluatedInterleaveSpotsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanEvaluatedInterleaveSpots, arg.PlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPracticePlanEvaluatedInterleaveSpotsRow
+	for rows.Next() {
+		var i GetPracticePlanEvaluatedInterleaveSpotsRow
+		if err := rows.Scan(
+			&i.PracticePlanID,
+			&i.SpotID,
+			&i.PracticeType,
+			&i.Evaluation,
+			&i.Completed,
+			&i.Idx,
+			&i.SpotStageStarted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPracticePlanFailedNewSpots = `-- name: GetPracticePlanFailedNewSpots :many
-SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.completed, practice_plan_spots.idx
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.evaluation, practice_plan_spots.completed, practice_plan_spots.idx
 FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
 WHERE practice_plan_spots.practice_type = 'new'
@@ -422,6 +533,7 @@ func (q *Queries) GetPracticePlanFailedNewSpots(ctx context.Context, arg GetPrac
 			&i.PracticePlanID,
 			&i.SpotID,
 			&i.PracticeType,
+			&i.Evaluation,
 			&i.Completed,
 			&i.Idx,
 		); err != nil {
@@ -439,7 +551,7 @@ func (q *Queries) GetPracticePlanFailedNewSpots(ctx context.Context, arg GetPrac
 }
 
 const getPracticePlanIncompleteExtraRepeatSpots = `-- name: GetPracticePlanIncompleteExtraRepeatSpots :many
-SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.completed, practice_plan_spots.idx,
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.evaluation, practice_plan_spots.completed, practice_plan_spots.idx,
     spots.piece_id AS spot_piece_id
 FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
@@ -455,12 +567,13 @@ type GetPracticePlanIncompleteExtraRepeatSpotsParams struct {
 }
 
 type GetPracticePlanIncompleteExtraRepeatSpotsRow struct {
-	PracticePlanID string `json:"practicePlanId"`
-	SpotID         string `json:"spotId"`
-	PracticeType   string `json:"practiceType"`
-	Completed      bool   `json:"completed"`
-	Idx            int64  `json:"idx"`
-	SpotPieceID    string `json:"spotPieceId"`
+	PracticePlanID string         `json:"practicePlanId"`
+	SpotID         string         `json:"spotId"`
+	PracticeType   string         `json:"practiceType"`
+	Evaluation     sql.NullString `json:"evaluation"`
+	Completed      bool           `json:"completed"`
+	Idx            int64          `json:"idx"`
+	SpotPieceID    string         `json:"spotPieceId"`
 }
 
 func (q *Queries) GetPracticePlanIncompleteExtraRepeatSpots(ctx context.Context, arg GetPracticePlanIncompleteExtraRepeatSpotsParams) ([]GetPracticePlanIncompleteExtraRepeatSpotsRow, error) {
@@ -476,6 +589,7 @@ func (q *Queries) GetPracticePlanIncompleteExtraRepeatSpots(ctx context.Context,
 			&i.PracticePlanID,
 			&i.SpotID,
 			&i.PracticeType,
+			&i.Evaluation,
 			&i.Completed,
 			&i.Idx,
 			&i.SpotPieceID,
@@ -494,7 +608,7 @@ func (q *Queries) GetPracticePlanIncompleteExtraRepeatSpots(ctx context.Context,
 }
 
 const getPracticePlanIncompleteNewSpots = `-- name: GetPracticePlanIncompleteNewSpots :many
-SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.completed, practice_plan_spots.idx,
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.evaluation, practice_plan_spots.completed, practice_plan_spots.idx,
     spots.piece_id AS spot_piece_id
 FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
@@ -510,12 +624,13 @@ type GetPracticePlanIncompleteNewSpotsParams struct {
 }
 
 type GetPracticePlanIncompleteNewSpotsRow struct {
-	PracticePlanID string `json:"practicePlanId"`
-	SpotID         string `json:"spotId"`
-	PracticeType   string `json:"practiceType"`
-	Completed      bool   `json:"completed"`
-	Idx            int64  `json:"idx"`
-	SpotPieceID    string `json:"spotPieceId"`
+	PracticePlanID string         `json:"practicePlanId"`
+	SpotID         string         `json:"spotId"`
+	PracticeType   string         `json:"practiceType"`
+	Evaluation     sql.NullString `json:"evaluation"`
+	Completed      bool           `json:"completed"`
+	Idx            int64          `json:"idx"`
+	SpotPieceID    string         `json:"spotPieceId"`
 }
 
 func (q *Queries) GetPracticePlanIncompleteNewSpots(ctx context.Context, arg GetPracticePlanIncompleteNewSpotsParams) ([]GetPracticePlanIncompleteNewSpotsRow, error) {
@@ -531,6 +646,7 @@ func (q *Queries) GetPracticePlanIncompleteNewSpots(ctx context.Context, arg Get
 			&i.PracticePlanID,
 			&i.SpotID,
 			&i.PracticeType,
+			&i.Evaluation,
 			&i.Completed,
 			&i.Idx,
 			&i.SpotPieceID,
@@ -637,7 +753,7 @@ func (q *Queries) GetPracticePlanIncompleteStartingPointPieces(ctx context.Conte
 }
 
 const getPracticePlanInterleaveDaysSpots = `-- name: GetPracticePlanInterleaveDaysSpots :many
-SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.completed, practice_plan_spots.idx,
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.evaluation, practice_plan_spots.completed, practice_plan_spots.idx,
     spots.name AS spot_name,
     spots.measures AS spot_measures,
     spots.piece_id AS spot_piece_id,
@@ -660,6 +776,7 @@ type GetPracticePlanInterleaveDaysSpotsRow struct {
 	PracticePlanID   string         `json:"practicePlanId"`
 	SpotID           string         `json:"spotId"`
 	PracticeType     string         `json:"practiceType"`
+	Evaluation       sql.NullString `json:"evaluation"`
 	Completed        bool           `json:"completed"`
 	Idx              int64          `json:"idx"`
 	SpotName         sql.NullString `json:"spotName"`
@@ -684,6 +801,7 @@ func (q *Queries) GetPracticePlanInterleaveDaysSpots(ctx context.Context, arg Ge
 			&i.PracticePlanID,
 			&i.SpotID,
 			&i.PracticeType,
+			&i.Evaluation,
 			&i.Completed,
 			&i.Idx,
 			&i.SpotName,
@@ -708,7 +826,7 @@ func (q *Queries) GetPracticePlanInterleaveDaysSpots(ctx context.Context, arg Ge
 }
 
 const getPracticePlanInterleaveSpots = `-- name: GetPracticePlanInterleaveSpots :many
-SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.completed, practice_plan_spots.idx,
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.evaluation, practice_plan_spots.completed, practice_plan_spots.idx,
     spots.name AS spot_name,
     spots.measures AS spot_measures,
     spots.piece_id AS spot_piece_id,
@@ -730,6 +848,7 @@ type GetPracticePlanInterleaveSpotsRow struct {
 	PracticePlanID   string         `json:"practicePlanId"`
 	SpotID           string         `json:"spotId"`
 	PracticeType     string         `json:"practiceType"`
+	Evaluation       sql.NullString `json:"evaluation"`
 	Completed        bool           `json:"completed"`
 	Idx              int64          `json:"idx"`
 	SpotName         sql.NullString `json:"spotName"`
@@ -753,6 +872,7 @@ func (q *Queries) GetPracticePlanInterleaveSpots(ctx context.Context, arg GetPra
 			&i.PracticePlanID,
 			&i.SpotID,
 			&i.PracticeType,
+			&i.Evaluation,
 			&i.Completed,
 			&i.Idx,
 			&i.SpotName,
@@ -1009,6 +1129,26 @@ func (q *Queries) GetPreviousPlanNotes(ctx context.Context, arg GetPreviousPlanN
 	var practice_notes sql.NullString
 	err := row.Scan(&practice_notes)
 	return practice_notes, err
+}
+
+const hasIncompleteInfrequentSpots = `-- name: HasIncompleteInfrequentSpots :one
+SELECT  COUNT(*) > 0
+FROM practice_plan_spots
+WHERE practice_plan_spots.practice_type = 'interleave_days'
+    AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+    AND practice_plan_spots.completed = false
+`
+
+type HasIncompleteInfrequentSpotsParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) HasIncompleteInfrequentSpots(ctx context.Context, arg HasIncompleteInfrequentSpotsParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasIncompleteInfrequentSpots, arg.PlanID, arg.UserID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const listPaginatedPracticePlans = `-- name: ListPaginatedPracticePlans :many
@@ -1331,6 +1471,30 @@ type UpdatePlanSpotIdxParams struct {
 func (q *Queries) UpdatePlanSpotIdx(ctx context.Context, arg UpdatePlanSpotIdxParams) error {
 	_, err := q.db.ExecContext(ctx, updatePlanSpotIdx,
 		arg.Idx,
+		arg.PlanID,
+		arg.UserID,
+		arg.SpotID,
+	)
+	return err
+}
+
+const updateSpotEvaluation = `-- name: UpdateSpotEvaluation :exec
+UPDATE practice_plan_spots
+SET evaluation = CASE WHEN evaluation IS NULL OR evaluation <> 'poor' THEN ?1 ELSE evaluation END
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?2 AND practice_plans.user_id = ?3)
+AND spot_id = ?4
+`
+
+type UpdateSpotEvaluationParams struct {
+	Evaluation sql.NullString `json:"evaluation"`
+	PlanID     string         `json:"planId"`
+	UserID     string         `json:"userId"`
+	SpotID     string         `json:"spotId"`
+}
+
+func (q *Queries) UpdateSpotEvaluation(ctx context.Context, arg UpdateSpotEvaluationParams) error {
+	_, err := q.db.ExecContext(ctx, updateSpotEvaluation,
+		arg.Evaluation,
 		arg.PlanID,
 		arg.UserID,
 		arg.SpotID,

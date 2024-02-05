@@ -248,7 +248,7 @@ export function GetReadyDialog({
         <button
           type="button"
           onClick={closeDialog}
-          className="action-button violet px-text-lg flex-grow"
+          className="action-button violet flex-grow px-4 text-lg"
         >
           Start Practicing
           <span
@@ -345,7 +345,7 @@ export function SingleSetupForm({
             Random practicing is broken up into five minute sessions with one
             minute breaks.
           </p>
-          <div className="flex flex-col gap-2 xs:flex-row">
+          <div className="flex flex-col-reverse gap-2 xs:flex-row">
             <button
               className="action-button neutral focusable"
               onClick={decreaseSessions}

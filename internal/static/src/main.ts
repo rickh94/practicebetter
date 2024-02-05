@@ -326,6 +326,22 @@ globalThis.addEventListener("htmx:beforeSwap", (event) => {
   }
 });
 
+globalThis.addEventListener("CloseModal", (event) => {
+  if (event.detail?.value) {
+    globalThis.handleCloseModal();
+    const modal = document.getElementById(event.detail.value);
+    if (!(modal instanceof HTMLDialogElement)) {
+      return;
+    }
+
+    modal.classList.add("close");
+    setTimeout(() => {
+      modal.classList.remove("close");
+      modal.close();
+    }, 155);
+  }
+});
+
 globalThis.startPasskeyAuth = function (
   publicKey: PublicKeyCredentialRequestOptionsJSON,
   csrf: string,
@@ -479,3 +495,5 @@ globalThis.handleCloseModal = function () {
   document.body.style.overflowY = "";
   window.scrollTo(0, parseInt(scrollY || "0", 10) * -1);
 };
+
+globalThis.closeModal = closeModal;

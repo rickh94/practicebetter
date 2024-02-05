@@ -50,11 +50,12 @@ type PracticePlanPiece struct {
 }
 
 type PracticePlanSpot struct {
-	PracticePlanID string `json:"practicePlanId"`
-	SpotID         string `json:"spotId"`
-	PracticeType   string `json:"practiceType"`
-	Completed      bool   `json:"completed"`
-	Idx            int64  `json:"idx"`
+	PracticePlanID string         `json:"practicePlanId"`
+	SpotID         string         `json:"spotId"`
+	PracticeType   string         `json:"practiceType"`
+	Evaluation     sql.NullString `json:"evaluation"`
+	Completed      bool           `json:"completed"`
+	Idx            int64          `json:"idx"`
 }
 
 type Spot struct {

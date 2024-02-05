@@ -115,6 +115,20 @@
     outline: none;
   }
 
+  dialog[open].clear {
+    opacity: 1;
+    width: calc(100vw - 1rem);
+    max-height: calc(100svh - 4.5rem);
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    margin-bottom: 3.5rem;
+    pointer-events: inherit;
+    overflow-y: auto;
+    transition-property: transform, opacity;
+    @apply h-max translate-y-0 scale-100 shadow-none duration-150;
+  }
+
   dialog[open] {
     opacity: 1;
     width: calc(100vw - 1rem);
@@ -145,6 +159,12 @@
     transition-property: transform, opacity;
     @apply translate-y-4 scale-100 opacity-0;
   }
+
+  dialog[open].close.clear {
+    transition-property: transform, opacity;
+    @apply translate-y-4 scale-100 opacity-0;
+  }
+
   dialog::backdrop {
     @apply bg-neutral-800/70 opacity-0;
   }
@@ -176,6 +196,11 @@
     }
 
     dialog[open].close {
+      transition-property: transform, opacity;
+      @apply translate-y-0 scale-95 opacity-0;
+    }
+
+    dialog[open].close.clear {
       transition-property: transform, opacity;
       @apply translate-y-0 scale-95 opacity-0;
     }
@@ -885,6 +910,20 @@
     animation:
       fadeOut 250ms ease backwards,
       scaleOut 250ms ease backwards;
+  }
+
+  #infrequent-spot-dialog-contents.htmx-swapping,
+  #interleave-spot-dialog-contents.htmx-swapping {
+    animation:
+      fadeOut 150ms ease-out forwards,
+      scaleOut 150ms ease-out forwards;
+  }
+
+  #interleave-spot-dialog-contents.htmx-settling,
+  #infrequent-spot-dialog-contents.htmx-settling {
+    animation:
+      fadeIn 150ms ease-in forwards,
+      scaleIn 150ms ease-in forwards;
   }
 
   @keyframes fadeIn {

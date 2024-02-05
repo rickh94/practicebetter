@@ -1,10 +1,13 @@
 package main
 
 import (
+	"encoding/gob"
 	"practicebetter/internal/server"
 )
 
 func main() {
+	gob.Register(server.PlanInterleaveSpotInfo{})
+	gob.Register([]server.PlanInterleaveSpotInfo{})
 
 	server := server.NewServer()
 
