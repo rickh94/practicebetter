@@ -6,18 +6,19 @@ templ PracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string) {
 	<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
 }
 
-// TODO: needs a transition
+const EVALUATION_FORM_CLASSES = "flex justify-center items-center mx-auto w-full sm:mx-0 xs:w-auto"
+const EVALUATION_BUTTON_CLASSEES = "px-6 w-full h-16 text-2xl sm:w-auto xs:w-48 action-button focusable"
 
 templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
 	<div>
 		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
-		<div class="flex flex-col gap-4 justify-center px-4 pt-8 w-full sm:flex-row-reverse sm:w-full xs:w-auto xs:px-0">
+		<div class="flex flex-col gap-4 justify-center px-4 pt-2 w-full sm:flex-row-reverse sm:pt-8 sm:w-full xs:w-auto xs:px-0">
 			<form
  				hx-post={ "/library/plans/" + planID + "/interleave/practice" }
  				action="#"
  				hx-target={ "#" + components.INTERLEAVE_SPOT_DIALOG_CONTENTS_ID }
  				hx-swap="innerHTML swap:155ms settle:155ms"
- 				class="w-full xs:w-auto"
+ 				class={ EVALUATION_FORM_CLASSES }
 			>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
@@ -25,7 +26,7 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 				<input type="hidden" name="evaluation" value="excellent"/>
 				<button
  					type="submit"
- 					class="px-6 h-16 text-2xl action-button green focusable"
+ 					class={ EVALUATION_BUTTON_CLASSEES, "green" }
 				>
 					<span
  						class="-mt-1 -ml-1 icon-[iconamoon--like-thin] size-8"
@@ -39,7 +40,7 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
  				action="#"
  				hx-target={ "#" + components.INTERLEAVE_SPOT_DIALOG_CONTENTS_ID }
  				hx-swap="innerHTML swap:155ms settle:155ms"
- 				class="w-full xs:w-auto"
+ 				class={ EVALUATION_FORM_CLASSES }
 			>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
@@ -47,7 +48,7 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 				<input type="hidden" name="evaluation" value="fine"/>
 				<button
  					type="submit"
- 					class="px-6 h-16 text-2xl action-button sky focusable"
+ 					class={ EVALUATION_BUTTON_CLASSEES, "sky" }
 				>
 					<span
  						class="-ml-1 icon-[iconamoon--sign-minus-thin] size-8"
@@ -61,7 +62,7 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
  				action="#"
  				hx-target={ "#" + components.INTERLEAVE_SPOT_DIALOG_CONTENTS_ID }
  				hx-swap="innerHTML swap:155ms settle:155ms"
- 				class="w-full xs:w-auto"
+ 				class={ EVALUATION_FORM_CLASSES }
 			>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
@@ -69,7 +70,7 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 				<input type="hidden" name="evaluation" value="poor"/>
 				<button
  					type="submit"
- 					class="px-6 h-16 text-2xl action-button red focusable"
+ 					class={ EVALUATION_BUTTON_CLASSEES, "red" }
 				>
 					<span
  						class="-mb-1 -ml-1 icon-[iconamoon--dislike-thin] size-8"
@@ -85,13 +86,13 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
 	<div>
 		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
-		<div class="flex flex-col gap-4 justify-center px-4 pt-8 w-full sm:flex-row-reverse sm:w-full xs:w-auto xs:px-0">
+		<div class="flex flex-col gap-4 justify-center px-4 pt-2 w-full sm:flex-row-reverse sm:pt-8 sm:w-full xs:w-auto xs:px-0">
 			<form
  				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }
  				action="#"
  				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
  				hx-swap="innerHTML swap:155ms settle:155ms"
- 				class="w-full xs:w-auto"
+ 				class={ EVALUATION_FORM_CLASSES }
 			>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
@@ -99,7 +100,7 @@ templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 				<input type="hidden" name="evaluation" value="excellent"/>
 				<button
  					type="submit"
- 					class="px-6 h-16 text-2xl action-button green focusable"
+ 					class={ EVALUATION_BUTTON_CLASSEES, "green" }
 				>
 					<span
  						class="-mt-1 -ml-1 icon-[iconamoon--like-thin] size-8"
@@ -113,7 +114,7 @@ templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
  				action="#"
  				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
  				hx-swap="innerHTML swap:155ms settle:155ms"
- 				class="w-full xs:w-auto"
+ 				class={ EVALUATION_FORM_CLASSES }
 			>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
@@ -121,7 +122,7 @@ templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 				<input type="hidden" name="evaluation" value="fine"/>
 				<button
  					type="submit"
- 					class="px-6 h-16 text-2xl action-button sky focusable"
+ 					class={ EVALUATION_BUTTON_CLASSEES, "sky" }
 				>
 					<span
  						class="-ml-1 icon-[iconamoon--sign-minus-thin] size-8"
@@ -135,7 +136,7 @@ templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
  				action="#"
  				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
  				hx-swap="innerHTML swap:155ms settle:155ms"
- 				class="w-full xs:w-auto"
+ 				class={ EVALUATION_FORM_CLASSES }
 			>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
@@ -143,7 +144,7 @@ templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 				<input type="hidden" name="evaluation" value="poor"/>
 				<button
  					type="submit"
- 					class="px-6 h-16 text-2xl action-button red focusable"
+ 					class={ EVALUATION_BUTTON_CLASSEES, "red" }
 				>
 					<span
  						class="-mb-1 -ml-1 icon-[iconamoon--dislike-thin] size-8"
