@@ -98,10 +98,7 @@ export function RandomSpots({
   useEffect(() => {
     // get initial sessions value from query param
     const urlParams = new URLSearchParams(window.location.search);
-    const initialSessions = parseInt(urlParams.get("numSessions") ?? "", 10);
-    if (!isNaN(initialSessions) && typeof initialSessions === "number") {
-      setNumSessions(initialSessions);
-    }
+    let maxSessions = Infinity;
     if (initialspots) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const initSpots: BasicSpot[] = JSON.parse(initialspots);
@@ -110,6 +107,23 @@ export function RandomSpots({
         return;
       }
       setSpots(initSpots);
+      if (initSpots.length < 7) {
+        maxSessions = 1;
+      } else if (initSpots.length < 12) {
+        maxSessions = 2;
+      } else if (initSpots.length < 17) {
+        maxSessions = 3;
+      }
+    }
+    const initialSessions = parseInt(urlParams.get("numSessions") ?? "", 3);
+    if (
+      !isNaN(initialSessions) &&
+      typeof initialSessions === "number" &&
+      initialSessions < maxSessions
+    ) {
+      setNumSessions(initialSessions);
+    } else if (maxSessions != Infinity) {
+      setNumSessions(maxSessions);
     }
     const skipSetup = !!urlParams.get("skipSetup");
     if (skipSetup) {

@@ -274,17 +274,17 @@ export default function Summary({
         <div className="mt-2 flex w-full flex-col-reverse gap-2 xs:grid xs:grid-cols-2">
           <button
             onClick={rejectPromotions}
-            className="action-button red w-full flex-grow text-lg"
+            className="action-button focusable red w-full flex-grow text-lg"
           >
             <span
               className="icon-[iconamoon--sign-times-circle-thin] -ml-1 size-6"
               aria-hidden="true"
             />
-            Reject All
+            Do Nothing
           </button>
           <button
             onClick={savePromotions}
-            className="action-button green w-full flex-grow text-lg"
+            className="action-button green focusable w-full flex-grow text-lg"
           >
             <span
               className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-6"
