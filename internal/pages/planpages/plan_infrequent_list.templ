@@ -65,13 +65,13 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 			}
 		</ul>
 		<dialog id={ components.INFREQUENT_SPOT_DIALOG_ID } class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none clear">
-			<div id={ components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID } class="p-0 w-huge overflow-x-clip">
+			<div id={ components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID } class="p-0 mx-auto w-huge overflow-x-clip">
 				<span class="p-4 bg-white rounded-xl">
 					Loading Infrequent Spot...
 				</span>
 			</div>
-			<div class="p-0 mt-4 w-full bg-white rounded-xl border sm:mx-auto sm:w-96 border-neutral-500 overflow-x-clip">
-				<button class="w-full sky action-button focusable" onClick={ components.CloseModal(components.INFREQUENT_SPOT_DIALOG_ID) }>
+			<div class="p-0 mx-auto mt-4 w-auto bg-white rounded-xl border border-neutral-500 overflow-x-clip">
+				<button class="w-auto amber action-button focusable" onClick={ components.CloseModal(components.INFREQUENT_SPOT_DIALOG_ID) }>
 					<span class="-ml-1 size-5 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 					Close
 				</button>
