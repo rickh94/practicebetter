@@ -26,6 +26,9 @@ script startInfrequentPracticing(id string) {
 			modal.classList.remove('close');
 		}, 155);
 		globalThis.removeEventListener("FinishedInfrequent", close);
+		const nextItemModal = document.getElementById("infrequent-practice-next-dialog");
+		globalThis.handleShowModal();
+		nextItemModal.showModal();
 	};
 	globalThis.addEventListener("FinishedInfrequent", close);
 }
@@ -46,7 +49,7 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 			>
 				Go Practice
 				<span
- 					class="-ml-1 icon-[iconamoon--player-play-thin] size-5"
+ 					class="-mr-1 icon-[iconamoon--player-play-thin] size-5"
  					aria-hidden="true"
 				></span>
 			</button>
@@ -78,6 +81,38 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 			</div>
 		</dialog>
 	</section>
+	<dialog
+ 		id="infrequent-practice-next-dialog"
+ 		aria-labelledby="practice-next-title"
+ 		class="flex flex-col gap-2 bg-gradient-to-t from-neutral-50 to-[#fff9ee] p-4 text-left sm:max-w-xl"
+	>
+		<header class="flex flex-shrink-0 h-8 text-left">
+			<h3
+ 				id="practice-next-title"
+ 				class="inline-block text-2xl font-semibold leading-6 text-neutral-900"
+			>
+				Go On?
+			</h3>
+		</header>
+		<div class="flex flex-col flex-shrink-0 gap-2 w-full text-left text-neutral-700 sm:w-[32rem]">
+			<p class="text-sm">
+				Click below to go to your next practice item or close.
+			</p>
+		</div>
+		<div class="grid grid-cols-1 gap-2 w-full xs:grid-cols-2">
+			<button class="w-auto amber action-button focusable" onClick={ components.CloseModal("infrequent-practice-next-dialog") }>
+				<span class="-ml-1 size-5 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+				Close
+			</button>
+			@components.HxLink("flex-grow action-button green focusable", "/library/plans/" + planID + "/next", "#main-content") {
+				Go On
+				<span
+ 					class="-mr-1 icon-[iconamoon--player-next-thin] size-5"
+ 					aria-hidden="true"
+				></span>
+			}
+		</div>
+	</dialog>
 }
 
 templ FinishInfrequentSpots(pieceID, spotID, name, measures, pieceTitle string) {
@@ -96,4 +131,5 @@ templ FinishInfrequentSpots(pieceID, spotID, name, measures, pieceTitle string) 
  		class="hidden"
  		hx-swap-oob="true"
 	></div>
+	@components.PlanGoPracticeLink(components.GetActivePracticePlan(ctx), true)
 }

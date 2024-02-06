@@ -111,6 +111,11 @@ templ PracticePlanPage(s pages.ServerUtil, planData PracticePlanData, csrf strin
 
 const stopPracticingDialogID = "stop-practicing-dialog"
 
+func hasInfrequentToPractice(planData PracticePlanData) bool {
+	// checking that there are any infrequent spots and that they are not all completed.
+	return len(planData.InterleaveDaysSpots) > 0 && !planData.InterleaveDaysSpotsCompleted
+}
+
 templ PracticePlanActions(planData PracticePlanData, csrf string) {
 	if canResume(planData) {
 		<button
@@ -125,6 +130,25 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
 		</button>
 	}
 	if planData.IsActive {
+		if hasInfrequentToPractice(planData) {
+			<button
+ 				id="plan-go-practice-button"
+ 				type="button"
+ 				class="px-4 text-lg action-button violet focusable"
+ 				hx-get={ "/library/plans/" + planData.ID + "/infrequent/start" }
+ 				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML transition:true"
+ 				hx-on::after-request={ startInfrequentPracticing(components.INFREQUENT_SPOT_DIALOG_ID) }
+			>
+				<span
+ 					class="-ml-1 icon-[iconamoon--player-play-thin] size-5"
+ 					aria-hidden="true"
+				></span>
+				Go Practice
+			</button>
+		} else {
+			@components.PlanGoPracticeLink(planData.ID, false)
+		}
 		@components.HxLink("action-button amber focusable","/library/plans/" + planData.ID + "/edit", "#main-content") {
 			<span class="-ml-1 size-6 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
 			Customize
