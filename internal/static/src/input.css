@@ -195,6 +195,16 @@
       @apply h-max translate-y-0 scale-100 duration-150;
     }
 
+    dialog[open].clear {
+      width: fit-content;
+      overflow: visible;
+      margin-block: auto;
+      margin-inline: auto;
+      overflow-y: auto;
+      transition-property: transform, opacity;
+      @apply h-max translate-y-0 scale-100 duration-150;
+    }
+
     dialog[open].close {
       transition-property: transform, opacity;
       @apply translate-y-0 scale-95 opacity-0;
