@@ -30,7 +30,7 @@ type PlanCreationErrors struct {
 }
 
 templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListActiveUserPiecesRow, errors PlanCreationErrors) {
-	<title>Create Practice Plan | Practice Better</title>
+	<title>Create Practice Plan | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{

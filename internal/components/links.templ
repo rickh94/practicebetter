@@ -3,7 +3,7 @@ package components
 import "practicebetter/internal/db"
 import "practicebetter/internal/ck"
 
-const navClasses = "focusable flex h-14 items-center justify-center gap-x-1.5 rounded-xl border border-neutral-300 bg-neutral-50 px-6 text-neutral-700 shadow-sm shadow-neutral-900/20 hover:border-neutral-500 hover:bg-neutral-100 hover:shadow hover:shadow-neutral-900/30"
+const navClasses = "focusable flex h-14 items-center justify-center gap-x-1.5 rounded-xl border border-neutral-300 bg-white px-6 text-neutral-700 shadow-sm shadow-neutral-900/20 hover:border-neutral-500 hover:bg-neutral-100 hover:shadow hover:shadow-neutral-900/30"
 
 templ HomeOrInternalNav() {
 	if u, ok := ctx.Value(ck.UserKey).(db.User); ok && u.ID != "" {
@@ -72,7 +72,7 @@ templ MaybePracticePlan() {
 		}
 	} else {
 		@HxLink("action-button flex-shrink-0 h-14 violet focusable", "/library/plans/create", "#main-content") {
-			<span class="hidden xs:inline">Start Practicing</span>
+			<span class="hidden xs:inline">Go Practice</span>
 			<span class="xs:hidden">Practice</span>
 			<span class="-mr-1 size-6 icon-[custom--music-file-curly-pencil]" aria-hidden="true"></span>
 		}

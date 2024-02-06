@@ -8,7 +8,7 @@ import "practicebetter/internal/pages"
 // TODO: component to parse and combine practice session info and group by date (has to be on frontend because of timezone).
 
 templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, hasActivePlan bool, activePracticePlan components.PracticePlanCardInfo, recentPracticePlans []components.PracticePlanCardInfo) {
-	<title>Library | Practice Better</title>
+	<title>Library | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Library") , components.MaybePracticePlan())) {
 		@components.TwoColumnContainer() {
 			<div class="flex flex-col gap-4 pt-2 mt-4 sm:pt-4 md:pt-0">
@@ -20,7 +20,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 				} else {
 					@components.HxLink("gap-2 py-6 px-6 h-16 sm:h-20 md:h-24 text-2xl sm:text-3xl font-semibold action-button violet focusable", "/library/plans/create", "#main-content") {
 						<span class="-mr-1 size-8 icon-[custom--music-file-curly-pencil] sm:size-10" aria-hidden="true"></span>
-						Start Practicing
+						Go Practice
 					}
 				}
 				<div class="flex flex-col gap-2 p-4 w-full rounded-xl bg-neutral-700/10">

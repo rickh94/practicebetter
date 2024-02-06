@@ -26,15 +26,15 @@ templ Head(s *Server, title string) {
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		if s.Debug {
 			if title == "" {
-				<title>DEV: Practice Better</title>
+				<title>DEV: Go Practice</title>
 			} else {
-				<title>DEV: { title } | Practice Better</title>
+				<title>DEV: { title } | Go Practice</title>
 			}
 		} else {
 			if title == "" {
-				<title>Practice Better</title>
+				<title>Go Practice</title>
 			} else {
-				<title>{ title } | Practice Better</title>
+				<title>{ title } | Go Practice</title>
 			}
 		}
 		<link rel="stylesheet" href={ s.StaticUrl("dist/style.css") }/>
@@ -46,20 +46,20 @@ templ Head(s *Server, title string) {
 		<link rel="mask-icon" href={ s.StaticUrl("img/safari-pinned-tab.svg") } color="#262626"/>
 		<meta name="msapplication-TileColor" content="#ffefce"/>
 		<meta name="theme-color" content="#ffefce"/>
-		<meta name="apple-mobile-web-app-title" content="Practice Better"/>
-		<meta name="application-name" content="Practice Better"/>
-		<meta name="description" content="Organize your music practicing to be more effective and prevent bad habits."/>
-		<meta property="og:title" content="Practice Better"/>
-		<meta property="og:description" content="Organize your music practicing to be more effective and prevent bad habits."/>
-		<meta property="og:url" content="https://practicebetter.rickhenry.dev"/>
+		<meta name="apple-mobile-web-app-title" content="Go Practice"/>
+		<meta name="application-name" content="Go Practice"/>
+		<meta name="description" content="Spend less time figuring out what to practice and more time making progress on the music you want to learn."/>
+		<meta property="og:title" content="Go Practice"/>
+		<meta property="og:description" content="Spend less time figuring out what to practice and more time making progress on the music you want to learn."/>
+		<meta property="og:url" content="https://practice.rickhenry.studio"/>
 		<meta
  			property="og:image"
  			content="https://og.rickhenry.dev/practicebetter/opengraph-image"
 		/>
 		<meta property="og:type" content="website"/>
 		<meta name="twitter:card" content="summary_large_image"/>
-		<meta name="twitter:title" content="Practice Better"/>
-		<meta property="twitter:description" content="Organize your music practicing to be more effective and prevent bad habits."/>
+		<meta name="twitter:title" content="Go Practice"/>
+		<meta property="twitter:description" content="Spend less time figuring out what to practice and more time making progress on the music you want to learn."/>
 		<meta
  			name="twitter:image"
  			content="https://og.rickhenry.dev/practicebetter/opengraph-image"

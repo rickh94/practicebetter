@@ -5,7 +5,7 @@ import "practicebetter/internal/db"
 import "practicebetter/internal/pages"
 
 templ SpotPracticeRepeatPage(s pages.ServerUtil, spot db.GetSpotRow, csrf string, spotData string) {
-	<title>{ spot.Name } - { spot.PieceTitle } | Practice Better</title>
+	<title>{ spot.Name } - { spot.PieceTitle } | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(spot.Name + " - " + spot.PieceTitle) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{

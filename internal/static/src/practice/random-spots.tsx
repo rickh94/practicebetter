@@ -264,7 +264,7 @@ export function GetReadyDialog({
           onClick={closeDialog}
           className="action-button violet flex-grow px-4 text-lg"
         >
-          Start Practicing
+          Go Practice
           <span
             className="icon-[iconamoon--player-play-thin] -ml-1 size-5"
             aria-hidden="true"
@@ -398,7 +398,7 @@ export function SingleSetupForm({
             onClick={handleSubmit}
             className="action-button violet focusable h-20 px-8 text-3xl"
           >
-            Start Practicing
+            Go Practice
             <span className="icon-[iconamoon--player-play-thin] size-8" />
           </button>
         </div>

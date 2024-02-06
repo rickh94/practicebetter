@@ -6,7 +6,7 @@ import "practicebetter/internal/components"
 // TODO: add create piece link
 
 templ PieceList(pieces []db.ListPaginatedUserPiecesRow, page int, totalPages int) {
-	<title>Pieces | Practice Better</title>
+	<title>Pieces | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Your Pieces") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{

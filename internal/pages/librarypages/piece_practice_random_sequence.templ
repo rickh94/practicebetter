@@ -5,7 +5,7 @@ import "practicebetter/internal/db"
 import "practicebetter/internal/components"
 
 templ PiecePracticeRandomSequencePage(s pages.ServerUtil, csrf string, piece []db.GetPieceWithRandomSpotsRow, spotsData string) {
-	<title>{ piece[0].Title } | Practice Better</title>
+	<title>{ piece[0].Title } | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(piece[0].Title) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{

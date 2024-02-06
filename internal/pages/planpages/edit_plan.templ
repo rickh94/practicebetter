@@ -13,7 +13,7 @@ script removeAddedItem(id string) {
 }
 
 templ EditPracticePlanPage(planData PracticePlanData, csrf string) {
-	<title>Customize Practice Plan | Practice Better</title>
+	<title>Customize Practice Plan | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Customize Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.BreadcrumbWithDates([]components.BreadcrumbWithDatesInfo{

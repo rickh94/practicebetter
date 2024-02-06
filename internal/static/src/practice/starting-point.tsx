@@ -494,7 +494,7 @@ export function StartingPointSetupForm({
             type="submit"
             className="action-button violet focusable h-20 px-8 text-3xl"
           >
-            Start Practicing
+            Go Practice
             <span className="icon-[iconamoon--player-play-thin] size-8" />
           </button>
         </div>

@@ -82,7 +82,7 @@ func canResume(planData PracticePlanData) bool {
 }
 
 templ PracticePlanPage(s pages.ServerUtil, planData PracticePlanData, csrf string) {
-	<title>Practice Plan | Practice Better</title>
+	<title>Practice Plan | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.BreadcrumbWithDates([]components.BreadcrumbWithDatesInfo{

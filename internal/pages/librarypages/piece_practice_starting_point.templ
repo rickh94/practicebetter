@@ -6,7 +6,7 @@ import "practicebetter/internal/components"
 import "strconv"
 
 templ PiecePracticeStartingPointPage(s pages.ServerUtil, csrf string, piece db.Piece) {
-	<title>{ piece.Title } | Practice Better</title>
+	<title>{ piece.Title } | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(piece.Title), components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
@@ -31,7 +31,7 @@ templ PiecePracticeStartingPointPage(s pages.ServerUtil, csrf string, piece db.P
 }
 
 templ PiecePracticeMissingMeasureInfoPage(pieceTitle string, pieceID string) {
-	<title>{ pieceTitle } | Practice Better</title>
+	<title>{ pieceTitle } | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(pieceTitle) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{

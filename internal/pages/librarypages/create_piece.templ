@@ -8,7 +8,7 @@ import "practicebetter/internal/components"
 // Description and practice notes have been removed for now
 
 templ CreatePiecePage(s pages.ServerUtil, csrf string) {
-	<title>Create Piece | Practice Better</title>
+	<title>Create Piece | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Piece") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{

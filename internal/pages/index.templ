@@ -6,8 +6,10 @@ templ IndexNav() {
 	@components.TwoButtonBar(components.PracticeToolNav("/"), components.Empty(), components.LibraryLink())
 }
 
+const actionPanelClasses = "flex flex-col gap-2 p-4 bg-white rounded-xl border shadow-sm transition duration-200 ease-in border-neutral-300 text-neutral-700 shadow-neutral-900/20 focusable "
+
 templ IndexPage() {
-	<title>Practice Better</title>
+	<title>Go Practice</title>
 	@components.HeroLayout(IndexNav()) {
 		<svg
  			version="1.1"
@@ -26,37 +28,49 @@ templ IndexPage() {
 			</g>
 		</svg>
 		<h1 class="text-3xl font-extrabold tracking-tight text-neutral-800 sm:text-[3rem] md:text-[4rem]">
-			Practice Better
+			Go Practice
 		</h1>
-		<p class="text-xl sm:mx-auto sm:max-w-3xl text-neutral-700">
-			Don’t practice aimlessly! Add some organization and novelty to keep
-			yourself out of the rut of playing it wrong until you get it right.
+		<p class="text-xl sm:mx-auto sm:max-w-2xl text-neutral-700 text-pretty">
+			Spend less time figuring out what to practice and more time making progress on the music you want to learn.
 		</p>
-		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
+		<div class="grid grid-cols-1 gap-4 mx-auto max-w-4xl md:grid-cols-3">
 			@components.HxLink(
-			"flex flex-col gap-4 p-4 max-w-xs rounded-xl transition-all duration-200 bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable",
-			"/practice/random-single",
-			"#main-content",
+				actionPanelClasses + "hover:text-violet-700 hover:bg-violet-100 hover:border-violet-500 hover:shadow hover:shadow-violet-900/30",
+				"/practice/random-single",
+				"#main-content",
 			) {
-				<h2 class="text-2xl font-bold text-neutral-800">
-					Start Practicing →
+				<h2 class="flex items-center text-2xl font-bold">
+					Go Practice
+					<span class="ml-2 icon-[iconamoon--player-play-thin]" aria-hidden="true"></span>
 				</h2>
 				<div class="text-lg">
-					Leave behind your old habits and get started practicing better
-					right now!
+					Try out the essential practice tools that you will use to learn your pieces.
 				</div>
 			}
 			@components.HxLink(
-			"flex flex-col gap-4 p-4 max-w-xs rounded-xl duration-200 transtion-all bg-neutral-700/10 text-neutral-700 hover:bg-neutral-700/20 focusable",
-			"/about",
-			"#main-content",
-		) {
-				<h2 class="text-2xl font-bold text-neutral-800">
-					Learn More →
+				actionPanelClasses + "hover:text-indigo-700 hover:bg-indigo-100 hover:border-indigo-500 hover:shadow hover:shadow-indigo-900/30",
+				"/library",
+				"#main-content",
+			) {
+				<h2 class="flex items-center text-2xl font-bold">
+					Start Learning
+					<span class="ml-2 -mb-1 icon-[custom--music-file]" aria-hidden="true"></span>
 				</h2>
 				<div class="text-lg">
-					Learn about the different ways you can improve your music
-					practicing habits today.
+					Try out the essential practice tools that you will use to learn your pieces.
+				</div>
+			}
+			@components.HxLink(
+				actionPanelClasses + "hover:text-neutral-700 hover:bg-neutral-100 hover:border-neutral-500 hover:shadow hover:shadow-neutral-900/30",
+				"/about",
+				"#main-content",
+			) {
+				<h2 class="flex items-center text-2xl font-bold">
+					Read More
+					<span class="ml-2 icon-[ph--book-open-text-thin]" aria-hidden="true"></span>
+				</h2>
+				<div class="text-lg">
+					Read about how this will help you learn music more quickly than you are today.
 				</div>
 			}
 		</div>

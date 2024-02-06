@@ -23,7 +23,7 @@ type ListSpotsInfo struct {
 }
 
 templ ListSpots(s pages.ServerUtil, csrf string, info ListSpotsInfo) {
-	<title>{ info.PieceTitle } | Practice Better</title>
+	<title>{ info.PieceTitle } | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(info.PieceTitle) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{

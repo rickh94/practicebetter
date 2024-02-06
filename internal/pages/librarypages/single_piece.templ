@@ -36,7 +36,7 @@ type SinglePieceInfo struct {
 }
 
 templ SinglePiece(s pages.ServerUtil, piece SinglePieceInfo, csrf string) {
-	<title>{ piece.Title } | Practice Better</title>
+	<title>{ piece.Title } | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(piece.Title) , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
 			@components.Breadcrumb([]components.BreadcrumbInfo{
