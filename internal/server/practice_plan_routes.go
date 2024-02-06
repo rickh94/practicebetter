@@ -31,10 +31,10 @@ func (s *Server) createPracticePlanForm(w http.ResponseWriter, r *http.Request) 
 
 	activePieces, err := queries.ListActiveUserPieces(r.Context(), user.ID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		s.DatabaseError(w, r, err, "Failed to load active pieces")
 		return
 	}
-	s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces), "Create Practice Plan")
+	s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces, planpages.PlanCreationErrors{}), "Create Practice Plan")
 }
 
 type PotentialInfrequentSpot struct {
@@ -138,6 +138,31 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pieceIDs := r.Form["pieces"]
+
+	if len(pieceIDs) == 0 {
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "You need to select at least one piece to practice.",
+			Title:    "Invalid Plan",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		queries := db.New(s.DB)
+		activePieces, err := queries.ListActiveUserPieces(r.Context(), user.ID)
+		if err != nil {
+			s.DatabaseError(w, r, err, "Failed to load active pieces")
+			return
+		}
+		token := csrf.Token(r)
+		s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces,
+			planpages.PlanCreationErrors{
+				Pieces: "You need to select at least one piece to practice.",
+			},
+		), "Create Practice Plan")
+		return
+	}
+
 	tx, err := s.DB.Begin()
 	if err != nil {
 		log.Default().Printf("Database error: %v\n", err)

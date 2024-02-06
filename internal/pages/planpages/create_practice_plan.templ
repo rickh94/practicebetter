@@ -23,10 +23,13 @@ script toggleChecked(id string) {
 	document.getElementById(id).classList.toggle('checked');
 }
 
-// TODO: improve language and formatting
-// TODO: add read about practice types/video
+type PlanCreationErrors struct {
+	Pieces       string
+	Intensity    string
+	PracticeType string
+}
 
-templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListActiveUserPiecesRow) {
+templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListActiveUserPiecesRow, errors PlanCreationErrors) {
 	<title>Create Practice Plan | Practice Better</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
@@ -45,14 +48,19 @@ templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListAc
  				hx-target="#main-content"
  				hx-swap="outerHTML transition:true"
 			>
-				@createPracticePlanFormFields(csrf, pieces)
+				@createPracticePlanFormFields(csrf, pieces, errors)
 			</form>
 		}
 	}
 }
 
-templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPiecesRow) {
+templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPiecesRow, errors PlanCreationErrors) {
 	<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+	if errors.Intensity != "" {
+		<p class="italic text-red-600">
+			{ errors.Intensity }
+		</p>
+	}
 	<div class="flex flex-wrap gap-2 items-center w-full">
 		<label class="sr-only" for="intensity">Plan Intensity</label>
 		<div class="flex flex-nowrap flex-shrink-0 items-center h-10">
@@ -80,6 +88,11 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 		<div class="flex flex-nowrap flex-shrink-0 items-center h-10">
 			<span class="flex-shrink-0 text-lg whitespace-nowrap text-neutral-800">where I will practice: </span>
 		</div>
+		if errors.PracticeType != "" {
+			<p class="italic text-red-600">
+				{ errors.PracticeType }
+			</p>
+		}
 		<div class="flex flex-col flex-wrap gap-2 w-full xs:flex-row xs:w-auto">
 			@practiceCheckbox("icon-[iconamoon--bookmark-thin]","Interleave Spots", "practice_interleave", true)
 			@practiceCheckbox("icon-[iconamoon--playlist-shuffle-thin]","Random Spots", "practice_random_single", true)
@@ -88,9 +101,34 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 		</div>
 	</div>
 	<section id="pieces" class="grid grid-cols-1 gap-2 mt-4 sm:grid-cols-2 md:col-span-2 lg:grid-cols-3 h-min">
+		if errors.Pieces != "" {
+			<p class="italic text-red-600">
+				{ errors.Pieces }
+			</p>
+		}
 		<p class="col-span-full pb-1 w-full text-lg leading-6 text-neutral-800">I will practice these pieces:</p>
 		for i, piece := range pieces {
 			@pieceCheckbox(piece.Title,piece.Composer, piece.ID, i < 3)
+		}
+		if len(pieces) == 0 {
+			<div class="flex flex-col col-span-full gap-1">
+				<h3 class="text-xl font-bold tracking-tight text-neutral-800">
+					No Active Pieces
+				</h3>
+				<p>
+					There are no active pieces in your library. You’ll need create a piece or move one to the “active” stage.
+				</p>
+				<div class="flex flex-col gap-4 py-2 xs:flex-row">
+					@components.HxLink("action-button indigo focusable", "/library/pieces", "#main-content") {
+						<span class="-ml-1 size-8 icon-[custom--music-folder]" aria-hidden="true"></span>
+						View Pieces
+					}
+					@components.HxLink("action-button green focusable", "/library/pieces/create", "#main-content") {
+						<span class="-ml-1 size-8 icon-[custom--music-note-edit]" aria-hidden="true"></span>
+						Create Piece
+					}
+				</div>
+			</div>
 		}
 	</section>
 	<section id="customize" class="flex col-span-full justify-end pt-4 w-full">
