@@ -125,9 +125,9 @@ export const StartPracticingInterleave = (props: { planid?: string }) => {
             Loading Interleave Spot...
           </span>
         </div>
-        <div class="mt-4 w-full overflow-x-clip rounded-xl border border-neutral-500 bg-white p-0 sm:mx-auto sm:w-96">
+        <div class="mx-4 mt-4 w-full overflow-x-clip rounded-xl border border-neutral-500 bg-white p-0 sm:mx-auto sm:w-96">
           <button
-            class="sky action-button focusable w-full"
+            class="amber action-button focusable w-full"
             onClick={closeModal}
           >
             <span

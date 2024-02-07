@@ -361,13 +361,7 @@ func (q *Queries) GetMaxSpotIdx(ctx context.Context, arg GetMaxSpotIdxParams) (i
 }
 
 const getNextInfrequentSpot = `-- name: GetNextInfrequentSpot :one
-SELECT spots.name,
-    spots.measures,
-    spots.piece_id,
-    spots.stage,
-    spots.stage_started,
-    spots.skip_days,
-    spots.id,
+SELECT spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS piece_title
 FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
@@ -384,27 +378,41 @@ type GetNextInfrequentSpotParams struct {
 }
 
 type GetNextInfrequentSpotRow struct {
-	Name         string         `json:"name"`
-	Measures     sql.NullString `json:"measures"`
-	PieceID      string         `json:"pieceId"`
-	Stage        string         `json:"stage"`
-	StageStarted sql.NullInt64  `json:"stageStarted"`
-	SkipDays     int64          `json:"skipDays"`
-	ID           string         `json:"id"`
-	PieceTitle   string         `json:"pieceTitle"`
+	ID             string         `json:"id"`
+	PieceID        string         `json:"pieceId"`
+	Name           string         `json:"name"`
+	Stage          string         `json:"stage"`
+	Measures       sql.NullString `json:"measures"`
+	AudioPromptUrl string         `json:"audioPromptUrl"`
+	ImagePromptUrl string         `json:"imagePromptUrl"`
+	NotesPrompt    string         `json:"notesPrompt"`
+	TextPrompt     string         `json:"textPrompt"`
+	CurrentTempo   sql.NullInt64  `json:"currentTempo"`
+	LastPracticed  sql.NullInt64  `json:"lastPracticed"`
+	StageStarted   sql.NullInt64  `json:"stageStarted"`
+	SkipDays       int64          `json:"skipDays"`
+	Priority       int64          `json:"priority"`
+	PieceTitle     string         `json:"pieceTitle"`
 }
 
 func (q *Queries) GetNextInfrequentSpot(ctx context.Context, arg GetNextInfrequentSpotParams) (GetNextInfrequentSpotRow, error) {
 	row := q.db.QueryRowContext(ctx, getNextInfrequentSpot, arg.PlanID, arg.UserID)
 	var i GetNextInfrequentSpotRow
 	err := row.Scan(
-		&i.Name,
-		&i.Measures,
+		&i.ID,
 		&i.PieceID,
+		&i.Name,
 		&i.Stage,
+		&i.Measures,
+		&i.AudioPromptUrl,
+		&i.ImagePromptUrl,
+		&i.NotesPrompt,
+		&i.TextPrompt,
+		&i.CurrentTempo,
+		&i.LastPracticed,
 		&i.StageStarted,
 		&i.SkipDays,
-		&i.ID,
+		&i.Priority,
 		&i.PieceTitle,
 	)
 	return i, err

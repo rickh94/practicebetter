@@ -136,13 +136,7 @@ WHERE practice_plan_spots.practice_type = 'interleave_days' AND practice_plan_sp
 ORDER BY practice_plan_spots.idx;
 
 -- name: GetNextInfrequentSpot :one
-SELECT spots.name,
-    spots.measures,
-    spots.piece_id,
-    spots.stage,
-    spots.stage_started,
-    spots.skip_days,
-    spots.id,
+SELECT spots.*,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS piece_title
 FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id

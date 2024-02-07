@@ -147,8 +147,25 @@ func (s *Server) startInterleavePracticing(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// todo
-	spotJSON, err := json.Marshal(firstSpot)
+	displaySpot := DisplaySpot{
+		ID:             firstSpot.ID,
+		Name:           firstSpot.Name,
+		Stage:          firstSpot.Stage,
+		AudioPromptURL: firstSpot.AudioPromptUrl,
+		ImagePromptURL: firstSpot.ImagePromptUrl,
+		NotesPrompt:    firstSpot.NotesPrompt,
+		TextPrompt:     firstSpot.TextPrompt,
+	}
+
+	if firstSpot.Measures.Valid {
+		displaySpot.Measures = firstSpot.Measures.String
+	}
+
+	if firstSpot.CurrentTempo.Valid {
+		displaySpot.CurrentTempo = &firstSpot.CurrentTempo.Int64
+	}
+
+	spotJSON, err := json.Marshal(displaySpot)
 	if err != nil {
 		log.Default().Println(err)
 		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
@@ -377,7 +394,24 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	spotJSON, err := json.Marshal(nextSpot)
+	displaySpot := DisplaySpot{
+		ID:             nextSpot.ID,
+		Name:           nextSpot.Name,
+		Stage:          nextSpot.Stage,
+		AudioPromptURL: nextSpot.AudioPromptUrl,
+		ImagePromptURL: nextSpot.ImagePromptUrl,
+		NotesPrompt:    nextSpot.NotesPrompt,
+		TextPrompt:     nextSpot.TextPrompt,
+	}
+
+	if nextSpot.Measures.Valid {
+		displaySpot.Measures = nextSpot.Measures.String
+	}
+
+	if nextSpot.CurrentTempo.Valid {
+		displaySpot.CurrentTempo = &nextSpot.CurrentTempo.Int64
+	}
+	spotJSON, err := json.Marshal(displaySpot)
 	if err != nil {
 		log.Default().Println(err)
 		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
@@ -402,6 +436,7 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// measures are missing and evaluation buttons are weird on narrow screen after swap
 func (s *Server) startInfrequentPracticing(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
 	planID := chi.URLParam(r, "planID")
@@ -421,8 +456,25 @@ func (s *Server) startInfrequentPracticing(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// TODO: make this work
-	spotJSON, err := json.Marshal(firstSpot)
+	displaySpot := DisplaySpot{
+		ID:             firstSpot.ID,
+		Name:           firstSpot.Name,
+		Stage:          firstSpot.Stage,
+		AudioPromptURL: firstSpot.AudioPromptUrl,
+		ImagePromptURL: firstSpot.ImagePromptUrl,
+		NotesPrompt:    firstSpot.NotesPrompt,
+		TextPrompt:     firstSpot.TextPrompt,
+	}
+
+	if firstSpot.Measures.Valid {
+		displaySpot.Measures = firstSpot.Measures.String
+	}
+
+	if firstSpot.CurrentTempo.Valid {
+		displaySpot.CurrentTempo = &firstSpot.CurrentTempo.Int64
+	}
+
+	spotJSON, err := json.Marshal(displaySpot)
 	if err != nil {
 		log.Default().Println(err)
 		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
@@ -442,6 +494,19 @@ func (s *Server) startInfrequentPracticing(w http.ResponseWriter, r *http.Reques
 		log.Default().Println(err)
 		http.Error(w, "Render Error", http.StatusInternalServerError)
 	}
+}
+
+type DisplaySpot struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	Stage          string `json:"stage"`
+	Measures       string `json:"measures"`
+	AudioPromptURL string `json:"audioPromptUrl"`
+	ImagePromptURL string `json:"imagePromptUrl"`
+	NotesPrompt    string `json:"notesPropmt"`
+	TextPrompt     string `json:"textPrompt"`
+	CurrentTempo   *int64 `json:"currentTempo"`
+	PieceID        string `json:"pieceID"`
 }
 
 func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
@@ -666,7 +731,25 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	spotJSON, err := json.Marshal(nextSpot)
+	displaySpot := DisplaySpot{
+		ID:             nextSpot.ID,
+		Name:           nextSpot.Name,
+		Stage:          nextSpot.Stage,
+		AudioPromptURL: nextSpot.AudioPromptUrl,
+		ImagePromptURL: nextSpot.ImagePromptUrl,
+		NotesPrompt:    nextSpot.NotesPrompt,
+		TextPrompt:     nextSpot.TextPrompt,
+	}
+
+	if nextSpot.Measures.Valid {
+		displaySpot.Measures = nextSpot.Measures.String
+	}
+
+	if nextSpot.CurrentTempo.Valid {
+		displaySpot.CurrentTempo = &nextSpot.CurrentTempo.Int64
+	}
+
+	spotJSON, err := json.Marshal(displaySpot)
 	if err != nil {
 		log.Default().Println(err)
 		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
