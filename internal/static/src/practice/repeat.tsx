@@ -795,15 +795,13 @@ function RepeatBreakSuccess({
           </h3>
         </header>
         <div className="prose prose-sm prose-neutral mt-2 text-left">
-          Now that you’ve repeat practiced your spot, it’s time to promote it to
-          the next stage. Choose below whether you feel ready to move on to
-          random practicing with this spot, or you feel it needs more repeat
-          practicing.
+          Great job! You can now move this spot to random practicing, or keep it
+          in repeat for a little longer.
         </div>
         <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row-reverse sm:gap-2">
           <button
             onClick={handleRandom}
-            className="action-button green w-full flex-grow text-lg"
+            className="action-button focusable green w-full flex-grow text-lg"
             type="button"
           >
             <span className="icon-[iconamoon--playlist-shuffle-thin] -ml-1 size-6" />
@@ -811,7 +809,7 @@ function RepeatBreakSuccess({
           </button>
           <button
             onClick={handleMoreRepeat}
-            className="action-button sky focusable w-full flex-grow text-lg"
+            className="action-button focusable sky focusable w-full flex-grow text-lg"
           >
             <span className="icon-[iconamoon--playlist-repeat-list-thin] -ml-1 size-6" />
             More Repeat

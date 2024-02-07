@@ -37,6 +37,7 @@ type Server struct {
 	StaticHostname string
 	UploadsPath    string
 	Debug          bool
+	Hostname       string
 }
 
 func getEnvOrPanic(key string) string {
@@ -132,6 +133,7 @@ func NewServer() *http.Server {
 		StaticHostname: os.Getenv("STATIC_HOSTNAME"),
 		UploadsPath:    getEnvOrPanic("UPLOADS_PATH"),
 		Debug:          debug,
+		Hostname:       hostname,
 	}
 
 	// Declare Server config

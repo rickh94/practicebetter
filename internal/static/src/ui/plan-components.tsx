@@ -104,7 +104,7 @@ export const StartPracticingInterleave = (props: { planid?: string }) => {
     <>
       <button
         onClick={startPracticing}
-        class="action-button indigo px-4 text-lg"
+        class="action-button indigo focusable px-4 text-lg"
       >
         Practice Interleave
         <span

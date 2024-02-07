@@ -13,6 +13,7 @@ import (
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/librarypages"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
@@ -855,11 +856,21 @@ func (s *Server) exportPiece(w http.ResponseWriter, r *http.Request) {
 		if row.SpotMeasures.Valid {
 			exportSpot.Measures = row.SpotMeasures.String
 		}
-		if row.SpotAudioPromptUrl.Valid {
-			exportSpot.AudioPromptUrl = row.SpotAudioPromptUrl.String
+		if row.SpotAudioPromptUrl.Valid && row.SpotAudioPromptUrl.String != "" {
+			if strings.Contains(row.SpotAudioPromptUrl.String, "https://") ||
+				strings.Contains(row.SpotAudioPromptUrl.String, "http://") {
+				exportSpot.AudioPromptUrl = row.SpotAudioPromptUrl.String
+			} else {
+				exportSpot.AudioPromptUrl = "https://" + s.Hostname + row.SpotAudioPromptUrl.String
+			}
 		}
-		if row.SpotImagePromptUrl.Valid {
-			exportSpot.ImagePromptUrl = row.SpotImagePromptUrl.String
+		if row.SpotImagePromptUrl.Valid && row.SpotImagePromptUrl.String != "" {
+			if strings.Contains(row.SpotImagePromptUrl.String, "https://") ||
+				strings.Contains(row.SpotImagePromptUrl.String, "http://") {
+				exportSpot.ImagePromptUrl = row.SpotImagePromptUrl.String
+			} else {
+				exportSpot.ImagePromptUrl = "https://" + s.Hostname + row.SpotImagePromptUrl.String
+			}
 		}
 		if row.SpotNotesPrompt.Valid {
 			exportSpot.NotesPrompt = row.SpotNotesPrompt.String
@@ -1048,6 +1059,15 @@ func (s *Server) importPieceFromFile(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		Message:  "Added Piece: " + p.Title,
+		Title:    "Piece Imported!",
+		Variant:  "success",
+		Duration: 3000,
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	htmx.Redirect(r, "/library/pieces/"+pieceID)
 	http.Redirect(w, r, "/library/pieces/"+pieceID, http.StatusSeeOther)
 
 }

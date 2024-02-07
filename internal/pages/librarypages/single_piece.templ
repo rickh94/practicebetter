@@ -140,12 +140,15 @@ templ SinglePiece(s pages.ServerUtil, piece SinglePieceInfo, csrf string) {
 							</dd>
 						</div>
 					</dl>
-					<a
- 						class="action-button indigo"
- 						href={ templ.URL("/library/pieces/" + piece.ID + "/export.json") }
-					>
-						Download
-					</a>
+					<div class="flex justify-end w-full">
+						<a
+ 							class="text-sm action-button teal focusable"
+ 							href={ templ.URL("/library/pieces/" + piece.ID + "/export.json") }
+						>
+							<span class="-ml-1 icon-[iconamoon--cloud-download-thin] size-6"></span>
+							Download
+						</a>
+					</div>
 				</div>
 				<spot-breakdown
  					class="my-2"

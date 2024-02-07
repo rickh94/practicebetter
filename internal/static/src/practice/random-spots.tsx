@@ -808,7 +808,10 @@ export function SinglePractice({
       return;
     }
     let nextEligibleSpots = eligibleSpots;
-    if (summary.excellent - summary.poor > 4) {
+    if (
+      summary.excellent - summary.poor > 4 ||
+      summary.excellent + summary.poor + summary.fine > 9
+    ) {
       nextEligibleSpots = evictSpot(currentSpotId);
     }
     maybeTakeABreak();
@@ -827,15 +830,24 @@ export function SinglePractice({
     if (!currentSpotId) {
       return;
     }
-    addSpotRep(currentSpotId, "fine");
+
+    const summary = addSpotRep(currentSpotId, "fine");
+    if (!summary) {
+      return;
+    }
+    let nextEligibleSpots = eligibleSpots;
+    if (summary.excellent + summary.poor + summary.fine > 9) {
+      nextEligibleSpots = evictSpot(currentSpotId);
+    }
     maybeTakeABreak();
-    goToNextSpot(eligibleSpots);
+    goToNextSpot(nextEligibleSpots);
   }, [
     currentSpot?.id,
     addSpotRep,
+    eligibleSpots,
     maybeTakeABreak,
     goToNextSpot,
-    eligibleSpots,
+    evictSpot,
   ]);
 
   const handlePoor = useCallback(() => {
@@ -848,7 +860,10 @@ export function SinglePractice({
       return;
     }
     let nextEligibleSpots = eligibleSpots;
-    if (summary.poor > 2) {
+    if (
+      summary.poor > 2 ||
+      summary.excellent + summary.poor + summary.fine > 9
+    ) {
       nextEligibleSpots = evictSpot(currentSpotId);
     }
     maybeTakeABreak();

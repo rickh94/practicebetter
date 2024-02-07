@@ -34,6 +34,30 @@ templ CreatePiecePage(s pages.ServerUtil, csrf string) {
 				</header>
 				@CreatePieceFormContents(csrf)
 			</form>
+			<form
+ 				action="/library/pieces/import-file"
+ 				hx-post="/library/pieces/import-file"
+ 				hx-swap="outerHTML transition:true"
+ 				hx-target="#main-content"
+ 				method="POST"
+ 				enctype="multipart/form-data"
+ 				class="flex flex-col gap-2 p-4 mt-4 rounded-xl shadow-sm sm:mx-auto sm:max-w-3xl bg-neutral-100 shadow-black/20"
+			>
+				<header id="form-title" class="flex flex-col col-span-full gap-2 items-center w-full">
+					<h3 class="px-4 pb-1 text-2xl font-bold border-b border-black">Or Import from a File</h3>
+					<p class="text-sm">
+						If someone sent you a piece JSON file that they downloaded, you can upload that file here.
+					</p>
+				</header>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<input type="file" name="file" accept="application/json" class="py-4 teal"/>
+				<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
+					<button type="submit" class="green action-button focusable">
+						<span class="-ml-1 size-6 icon-[iconamoon--cloud-upload-thin]" aria-hidden="true"></span>
+						Upload
+					</button>
+				</div>
+			</form>
 		}
 	}
 }
