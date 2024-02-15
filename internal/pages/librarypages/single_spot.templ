@@ -121,10 +121,20 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 					@SpotAboutSection(spot)
 				</div>
 				<div class="flex flex-col gap-2 sm:col-span-3">
-					@RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID)
-					<audio-prompt-summary url={ spot.AudioPromptUrl }></audio-prompt-summary>
+					@RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, csrf)
+					<image-prompt-summary
+ 						url={ spot.ImagePromptUrl }
+ 						spotid={ spot.ID }
+ 						pieceid={ spot.PieceID }
+ 						csrf={ csrf }
+					></image-prompt-summary>
+					<audio-prompt-summary
+ 						url={ spot.AudioPromptUrl }
+ 						spotid={ spot.ID }
+ 						pieceid={ spot.PieceID }
+ 						csrf={ csrf }
+					></audio-prompt-summary>
 					<notes-prompt-summary notes={ spot.NotesPrompt }></notes-prompt-summary>
-					<image-prompt-summary url={ spot.ImagePromptUrl }></image-prompt-summary>
 				</div>
 			</div>
 		}
@@ -182,8 +192,8 @@ templ SpotAboutSection(spot db.GetSpotRow) {
 	</dl>
 }
 
-templ RemindersSummary(text, pieceid, spotid string) {
-	<reminders-summary text={ text } pieceid={ pieceid } spotid={ spotid } id={ "reminders-" + pieceid + "-" + spotid }></reminders-summary>
+templ RemindersSummary(text, pieceid, spotid, csrf string) {
+	<reminders-summary text={ text } pieceid={ pieceid } spotid={ spotid } id={ "reminders-" + pieceid + "-" + spotid } csrf={ csrf }></reminders-summary>
 }
 
 templ EditRemindersSummary(text, pieceid, spotid, csrf, err string) {

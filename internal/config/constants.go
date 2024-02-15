@@ -24,4 +24,6 @@ const (
 
 	MAX_ALLOWED_RANDOM_SPOTS = 20
 	MAX_UPLOAD_SIZE          = 1024 * 1024 // 1MiB
+
+	TIME_BETWEEN_BREAKS = 30 * time.Minute
 )

@@ -117,7 +117,8 @@ SELECT
 FROM pieces
 WHERE user_id = :user_id
 AND random_spot_count > 0
-AND pieces.id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = :plan_id);
+AND pieces.id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = :plan_id)
+ORDER BY last_practiced DESC;
 
 -- name: ListActivePiecesWithCompletedSpotsForPlan :many
 SELECT
@@ -130,7 +131,8 @@ FROM pieces
 WHERE user_id = :user_id
 AND stage = 'active'
 AND completed_spot_count > 5
-AND id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = :plan_id);
+AND id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = :plan_id)
+ORDER BY last_practiced DESC;
 
 -- name: ListRecentlyPracticedPieces :many
 SELECT
@@ -168,7 +170,8 @@ SELECT
     (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS completed_spots,
     (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS active_spots
 FROM pieces
-WHERE user_id = ?;
+WHERE user_id = ?
+ORDER BY last_practiced DESC;
 
 -- name: ListActiveUserPieces :many
 SELECT
@@ -179,7 +182,8 @@ SELECT
     (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'completed') AS completed_spots,
     (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS active_spots
 FROM pieces
-WHERE user_id = ? AND stage = 'active';
+WHERE user_id = ? AND stage = 'active'
+ORDER BY last_practiced DESC;
 
 -- name: ListPiecesWithNewSpotsForPlan :many
 SELECT
@@ -194,7 +198,8 @@ SELECT
             FROM practice_plan_spots
             WHERE practice_plan_spots.practice_plan_id = :plan_id)) AS new_spots_count
 FROM pieces
-WHERE user_id = :user_id AND stage = 'active' AND new_spots_count > 0;
+WHERE user_id = :user_id AND stage = 'active' AND new_spots_count > 0
+ORDER BY pieces.last_practiced DESC;
 
 
 -- name: UpdatePiece :one

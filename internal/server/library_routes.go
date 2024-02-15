@@ -103,6 +103,61 @@ type SpotFormData struct {
 	StageStarted   *int64  `json:"stageStarted,omitempty"`
 }
 
+func (s *Server) saveAudio(file multipart.File, fileHeader *multipart.FileHeader, userID string) (string, string, error) {
+	buff := make([]byte, 512)
+	_, err := file.Read(buff)
+	if err != nil {
+		log.Default().Println(err)
+		return "", "", fmt.Errorf("Could not read file")
+	}
+
+	filetype := mimetype.Detect(buff)
+	if !filetype.Is("audio/mpeg") {
+		log.Default().Println("File is not an audio file")
+		return "", "", fmt.Errorf("File is not an audio file")
+	}
+
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		log.Default().Println(err)
+		return "", "", fmt.Errorf("Could not read file")
+	}
+
+	// Create the uploads folder if it doesn't
+	// already exist
+	h := sha256.New()
+	h.Write([]byte(userID))
+	userIDHash := hex.EncodeToString(h.Sum(nil))[:8]
+
+	userAudioPath := path.Join(s.UploadsPath, userIDHash, "audio")
+	err = os.MkdirAll(userAudioPath, os.ModePerm)
+	if err != nil {
+		log.Default().Println(err)
+		return "", "", fmt.Errorf("Could not create directory")
+	}
+
+	// Create a new file in the uploads directory
+	newFileName := fmt.Sprintf("%s-%s", cuid2.Generate()[:5], fileHeader.Filename)
+	newFilePath := path.Join(userAudioPath, newFileName)
+
+	dst, err := os.Create(newFilePath)
+	if err != nil {
+		log.Default().Println(err)
+		return "", "", fmt.Errorf("Could not create file")
+	}
+
+	defer dst.Close()
+
+	// Copy the uploaded file to the filesystem
+	// at the specified destination
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		log.Default().Println(err)
+		return "", "", fmt.Errorf("Could not copy file")
+	}
+	return newFileName, fmt.Sprintf("/uploads/%s/audio/%s", userIDHash, newFileName), nil
+}
+
 func (s *Server) uploadAudio(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
 	r.Body = http.MaxBytesReader(w, r.Body, config.MAX_UPLOAD_SIZE)
@@ -120,63 +175,17 @@ func (s *Server) uploadAudio(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 
-	buff := make([]byte, 512)
-	_, err = file.Read(buff)
+	newFileName, newFileUrl, err := s.saveAudio(file, fileHeader, user.ID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	filetype := mimetype.Detect(buff)
-	if !filetype.Is("audio/mpeg") {
-		log.Default().Println(filetype)
-		http.Error(w, "The provided file format is not allowed. Please upload an audio file in MP3 format", http.StatusBadRequest)
-		return
-	}
-
-	_, err = file.Seek(0, io.SeekStart)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Create the uploads folder if it doesn't
-	// already exist
-	h := sha256.New()
-	h.Write([]byte(user.ID))
-	userIDHash := hex.EncodeToString(h.Sum(nil))[:8]
-
-	userAudioPath := path.Join(s.UploadsPath, userIDHash, "audio")
-	err = os.MkdirAll(userAudioPath, os.ModePerm)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Create a new file in the uploads directory
-	newFileName := fmt.Sprintf("%s-%s", cuid2.Generate()[:5], fileHeader.Filename)
-	newFilePath := path.Join(userAudioPath, newFileName)
-
-	dst, err := os.Create(newFilePath)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	defer dst.Close()
-
-	// Copy the uploaded file to the filesystem
-	// at the specified destination
-	_, err = io.Copy(dst, file)
-	if err != nil {
+		log.Default().Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	data := map[string]string{
-		"filename": newFileName,
-		"url":      fmt.Sprintf("/uploads/%s/audio/%s", userIDHash, newFileName),
+	data := UploadedFileInfo{
+		newFileName,
+		newFileUrl,
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		log.Default().Println(err)
@@ -199,7 +208,7 @@ func (s *Server) saveImage(file multipart.File, fileHeader *multipart.FileHeader
 	}
 
 	filetype := mimetype.Detect(buff)
-	if !mimetype.EqualsAny(filetype.String(), "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp") {
+	if !mimetype.EqualsAny(filetype.String(), "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "image/svg+xml") {
 		log.Default().Println(filetype)
 		return "", "", fmt.Errorf("the provided file format is not allowed. Please upload an image file.")
 	}
@@ -245,6 +254,11 @@ func (s *Server) saveImage(file multipart.File, fileHeader *multipart.FileHeader
 	return newFileName, fmt.Sprintf("/uploads/%s/images/%s", userIDHash, newFileName), nil
 }
 
+type UploadedFileInfo struct {
+	Filename string `json:"filename"`
+	URL      string `json:"url"`
+}
+
 func (s *Server) uploadImage(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
 	r.Body = http.MaxBytesReader(w, r.Body, config.MAX_UPLOAD_SIZE)
@@ -277,9 +291,9 @@ func (s *Server) uploadImage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	data := map[string]string{
-		"filename": newFileName,
-		"url":      newFileUrl,
+	data := UploadedFileInfo{
+		newFileName,
+		newFileUrl,
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		log.Default().Println(err)

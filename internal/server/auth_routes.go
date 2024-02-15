@@ -165,13 +165,13 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 			Message:  "Could not login",
 			Title:    "Invalid Input",
 			Variant:  "error",
 			Duration: 3000,
-		})
-		if err != nil {
+		}); err != nil {
 			log.Default().Println(err)
 		}
 		http.Error(w, "Invalid Input", http.StatusBadRequest)

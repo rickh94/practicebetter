@@ -2,6 +2,11 @@ import register from "preact-custom-element";
 import { RandomSpots } from "./practice/random-spots";
 import { Repeat } from "./practice/repeat";
 import { StartingPoint } from "./practice/starting-point";
+import {
+  FinishedRepeatPracticingEvent,
+  FinishedSpotPracticingEvent,
+  FinishedStartingPointPracticingEvent,
+} from "./types";
 
 try {
   register(
@@ -38,7 +43,7 @@ try {
   console.log(err);
 }
 
-globalThis.addEventListener("FinishedSpotPracticing", (e) => {
+function handleFinishedSpotPracticing(e: FinishedSpotPracticingEvent) {
   const { spots, durationMinutes, csrf, endpoint } = e.detail;
   if (!spots || spots.length === 0 || !durationMinutes || !csrf || !endpoint) {
     console.log(e.detail);
@@ -93,10 +98,18 @@ globalThis.addEventListener("FinishedSpotPracticing", (e) => {
         }),
       );
     });
-});
+}
 
-globalThis.addEventListener("FinishedStartingPointPracticing", (evt) => {
+globalThis.addEventListener(
+  "FinishedSpotPracticing",
+  handleFinishedSpotPracticing,
+);
+
+function handleFinishedStartingPointPracticing(
+  evt: FinishedStartingPointPracticingEvent,
+) {
   const { measuresPracticed, durationMinutes, pieceid, csrf } = evt.detail;
+
   if (!measuresPracticed || !durationMinutes || !pieceid) {
     console.error("event missing data");
     return;
@@ -148,9 +161,14 @@ globalThis.addEventListener("FinishedStartingPointPracticing", (evt) => {
         }),
       );
     });
-});
+}
 
-globalThis.addEventListener("FinishedRepeatPracticing", (evt) => {
+globalThis.addEventListener(
+  "FinishedStartingPointPracticing",
+  handleFinishedStartingPointPracticing,
+);
+
+function handleFinishedRepeatPracticing(evt: FinishedRepeatPracticingEvent) {
   const { durationMinutes, csrf, endpoint, success, toStage } = evt.detail;
   if (!durationMinutes || !csrf || !endpoint) {
     console.error("event missing data");
@@ -171,8 +189,7 @@ globalThis.addEventListener("FinishedRepeatPracticing", (evt) => {
             new CustomEvent("ShowAlert", {
               detail: {
                 variant: "success",
-                message:
-                  "Great job practicing, you can now start to randomly practice this spot!",
+                message: "Great job practicing!",
                 title: "Practicing Completed",
                 duration: 3000,
               },
@@ -218,4 +235,9 @@ globalThis.addEventListener("FinishedRepeatPracticing", (evt) => {
         }),
       );
     });
-});
+}
+
+globalThis.addEventListener(
+  "FinishedRepeatPracticing",
+  handleFinishedRepeatPracticing,
+);

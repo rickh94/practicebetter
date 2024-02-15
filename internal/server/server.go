@@ -258,7 +258,7 @@ func (s *Server) ContextPath(next http.Handler) http.Handler {
 }
 
 func (s *Server) DatabaseError(w http.ResponseWriter, r *http.Request, err error, message string) {
-	log.Default().Println(err)
+	log.Default().Printf("Database Error: %s: %v", message, err)
 	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
 		Message:  message,
 		Title:    "Database Error",

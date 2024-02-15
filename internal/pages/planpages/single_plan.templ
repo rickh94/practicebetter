@@ -81,6 +81,9 @@ func canResume(planData PracticePlanData) bool {
 	return false
 }
 
+// add parameter to determine if a break is warranted and open break dialog on load if so,
+// go practice button should probably also check for taking a break, with option, then show a break dialog
+
 templ PracticePlanPage(s pages.ServerUtil, planData PracticePlanData, csrf string) {
 	<title>Practice Plan | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Practice Plan") , components.MaybePracticePlan())) {

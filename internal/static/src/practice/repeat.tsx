@@ -24,7 +24,7 @@ export function Repeat({
   csrf,
   piecetitle = "",
   planid = "",
-  kidmode = false,
+  kidmode = true,
 }: {
   initialspot?: string;
   pieceid?: string;
@@ -41,6 +41,10 @@ export function Repeat({
   useEffect(() => {
     if (initialspot) {
       setSpot(JSON.parse(initialspot) as BasicSpot);
+    }
+    const savedKidMode = localStorage.getItem("kidmode");
+    if (savedKidMode) {
+      setKidMode(savedKidMode === "true");
     }
   }, [initialspot]);
 
@@ -79,6 +83,14 @@ export function Repeat({
       );
     }
   }, [setMode, pieceid, csrf, startTime, spot]);
+
+  const updateKidMode = useCallback(
+    (nextMode: boolean) => {
+      localStorage.setItem("kidmode", nextMode ? "true" : "false");
+      setKidMode(nextMode);
+    },
+    [setKidMode],
+  );
 
   const promoteSpot = useCallback(
     (toStage: string) => {
@@ -134,7 +146,7 @@ export function Repeat({
                 pieceid={pieceid}
                 piecetitle={piecetitle}
                 kidMode={kidMode}
-                setKidMode={setKidMode}
+                setKidMode={updateKidMode}
               />
             ),
             practice: (

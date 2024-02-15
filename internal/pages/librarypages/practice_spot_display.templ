@@ -11,7 +11,7 @@ const EVALUATION_BUTTON_CLASSEES = "px-6 w-full h-16 text-2xl sm:w-auto xs:w-48 
 
 templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
 	<div>
-		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
+		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle } csrf={ csrf }></practice-spot-display>
 		<div class="flex flex-col gap-4 justify-center px-4 pt-4 w-full sm:flex-row-reverse sm:pt-8 sm:w-full xs:w-auto xs:px-0">
 			<form
  				hx-post={ "/library/plans/" + planID + "/interleave/practice" }
@@ -85,7 +85,7 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 
 templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
 	<div>
-		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
+		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle } csrf={ csrf }></practice-spot-display>
 		<div class="flex flex-col gap-4 justify-center px-4 pt-4 w-full sm:flex-row-reverse sm:pt-8 xs:px-0">
 			<form
  				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }
@@ -167,7 +167,7 @@ type FinishedSpotInfo struct {
 
 templ InfrequentPracticeSpotDisplayWithOOBFinished(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string, finishedSpot FinishedSpotInfo) {
 	<div>
-		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
+		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle } csrf={ csrf }></practice-spot-display>
 		<div class="flex flex-col gap-4 justify-center px-4 pt-4 w-full sm:flex-row-reverse sm:pt-8 xs:px-0">
 			<form
  				hx-post={ "/library/plans/" + planID + "/infrequent/practice" }

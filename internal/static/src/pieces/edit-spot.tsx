@@ -62,6 +62,8 @@ export function EditSpotForm({
         register={register}
         watch={watch}
         showStage
+        spotid={spotid}
+        pieceid={pieceid}
       />
     </form>
   );

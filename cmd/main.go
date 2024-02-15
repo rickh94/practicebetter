@@ -8,6 +8,7 @@ import (
 func main() {
 	gob.Register(server.PlanInterleaveSpotInfo{})
 	gob.Register([]server.PlanInterleaveSpotInfo{})
+	gob.Register(server.PracticeBreak{})
 
 	server := server.NewServer()
 

@@ -320,6 +320,14 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+		if err := queries.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+			UserID:  user.ID,
+			PieceID: pieceID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not update piece practiced")
+			return
+		}
 	} else {
 		log.Default().Println("Missing interleave list")
 		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
@@ -618,7 +626,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			skipDays = 1
-			err := queries.UpdateSpotSkipDays(r.Context(), db.UpdateSpotSkipDaysParams{
+			err := queries.UpdateSpotSkipDaysAndPractice(r.Context(), db.UpdateSpotSkipDaysAndPracticeParams{
 				SkipDays: skipDays,
 				SpotID:   finishedSpot.ID,
 				UserID:   user.ID,
@@ -655,6 +663,14 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 			s.DatabaseError(w, r, err, "Could not update spot")
 			return
 		}
+	}
+
+	if err := queries.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+		UserID:  user.ID,
+		PieceID: pieceID,
+	}); err != nil {
+		s.DatabaseError(w, r, err, "Could not update piece practiced")
+		return
 	}
 
 	fSpotInfo := librarypages.FinishedSpotInfo{

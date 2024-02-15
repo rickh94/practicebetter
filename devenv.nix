@@ -31,6 +31,9 @@
   services.caddy = {
     enable = true;
     virtualHosts."pbgo.localhost".extraConfig = ''
+      request_body * {
+        max_size 1000MB
+      }
       reverse_proxy {
         to :8080
       }

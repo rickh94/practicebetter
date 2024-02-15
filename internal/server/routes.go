@@ -63,107 +63,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 			log.Default().Println(err)
 		}
 	})
-	r.With(s.MaybeUser).With(s.MaybePracticePlan).Route("/practice", func(r chi.Router) {
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			s.Redirect(w, r, "/practice/random-single")
-		})
-		r.Get("/random-single", s.randomPractice)
-		r.Get("/random-sequence", s.sequencePractice)
-		r.Get("/repeat", s.repeatPractice)
-		r.Get("/starting-point", s.startingPointPractice)
-	})
+	r.With(s.MaybeUser).With(s.MaybePracticePlan).Route("/practice", s.practiceRouter)
 
-	r.Route("/auth", func(r chi.Router) {
-		r.Get("/login", s.startLogin)
-		r.Post("/login", s.continueLogin)
-		r.Post("/code", s.completeCodeLogin)
-		r.Get("/code", s.forceCodeLogin)
-		r.Post("/passkey/login", s.completePasskeySignin)
-		r.Get("/logout", s.logoutUserRoute)
-		r.Get("/forget", s.forgetUser)
-		r.With(s.LoginRequired).Get("/me", s.me)
-		r.With(s.LoginRequired).Post("/me", s.updateProfile)
-		r.With(s.LoginRequired).Get("/me/edit", s.editProfile)
-		r.With(s.LoginRequired).Get("/me/reset", s.getProfile)
-		r.With(s.LoginRequired).Post("/passkey/register", s.registerPasskey)
-		r.With(s.LoginRequired).Post("/passkey/delete", s.deletePasskeys)
-	})
+	r.Route("/auth", s.authRouter)
 
-	r.With(s.LoginRequired).With(s.MaybePracticePlan).Route("/library", func(r chi.Router) {
-		r.Get("/", s.libraryDashboard)
-
-		r.Get("/pieces", s.pieces)
-		r.Post("/pieces", s.createPiece)
-		r.Get("/pieces/create", s.createPieceForm)
-		r.Get("/pieces/import", s.importPiece)
-		r.Get("/pieces/import-file", s.uploadPieceFile)
-		r.Post("/pieces/import-file", s.importPieceFromFile)
-		r.Get("/pieces/{pieceID}", s.singlePiece)
-		r.Get("/pieces/{pieceID}/edit", s.editPiece)
-		r.Put("/pieces/{pieceID}", s.updatePiece)
-		r.Delete("/pieces/{pieceID}", s.deletePiece)
-		r.Get("/pieces/{pieceID}/export.json", s.exportPiece)
-
-		r.Get("/pieces/{pieceID}/spots", s.pieceSpots)
-		r.Post("/pieces/{pieceID}/spots", s.addSpot)
-		r.Get("/pieces/{pieceID}/spots/add-single", s.addSingleSpotPage)
-		r.Get("/pieces/{pieceID}/spots/add", s.addSpotsFromPDFPage)
-		r.Post("/pieces/{pieceID}/spots/pdf", s.addSpotsFromPDF)
-		r.Get("/pieces/{pieceID}/spots/{spotID}/edit", s.editSpot)
-		r.Get("/pieces/{pieceID}/spots/{spotID}", s.singleSpot)
-		r.Put("/pieces/{pieceID}/spots/{spotID}", s.updateSpot)
-		r.Delete("/pieces/{pieceID}/spots/{spotID}", s.deleteSpot)
-		r.Get("/pieces/{pieceID}/spots/{spotID}/practice/repeat", s.repeatPracticeSpot)
-		r.Post("/pieces/{pieceID}/spots/{spotID}/practice/repeat", s.repeatPracticeSpotFinished)
-		r.Get("/pieces/{pieceID}/spots/{spotID}/practice/display", s.getPracticeSpotDisplay)
-		r.Get("/pieces/{pieceID}/spots/{spotID}/reminders/edit", s.getEditRemindersForm)
-		r.Get("/pieces/{pieceID}/spots/{spotID}/reminders", s.getReminders)
-		r.Post("/pieces/{pieceID}/spots/{spotID}/reminders", s.updateReminders)
-
-		r.Get("/pieces/{pieceID}/practice/random-single", s.piecePracticeRandomSpotsPage)
-		r.Post("/pieces/{pieceID}/practice/random-single", s.finishPracticePieceSpots)
-
-		r.Get("/pieces/{pieceID}/practice/random", s.piecePracticeRandomSpotsPage)
-		r.Post("/pieces/{pieceID}/practice/random", s.finishPracticePieceSpots)
-
-		r.Get("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointPage)
-		r.Post("/pieces/{pieceID}/practice/starting-point", s.piecePracticeStartingPointFinished)
-
-		r.Get("/pieces/{pieceID}/practice/repeat", s.piecePracticeRepeatPage)
-
-		r.Get("/upload/audio", s.uploadAudioForm)
-		r.Post("/upload/audio", s.uploadAudio)
-		r.Get("/upload/images", s.uploadImageForm)
-		r.Post("/upload/images", s.uploadImage)
-
-		r.Get("/plans/create", s.createPracticePlanForm)
-		r.Get("/plans", s.planList)
-		r.Post("/plans", s.createPracticePlan)
-		r.Get("/plans/{planID}", s.singlePracticePlan)
-		r.Delete("/plans/{planID}", s.deletePracticePlan)
-
-		r.Get("/plans/{planID}/next", s.redirectToNextPlanItem)
-		r.Get("/plans/{planID}/interleave", s.getInterleaveList)
-		r.Get("/plans/{planID}/interleave/start", s.startInterleavePracticing)
-		r.Post("/plans/{planID}/interleave/practice", s.saveInterleaveResult)
-		r.Get("/plans/{planID}/infrequent/start", s.startInfrequentPracticing)
-		r.Post("/plans/{planID}/infrequent/practice", s.saveInfrequentResult)
-
-		r.Post("/plans/{planID}/resume", s.resumePracticePlan)
-		r.Post("/plans/{planID}/stop", s.stopPracticePlan)
-		r.Post("/plans/{planID}/duplicate", s.duplicatePracticePlan)
-		r.Get("/plans/{planID}/edit", s.editPracticePlan)
-
-		r.Delete("/plans/{planID}/spots/{practiceType}/{spotID}", s.deleteSpotFromPracticePlan)
-		r.Delete("/plans/{planID}/pieces/{practiceType}/{pieceID}", s.deletePieceFromPracticePlan)
-		r.Get("/plans/{planID}/spots/{practiceType}/add", s.getSpotsForPracticePlan)
-		r.Get("/plans/{planID}/spots/new/add/pieces", s.getNewSpotPiecesForPracticePlan)
-		r.Get("/plans/{planID}/spots/new/add/pieces/{pieceID}", s.getNewSpotsForPracticePlan)
-		r.Put("/plans/{planID}/spots/{practiceType}", s.addSpotsToPracticePlan)
-
-		r.Get("/plans/{planID}/pieces/{practiceType}/add", s.getPiecesForPracticePlan)
-		r.Put("/plans/{planID}/pieces/{practiceType}", s.addPiecesToPracticePlan)
-	})
+	r.With(s.LoginRequired).With(s.MaybePracticePlan).Route("/library", s.libraryRouter)
 
 	return r
 }
@@ -199,4 +103,132 @@ type ShowAlertEvent struct {
 
 type FocusInputEvent struct {
 	ID string `json:"id"`
+}
+
+func (s *Server) pieceRouter(r chi.Router) {
+	r.Get("/", s.pieces)
+	r.Post("/", s.createPiece)
+	r.Get("/create", s.createPieceForm)
+	r.Get("/import", s.importPiece)
+	r.Get("/import-file", s.uploadPieceFile)
+	r.Post("/import-file", s.importPieceFromFile)
+	r.Get("/{pieceID}", s.singlePiece)
+	r.Get("/{pieceID}/edit", s.editPiece)
+	r.Put("/{pieceID}", s.updatePiece)
+	r.Delete("/{pieceID}", s.deletePiece)
+	r.Get("/{pieceID}/export.json", s.exportPiece)
+
+	r.Route("/{pieceID}/spots", s.spotsRouter)
+
+	r.Get("/{pieceID}/practice/random-single", s.piecePracticeRandomSpotsPage)
+	r.Post("/{pieceID}/practice/random-single", s.finishPracticePieceSpots)
+
+	r.Get("/{pieceID}/practice/random", s.piecePracticeRandomSpotsPage)
+	r.Post("/{pieceID}/practice/random", s.finishPracticePieceSpots)
+
+	r.Get("/{pieceID}/practice/starting-point", s.piecePracticeStartingPointPage)
+	r.Post("/{pieceID}/practice/starting-point", s.piecePracticeStartingPointFinished)
+
+	r.Get("/{pieceID}/practice/repeat", s.piecePracticeRepeatPage)
+}
+
+func (s *Server) spotsRouter(r chi.Router) {
+	r.Get("/", s.pieceSpots)
+	r.Post("/", s.addSpot)
+	r.Get("/add-single", s.addSingleSpotPage)
+	r.Get("/add", s.addSpotsFromPDFPage)
+	r.Post("/pdf", s.addSpotsFromPDF)
+
+	r.Route("/{spotID}", func(r chi.Router) {
+		r.Get("/", s.singleSpot)
+		r.Get("/edit", s.editSpot)
+		r.Put("/", s.updateSpot)
+		r.Patch("/", s.updatePartialSpot)
+
+		r.Patch("/image", s.updateSpotImage)
+		r.Patch("/audio", s.updateSpotAudio)
+		r.Patch("/reminders", s.updateReminders)
+
+		r.Delete("/", s.deleteSpot)
+		r.Get("/practice/repeat", s.repeatPracticeSpot)
+		r.Post("/practice/repeat", s.repeatPracticeSpotFinished)
+		r.Get("/practice/display", s.getPracticeSpotDisplay)
+	})
+}
+
+func (s *Server) planRouter(r chi.Router) {
+	r.Get("/", s.planList)
+	r.Post("/", s.createPracticePlan)
+	r.Get("/create", s.createPracticePlanForm)
+
+	r.Route("/{planID}", func(r chi.Router) {
+		r.Get("/", s.singlePracticePlan)
+		r.Delete("/", s.deletePracticePlan)
+
+		r.Get("/next", s.redirectToNextPlanItem)
+		r.Get("/interleave", s.getInterleaveList)
+		r.Get("/interleave/start", s.startInterleavePracticing)
+		r.Post("/interleave/practice", s.saveInterleaveResult)
+		r.Get("/infrequent/start", s.startInfrequentPracticing)
+		r.Post("/infrequent/practice", s.saveInfrequentResult)
+
+		r.Post("/resume", s.resumePracticePlan)
+		r.Post("/stop", s.stopPracticePlan)
+		r.Post("/duplicate", s.duplicatePracticePlan)
+		r.Get("/edit", s.editPracticePlan)
+
+		r.Delete("/spots/{practiceType}/{spotID}", s.deleteSpotFromPracticePlan)
+		r.Delete("/pieces/{practiceType}/{pieceID}", s.deletePieceFromPracticePlan)
+		r.Get("/spots/{practiceType}/add", s.getSpotsForPracticePlan)
+		r.Get("/spots/new/add/pieces", s.getNewSpotPiecesForPracticePlan)
+		r.Get("/spots/new/add/pieces/{pieceID}", s.getNewSpotsForPracticePlan)
+		r.Put("/spots/{practiceType}", s.addSpotsToPracticePlan)
+
+		r.Get("/pieces/{practiceType}/add", s.getPiecesForPracticePlan)
+		r.Put("/pieces/{practiceType}", s.addPiecesToPracticePlan)
+	})
+}
+
+func (s *Server) libraryRouter(r chi.Router) {
+	r.Get("/", s.libraryDashboard)
+
+	r.Route("/pieces", s.pieceRouter)
+
+	r.Get("/upload/audio", s.uploadAudioForm)
+	r.Post("/upload/audio", s.uploadAudio)
+	r.Get("/upload/images", s.uploadImageForm)
+	r.Post("/upload/images", s.uploadImage)
+
+	r.Get("/break", s.shouldRecommendBreak)
+	r.Post("/break", s.takeABreak)
+	r.Get("/break/last", s.lastBreak)
+
+	r.Route("/plans", s.planRouter)
+
+}
+
+func (s *Server) practiceRouter(r chi.Router) {
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		s.Redirect(w, r, "/practice/random-single")
+	})
+	r.Get("/random-single", s.randomPractice)
+	r.Get("/random-sequence", s.sequencePractice)
+	r.Get("/repeat", s.repeatPractice)
+	r.Get("/starting-point", s.startingPointPractice)
+}
+
+func (s *Server) authRouter(r chi.Router) {
+	r.Get("/login", s.startLogin)
+	r.Post("/login", s.continueLogin)
+	r.Post("/code", s.completeCodeLogin)
+	r.Get("/code", s.forceCodeLogin)
+	r.Post("/passkey/login", s.completePasskeySignin)
+	r.Get("/logout", s.logoutUserRoute)
+	r.Get("/forget", s.forgetUser)
+	r.With(s.LoginRequired).Get("/me", s.me)
+	r.With(s.LoginRequired).Post("/me", s.updateProfile)
+	r.With(s.LoginRequired).Get("/me/edit", s.editProfile)
+	r.With(s.LoginRequired).Get("/me/reset", s.getProfile)
+	r.With(s.LoginRequired).Post("/passkey/register", s.registerPasskey)
+	r.With(s.LoginRequired).Post("/passkey/delete", s.deletePasskeys)
 }

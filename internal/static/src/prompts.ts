@@ -1,26 +1,26 @@
 import register from "preact-custom-element";
 import {
   AudioPromptSummary,
-  ImagePromptSummary,
+  ImagePromptWC,
   NotesPromptSummary,
 } from "./ui/prompts";
 
 try {
-  register(AudioPromptSummary, "audio-prompt-summary", ["url"], {
+  register(AudioPromptSummary, "audio-prompt-summary", [], {
     shadow: false,
   });
 } catch (err) {
   console.log(err);
 }
 try {
-  register(ImagePromptSummary, "image-prompt-summary", ["url"], {
+  register(ImagePromptWC, "image-prompt-summary", [], {
     shadow: false,
   });
 } catch (err) {
   console.log(err);
 }
 try {
-  register(NotesPromptSummary, "notes-prompt-summary", ["notes"], {
+  register(NotesPromptSummary, "notes-prompt-summary", [], {
     shadow: false,
   });
 } catch (err) {

@@ -5,7 +5,7 @@ import { uniqueID } from "./common";
 import { DateFromNow, PrettyDate, NumberDate } from "./ui/date-display";
 import { PieceStage, SpotStage } from "./ui/stages";
 import { InternalNav } from "./ui/internal-nav";
-import { EditRemindersSummary, RemindersSummary } from "./ui/prompts";
+import { RemindersSummary } from "./ui/prompts";
 import { BackToPiece } from "./ui/links";
 import { PracticeSpotDisplayWrapper } from "./practice/practice-spot-display";
 import "./input.css";
@@ -15,7 +15,15 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   PublicKeyCredentialCreationOptionsJSON,
 } from "@simplewebauthn/typescript-types";
-import type { AlertVariant } from "./types";
+import type {
+  AlertVariant,
+  CloseAlertEvent,
+  CloseModalEvent,
+  FocusInputEvent,
+  HTMXConfirmEvent,
+  HTMXRequestEvent,
+  ShowAlertEvent,
+} from "./types";
 
 try {
   register(
@@ -89,19 +97,7 @@ try {
   register(
     RemindersSummary,
     "reminders-summary",
-    ["text", "pieceid", "spotid"],
-    {
-      shadow: false,
-    },
-  );
-} catch (err) {
-  console.log(err);
-}
-try {
-  register(
-    EditRemindersSummary,
-    "edit-reminders-summary",
-    ["text", "pieceid", "spotid", "csrf"],
+    ["text", "csrf", "pieceid", "spotid"],
     {
       shadow: false,
     },
@@ -210,7 +206,7 @@ export function closeAlert(id: string) {
   });
 }
 
-globalThis.addEventListener("ShowAlert", (evt) => {
+function handleShowAlert(evt: ShowAlertEvent) {
   if (!evt.detail) {
     throw new Error("Invalid event received from server");
   }
@@ -219,8 +215,11 @@ globalThis.addEventListener("ShowAlert", (evt) => {
     throw new Error("Invalid event received from server");
   }
   showAlert(message, title, variant, duration);
-});
-globalThis.addEventListener("CloseAlert", (evt) => {
+}
+
+globalThis.addEventListener("ShowAlert", handleShowAlert);
+
+function handleCloseAlert(evt: CloseAlertEvent) {
   if (!evt.detail) {
     throw new Error("Invalid event received from server");
   }
@@ -229,8 +228,11 @@ globalThis.addEventListener("CloseAlert", (evt) => {
     throw new Error("Invalid event received from server");
   }
   closeAlert(id);
-});
-globalThis.addEventListener("FocusInput", (evt) => {
+}
+
+globalThis.addEventListener("CloseAlert", handleCloseAlert);
+
+function handleFocusInput(evt: FocusInputEvent) {
   if (!evt.detail) {
     throw new Error("Invalid event received from server");
   }
@@ -244,7 +246,9 @@ globalThis.addEventListener("FocusInput", (evt) => {
   }
   foundInput.focus();
   foundInput.select();
-});
+}
+
+globalThis.addEventListener("FocusInput", handleFocusInput);
 
 function closeModal(id: string) {
   globalThis.handleCloseModal();
@@ -262,7 +266,7 @@ function closeModal(id: string) {
   }, 155);
 }
 
-globalThis.addEventListener("htmx:confirm", (e) => {
+function handleConfirm(e: HTMXConfirmEvent) {
   const { question, issueRequest } = e.detail;
   if (!question) {
     return;
@@ -276,14 +280,12 @@ globalThis.addEventListener("htmx:confirm", (e) => {
   const cancelevent = `${id}cancel`;
 
   function onConfirm() {
-    console.log("confirm");
     closeModal(id);
     issueRequest(true);
     document.removeEventListener(confirmevent, onConfirm);
     document.removeEventListener(cancelevent, onCancel);
   }
   function onCancel() {
-    console.log("cancel");
     closeModal(id);
     document.removeEventListener(confirmevent, onConfirm);
     document.removeEventListener(cancelevent, onCancel);
@@ -301,9 +303,11 @@ globalThis.addEventListener("htmx:confirm", (e) => {
   document.getElementById("main-content")?.appendChild(dialog);
   (document.getElementById(id) as HTMLDialogElement).showModal();
   globalThis.handleShowModal();
-});
+}
 
-globalThis.addEventListener("htmx:afterSwap", (event) => {
+globalThis.addEventListener("htmx:confirm", handleConfirm);
+
+function closeAndScroll(event: HTMXRequestEvent) {
   if (!event.detail?.target || !(event.detail.target instanceof HTMLElement)) {
     return;
   }
@@ -311,9 +315,11 @@ globalThis.addEventListener("htmx:afterSwap", (event) => {
     globalThis.handleCloseModal();
     window.scrollTo(0, 0);
   }
-});
+}
 
-globalThis.addEventListener("htmx:beforeSwap", (event) => {
+globalThis.addEventListener("htmx:afterSwap", closeAndScroll);
+
+function closePopper(event: HTMXRequestEvent) {
   if (!(event.detail.target instanceof HTMLElement)) {
     return;
   }
@@ -324,9 +330,11 @@ globalThis.addEventListener("htmx:beforeSwap", (event) => {
         el.remove();
       });
   }
-});
+}
 
-globalThis.addEventListener("CloseModal", (event) => {
+globalThis.addEventListener("htmx:beforeSwap", closePopper);
+
+function handleCloseModal(event: CloseModalEvent) {
   if (event.detail?.value) {
     globalThis.handleCloseModal();
     const modal = document.getElementById(event.detail.value);
@@ -340,7 +348,9 @@ globalThis.addEventListener("CloseModal", (event) => {
       modal.close();
     }, 155);
   }
-});
+}
+
+globalThis.addEventListener("CloseModal", handleCloseModal);
 
 globalThis.startPasskeyAuth = function (
   publicKey: PublicKeyCredentialRequestOptionsJSON,

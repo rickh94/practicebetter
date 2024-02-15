@@ -3,16 +3,22 @@ import { useState, useCallback, useRef } from "preact/hooks";
 import { type UseFormRegisterReturn } from "react-hook-form";
 const NotesDisplay = lazy(() => import("../ui/notes-display"));
 
-// TODO: this might be possible without custom elements
+// TODO: fix remove button so it always works
 
 export function AddAudioPrompt({
   audioPromptUrl,
   csrf,
   save,
+  small = false,
+  spotid = "",
+  pieceid = "",
 }: {
   audioPromptUrl?: string | null;
   csrf: string;
-  save: (url: string) => void;
+  save?: (url: string) => void;
+  small?: boolean;
+  spotid?: string;
+  pieceid?: string;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const ref = useRef<HTMLDialogElement>(null);
@@ -48,10 +54,18 @@ export function AddAudioPrompt({
         return;
       }
       const formData = new FormData(formRef.current);
-      const res = await fetch("/library/upload/audio", {
-        method: "POST",
-        body: formData,
-      });
+      let res: Response;
+      if (spotid && pieceid) {
+        res = await fetch(`/library/pieces/${pieceid}/spots/${spotid}/audio`, {
+          method: "PATCH",
+          body: formData,
+        });
+      } else {
+        res = await fetch("/library/upload/audio", {
+          method: "POST",
+          body: formData,
+        });
+      }
       if (res.ok) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const { filename, url } = await res.json();
@@ -83,7 +97,7 @@ export function AddAudioPrompt({
           }),
         );
 
-        save(url as string);
+        save?.(url as string);
         close();
       } else {
         setIsUploading(false);
@@ -99,32 +113,56 @@ export function AddAudioPrompt({
         );
       }
     },
-    [setIsUploading, save, close],
+    [spotid, pieceid, save, close],
   );
 
   return (
     <>
-      <button
-        type="button"
-        class="action-button purple focusable"
-        onClick={open}
-      >
-        {audioPromptUrl ? (
-          <>
-            <span className="sr-only">Checked</span>
+      {small ? (
+        <button
+          type="button"
+          class="action-button purple focusable h-10 px-4 text-base"
+          onClick={open}
+        >
+          {audioPromptUrl ? (
+            <>
+              <span className="sr-only">Checked</span>
+              <span
+                className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
+                aria-hidden="true"
+              />
+            </>
+          ) : (
             <span
-              className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
+              className="-ml icon-[iconamoon--volume-up-thin] size-5"
               aria-hidden="true"
             />
-          </>
-        ) : (
-          <span
-            className="-ml icon-[iconamoon--volume-up-thin] size-5"
-            aria-hidden="true"
-          />
-        )}
-        Audio
-      </button>
+          )}
+          Add Audio
+        </button>
+      ) : (
+        <button
+          type="button"
+          class="action-button purple focusable"
+          onClick={open}
+        >
+          {audioPromptUrl ? (
+            <>
+              <span className="sr-only">Checked</span>
+              <span
+                className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
+                aria-hidden="true"
+              />
+            </>
+          ) : (
+            <span
+              className="-ml icon-[iconamoon--volume-up-thin] size-5"
+              aria-hidden="true"
+            />
+          )}
+          Audio
+        </button>
+      )}
       <dialog
         ref={ref}
         aria-labelledby="add-audio-prompt-title"
@@ -167,7 +205,7 @@ export function AddAudioPrompt({
               <button
                 className="action-button red focusable flex-grow"
                 type="button"
-                onClick={() => save("")}
+                onClick={() => save?.("")}
               >
                 <span
                   className="icon-[iconamoon--trash-thin] -ml-1 size-6"
@@ -238,14 +276,14 @@ export function AddAudioPrompt({
   );
 }
 
-export function AddImagePrompt({
-  imagePromptUrl,
-  save,
-  csrf,
-}: {
+// TODO: create endpoint that saves and updates spot in on request
+export function AddImagePrompt(props: {
   csrf: string;
   imagePromptUrl?: string | null;
-  save: (url: string) => void;
+  save?: (url: string) => void;
+  spotid?: string;
+  pieceid?: string;
+  small?: boolean;
 }) {
   const [isUploading, setIsUploading] = useState(false);
   const ref = useRef<HTMLDialogElement>(null);
@@ -279,10 +317,21 @@ export function AddImagePrompt({
         return;
       }
       const formData = new FormData(formRef.current);
-      const res = await fetch("/library/upload/images", {
-        method: "POST",
-        body: formData,
-      });
+      let res: Response;
+      if (props.spotid && props.pieceid) {
+        res = await fetch(
+          `/library/pieces/${props.pieceid}/spots/${props.spotid}/image`,
+          {
+            method: "PATCH",
+            body: formData,
+          },
+        );
+      } else {
+        res = await fetch("/library/upload/images", {
+          method: "POST",
+          body: formData,
+        });
+      }
       if (res.ok) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const { filename, url } = await res.json();
@@ -313,9 +362,10 @@ export function AddImagePrompt({
           }),
         );
 
-        save(url as string);
+        props.save?.(url as string);
         close();
       } else {
+        console.error(await res.text());
         setIsUploading(false);
         globalThis.dispatchEvent(
           new CustomEvent("ShowAlert", {
@@ -329,32 +379,56 @@ export function AddImagePrompt({
         );
       }
     },
-    [setIsUploading, save, close],
+    [props, close],
   );
 
   return (
     <>
-      <button
-        type="button"
-        onClick={open}
-        className="action-button focusable cyan"
-      >
-        {imagePromptUrl ? (
-          <>
-            <span className="sr-only">Checked</span>
+      {props.small ? (
+        <button
+          type="button"
+          onClick={open}
+          className="action-button focusable cyan h-10 px-4 text-base"
+        >
+          {props.imagePromptUrl ? (
+            <>
+              <span className="sr-only">Checked</span>
+              <span
+                className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
+                aria-hidden="true"
+              />
+            </>
+          ) : (
             <span
-              className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
+              className="icon-[iconamoon--file-image-thin] size-5"
               aria-hidden="true"
             />
-          </>
-        ) : (
-          <span
-            className="icon-[iconamoon--file-image-thin] size-5"
-            aria-hidden="true"
-          />
-        )}
-        Image
-      </button>
+          )}
+          Add Image
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={open}
+          className="action-button focusable cyan"
+        >
+          {props.imagePromptUrl ? (
+            <>
+              <span className="sr-only">Checked</span>
+              <span
+                className="icon-[iconamoon--check-circle-1-thin] -ml-1 size-5"
+                aria-hidden="true"
+              />
+            </>
+          ) : (
+            <span
+              className="icon-[iconamoon--file-image-thin] size-5"
+              aria-hidden="true"
+            />
+          )}
+          Image
+        </button>
+      )}
 
       <dialog
         ref={ref}
@@ -369,12 +443,12 @@ export function AddImagePrompt({
             Add Image Prompt
           </h3>
         </header>
-        {imagePromptUrl ? (
+        {props.imagePromptUrl ? (
           <>
             <div className="w-full text-left text-lg font-medium">
               Current File is:{" "}
               <strong className="font-bold">
-                {imagePromptUrl.split("/").pop()}
+                {props.imagePromptUrl.split("/").pop()}
               </strong>{" "}
               <span className="text-base font-normal">
                 (may have been renamed)
@@ -398,7 +472,7 @@ export function AddImagePrompt({
               <button
                 className="action-button red focusable flex-grow"
                 type="button"
-                onClick={() => save("")}
+                onClick={() => props.save?.("")}
               >
                 <span
                   className="icon-[iconamoon--trash-thin] -ml-1 size-6"
@@ -422,11 +496,15 @@ export function AddImagePrompt({
               enctype="multipart/form-data"
               onSubmit={(e) => e.preventDefault()}
             >
-              <input type="hidden" name="gorilla.csrf.Token" value={csrf} />
+              <input
+                type="hidden"
+                name="gorilla.csrf.Token"
+                value={props.csrf}
+              />
               <input
                 type="file"
                 name="file"
-                accept="image/png,image/jpg,image/jpeg,image/gif"
+                accept="image/png,image/jpg,image/jpeg,image/gif,image/svg+xml,image/webp"
                 class="cyan py-4"
               />
             </form>

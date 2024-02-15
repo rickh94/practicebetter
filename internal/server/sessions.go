@@ -109,3 +109,32 @@ func (s *Server) LogoutUser(ctx context.Context) error {
 	s.SM.Remove(ctx, "userID")
 	return nil
 }
+
+type PracticeBreak struct {
+	TimeTaken time.Time
+	PlanID    string
+}
+
+const LAST_BREAK_KEY = "lastBreak"
+
+func (s *Server) SetLastBreak(ctx context.Context, planID string) {
+	s.SM.Put(ctx, LAST_BREAK_KEY, PracticeBreak{
+		time.Now(),
+		planID,
+	})
+}
+
+func (s *Server) GetLastBreak(ctx context.Context, planID string) (time.Time, bool) {
+	b, ok := s.SM.Get(ctx, LAST_BREAK_KEY).(PracticeBreak)
+	if !ok || b.PlanID != planID {
+		s.ClearLastBreak(ctx)
+		s.SetLastBreak(ctx, planID)
+		return time.Now(), false
+	}
+	return b.TimeTaken, true
+}
+
+func (s *Server) ClearLastBreak(ctx context.Context) {
+	s.SM.Remove(ctx, LAST_BREAK_KEY)
+
+}

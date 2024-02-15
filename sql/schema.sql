@@ -75,6 +75,7 @@ CREATE TABLE spots (
     CHECK(LENGTH(name) > 0),
     CHECK(priority > -3),
     CHECK(priority < 3),
+    CHECK(skip_days > 0),
     PRIMARY KEY (id),
     CONSTRAINT piece FOREIGN KEY (piece_id) REFERENCES pieces (
         id

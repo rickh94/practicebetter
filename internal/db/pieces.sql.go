@@ -496,6 +496,7 @@ WHERE user_id = ?1
 AND stage = 'active'
 AND completed_spot_count > 5
 AND id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = ?2)
+ORDER BY last_practiced DESC
 `
 
 type ListActivePiecesWithCompletedSpotsForPlanParams struct {
@@ -550,6 +551,7 @@ SELECT
     (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS active_spots
 FROM pieces
 WHERE user_id = ? AND stage = 'active'
+ORDER BY last_practiced DESC
 `
 
 type ListActiveUserPiecesRow struct {
@@ -601,6 +603,7 @@ SELECT
     (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage != 'completed') AS active_spots
 FROM pieces
 WHERE user_id = ?
+ORDER BY last_practiced DESC
 `
 
 type ListAllUserPiecesRow struct {
@@ -712,6 +715,7 @@ SELECT
             WHERE practice_plan_spots.practice_plan_id = ?1)) AS new_spots_count
 FROM pieces
 WHERE user_id = ?2 AND stage = 'active' AND new_spots_count > 0
+ORDER BY pieces.last_practiced DESC
 `
 
 type ListPiecesWithNewSpotsForPlanParams struct {
@@ -762,6 +766,7 @@ FROM pieces
 WHERE user_id = ?1
 AND random_spot_count > 0
 AND pieces.id NOT IN (SELECT practice_plan_pieces.piece_id FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = ?2)
+ORDER BY last_practiced DESC
 `
 
 type ListRandomSpotPiecesForPlanParams struct {

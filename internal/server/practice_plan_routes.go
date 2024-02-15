@@ -459,6 +459,9 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.ClearLastBreak(r.Context())
+	s.SetLastBreak(r.Context(), newPlan.ID)
+
 	if r.FormValue("customize") == "on" {
 		htmx.PushURL(r, "/library/plans/"+newPlan.ID+"/edit")
 		ctx := context.WithValue(r.Context(), ck.ActivePlanKey, newPlan.ID)
@@ -2056,4 +2059,59 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), ck.ActivePlanKey, newPlan.ID)
 	ctx = context.WithValue(ctx, ck.UserKey, user)
 	s.renderPracticePlanPage(w, r.WithContext(ctx), newPlan.ID, user.ID)
+}
+
+func (s *Server) takeABreak(w http.ResponseWriter, r *http.Request) {
+	planID, ok := r.Context().Value(ck.ActivePlanKey).(string)
+	if !ok {
+		http.Error(w, "No active plan", http.StatusBadRequest)
+		return
+	}
+
+	s.SetLastBreak(r.Context(), planID)
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) shouldRecommendBreak(w http.ResponseWriter, r *http.Request) {
+	planID, ok := r.Context().Value(ck.ActivePlanKey).(string)
+	if !ok {
+		http.Error(w, "No active plan", http.StatusBadRequest)
+		return
+	}
+
+	lastBreakTime, ok := s.GetLastBreak(r.Context(), planID)
+	if !ok {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if time.Since(lastBreakTime) > config.TIME_BETWEEN_BREAKS {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte("true")); err != nil {
+			log.Default().Println(err)
+		}
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		if _, err := w.Write([]byte("false")); err != nil {
+			log.Default().Println(err)
+		}
+		return
+	}
+}
+
+func (s *Server) lastBreak(w http.ResponseWriter, r *http.Request) {
+	planID, ok := r.Context().Value(ck.ActivePlanKey).(string)
+	if !ok {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	lastBreakTime, ok := s.GetLastBreak(r.Context(), planID)
+	if !ok {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write([]byte(lastBreakTime.String())); err != nil {
+		log.Default().Println(err)
+	}
 }

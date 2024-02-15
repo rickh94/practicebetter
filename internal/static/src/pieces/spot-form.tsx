@@ -23,6 +23,8 @@ export default function SpotFormFields({
   backTo,
   showStage = false,
   csrf,
+  spotid = "",
+  pieceid = "",
 }: {
   formState: FormState<SpotFormData>;
   setValue: UseFormSetValue<SpotFormData>;
@@ -32,6 +34,8 @@ export default function SpotFormFields({
   backTo: string;
   showStage?: boolean;
   csrf: string;
+  spotid?: string;
+  pieceid?: string;
 }) {
   return (
     <div>
@@ -144,11 +148,15 @@ export default function SpotFormFields({
             csrf={csrf}
             save={(url) => setValue("audioPromptUrl", url)}
             audioPromptUrl={watch("audioPromptUrl")}
+            spotid={spotid}
+            pieceid={pieceid}
           />
           <AddImagePrompt
             csrf={csrf}
             save={(url) => setValue("imagePromptUrl", url)}
             imagePromptUrl={watch("imagePromptUrl")}
+            spotid={spotid}
+            pieceid={pieceid}
           />
           <AddReminders
             textPrompt={watch("textPrompt")}

@@ -382,6 +382,7 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 		currentTempo.Int64 = int64(currentTempoInt)
 		currentTempo.Valid = true
 	}
+
 	measures := sql.NullString{Valid: false}
 	measuresVal := r.FormValue("measures")
 	if measuresVal != "" && measuresVal != "null" {
@@ -452,6 +453,107 @@ func (s *Server) updateSpot(w http.ResponseWriter, r *http.Request) {
 	}
 	token := csrf.Token(r)
 	s.HxRender(w, r, librarypages.SingleSpot(s, spot, token), spot.Name+" - "+spot.PieceTitle)
+}
+
+type UpdatedSpot struct {
+	Name           string `json:"name"`
+	Stage          string `json:"stage"`
+	StageStarted   *int64 `json:"stageStarted,omitempty"`
+	AudioPromptUrl string `json:"audioPromptUrl"`
+	ImagePromptUrl string `json:"imagePromptUrl"`
+	NotesPrompt    string `json:"notesPrompt"`
+	TextPrompt     string `json:"textPrompt"`
+	CurrentTempo   *int64 `json:"currentTempo,omitempty"`
+	Measures       string `json:"measures,omitempty"`
+	ID             string `json:"id"`
+	PieceID        string `json:"pieceId"`
+}
+
+func (s *Server) updatePartialSpot(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	user := r.Context().Value(ck.UserKey).(db.User)
+	queries := db.New(s.DB)
+
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid Form",
+			Title:    "Invalid Input",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	currentTempo := sql.NullInt64{Valid: false}
+	currentTempoVal := r.FormValue("currentTempo")
+	if currentTempoVal != "" && currentTempoVal != "null" {
+		currentTempoInt, err := strconv.Atoi(currentTempoVal)
+		if err != nil {
+			log.Default().Println(err)
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Invalid Current Tempo",
+				Title:    "Error",
+				Variant:  "error",
+				Duration: 3000,
+			}); err != nil {
+				log.Default().Println(err)
+			}
+			http.Error(w, "Invalid current tempo", http.StatusBadRequest)
+			return
+		}
+		currentTempo.Int64 = int64(currentTempoInt)
+		currentTempo.Valid = true
+	}
+
+	measures := sql.NullString{Valid: false}
+	measuresVal := r.FormValue("measures")
+	if measuresVal != "" && measuresVal != "null" {
+		measures.String = measuresVal
+		measures.Valid = true
+	}
+
+	updatedSpot, err := queries.UpdatePartialSpot(r.Context(), db.UpdatePartialSpotParams{
+		Name:         r.FormValue("name"),
+		CurrentTempo: currentTempo,
+		Measures:     measures,
+		SpotID:       spotID,
+		UserID:       user.ID,
+		PieceID:      pieceID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not update spot")
+		return
+	}
+
+	updatedSpotInfo := UpdatedSpot{
+		Name:           updatedSpot.Name,
+		Stage:          updatedSpot.Stage,
+		AudioPromptUrl: updatedSpot.AudioPromptUrl,
+		ImagePromptUrl: updatedSpot.ImagePromptUrl,
+		NotesPrompt:    updatedSpot.NotesPrompt,
+		TextPrompt:     updatedSpot.TextPrompt,
+		ID:             updatedSpot.ID,
+		PieceID:        updatedSpot.PieceID,
+	}
+	if updatedSpot.CurrentTempo.Valid {
+		updatedSpotInfo.CurrentTempo = &updatedSpot.CurrentTempo.Int64
+	}
+	if updatedSpot.Measures.Valid {
+		updatedSpotInfo.Measures = updatedSpot.Measures.String
+	}
+	if updatedSpot.StageStarted.Valid {
+		updatedSpotInfo.StageStarted = &updatedSpot.StageStarted.Int64
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(updatedSpotInfo); err != nil {
+		log.Default().Println(err)
+	}
 }
 
 func (s *Server) deleteSpot(w http.ResponseWriter, r *http.Request) {
@@ -613,6 +715,13 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 				http.Error(w, "Could not promote to random", http.StatusInternalServerError)
 				return
 			}
+			if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+				UserID:  user.ID,
+				PieceID: pieceID,
+			}); err != nil {
+				s.DatabaseError(w, r, err, "Could not update piece practiced")
+				return
+			}
 		case "extra_repeat":
 			if err := qtx.PromoteSpotToExtraRepeat(r.Context(), db.PromoteSpotToExtraRepeatParams{
 				UserID:  user.ID,
@@ -621,6 +730,13 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 			}); err != nil {
 				log.Default().Println(err)
 				http.Error(w, "Could not promote to more repeat", http.StatusInternalServerError)
+				return
+			}
+			if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+				UserID:  user.ID,
+				PieceID: pieceID,
+			}); err != nil {
+				s.DatabaseError(w, r, err, "Could not update piece practiced")
 				return
 			}
 		}
@@ -634,39 +750,6 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 	if _, err := w.Write([]byte("OK")); err != nil {
 		log.Default().Println(err)
-	}
-}
-
-func (s *Server) getEditRemindersForm(w http.ResponseWriter, r *http.Request) {
-	pieceID := chi.URLParam(r, "pieceID")
-	spotID := chi.URLParam(r, "spotID")
-	user := r.Context().Value(ck.UserKey).(db.User)
-	queries := db.New(s.DB)
-
-	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
-		SpotID:  spotID,
-		UserID:  user.ID,
-		PieceID: pieceID,
-	})
-	if err != nil {
-		// TODO: create a pretty 404 handler
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not find matching spot",
-			Title:    "Not Found",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, "Not Found", http.StatusNotFound)
-		return
-	}
-
-	token := csrf.Token(r)
-	if err := librarypages.EditRemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, token, "").Render(r.Context(), w); err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Render Error", http.StatusInternalServerError)
 	}
 }
 
@@ -686,63 +769,138 @@ func (s *Server) updateReminders(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.DatabaseError(w, r, err, "Could not update reminders")
 		log.Default().Println(err)
-		if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not update reminders",
-			Title:    "Database Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		if err := librarypages.EditRemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID, csrf.Token(r), "Failed to Update").Render(r.Context(), w); err != nil {
-			log.Default().Println(err)
-		}
 		http.Error(w, "Something went wrong", http.StatusInternalServerError)
 		return
 	}
 
-	if err := htmx.Trigger(r, "UpdateSpotRemindersField", map[string]string{
-		"id":   spot.ID,
-		"text": newText,
-	}); err != nil {
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(spot); err != nil {
 		log.Default().Println(err)
-	}
-	if err := librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w); err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Render Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }
 
-func (s *Server) getReminders(w http.ResponseWriter, r *http.Request) {
+func (s *Server) updateSpotImage(w http.ResponseWriter, r *http.Request) {
 	pieceID := chi.URLParam(r, "pieceID")
 	spotID := chi.URLParam(r, "spotID")
+	if pieceID == "" || spotID == "" {
+		http.Error(w, "Missing pieceID or spotID", http.StatusBadRequest)
+		return
+	}
 	user := r.Context().Value(ck.UserKey).(db.User)
-	queries := db.New(s.DB)
-
-	spot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
-		SpotID:  spotID,
-		UserID:  user.ID,
-		PieceID: pieceID,
-	})
-	if err != nil {
-		// TODO: create a pretty 404 handler
+	r.Body = http.MaxBytesReader(w, r.Body, config.MAX_UPLOAD_SIZE)
+	if err := r.ParseMultipartForm(config.MAX_UPLOAD_SIZE); err != nil {
 		log.Default().Println(err)
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not find matching spot",
-			Title:    "Not Found",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, "Not Found", http.StatusNotFound)
+		http.Error(w, "The uploaded file is too big. Please choose an file that's less than 1MB in size", http.StatusBadRequest)
 		return
 	}
 
-	if err := librarypages.RemindersSummary(spot.TextPrompt, spot.PieceID, spot.ID).Render(r.Context(), w); err != nil {
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
 		log.Default().Println(err)
-		http.Error(w, "Render Error", http.StatusInternalServerError)
+		http.Error(w, "File Error", http.StatusBadRequest)
+		if _, err := w.Write([]byte("Could not load file")); err != nil {
+			log.Default().Println(err)
+		}
+		return
 	}
+	newFileName, newFileUrl, err := s.saveImage(file, fileHeader, user.ID)
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "File Save Error", http.StatusInternalServerError)
+		if _, err := w.Write([]byte("Could not save file")); err != nil {
+			log.Default().Println(err)
+		}
+		return
+	}
+
+	queries := db.New(s.DB)
+
+	if err := queries.UpdateImagePrompt(r.Context(), db.UpdateImagePromptParams{
+		SpotID:         spotID,
+		UserID:         user.ID,
+		PieceID:        pieceID,
+		ImagePromptUrl: newFileUrl,
+	}); err != nil {
+		s.DatabaseError(w, r, err, "Could not update image prompt")
+		log.Default().Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	data := UploadedFileInfo{
+		newFileName,
+		newFileUrl,
+	}
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+}
+
+func (s *Server) updateSpotAudio(w http.ResponseWriter, r *http.Request) {
+	pieceID := chi.URLParam(r, "pieceID")
+	spotID := chi.URLParam(r, "spotID")
+	if pieceID == "" || spotID == "" {
+		http.Error(w, "Missing pieceID or spotID", http.StatusBadRequest)
+		return
+	}
+	user := r.Context().Value(ck.UserKey).(db.User)
+	r.Body = http.MaxBytesReader(w, r.Body, config.MAX_UPLOAD_SIZE)
+	if err := r.ParseMultipartForm(config.MAX_UPLOAD_SIZE); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "The uploaded file is too big. Please choose an file that's less than 1MB in size", http.StatusBadRequest)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "File Error", http.StatusBadRequest)
+		if _, err := w.Write([]byte("Could not load file")); err != nil {
+			log.Default().Println(err)
+		}
+		return
+	}
+	newFileName, newFileUrl, err := s.saveAudio(file, fileHeader, user.ID)
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "File Save Error", http.StatusInternalServerError)
+		if _, err := w.Write([]byte("Could not save file")); err != nil {
+			log.Default().Println(err)
+		}
+		return
+	}
+
+	queries := db.New(s.DB)
+
+	if err := queries.UpdateAudioPrompt(r.Context(), db.UpdateAudioPromptParams{
+		SpotID:         spotID,
+		UserID:         user.ID,
+		PieceID:        pieceID,
+		AudioPromptUrl: newFileUrl,
+	}); err != nil {
+		s.DatabaseError(w, r, err, "Could not update audio prompt")
+		log.Default().Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+
+	data := UploadedFileInfo{
+		newFileName,
+		newFileUrl,
+	}
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 }
 
 func (s *Server) getPracticeSpotDisplay(w http.ResponseWriter, r *http.Request) {

@@ -753,6 +753,144 @@ func (q *Queries) PromoteSpotToRandom(ctx context.Context, arg PromoteSpotToRand
 	return err
 }
 
+const updateAudioPrompt = `-- name: UpdateAudioPrompt :exec
+UPDATE spots
+SET
+    audio_prompt_url = ?
+WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
+`
+
+type UpdateAudioPromptParams struct {
+	AudioPromptUrl string `json:"audioPromptUrl"`
+	SpotID         string `json:"spotId"`
+	UserID         string `json:"userId"`
+	PieceID        string `json:"pieceId"`
+}
+
+func (q *Queries) UpdateAudioPrompt(ctx context.Context, arg UpdateAudioPromptParams) error {
+	_, err := q.db.ExecContext(ctx, updateAudioPrompt,
+		arg.AudioPromptUrl,
+		arg.SpotID,
+		arg.UserID,
+		arg.PieceID,
+	)
+	return err
+}
+
+const updateImagePrompt = `-- name: UpdateImagePrompt :exec
+UPDATE spots
+SET
+    image_prompt_url = ?
+WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
+`
+
+type UpdateImagePromptParams struct {
+	ImagePromptUrl string `json:"imagePromptUrl"`
+	SpotID         string `json:"spotId"`
+	UserID         string `json:"userId"`
+	PieceID        string `json:"pieceId"`
+}
+
+func (q *Queries) UpdateImagePrompt(ctx context.Context, arg UpdateImagePromptParams) error {
+	_, err := q.db.ExecContext(ctx, updateImagePrompt,
+		arg.ImagePromptUrl,
+		arg.SpotID,
+		arg.UserID,
+		arg.PieceID,
+	)
+	return err
+}
+
+const updateNotesPrompt = `-- name: UpdateNotesPrompt :one
+UPDATE spots
+SET
+    notes_prompt = ?
+WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+`
+
+type UpdateNotesPromptParams struct {
+	NotesPrompt string `json:"notesPrompt"`
+	SpotID      string `json:"spotId"`
+	UserID      string `json:"userId"`
+	PieceID     string `json:"pieceId"`
+}
+
+func (q *Queries) UpdateNotesPrompt(ctx context.Context, arg UpdateNotesPromptParams) (Spot, error) {
+	row := q.db.QueryRowContext(ctx, updateNotesPrompt,
+		arg.NotesPrompt,
+		arg.SpotID,
+		arg.UserID,
+		arg.PieceID,
+	)
+	var i Spot
+	err := row.Scan(
+		&i.ID,
+		&i.PieceID,
+		&i.Name,
+		&i.Stage,
+		&i.Measures,
+		&i.AudioPromptUrl,
+		&i.ImagePromptUrl,
+		&i.NotesPrompt,
+		&i.TextPrompt,
+		&i.CurrentTempo,
+		&i.LastPracticed,
+		&i.StageStarted,
+		&i.SkipDays,
+		&i.Priority,
+	)
+	return i, err
+}
+
+const updatePartialSpot = `-- name: UpdatePartialSpot :one
+UPDATE spots
+SET
+    name = ?,
+    current_tempo = ?,
+    measures = ?
+WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+`
+
+type UpdatePartialSpotParams struct {
+	Name         string         `json:"name"`
+	CurrentTempo sql.NullInt64  `json:"currentTempo"`
+	Measures     sql.NullString `json:"measures"`
+	SpotID       string         `json:"spotId"`
+	UserID       string         `json:"userId"`
+	PieceID      string         `json:"pieceId"`
+}
+
+func (q *Queries) UpdatePartialSpot(ctx context.Context, arg UpdatePartialSpotParams) (Spot, error) {
+	row := q.db.QueryRowContext(ctx, updatePartialSpot,
+		arg.Name,
+		arg.CurrentTempo,
+		arg.Measures,
+		arg.SpotID,
+		arg.UserID,
+		arg.PieceID,
+	)
+	var i Spot
+	err := row.Scan(
+		&i.ID,
+		&i.PieceID,
+		&i.Name,
+		&i.Stage,
+		&i.Measures,
+		&i.AudioPromptUrl,
+		&i.ImagePromptUrl,
+		&i.NotesPrompt,
+		&i.TextPrompt,
+		&i.CurrentTempo,
+		&i.LastPracticed,
+		&i.StageStarted,
+		&i.SkipDays,
+		&i.Priority,
+	)
+	return i, err
+}
+
 const updateSpot = `-- name: UpdateSpot :exec
 UPDATE spots
 SET

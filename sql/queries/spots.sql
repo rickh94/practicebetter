@@ -99,10 +99,38 @@ SET
     measures = ?
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
 
+-- name: UpdatePartialSpot :one
+UPDATE spots
+SET
+    name = ?,
+    current_tempo = ?,
+    measures = ?
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
+RETURNING *;
+
 -- name: UpdateTextPrompt :one
 UPDATE spots
 SET
     text_prompt = ?
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
+RETURNING *;
+
+-- name: UpdateImagePrompt :exec
+UPDATE spots
+SET
+    image_prompt_url = ?
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
+
+-- name: UpdateAudioPrompt :exec
+UPDATE spots
+SET
+    audio_prompt_url = ?
+WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1);
+
+-- name: UpdateNotesPrompt :one
+UPDATE spots
+SET
+    notes_prompt = ?
 WHERE spots.id = :spot_id AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = :user_id AND pieces.id = :piece_id LIMIT 1)
 RETURNING *;
 

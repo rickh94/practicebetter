@@ -1,2 +1,5 @@
 .github/*
 drizzle/*
+tsconfig.json
+tmp
+node_modules

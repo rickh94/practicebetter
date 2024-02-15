@@ -51,49 +51,34 @@ export function RandomSpots({
     return spots;
   }, [initialspots]);
 
-  const updateSpotRemindersField = useCallback(
-    (event: CustomEvent) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const { id, text } = event.detail;
-      if (!id || !text || typeof id !== "string" || typeof text !== "string") {
-        throw new Error("Invalid event");
-      }
-      setSpots((spots) =>
-        spots.map((spot) =>
-          spot.id === id ? { ...spot, textPrompt: text } : spot,
-        ),
-      );
+  const updateSpot = useCallback(
+    (updatedSpot: BasicSpot) => {
+      setSpots((spots) => {
+        const updated = spots.map((spot) => {
+          if (spot.id === updatedSpot.id) {
+            return updatedSpot;
+          }
+          return spot;
+        });
+        return [...updated];
+      });
     },
     [setSpots],
   );
-  const finish = useCallback(
-    (finalSummary: PracticeSummaryItem[]) => {
-      setSummary(finalSummary);
-      setMode("summary");
-      globalThis.removeEventListener(
-        "UpdateSpotRemindersField",
-        updateSpotRemindersField,
-      );
-    },
-    [updateSpotRemindersField],
-  );
+
+  const finish = useCallback((finalSummary: PracticeSummaryItem[]) => {
+    setSummary(finalSummary);
+    setMode("summary");
+  }, []);
 
   const startPracticing = useCallback(() => {
     setStartTime(new Date());
     setMode("practice");
-    globalThis.addEventListener(
-      "UpdateSpotRemindersField",
-      updateSpotRemindersField,
-    );
-  }, [setMode, setStartTime, updateSpotRemindersField]);
+  }, [setMode, setStartTime]);
 
   const backToSetup = useCallback(() => {
     setMode("setup");
-    document.removeEventListener(
-      "UpdateSpotRemindersField",
-      updateSpotRemindersField,
-    );
-  }, [updateSpotRemindersField]);
+  }, []);
 
   useEffect(() => {
     // get initial sessions value from query param
@@ -155,6 +140,8 @@ export function RandomSpots({
                 pieceid={pieceid}
                 numSessions={numSessions}
                 planid={planid}
+                csrf={csrf}
+                updateSpot={updateSpot}
               />
             ),
             summary: (
@@ -456,6 +443,8 @@ export function SinglePractice({
   pieceid,
   numSessions,
   planid,
+  csrf,
+  updateSpot,
 }: {
   spots: BasicSpot[];
   setup: () => void;
@@ -463,6 +452,8 @@ export function SinglePractice({
   pieceid?: string;
   numSessions: number;
   planid?: string;
+  csrf?: string;
+  updateSpot?: (data: BasicSpot) => void;
 }) {
   const [currentSpot, setCurrentSpot] = useState<BasicSpot | null>(null);
   const [neglectInfo, setNeglectInfo] = useState<SpotNeglectInfo[]>([]);
@@ -521,6 +512,22 @@ export function SinglePractice({
       window.scrollTo(0, topRef.current.offsetTop);
     }
   }, []);
+
+  const updateSpotEverywhere = useCallback(
+    (updatedSpot: BasicSpot) => {
+      updateSpot?.(updatedSpot);
+      setEligibleSpots((spots) => {
+        const updated = spots.map((spot) => {
+          if (spot.id === updatedSpot.id) {
+            return updatedSpot;
+          }
+          return spot;
+        });
+        return [...updated];
+      });
+    },
+    [updateSpot],
+  );
 
   const handleDone = useCallback(() => {
     const finalSummary: PracticeSummaryItem[] = [];
@@ -901,7 +908,12 @@ export function SinglePractice({
           <ScaleCrossFadeContent
             component={
               currentSpot ? (
-                <PracticeSpotDisplay spot={currentSpot} pieceid={pieceid} />
+                <PracticeSpotDisplay
+                  spot={currentSpot}
+                  pieceid={pieceid}
+                  updateSpot={updateSpotEverywhere}
+                  csrf={csrf}
+                />
               ) : (
                 <p className="text-center">Something went wrong</p>
               )

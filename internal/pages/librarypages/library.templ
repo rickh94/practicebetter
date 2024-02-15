@@ -19,7 +19,7 @@ templ Dashboard(s pages.ServerUtil, pieces []db.ListRecentlyPracticedPiecesRow, 
 					@components.PracticePlanCard(activePracticePlan)
 				} else {
 					@components.HxLink("gap-2 py-6 px-6 h-16 sm:h-20 md:h-24 text-2xl sm:text-3xl font-semibold action-button violet focusable", "/library/plans/create", "#main-content") {
-						<span class="-mr-1 size-8 icon-[custom--music-file-curly-pencil] sm:size-10" aria-hidden="true"></span>
+						<span class="-ml-1 size-8 icon-[custom--music-file-curly-pencil] sm:size-10" aria-hidden="true"></span>
 						Go Practice
 					}
 				}

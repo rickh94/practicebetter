@@ -126,6 +126,7 @@
     pointer-events: inherit;
     overflow-y: auto;
     transition-property: transform, opacity;
+    z-index: 50;
     @apply h-max translate-y-0 scale-100 shadow-none duration-150;
   }
 
@@ -140,6 +141,7 @@
     pointer-events: inherit;
     overflow-y: auto;
     transition-property: transform, opacity;
+    z-index: 50;
     @apply h-max translate-y-0 scale-100 shadow-2xl shadow-white/20 duration-150;
   }
 
@@ -192,6 +194,7 @@
       margin-inline: auto;
       overflow-y: auto;
       transition-property: transform, opacity;
+      z-index: 50;
       @apply h-max translate-y-0 scale-100 duration-150;
     }
 
@@ -808,6 +811,11 @@
     @apply outline-rose-600;
   }
 
+  .focusable.red:focus-visible,
+  .focusable.red:has(:focus-visible) {
+    @apply outline-red-600;
+  }
+
   .focusable:focus-visible,
   .focusable:has(:focus-visible) {
     @apply outline-black;
@@ -878,6 +886,10 @@
 
   .w-huge {
     width: 100%;
+  }
+
+  .z-100 {
+    z-index: 100;
   }
 
   @media screen(md) {
