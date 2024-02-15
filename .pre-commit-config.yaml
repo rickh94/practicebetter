@@ -37,3 +37,4 @@ repos:
     rev: "v4.0.0-alpha.8" # Use the sha or tag you want to point at
     hooks:
       - id: prettier
+        args: ["--no-error-on-unmatched-pattern"]
