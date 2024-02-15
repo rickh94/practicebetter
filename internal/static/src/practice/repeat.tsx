@@ -134,6 +134,10 @@ export function Repeat({
     setMode("break_fail");
   }, [setMode, pieceid, csrf, startTime, spot]);
 
+  const updateSpot = useCallback((spot: BasicSpot) => {
+    setSpot(spot);
+  }, []);
+
   return (
     <div className="relative left-0 top-0 w-full sm:mx-auto sm:max-w-6xl">
       <ScaleCrossFadeContent
@@ -147,6 +151,8 @@ export function Repeat({
                 piecetitle={piecetitle}
                 kidMode={kidMode}
                 setKidMode={updateKidMode}
+                csrf={csrf}
+                updateSpot={updateSpot}
               />
             ),
             practice: (
@@ -158,6 +164,8 @@ export function Repeat({
                 pieceid={pieceid}
                 piecetitle={piecetitle}
                 kidMode={kidMode}
+                csrf={csrf}
+                updateSpot={updateSpot}
               />
             ),
             break_success: (
@@ -194,6 +202,8 @@ function RepeatPrepare({
   piecetitle = "",
   kidMode,
   setKidMode,
+  csrf = "",
+  updateSpot,
 }: {
   startPracticing: () => void;
   spot?: BasicSpot | null;
@@ -201,6 +211,8 @@ function RepeatPrepare({
   piecetitle?: string;
   kidMode: boolean;
   setKidMode: (kidMode: boolean) => void;
+  csrf?: string;
+  updateSpot: (spot: BasicSpot) => void;
 }) {
   return (
     <div className="flex w-full flex-col" id="repeat-prepare-wrapper">
@@ -211,6 +223,8 @@ function RepeatPrepare({
             spot={spot}
             pieceid={pieceid}
             piecetitle={piecetitle}
+            csrf={csrf}
+            updateSpot={updateSpot}
           />
         )}
       </div>
@@ -345,6 +359,8 @@ function RepeatPractice({
   pieceid,
   piecetitle = "",
   kidMode = false,
+  csrf = "",
+  updateSpot,
 }: {
   onSuccess: () => void;
   onFail: () => void;
@@ -353,6 +369,8 @@ function RepeatPractice({
   pieceid?: string;
   piecetitle?: string;
   kidMode?: boolean;
+  csrf?: string;
+  updateSpot: (spot: BasicSpot) => void;
 }) {
   const [numCompleted, setCompleted] = useState(0);
   const [waitedLongEnough, setWaitedLongEnough] = useState(true);
@@ -453,6 +471,8 @@ function RepeatPractice({
             spot={spot}
             pieceid={pieceid}
             piecetitle={piecetitle}
+            updateSpot={updateSpot}
+            csrf={csrf}
           />
         </div>
       )}

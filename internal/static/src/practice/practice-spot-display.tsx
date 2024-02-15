@@ -219,7 +219,7 @@ export function PracticeSpotDisplay({
               </button>
             ) : null}
             {piecetitle && (
-              <h4 className="-mb-3 -mt-2 text-sm italic text-neutral-900">
+              <h4 className="-mb-1 -mt-2 text-sm italic text-neutral-900">
                 {piecetitle}
               </h4>
             )}
