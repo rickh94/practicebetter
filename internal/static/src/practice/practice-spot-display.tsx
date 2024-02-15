@@ -218,24 +218,24 @@ export function PracticeSpotDisplay({
                 </span>
               </button>
             ) : null}
-            {piecetitle && (
+            {piecetitle ? (
               <h4 className="-mb-1 -mt-2 text-sm italic text-neutral-900">
                 {piecetitle}
               </h4>
-            )}
+            ) : null}
             <span className={cn("text-pretty", getSpotNameTextSize(spot))}>
               {spot.name ?? "Something went wrong"}
             </span>
-            {spot.currentTempo && (
+            {spot.currentTempo ? (
               <span className="mt-2 text-base font-medium text-neutral-700">
                 Current Tempo: {spot.currentTempo}
               </span>
-            )}
-            {spot.measures && (
+            ) : null}
+            {spot.measures ? (
               <span className="-mb-2 text-lg text-neutral-700">
                 Measures: {spot.measures}
               </span>
-            )}
+            ) : null}
           </div>
           {shouldDisplayPrompts && (
             <PracticeSpotPrompts
