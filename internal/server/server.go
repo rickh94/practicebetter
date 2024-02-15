@@ -74,7 +74,7 @@ func NewServer() *http.Server {
 	}
 
 	sm := scs.New()
-	sm.Lifetime = 24 * time.Hour
+	sm.Lifetime = 7 * 24 * time.Hour
 	sm.Store = redisstore.New(redisPool)
 
 	// SETUP WEBAUTHN
