@@ -300,6 +300,7 @@ export default function Summary({
           planid={planid}
           setup={setup}
           practice={practice}
+          csrf={csrf}
         />
       </div>
       <h2 className="w-full pt-12 text-center text-2xl font-semibold">
@@ -409,18 +410,20 @@ export function SummaryActions({
   setup,
   practice,
   pieceid,
+  csrf,
 }: {
   planid?: string;
   pieceid?: string;
   setup: () => void;
   practice: () => void;
+  csrf?: string;
 }) {
   if (planid) {
     return (
       <>
         {pieceid && <BackToPiece pieceid={pieceid} />}
         {planid && <BackToPlan planid={planid} />}
-        <NextPlanItem planid={planid} />
+        <NextPlanItem planid={planid} csrf={csrf} />
       </>
     );
   }

@@ -43,6 +43,7 @@ type PracticePlanData struct {
 	CompletedItems               int
 	TotalItems                   int
 	Intensity                    string
+	NeedsBreak                   bool
 }
 
 func canResume(planData PracticePlanData) bool {
@@ -108,6 +109,9 @@ templ PracticePlanPage(s pages.ServerUtil, planData PracticePlanData, csrf strin
 				@singlePlanContent(planData, csrf)
 			</div>
 		}
+	}
+	if planData.NeedsBreak {
+		<break-dialog open="true" csrf={ csrf }></break-dialog>
 	}
 	<script type="module" src={ s.StaticUrl("dist/practice-plan.js") }></script>
 }

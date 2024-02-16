@@ -24,6 +24,7 @@ import type {
   HTMXRequestEvent,
   ShowAlertEvent,
 } from "./types";
+import { BreakDialog } from "./ui/plan-components";
 
 try {
   register(
@@ -102,6 +103,11 @@ try {
       shadow: false,
     },
   );
+} catch (err) {
+  console.log(err);
+}
+try {
+  register(BreakDialog, "break-dialog", ["open", "csrf"], { shadow: false });
 } catch (err) {
   console.log(err);
 }

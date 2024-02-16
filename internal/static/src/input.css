@@ -997,6 +997,8 @@
       transform: translateY(var(--cy, 25px)) translateX(var(--cx, 25px))
         rotate(var(--crot, 360deg));
       opacity: 0;
+      display: none;
+      pointer-events: none;
     }
   }
 }

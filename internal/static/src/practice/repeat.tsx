@@ -178,6 +178,7 @@ export function Repeat({
                 promoteSpot={promoteSpot}
                 planid={planid}
                 kidMode={kidMode}
+                csrf={csrf}
               />
             ),
             break_fail: (
@@ -185,6 +186,7 @@ export function Repeat({
                 restart={setModePrepare}
                 pieceid={pieceid}
                 planid={planid}
+                csrf={csrf}
               />
             ),
           }[mode]
@@ -751,6 +753,7 @@ function RepeatBreakSuccess({
   promoteSpot,
   planid = "",
   kidMode = false,
+  csrf,
 }: {
   restart: () => void;
   pieceid?: string;
@@ -758,6 +761,7 @@ function RepeatBreakSuccess({
   promoteSpot: (toStage: string) => void;
   planid?: string;
   kidMode?: boolean;
+  csrf?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -858,6 +862,7 @@ function RepeatBreakSuccess({
             pieceid={pieceid}
             planid={planid}
             restart={restart}
+            csrf={csrf}
           />
         </div>
         <div className="prose prose-neutral mt-8">
@@ -886,10 +891,12 @@ function RepeatBreakFail({
   restart,
   pieceid,
   planid = "",
+  csrf = "",
 }: {
   restart: () => void;
   pieceid?: string;
   planid?: string;
+  csrf?: string;
 }) {
   return (
     <div className="flex w-full flex-col items-center sm:mx-auto sm:max-w-3xl">
@@ -901,6 +908,7 @@ function RepeatBreakFail({
 
       <div className="my-8 flex w-full flex-col justify-center gap-4 sm:flex-row sm:gap-6">
         <RepeatFinishedActionButtons
+          csrf={csrf}
           pieceid={pieceid}
           planid={planid}
           restart={restart}
@@ -948,17 +956,19 @@ function RepeatFinishedActionButtons({
   pieceid,
   planid,
   restart,
+  csrf,
 }: {
   pieceid?: string;
   planid?: string;
   restart?: () => void;
+  csrf?: string;
 }) {
   if (planid) {
     return (
       <>
         {!!pieceid && <BackToPiece pieceid={pieceid} />}
         <BackToPlan planid={planid} />
-        <NextPlanItem planid={planid} />
+        <NextPlanItem planid={planid} csrf={csrf} />
       </>
     );
   }

@@ -25,5 +25,6 @@ const (
 	MAX_ALLOWED_RANDOM_SPOTS = 20
 	MAX_UPLOAD_SIZE          = 1024 * 1024 // 1MiB
 
-	TIME_BETWEEN_BREAKS = 30 * time.Minute
+	// 30 minutes of practicing plus a 3 minute break
+	TIME_BETWEEN_BREAKS = 33 * time.Minute
 )

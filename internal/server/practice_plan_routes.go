@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -531,6 +532,18 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 		planData.InterleaveDaysSpotsCompleted = true
 		planData.InterleaveSpotsCompleted = true
 		planData.Intensity = planPieces[0].Intensity
+	}
+
+	if planData.IsActive {
+		needsBreak, err := s.needsBreak(r.Context(), planID)
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		planData.NeedsBreak = needsBreak
+	} else {
+		planData.NeedsBreak = false
 	}
 
 	for _, row := range planPieces {
@@ -2072,30 +2085,29 @@ func (s *Server) takeABreak(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *Server) needsBreak(ctx context.Context, planID string) (bool, error) {
+	lastBreakTime, ok := s.GetLastBreak(ctx, planID)
+	if !ok {
+		return false, fmt.Errorf("Could not get last break")
+	}
+	return time.Since(lastBreakTime) > config.TIME_BETWEEN_BREAKS, nil
+}
+
 func (s *Server) shouldRecommendBreak(w http.ResponseWriter, r *http.Request) {
 	planID, ok := r.Context().Value(ck.ActivePlanKey).(string)
 	if !ok {
 		http.Error(w, "No active plan", http.StatusBadRequest)
 		return
 	}
-
-	lastBreakTime, ok := s.GetLastBreak(r.Context(), planID)
-	if !ok {
+	shouldBreak, err := s.needsBreak(r.Context(), planID)
+	if err != nil {
+		log.Default().Println(err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	if time.Since(lastBreakTime) > config.TIME_BETWEEN_BREAKS {
-		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte("true")); err != nil {
-			log.Default().Println(err)
-		}
-		return
-	} else {
-		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write([]byte("false")); err != nil {
-			log.Default().Println(err)
-		}
-		return
+	w.WriteHeader(http.StatusOK)
+	if _, err := w.Write([]byte(fmt.Sprintf("%t", shouldBreak))); err != nil {
+		log.Default().Println(err)
 	}
 }
 

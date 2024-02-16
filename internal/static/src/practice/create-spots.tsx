@@ -1,7 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/preact";
 import { uniqueID } from "../common";
-import { useCallback, useRef } from "preact/compat";
-import { type StateUpdater } from "preact/hooks";
+import { useCallback, useRef, type StateUpdater } from "preact/hooks";
 import { type BasicSpot } from "../validators";
 
 export function CreateSpots({

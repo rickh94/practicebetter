@@ -1,6 +1,7 @@
-import { type ReactNode, useEffect, useRef } from "preact/compat";
+import { useEffect, useRef } from "preact/hooks";
 import { cn } from "../common";
 import * as htmx from "htmx.org";
+import { type ReactNode } from "preact/compat";
 
 export const topNavClasses =
   "focusable flex h-14 items-center gap-2 rounded-xl bg-neutral-700/10 px-6 py-4 font-semibold text-neutral-700 transition-all duration-200 hover:bg-neutral-700/20";
