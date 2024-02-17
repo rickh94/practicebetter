@@ -6,7 +6,6 @@ type UpdatePlanProgressEvent = Event & {
 };
 
 function handleUpdatePlanProgressEvent(evt: UpdatePlanProgressEvent) {
-  console.log("update progress");
   if (!evt.detail) {
     throw new Error("Invalid event received from server");
   }

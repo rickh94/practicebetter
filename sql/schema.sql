@@ -92,6 +92,7 @@ CREATE TABLE practice_plans (
     date INTEGER NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT 0,
     practice_notes TEXT,
+    last_practiced INTEGER,
     CHECK (intensity IN ('light', 'medium', 'heavy')),
     PRIMARY KEY (id),
     CONSTRAINT user FOREIGN KEY (user_id) REFERENCES users (

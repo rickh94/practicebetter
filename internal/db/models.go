@@ -38,6 +38,7 @@ type PracticePlan struct {
 	Date          int64          `json:"date"`
 	Completed     bool           `json:"completed"`
 	PracticeNotes sql.NullString `json:"practiceNotes"`
+	LastPracticed sql.NullInt64  `json:"lastPracticed"`
 }
 
 type PracticePlanPiece struct {

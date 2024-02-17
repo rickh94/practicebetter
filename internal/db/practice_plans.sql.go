@@ -55,7 +55,7 @@ func (q *Queries) CompletePracticePlanPiece(ctx context.Context, arg CompletePra
 const completePracticePlanSpot = `-- name: CompletePracticePlanSpot :exec
 UPDATE practice_plan_spots
 SET completed = true,
-evaluation = NULL
+    evaluation = NULL
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ? AND practice_plans.user_id = ?) AND spot_id = ?
 `
 
@@ -88,7 +88,7 @@ INSERT INTO practice_plans (
     intensity,
     date
 ) VALUES (?, ?, ?, unixepoch('now'))
-RETURNING id, user_id, intensity, date, completed, practice_notes
+RETURNING id, user_id, intensity, date, completed, practice_notes, last_practiced
 `
 
 type CreatePracticePlanParams struct {
@@ -107,6 +107,7 @@ func (q *Queries) CreatePracticePlan(ctx context.Context, arg CreatePracticePlan
 		&i.Date,
 		&i.Completed,
 		&i.PracticeNotes,
+		&i.LastPracticed,
 	)
 	return i, err
 }
@@ -305,7 +306,7 @@ func (q *Queries) DeletePracticePlanSpot(ctx context.Context, arg DeletePractice
 }
 
 const getLatestPracticePlan = `-- name: GetLatestPracticePlan :one
-SELECT id, user_id, intensity, date, completed, practice_notes
+SELECT id, user_id, intensity, date, completed, practice_notes, last_practiced
 FROM practice_plans
 WHERE user_id = ?
 ORDER BY date DESC
@@ -322,6 +323,7 @@ func (q *Queries) GetLatestPracticePlan(ctx context.Context, userID string) (Pra
 		&i.Date,
 		&i.Completed,
 		&i.PracticeNotes,
+		&i.LastPracticed,
 	)
 	return i, err
 }
@@ -418,8 +420,26 @@ func (q *Queries) GetNextInfrequentSpot(ctx context.Context, arg GetNextInfreque
 	return i, err
 }
 
+const getPlanLastPracticed = `-- name: GetPlanLastPracticed :one
+SELECT last_practiced
+FROM practice_plans
+WHERE id = ? AND user_id = ?
+`
+
+type GetPlanLastPracticedParams struct {
+	ID     string `json:"id"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) GetPlanLastPracticed(ctx context.Context, arg GetPlanLastPracticedParams) (sql.NullInt64, error) {
+	row := q.db.QueryRowContext(ctx, getPlanLastPracticed, arg.ID, arg.UserID)
+	var last_practiced sql.NullInt64
+	err := row.Scan(&last_practiced)
+	return last_practiced, err
+}
+
 const getPracticePlan = `-- name: GetPracticePlan :one
-SELECT id, user_id, intensity, date, completed, practice_notes
+SELECT id, user_id, intensity, date, completed, practice_notes, last_practiced
 FROM practice_plans
 WHERE id = ? AND user_id = ?
 `
@@ -439,6 +459,7 @@ func (q *Queries) GetPracticePlan(ctx context.Context, arg GetPracticePlanParams
 		&i.Date,
 		&i.Completed,
 		&i.PracticeNotes,
+		&i.LastPracticed,
 	)
 	return i, err
 }
@@ -905,7 +926,7 @@ func (q *Queries) GetPracticePlanInterleaveSpots(ctx context.Context, arg GetPra
 
 const getPracticePlanWithPieces = `-- name: GetPracticePlanWithPieces :many
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
     practice_plan_pieces.practice_type as piece_practice_type,
     practice_plan_pieces.completed AS piece_completed,
     pieces.title AS piece_title,
@@ -933,6 +954,7 @@ type GetPracticePlanWithPiecesRow struct {
 	Date                int64          `json:"date"`
 	Completed           bool           `json:"completed"`
 	PracticeNotes       sql.NullString `json:"practiceNotes"`
+	LastPracticed       sql.NullInt64  `json:"lastPracticed"`
 	PiecePracticeType   string         `json:"piecePracticeType"`
 	PieceCompleted      bool           `json:"pieceCompleted"`
 	PieceTitle          sql.NullString `json:"pieceTitle"`
@@ -959,6 +981,7 @@ func (q *Queries) GetPracticePlanWithPieces(ctx context.Context, arg GetPractice
 			&i.Date,
 			&i.Completed,
 			&i.PracticeNotes,
+			&i.LastPracticed,
 			&i.PiecePracticeType,
 			&i.PieceCompleted,
 			&i.PieceTitle,
@@ -983,7 +1006,7 @@ func (q *Queries) GetPracticePlanWithPieces(ctx context.Context, arg GetPractice
 
 const getPracticePlanWithSpots = `-- name: GetPracticePlanWithSpots :many
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
     practice_plan_spots.practice_type as spot_practice_type,
     practice_plan_spots.completed as spot_completed,
     spots.name AS spot_name,
@@ -1013,6 +1036,7 @@ type GetPracticePlanWithSpotsRow struct {
 	Date             int64          `json:"date"`
 	Completed        bool           `json:"completed"`
 	PracticeNotes    sql.NullString `json:"practiceNotes"`
+	LastPracticed    sql.NullInt64  `json:"lastPracticed"`
 	SpotPracticeType string         `json:"spotPracticeType"`
 	SpotCompleted    bool           `json:"spotCompleted"`
 	SpotName         sql.NullString `json:"spotName"`
@@ -1041,6 +1065,7 @@ func (q *Queries) GetPracticePlanWithSpots(ctx context.Context, arg GetPracticeP
 			&i.Date,
 			&i.Completed,
 			&i.PracticeNotes,
+			&i.LastPracticed,
 			&i.SpotPracticeType,
 			&i.SpotCompleted,
 			&i.SpotName,
@@ -1067,7 +1092,7 @@ func (q *Queries) GetPracticePlanWithSpots(ctx context.Context, arg GetPracticeP
 
 const getPracticePlanWithTodo = `-- name: GetPracticePlanWithTodo :one
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
@@ -1091,6 +1116,7 @@ type GetPracticePlanWithTodoRow struct {
 	Date                 int64          `json:"date"`
 	Completed            bool           `json:"completed"`
 	PracticeNotes        sql.NullString `json:"practiceNotes"`
+	LastPracticed        sql.NullInt64  `json:"lastPracticed"`
 	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
 	SpotsCount           int64          `json:"spotsCount"`
 	CompletedPiecesCount int64          `json:"completedPiecesCount"`
@@ -1109,6 +1135,7 @@ func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePl
 		&i.Date,
 		&i.Completed,
 		&i.PracticeNotes,
+		&i.LastPracticed,
 		&i.CompletedSpotsCount,
 		&i.SpotsCount,
 		&i.CompletedPiecesCount,
@@ -1161,7 +1188,7 @@ func (q *Queries) HasIncompleteInfrequentSpots(ctx context.Context, arg HasIncom
 
 const listPaginatedPracticePlans = `-- name: ListPaginatedPracticePlans :many
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
@@ -1187,6 +1214,7 @@ type ListPaginatedPracticePlansRow struct {
 	Date                 int64          `json:"date"`
 	Completed            bool           `json:"completed"`
 	PracticeNotes        sql.NullString `json:"practiceNotes"`
+	LastPracticed        sql.NullInt64  `json:"lastPracticed"`
 	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
 	SpotsCount           int64          `json:"spotsCount"`
 	CompletedPiecesCount int64          `json:"completedPiecesCount"`
@@ -1211,6 +1239,7 @@ func (q *Queries) ListPaginatedPracticePlans(ctx context.Context, arg ListPagina
 			&i.Date,
 			&i.Completed,
 			&i.PracticeNotes,
+			&i.LastPracticed,
 			&i.CompletedSpotsCount,
 			&i.SpotsCount,
 			&i.CompletedPiecesCount,
@@ -1366,7 +1395,7 @@ func (q *Queries) ListPracticePlanSpotsInCategory(ctx context.Context, arg ListP
 
 const listRecentPracticePlans = `-- name: ListRecentPracticePlans :many
 SELECT
-    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes,
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id AND practice_plan_spots.completed = true) AS completed_spots_count,
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
@@ -1391,6 +1420,7 @@ type ListRecentPracticePlansRow struct {
 	Date                 int64          `json:"date"`
 	Completed            bool           `json:"completed"`
 	PracticeNotes        sql.NullString `json:"practiceNotes"`
+	LastPracticed        sql.NullInt64  `json:"lastPracticed"`
 	CompletedSpotsCount  int64          `json:"completedSpotsCount"`
 	SpotsCount           int64          `json:"spotsCount"`
 	CompletedPiecesCount int64          `json:"completedPiecesCount"`
@@ -1415,6 +1445,7 @@ func (q *Queries) ListRecentPracticePlans(ctx context.Context, arg ListRecentPra
 			&i.Date,
 			&i.Completed,
 			&i.PracticeNotes,
+			&i.LastPracticed,
 			&i.CompletedSpotsCount,
 			&i.SpotsCount,
 			&i.CompletedPiecesCount,
@@ -1433,6 +1464,22 @@ func (q *Queries) ListRecentPracticePlans(ctx context.Context, arg ListRecentPra
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePlanLastPracticed = `-- name: UpdatePlanLastPracticed :exec
+UPDATE practice_plans
+SET last_practiced = unixepoch("now")
+WHERE id = ? AND user_id = ?
+`
+
+type UpdatePlanLastPracticedParams struct {
+	ID     string `json:"id"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) UpdatePlanLastPracticed(ctx context.Context, arg UpdatePlanLastPracticedParams) error {
+	_, err := q.db.ExecContext(ctx, updatePlanLastPracticed, arg.ID, arg.UserID)
+	return err
 }
 
 const updatePlanPieceIdx = `-- name: UpdatePlanPieceIdx :exec

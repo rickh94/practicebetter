@@ -273,6 +273,16 @@ WHERE user_id = ? AND id != :plan_id
 ORDER BY date DESC
 LIMIT 1;
 
+-- name: GetPlanLastPracticed :one
+SELECT last_practiced
+FROM practice_plans
+WHERE id = ? AND user_id = ?;
+
+-- name: UpdatePlanLastPracticed :exec
+UPDATE practice_plans
+SET last_practiced = unixepoch("now")
+WHERE id = ? AND user_id = ?;
+
 -- name: UpdatePlanPieceIdx :exec
 UPDATE practice_plan_pieces
 SET idx = ?
@@ -303,7 +313,7 @@ WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE pra
 -- name: CompletePracticePlanSpot :exec
 UPDATE practice_plan_spots
 SET completed = true,
-evaluation = NULL
+    evaluation = NULL
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id) AND spot_id = ?;
 
 -- name: CompletePracticePlanPiece :exec

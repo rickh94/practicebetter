@@ -591,11 +591,16 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 			PieceID:      pieceID,
 			PracticeType: "random_spots",
 		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not complete practice plan piece", http.StatusInternalServerError)
+			s.DatabaseError(w, r, err, "Could not complete practice plan piece")
 			return
 		}
-
+		if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
+			ID:     pieceID,
+			UserID: user.ID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not update plan last practiced")
+			return
+		}
 	}
 
 	for _, spot := range info.Spots {
@@ -701,8 +706,15 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 			PieceID:      pieceID,
 			PracticeType: "starting_point",
 		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not complete practice plan piece", http.StatusInternalServerError)
+			s.DatabaseError(w, r, err, "Could not complete practice plan piece")
+			return
+		}
+
+		if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
+			ID:     pieceID,
+			UserID: user.ID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not update plan last practiced")
 			return
 		}
 
