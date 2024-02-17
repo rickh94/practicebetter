@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -300,9 +301,22 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tx, err := s.DB.Begin()
+	if err != nil {
+		log.Default().Printf("Database error: %v\n", err)
+		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
+		return
+	}
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
 	queries := db.New(s.DB)
+
+	qtx := queries.WithTx(tx)
 	if evaluation == "excellent" || evaluation == "fine" || evaluation == "poor" {
-		if err := queries.UpdateSpotEvaluation(r.Context(), db.UpdateSpotEvaluationParams{
+		if err := qtx.UpdateSpotEvaluation(r.Context(), db.UpdateSpotEvaluationParams{
 			Evaluation: sql.NullString{String: evaluation, Valid: true},
 			PlanID:     planID,
 			UserID:     user.ID,
@@ -321,11 +335,19 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := queries.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+		if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
 			UserID:  user.ID,
 			PieceID: pieceID,
 		}); err != nil {
 			s.DatabaseError(w, r, err, "Could not update piece practiced")
+			return
+		}
+
+		if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
+			ID:     planID,
+			UserID: user.ID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not update plan last practiced")
 			return
 		}
 	} else {
@@ -378,6 +400,12 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	if err := tx.Commit(); err != nil {
+		s.DatabaseError(w, r, err, "Database error")
+		return
+	}
+
 	s.SM.Put(r.Context(), "interleaveListIndex", interleaveListIndex)
 
 	nextSpot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
@@ -560,9 +588,22 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 	pieceID := r.FormValue("pieceID")
 	evaluation := r.FormValue("evaluation")
 
+	tx, err := s.DB.Begin()
+	if err != nil {
+		log.Default().Printf("Database error: %v\n", err)
+		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
+		return
+	}
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
 	queries := db.New(s.DB)
 
-	if err := queries.CompletePracticePlanSpot(r.Context(), db.CompletePracticePlanSpotParams{
+	qtx := queries.WithTx(tx)
+
+	if err := qtx.CompletePracticePlanSpot(r.Context(), db.CompletePracticePlanSpotParams{
 		SpotID: spotID,
 		UserID: user.ID,
 		PlanID: planID,
@@ -588,7 +629,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		timeSinceStarted = time.Since(time.Unix(finishedSpot.StageStarted.Int64, 0))
 	} else {
 		timeSinceStarted = 0
-		err := queries.FixSpotStageStarted(r.Context(), db.FixSpotStageStartedParams{
+		err := qtx.FixSpotStageStarted(r.Context(), db.FixSpotStageStartedParams{
 			SpotID: finishedSpot.ID,
 			UserID: user.ID,
 		})
@@ -605,7 +646,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		finishedSpot.SkipDays < 7 {
 		log.Default().Println("excellent")
 		skipDays *= 2
-		err := queries.UpdateSpotSkipDaysAndPractice(r.Context(), db.UpdateSpotSkipDaysAndPracticeParams{
+		err := qtx.UpdateSpotSkipDaysAndPractice(r.Context(), db.UpdateSpotSkipDaysAndPracticeParams{
 			SkipDays: skipDays,
 			SpotID:   finishedSpot.ID,
 			UserID:   user.ID,
@@ -617,7 +658,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		// poor quality resets days to 1 or demotes immediately
 	} else if evaluation == "poor" {
 		if skipDays < 2 {
-			err := queries.DemoteSpotToInterleave(r.Context(), db.DemoteSpotToInterleaveParams{
+			err := qtx.DemoteSpotToInterleave(r.Context(), db.DemoteSpotToInterleaveParams{
 				SpotID: finishedSpot.ID,
 				UserID: user.ID,
 			})
@@ -627,7 +668,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			skipDays = 1
-			err := queries.UpdateSpotSkipDaysAndPractice(r.Context(), db.UpdateSpotSkipDaysAndPracticeParams{
+			err := qtx.UpdateSpotSkipDaysAndPractice(r.Context(), db.UpdateSpotSkipDaysAndPracticeParams{
 				SkipDays: skipDays,
 				SpotID:   finishedSpot.ID,
 				UserID:   user.ID,
@@ -648,7 +689,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		}
 		// completed promotes to completed, also have to verify conditions and not trust the client
 	} else if evaluation == "excellent" && skipDays > 6 && timeSinceStarted.Hours() > 20*24 {
-		_, err := queries.PromoteSpotToCompleted(r.Context(), db.PromoteSpotToCompletedParams{
+		_, err := qtx.PromoteSpotToCompleted(r.Context(), db.PromoteSpotToCompletedParams{
 			SpotID: finishedSpot.ID,
 			UserID: user.ID,
 		})
@@ -657,7 +698,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
-		if err := queries.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
+		if err := qtx.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
 			SpotID: finishedSpot.ID,
 			UserID: user.ID,
 		}); err != nil {
@@ -666,11 +707,24 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := queries.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+	if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
 		UserID:  user.ID,
 		PieceID: pieceID,
 	}); err != nil {
 		s.DatabaseError(w, r, err, "Could not update piece practiced")
+		return
+	}
+
+	if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
+		ID:     planID,
+		UserID: user.ID,
+	}); err != nil {
+		s.DatabaseError(w, r, err, "Could not update plan last practiced")
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		s.DatabaseError(w, r, err, "Database error")
 		return
 	}
 

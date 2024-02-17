@@ -595,7 +595,7 @@ func (s *Server) finishPracticePieceSpots(w http.ResponseWriter, r *http.Request
 			return
 		}
 		if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
-			ID:     pieceID,
+			ID:     activePracticePlanID,
 			UserID: user.ID,
 		}); err != nil {
 			s.DatabaseError(w, r, err, "Could not update plan last practiced")
@@ -711,7 +711,7 @@ func (s *Server) piecePracticeStartingPointFinished(w http.ResponseWriter, r *ht
 		}
 
 		if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
-			ID:     pieceID,
+			ID:     activePracticePlanID,
 			UserID: user.ID,
 		}); err != nil {
 			s.DatabaseError(w, r, err, "Could not update plan last practiced")

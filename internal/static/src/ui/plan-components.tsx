@@ -208,6 +208,7 @@ export function BreakDialog({
     "prepare" | "break" | "finished"
   >("prepare");
   const [secondsRemaining, setSecondsRemaining] = useState(0);
+  const [breakEndTime, setBreakEndTime] = useState(0);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const openDialog = useCallback(() => {
@@ -231,6 +232,7 @@ export function BreakDialog({
   const startBreak = useCallback(async () => {
     setBreakState("break");
     setSecondsRemaining(3 * 60);
+    setBreakEndTime(Date.now() + 3 * 60 * 1000);
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
     }
@@ -262,6 +264,7 @@ export function BreakDialog({
     }
     setBreakState("finished");
     setSecondsRemaining(0);
+    setBreakEndTime(0);
   }, []);
 
   const continuePracticing = useCallback(() => {
@@ -283,10 +286,10 @@ export function BreakDialog({
     if (breakState !== "break") {
       return;
     }
-    if (secondsRemaining <= 0) {
+    if (secondsRemaining <= 0 || breakEndTime - Date.now() <= 0) {
       finishBreak();
     }
-  }, [secondsRemaining, closeDialog, finishBreak, breakState]);
+  }, [secondsRemaining, closeDialog, finishBreak, breakState, breakEndTime]);
 
   return (
     <dialog

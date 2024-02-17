@@ -697,8 +697,15 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 			SpotID: spotID,
 			PlanID: activePracticePlanID,
 		}); err != nil {
-			log.Default().Println(err)
-			http.Error(w, "Could not complete practice plan spot", http.StatusInternalServerError)
+			s.DatabaseError(w, r, err, "Could not complete practice plan spot")
+			return
+		}
+
+		if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
+			ID:     activePracticePlanID,
+			UserID: user.ID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not update plan last practiced")
 			return
 		}
 	}

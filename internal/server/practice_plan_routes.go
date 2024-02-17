@@ -2086,28 +2086,33 @@ func (s *Server) takeABreak(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) needsBreak(ctx context.Context, planID string, userID string) (bool, error) {
-	queries := db.New(s.DB)
-
-	lastPracticed, err := queries.GetPlanLastPracticed(ctx, db.GetPlanLastPracticedParams{
-		ID:     planID,
-		UserID: userID,
-	})
-	// if nothing has been practiced you don't need a break
-	if err != nil || !lastPracticed.Valid {
-		return false, nil
-	}
-
-	// if you haven't practiced anything in more than an entire session of time, you don't need a break
-	if time.Since(time.Unix(lastPracticed.Int64, 0)) > config.TIME_BETWEEN_BREAKS {
-		return false, nil
-	}
-
 	// check whether the last break was too long ago
 	lastBreakTime, ok := s.GetLastBreak(ctx, planID)
 	if !ok {
+		s.SetLastBreak(ctx, planID)
 		return false, fmt.Errorf("Could not get last break")
 	}
-	return time.Since(lastBreakTime) > config.TIME_BETWEEN_BREAKS, nil
+	if time.Since(lastBreakTime) > config.TIME_BETWEEN_BREAKS {
+		queries := db.New(s.DB)
+		lastPracticed, err := queries.GetPlanLastPracticed(ctx, db.GetPlanLastPracticedParams{
+			ID:     planID,
+			UserID: userID,
+		})
+		if err != nil {
+
+			log.Default().Println(err)
+		} else {
+			log.Default().Println(lastPracticed)
+		}
+		// if you haven't practiced anything in more than an entire session of time, you don't need a break
+		if err == nil && lastPracticed.Valid && time.Since(time.Unix(lastPracticed.Int64, 0)) > 2*config.TIME_BETWEEN_BREAKS {
+			s.SetLastBreak(ctx, planID)
+			return false, nil
+		}
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
 
 func (s *Server) shouldRecommendBreak(w http.ResponseWriter, r *http.Request) {
