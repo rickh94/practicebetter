@@ -153,7 +153,7 @@ SET
     stage_started = CASE WHEN stage = 'interleave_days' THEN unixepoch('now') ELSE stage_started END,
     skip_days = 1,
     last_practiced = unixepoch('now')
-WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+WHERE spots.id = ?1 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
 `
 
 type DemoteSpotToInterleaveParams struct {
@@ -172,7 +172,7 @@ SET
     stage = CASE WHEN stage = 'interleave' THEN 'random' ELSE stage END,
     stage_started = CASE WHEN stage = 'interleave' THEN unixepoch('now') ELSE stage_started END,
     last_practiced = unixepoch('now')
-WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+WHERE spots.id = ?1 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
 `
 
 type DemoteSpotToRandomParams struct {
@@ -653,14 +653,15 @@ func (q *Queries) ListSpotsForPlanStage(ctx context.Context, arg ListSpotsForPla
 	return items, nil
 }
 
-const promoteSpotToCompleted = `-- name: PromoteSpotToCompleted :exec
+const promoteSpotToCompleted = `-- name: PromoteSpotToCompleted :one
 UPDATE spots
 SET
-    stage = CASE WHEN stage = 'interleave_days' THEN 'completed' ELSE stage END,
-    stage_started = CASE WHEN stage = 'interleave_days' THEN unixepoch('now') ELSE stage_started END,
+    stage = 'completed',
+    stage_started = (SELECT unixepoch('now')),
     skip_days = 1,
-    last_practiced = unixepoch('now')
-WHERE spots.id = ?1 AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+    last_practiced = (SELECT unixepoch('now'))
+WHERE spots.id = ?1 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
 `
 
 type PromoteSpotToCompletedParams struct {
@@ -668,9 +669,26 @@ type PromoteSpotToCompletedParams struct {
 	UserID string `json:"userId"`
 }
 
-func (q *Queries) PromoteSpotToCompleted(ctx context.Context, arg PromoteSpotToCompletedParams) error {
-	_, err := q.db.ExecContext(ctx, promoteSpotToCompleted, arg.SpotID, arg.UserID)
-	return err
+func (q *Queries) PromoteSpotToCompleted(ctx context.Context, arg PromoteSpotToCompletedParams) (Spot, error) {
+	row := q.db.QueryRowContext(ctx, promoteSpotToCompleted, arg.SpotID, arg.UserID)
+	var i Spot
+	err := row.Scan(
+		&i.ID,
+		&i.PieceID,
+		&i.Name,
+		&i.Stage,
+		&i.Measures,
+		&i.AudioPromptUrl,
+		&i.ImagePromptUrl,
+		&i.NotesPrompt,
+		&i.TextPrompt,
+		&i.CurrentTempo,
+		&i.LastPracticed,
+		&i.StageStarted,
+		&i.SkipDays,
+		&i.Priority,
+	)
+	return i, err
 }
 
 const promoteSpotToExtraRepeat = `-- name: PromoteSpotToExtraRepeat :exec

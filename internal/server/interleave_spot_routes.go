@@ -603,6 +603,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		finishedSpot.StageStarted.Valid &&
 		timeSinceStarted.Hours() > 4*24 &&
 		finishedSpot.SkipDays < 7 {
+		log.Default().Println("excellent")
 		skipDays *= 2
 		err := queries.UpdateSpotSkipDaysAndPractice(r.Context(), db.UpdateSpotSkipDaysAndPracticeParams{
 			SkipDays: skipDays,
@@ -647,7 +648,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		}
 		// completed promotes to completed, also have to verify conditions and not trust the client
 	} else if evaluation == "excellent" && skipDays > 6 && timeSinceStarted.Hours() > 20*24 {
-		err := queries.PromoteSpotToCompleted(r.Context(), db.PromoteSpotToCompletedParams{
+		_, err := queries.PromoteSpotToCompleted(r.Context(), db.PromoteSpotToCompletedParams{
 			SpotID: finishedSpot.ID,
 			UserID: user.ID,
 		})
