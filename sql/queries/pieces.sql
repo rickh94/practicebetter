@@ -7,8 +7,10 @@ INSERT INTO pieces (
     measures,
     beats_per_measure,
     goal_tempo,
-    user_id
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    user_id,
+    key_id,
+    mode_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetPieceByID :many
@@ -22,6 +24,8 @@ SELECT
     pieces.goal_tempo,
     pieces.last_practiced,
     pieces.stage,
+    scale_keys.name as key_name,
+    scale_modes.name as mode,
     spots.id AS spot_id,
     spots.name AS spot_name,
     spots.stage AS spot_stage,
@@ -34,6 +38,8 @@ SELECT
     spots.last_practiced AS spot_last_practiced
 FROM pieces
 LEFT JOIN spots ON pieces.id = spots.piece_id
+LEFT JOIN scale_keys ON pieces.key_id = scale_keys.id
+LEFT JOIN scale_modes ON pieces.mode_id = scale_modes.id
 WHERE pieces.id = :piece_id AND pieces.user_id = :user_id
 ORDER BY spot_last_practiced DESC;
 

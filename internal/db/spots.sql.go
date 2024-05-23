@@ -29,7 +29,7 @@ INSERT INTO spots (
     ?, ?, ?, ?, ?, ?, ?, ?, ?,
     unixepoch('now')
 )
-RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority, section_id
 `
 
 type CreateSpotParams struct {
@@ -76,6 +76,7 @@ func (q *Queries) CreateSpot(ctx context.Context, arg CreateSpotParams) (Spot, e
 		&i.StageStarted,
 		&i.SkipDays,
 		&i.Priority,
+		&i.SectionID,
 	)
 	return i, err
 }
@@ -204,7 +205,7 @@ func (q *Queries) FixSpotStageStarted(ctx context.Context, arg FixSpotStageStart
 
 const getSpot = `-- name: GetSpot :one
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority, spots.section_id,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -232,6 +233,7 @@ type GetSpotRow struct {
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
+	SectionID      sql.NullString `json:"sectionId"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
 
@@ -253,6 +255,7 @@ func (q *Queries) GetSpot(ctx context.Context, arg GetSpotParams) (GetSpotRow, e
 		&i.StageStarted,
 		&i.SkipDays,
 		&i.Priority,
+		&i.SectionID,
 		&i.PieceTitle,
 	)
 	return i, err
@@ -287,7 +290,7 @@ func (q *Queries) GetSpotStageStarted(ctx context.Context, arg GetSpotStageStart
 
 const listHighPrioritySpots = `-- name: ListHighPrioritySpots :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority, spots.section_id,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -310,6 +313,7 @@ type ListHighPrioritySpotsRow struct {
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
+	SectionID      sql.NullString `json:"sectionId"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
 
@@ -337,6 +341,7 @@ func (q *Queries) ListHighPrioritySpots(ctx context.Context, userID string) ([]L
 			&i.StageStarted,
 			&i.SkipDays,
 			&i.Priority,
+			&i.SectionID,
 			&i.PieceTitle,
 		); err != nil {
 			return nil, err
@@ -354,7 +359,7 @@ func (q *Queries) ListHighPrioritySpots(ctx context.Context, userID string) ([]L
 
 const listPieceSpots = `-- name: ListPieceSpots :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority, spots.section_id,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -382,6 +387,7 @@ type ListPieceSpotsRow struct {
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
+	SectionID      sql.NullString `json:"sectionId"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
 
@@ -409,6 +415,7 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 			&i.StageStarted,
 			&i.SkipDays,
 			&i.Priority,
+			&i.SectionID,
 			&i.PieceTitle,
 		); err != nil {
 			return nil, err
@@ -426,7 +433,7 @@ func (q *Queries) ListPieceSpots(ctx context.Context, arg ListPieceSpotsParams) 
 
 const listPieceSpotsInStage = `-- name: ListPieceSpotsInStage :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority, spots.section_id,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -456,6 +463,7 @@ type ListPieceSpotsInStageRow struct {
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
+	SectionID      sql.NullString `json:"sectionId"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
 
@@ -483,6 +491,7 @@ func (q *Queries) ListPieceSpotsInStage(ctx context.Context, arg ListPieceSpotsI
 			&i.StageStarted,
 			&i.SkipDays,
 			&i.Priority,
+			&i.SectionID,
 			&i.PieceTitle,
 		); err != nil {
 			return nil, err
@@ -500,7 +509,7 @@ func (q *Queries) ListPieceSpotsInStage(ctx context.Context, arg ListPieceSpotsI
 
 const listPieceSpotsInStageForPlan = `-- name: ListPieceSpotsInStageForPlan :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority, spots.section_id,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces ON pieces.id = spots.piece_id
@@ -532,6 +541,7 @@ type ListPieceSpotsInStageForPlanRow struct {
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
+	SectionID      sql.NullString `json:"sectionId"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
 
@@ -564,6 +574,7 @@ func (q *Queries) ListPieceSpotsInStageForPlan(ctx context.Context, arg ListPiec
 			&i.StageStarted,
 			&i.SkipDays,
 			&i.Priority,
+			&i.SectionID,
 			&i.PieceTitle,
 		); err != nil {
 			return nil, err
@@ -581,7 +592,7 @@ func (q *Queries) ListPieceSpotsInStageForPlan(ctx context.Context, arg ListPiec
 
 const listSpotsForPlanStage = `-- name: ListSpotsForPlanStage :many
 SELECT
-    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+    spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority, spots.section_id,
     pieces.title AS piece_title
 FROM spots
 INNER JOIN pieces on pieces.id = spots.piece_id
@@ -611,6 +622,7 @@ type ListSpotsForPlanStageRow struct {
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
+	SectionID      sql.NullString `json:"sectionId"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
 
@@ -638,6 +650,7 @@ func (q *Queries) ListSpotsForPlanStage(ctx context.Context, arg ListSpotsForPla
 			&i.StageStarted,
 			&i.SkipDays,
 			&i.Priority,
+			&i.SectionID,
 			&i.PieceTitle,
 		); err != nil {
 			return nil, err
@@ -657,11 +670,11 @@ const promoteSpotToCompleted = `-- name: PromoteSpotToCompleted :one
 UPDATE spots
 SET
     stage = 'completed',
-    stage_started = (SELECT unixepoch('now')),
+    stage_started = unixepoch('now'),
     skip_days = 1,
-    last_practiced = (SELECT unixepoch('now'))
+    last_practiced = unixepoch('now')
 WHERE spots.id = ?1 AND piece_id IN (SELECT pieces.id FROM pieces WHERE pieces.user_id = ?2)
-RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority, section_id
 `
 
 type PromoteSpotToCompletedParams struct {
@@ -687,6 +700,7 @@ func (q *Queries) PromoteSpotToCompleted(ctx context.Context, arg PromoteSpotToC
 		&i.StageStarted,
 		&i.SkipDays,
 		&i.Priority,
+		&i.SectionID,
 	)
 	return i, err
 }
@@ -824,7 +838,7 @@ UPDATE spots
 SET
     notes_prompt = ?
 WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
-RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority, section_id
 `
 
 type UpdateNotesPromptParams struct {
@@ -857,6 +871,7 @@ func (q *Queries) UpdateNotesPrompt(ctx context.Context, arg UpdateNotesPromptPa
 		&i.StageStarted,
 		&i.SkipDays,
 		&i.Priority,
+		&i.SectionID,
 	)
 	return i, err
 }
@@ -868,7 +883,7 @@ SET
     current_tempo = ?,
     measures = ?
 WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
-RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority, section_id
 `
 
 type UpdatePartialSpotParams struct {
@@ -905,6 +920,7 @@ func (q *Queries) UpdatePartialSpot(ctx context.Context, arg UpdatePartialSpotPa
 		&i.StageStarted,
 		&i.SkipDays,
 		&i.Priority,
+		&i.SectionID,
 	)
 	return i, err
 }
@@ -1039,7 +1055,7 @@ UPDATE spots
 SET
     text_prompt = ?
 WHERE spots.id = ? AND piece_id = (SELECT pieces.id FROM pieces WHERE pieces.user_id = ? AND pieces.id = ? LIMIT 1)
-RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority
+RETURNING id, piece_id, name, stage, measures, audio_prompt_url, image_prompt_url, notes_prompt, text_prompt, current_tempo, last_practiced, stage_started, skip_days, priority, section_id
 `
 
 type UpdateTextPromptParams struct {
@@ -1072,6 +1088,7 @@ func (q *Queries) UpdateTextPrompt(ctx context.Context, arg UpdateTextPromptPara
 		&i.StageStarted,
 		&i.SkipDays,
 		&i.Priority,
+		&i.SectionID,
 	)
 	return i, err
 }

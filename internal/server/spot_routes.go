@@ -710,6 +710,7 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	// TODO: update last practiced by default
 	if info.Success {
 		switch info.ToStage {
 		case "random":
@@ -734,6 +735,22 @@ func (s *Server) repeatPracticeSpotFinished(w http.ResponseWriter, r *http.Reque
 				UserID:  user.ID,
 				PieceID: pieceID,
 				SpotID:  spotID,
+			}); err != nil {
+				log.Default().Println(err)
+				http.Error(w, "Could not promote to more repeat", http.StatusInternalServerError)
+				return
+			}
+			if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+				UserID:  user.ID,
+				PieceID: pieceID,
+			}); err != nil {
+				s.DatabaseError(w, r, err, "Could not update piece practiced")
+				return
+			}
+		default:
+			if err := qtx.UpdateSpotPracticed(r.Context(), db.UpdateSpotPracticedParams{
+				SpotID: spotID,
+				UserID: user.ID,
 			}); err != nil {
 				log.Default().Println(err)
 				http.Error(w, "Could not promote to more repeat", http.StatusInternalServerError)

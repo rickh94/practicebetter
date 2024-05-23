@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { type SpotFormData, spotFormData } from "../validators";
 import SpotFormFields from "./spot-form";
 import { useCallback, useEffect, useState } from "preact/hooks";
-import * as htmx from "htmx.org";
+import * as htmx from "htmx.org/dist/htmx";
 import { type HTMXRequestEvent } from "../types";
 
 // TODO: remove spot idx

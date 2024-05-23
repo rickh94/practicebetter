@@ -41,9 +41,11 @@ INSERT INTO pieces (
     measures,
     beats_per_measure,
     goal_tempo,
-    user_id
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage
+    user_id,
+    key_id,
+    mode_id
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage, key_id, mode_id
 `
 
 type CreatePieceParams struct {
@@ -55,6 +57,8 @@ type CreatePieceParams struct {
 	BeatsPerMeasure sql.NullInt64  `json:"beatsPerMeasure"`
 	GoalTempo       sql.NullInt64  `json:"goalTempo"`
 	UserID          string         `json:"userId"`
+	KeyID           sql.NullInt64  `json:"keyId"`
+	ModeID          sql.NullInt64  `json:"modeId"`
 }
 
 func (q *Queries) CreatePiece(ctx context.Context, arg CreatePieceParams) (Piece, error) {
@@ -67,6 +71,8 @@ func (q *Queries) CreatePiece(ctx context.Context, arg CreatePieceParams) (Piece
 		arg.BeatsPerMeasure,
 		arg.GoalTempo,
 		arg.UserID,
+		arg.KeyID,
+		arg.ModeID,
 	)
 	var i Piece
 	err := row.Scan(
@@ -80,6 +86,8 @@ func (q *Queries) CreatePiece(ctx context.Context, arg CreatePieceParams) (Piece
 		&i.UserID,
 		&i.LastPracticed,
 		&i.Stage,
+		&i.KeyID,
+		&i.ModeID,
 	)
 	return i, err
 }
@@ -110,6 +118,8 @@ SELECT
     pieces.goal_tempo,
     pieces.last_practiced,
     pieces.stage,
+    scale_keys.name as key_name,
+    scale_modes.name as mode,
     spots.id AS spot_id,
     spots.name AS spot_name,
     spots.stage AS spot_stage,
@@ -122,6 +132,8 @@ SELECT
     spots.last_practiced AS spot_last_practiced
 FROM pieces
 LEFT JOIN spots ON pieces.id = spots.piece_id
+LEFT JOIN scale_keys ON pieces.key_id = scale_keys.id
+LEFT JOIN scale_modes ON pieces.mode_id = scale_modes.id
 WHERE pieces.id = ?1 AND pieces.user_id = ?2
 ORDER BY spot_last_practiced DESC
 `
@@ -141,6 +153,8 @@ type GetPieceByIDRow struct {
 	GoalTempo          sql.NullInt64  `json:"goalTempo"`
 	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
 	Stage              string         `json:"stage"`
+	KeyName            sql.NullString `json:"keyName"`
+	Mode               sql.NullString `json:"mode"`
 	SpotID             sql.NullString `json:"spotId"`
 	SpotName           sql.NullString `json:"spotName"`
 	SpotStage          sql.NullString `json:"spotStage"`
@@ -172,6 +186,8 @@ func (q *Queries) GetPieceByID(ctx context.Context, arg GetPieceByIDParams) ([]G
 			&i.GoalTempo,
 			&i.LastPracticed,
 			&i.Stage,
+			&i.KeyName,
+			&i.Mode,
 			&i.SpotID,
 			&i.SpotName,
 			&i.SpotStage,
@@ -458,7 +474,7 @@ func (q *Queries) GetPieceWithRandomSpots(ctx context.Context, arg GetPieceWithR
 }
 
 const getPieceWithoutSpots = `-- name: GetPieceWithoutSpots :one
-SELECT id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage FROM pieces WHERE id = ? AND user_id = ?
+SELECT id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage, key_id, mode_id FROM pieces WHERE id = ? AND user_id = ?
 `
 
 type GetPieceWithoutSpotsParams struct {
@@ -480,6 +496,8 @@ func (q *Queries) GetPieceWithoutSpots(ctx context.Context, arg GetPieceWithoutS
 		&i.UserID,
 		&i.LastPracticed,
 		&i.Stage,
+		&i.KeyID,
+		&i.ModeID,
 	)
 	return i, err
 }
@@ -760,7 +778,7 @@ func (q *Queries) ListPiecesWithNewSpotsForPlan(ctx context.Context, arg ListPie
 
 const listRandomSpotPiecesForPlan = `-- name: ListRandomSpotPiecesForPlan :many
 SELECT
-    pieces.id, pieces.title, pieces.description, pieces.composer, pieces.measures, pieces.beats_per_measure, pieces.goal_tempo, pieces.user_id, pieces.last_practiced, pieces.stage,
+    pieces.id, pieces.title, pieces.description, pieces.composer, pieces.measures, pieces.beats_per_measure, pieces.goal_tempo, pieces.user_id, pieces.last_practiced, pieces.stage, pieces.key_id, pieces.mode_id,
     (SELECT COUNT(spots.id) FROM spots WHERE spots.piece_id = pieces.id AND spots.stage == 'random') AS random_spot_count
 FROM pieces
 WHERE user_id = ?1
@@ -785,6 +803,8 @@ type ListRandomSpotPiecesForPlanRow struct {
 	UserID          string         `json:"userId"`
 	LastPracticed   sql.NullInt64  `json:"lastPracticed"`
 	Stage           string         `json:"stage"`
+	KeyID           sql.NullInt64  `json:"keyId"`
+	ModeID          sql.NullInt64  `json:"modeId"`
 	RandomSpotCount int64          `json:"randomSpotCount"`
 }
 
@@ -808,6 +828,8 @@ func (q *Queries) ListRandomSpotPiecesForPlan(ctx context.Context, arg ListRando
 			&i.UserID,
 			&i.LastPracticed,
 			&i.Stage,
+			&i.KeyID,
+			&i.ModeID,
 			&i.RandomSpotCount,
 		); err != nil {
 			return nil, err
@@ -884,7 +906,7 @@ SET
     goal_tempo = ?,
     stage = ?
 WHERE id = ? AND user_id = ?
-RETURNING id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage
+RETURNING id, title, description, composer, measures, beats_per_measure, goal_tempo, user_id, last_practiced, stage, key_id, mode_id
 `
 
 type UpdatePieceParams struct {
@@ -923,6 +945,8 @@ func (q *Queries) UpdatePiece(ctx context.Context, arg UpdatePieceParams) (Piece
 		&i.UserID,
 		&i.LastPracticed,
 		&i.Stage,
+		&i.KeyID,
+		&i.ModeID,
 	)
 	return i, err
 }

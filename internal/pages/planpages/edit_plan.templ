@@ -86,6 +86,16 @@ templ editPracticePlanPageContent(planData PracticePlanData, csrf string) {
 			</div>
 			<p class="py-2 text-sm">Click items to delete them. Click the add button in a category to add items. Click save when you're done.</p>
 		</header>
+		<section id="scales" class="flex flex-col gap-2">
+			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Scales and Arpeggios</h3>
+			<p class="w-full text-sm">Practice these scales and arpeggios today</p>
+			<ul id="scale-list" class="flex flex-col gap-2 w-full list-none">
+				for _, scale := range planData.Scales {
+					@DeleteScaleCard(scale.UserScaleInfo, scale.Completed, csrf, planData.ID)
+				}
+			</ul>
+			@AddScaleWizard(planData.ID)
+		</section>
 		@EditPracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)
 		<section id="extra-repeat-spots" class="flex flex-col gap-2 max-w-full overflow-x-clip">
 			<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Extra Repeat Practice Spots</h3>
@@ -168,6 +178,36 @@ templ DeleteSpotCard(spotID, name, measures, stage, pieceTitle, planID, csrf, pr
 	</li>
 }
 
+templ DeleteScaleCard(scaleInfo components.UserScaleInfo, completed bool, csrf string, planID string) {
+	<li id={ "scale-" + scaleInfo.UserScaleID }>
+		<button
+ 			id={ "delete-scale-" + scaleInfo.UserScaleID }
+ 			class="flex relative py-2 px-4 w-full max-w-full h-full text-left rounded-xl border border-red-800 transition-all duration-200 cursor-pointer bg-red-500/10 delete-spot hover:bg-red-500/20 focusable"
+ 			hx-delete={ "/library/plans/" + planID + "/scales/" + scaleInfo.UserScaleID }
+ 			hx-target={ "#scale-" + scaleInfo.UserScaleID }
+ 			hx-swap="delete"
+ 			hx-confirm={ "Are you sure you want to remove \"" + scaleInfo.KeyName + " " + scaleInfo.ModeName + " Scale\" from your practice plan?" }
+ 			hx-headers={ components.HxCsrfHeader(csrf) }
+		>
+			<div class="flex flex-col flex-1 flex-grow gap-1 justify-center items-start h-full">
+				<div class={ templ.KV("text-rose-950", !completed), templ.KV("text-green-950", completed), "text-left justify-start w-full" }>
+					<strong class="text-xl font-bold">{ scaleInfo.KeyName } { scaleInfo.ModeName }</strong>
+				</div>
+				if scaleInfo.Reference != "" {
+					<div class="text-sm truncate">
+						{ scaleInfo.Reference }
+					</div>
+				}
+				<span class="font-bold text-red-700">
+					Click to Delete
+				</span>
+			</div>
+			<div class="mr-3 size-8"></div>
+			<span class="absolute right-0 top-1/2 mr-3 text-red-800 transform -translate-y-1/2 size-8 icon-[iconamoon--sign-times-circle-duotone]"></span>
+		</button>
+	</li>
+}
+
 templ DeletePracticePlanPieceCard(pieceID string, title string, composer string, completed bool, practiceType string, planID string, csrf string) {
 	<li id={ "piece-" + practiceType + "-" + pieceID }>
 		<button
@@ -236,4 +276,33 @@ templ EditPracticePlanInterleaveSpots(interleaveSpots []PracticePlanSpot, planID
 		@EditInterleaveSpotList(interleaveSpots, planID, csrf)
 		@AddSpotWizard("interleave", planID, "add-interleave-spots", "Add Interleave Spots")
 	</section>
+}
+
+templ AddScaleWizard(planID string) {
+	<button
+ 		type="button"
+ 		class="action-button green focusable"
+ 		hx-get={ "/library/plans/" + planID + "/scales/add" }
+ 		hx-target="#add-scales-to-plan"
+ 		hx-swap="innerHTML"
+ 		hx-on::after-request={ components.ShowModal("add-scales-modal") }
+	>
+		<span class="-ml-1 size-5 icon-[iconamoon--sign-plus-circle-thin]" aria-hidden="true"></span>
+		Add Scales
+	</button>
+	<dialog id="add-scales-modal" aria-labelledby="add-scales-modal-title" class="flex flex-col gap-2 h-[90vh] bg-gradient-to-t from-white to-[#fff9ee] text-left">
+		<header class="flex-shrink-0 p-4 mt-2 max-w-2xl text-left">
+			<h3 id="add-scales-modal-title" class="text-2xl font-semibold leading-6 text-neutral-900">Choose a Scale to Add</h3>
+			<p class="text-sm">
+				Click on a scale to add it to your practice plan.
+			</p>
+		</header>
+		<div class="flex overflow-y-scroll flex-col flex-grow gap-2 px-4 pb-4 w-full max-w-2xl edit-plan-chooser overflow-x-clip" id="add-scales-to-plan"></div>
+		<div class="flex gap-2 justify-end p-4 w-full max-h-20">
+			<button class="w-full action-button green focusable" onClick={ components.CloseModal("add-scales-modal") }>
+				<span class="-ml-1 size-6 icon-[iconamoon--check-circle-1-thin]" aria-hidden="true"></span>
+				Done
+			</button>
+		</div>
+	</dialog>
 }

@@ -8,6 +8,7 @@
     "build:dev": "vite build --minify false -m dev --sourcemap 'inline'"
   },
   "devDependencies": {
+    "@iconify/utils": "^2.1.22",
     "@preact/preset-vite": "^2.8.1",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",
@@ -35,7 +36,6 @@
     "@hookform/resolvers": "^3.3.4",
     "@iconify/json": "^2.2.165",
     "@iconify/tailwind": "^0.1.4",
-    "@iconify/utils": "^2.1.14",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
     "@radix-ui/react-switch": "^1.0.3",
     "@simplewebauthn/browser": "^8.3.4",

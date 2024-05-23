@@ -7,7 +7,7 @@ import { type PDFDocumentProxy } from "pdfjs-dist";
 const pdfjs = await import("pdfjs-dist");
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
+  "pdfjs-dist/build/pdf.worker.mjs",
   import.meta.url,
 ).toString();
 

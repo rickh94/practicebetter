@@ -9,6 +9,8 @@ templ PracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string) {
 const EVALUATION_FORM_CLASSES = "flex justify-center items-center mx-auto w-full sm:mx-0 sm:w-auto"
 const EVALUATION_BUTTON_CLASSEES = "px-6 w-full h-16 text-2xl sm:w-auto xs:w-48 action-button focusable"
 
+// TODO: accept spot id for practicing a specific spot, then send finish to specific spot, then close modal on response.
+
 templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
 	<div>
 		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle } csrf={ csrf }></practice-spot-display>
@@ -82,6 +84,8 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 		</div>
 	</div>
 }
+
+// templ InterleaveEvaluationForm(planID string, spotID string, )
 
 templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
 	<div>
@@ -247,6 +251,14 @@ templ InfrequentPracticeSpotDisplayWithOOBFinished(spotJSON string, pieceid stri
 			finishedSpot.PieceTitle,
 			true,
 			true,
+			true,
 		)
 	}
+}
+
+templ NoInterleaveSpots() {
+	<div class="flex flex-col gap-4 justify-center px-4 pt-4 pb-8 mx-auto w-full max-w-lg bg-white rounded-lg">
+		<h4 class="text-lg font-bold text-center">No Interleave Spots</h4>
+		<p class="text-base">Your current practice plan does not have any interleave spots to practice.</p>
+	</div>
 }

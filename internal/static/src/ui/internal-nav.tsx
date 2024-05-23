@@ -1,8 +1,10 @@
 import { type NavItem, cn } from "../common";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import * as htmx from "htmx.org";
+import * as htmx from "htmx.org/dist/htmx";
+import { useCallback, useId } from "preact/hooks";
 
 export function InternalNav({ activepath }: { activepath: string }) {
+  const id = useId();
   const links: NavItem[] = [
     {
       href: "/library",
@@ -18,6 +20,11 @@ export function InternalNav({ activepath }: { activepath: string }) {
       href: "/library/pieces",
       label: "Pieces",
       icon: <span className="icon-[custom--music-folder] ml-1 size-6" />,
+    } as const,
+    {
+      href: "/library/scales",
+      label: "Scales",
+      icon: <span className="icon-[ph--steps-thin] ml-1 size-6" />,
     } as const,
     {
       href: "/practice",
@@ -36,11 +43,21 @@ export function InternalNav({ activepath }: { activepath: string }) {
     } as const,
   ];
 
-  function processLinks() {
-    document.querySelectorAll("a[data-radix-collection-item]").forEach((el) => {
-      htmx.process(el);
-    });
-  }
+  const processLinks = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        return;
+      }
+      document
+        .querySelectorAll(`#${id} a[data-radix-collection-item]`)
+        .forEach((el) => {
+          if (el) {
+            htmx.process(el);
+          }
+        });
+    },
+    [id],
+  );
 
   return (
     <DropdownMenu.Root onOpenChange={processLinks}>
@@ -65,6 +82,7 @@ export function InternalNav({ activepath }: { activepath: string }) {
           align="start"
           sideOffset={5}
           className="dropdown w-64 origin-top-left rounded-lg bg-white shadow-lg duration-200 focus-within:outline-none focus:outline-none"
+          id={id}
         >
           {links.map(({ href, label, icon }) => (
             <DropdownMenu.Item asChild key={href}>
@@ -78,8 +96,8 @@ export function InternalNav({ activepath }: { activepath: string }) {
                 className={cn(
                   "flex w-full items-center gap-2 px-2 py-3 text-lg first:rounded-t-lg last:rounded-b-lg focus:outline-none",
                   href === activepath
-                    ? "bg-neutral-700/10 font-bold text-neutral-800"
-                    : "font-medium text-neutral-800 hover:bg-neutral-800/10 focus-visible:bg-neutral-800/10",
+                    ? "bg-neutral-700/10 font-semibold text-neutral-800"
+                    : "text-neutral-800 hover:bg-neutral-800/10 focus-visible:bg-neutral-800/10",
                 )}
               >
                 {icon}

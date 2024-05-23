@@ -29,6 +29,8 @@ type Piece struct {
 	UserID          string         `json:"userId"`
 	LastPracticed   sql.NullInt64  `json:"lastPracticed"`
 	Stage           string         `json:"stage"`
+	KeyID           sql.NullInt64  `json:"keyId"`
+	ModeID          sql.NullInt64  `json:"modeId"`
 }
 
 type PracticePlan struct {
@@ -50,6 +52,13 @@ type PracticePlanPiece struct {
 	Idx            int64  `json:"idx"`
 }
 
+type PracticePlanScale struct {
+	PracticePlanID string `json:"practicePlanId"`
+	UserScaleID    string `json:"userScaleId"`
+	Completed      bool   `json:"completed"`
+	Idx            int64  `json:"idx"`
+}
+
 type PracticePlanSpot struct {
 	PracticePlanID string         `json:"practicePlanId"`
 	SpotID         string         `json:"spotId"`
@@ -57,6 +66,32 @@ type PracticePlanSpot struct {
 	Evaluation     sql.NullString `json:"evaluation"`
 	Completed      bool           `json:"completed"`
 	Idx            int64          `json:"idx"`
+}
+
+type Scale struct {
+	ID     int64 `json:"id"`
+	KeyID  int64 `json:"keyId"`
+	ModeID int64 `json:"modeId"`
+}
+
+type ScaleKey struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+	Cof  int64  `json:"cof"`
+}
+
+type ScaleMode struct {
+	ID    int64  `json:"id"`
+	Name  string `json:"name"`
+	Basic bool   `json:"basic"`
+	Cof   int64  `json:"cof"`
+}
+
+type Section struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	PieceID     string `json:"pieceId"`
 }
 
 type Spot struct {
@@ -74,6 +109,13 @@ type Spot struct {
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
+	SectionID      sql.NullString `json:"sectionId"`
+}
+
+type SpotsSection struct {
+	SpotID    string `json:"spotId"`
+	SectionID string `json:"sectionId"`
+	PieceID   string `json:"pieceId"`
 }
 
 type User struct {
@@ -83,4 +125,14 @@ type User struct {
 	EmailVerified             sql.NullBool   `json:"emailVerified"`
 	ActivePracticePlanID      sql.NullString `json:"activePracticePlanId"`
 	ActivePracticePlanStarted sql.NullInt64  `json:"activePracticePlanStarted"`
+}
+
+type UserScale struct {
+	ID            string        `json:"id"`
+	UserID        string        `json:"userId"`
+	ScaleID       int64         `json:"scaleId"`
+	PracticeNotes string        `json:"practiceNotes"`
+	LastPracticed sql.NullInt64 `json:"lastPracticed"`
+	Reference     string        `json:"reference"`
+	Working       bool          `json:"working"`
 }

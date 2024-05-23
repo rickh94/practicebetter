@@ -1,0 +1,314 @@
+package ewspages
+
+import "practicebetter/internal/pages"
+import "practicebetter/internal/db"
+import "practicebetter/internal/components"
+import "strconv"
+
+templ SingleScale(s pages.ServerUtil, scale db.GetUserScaleRow) {
+	<title>{ scale.KeyName } { scale.Mode } Scale | Go Practice</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(scale.KeyName + " " + scale.Mode + " Scale") , components.MaybePracticePlan())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Scales", Href: "/library/scales", Active: false },
+					{ Label: scale.KeyName + " " + scale.Mode, Href: "/library/scales/"+scale.ID, Active: true },
+				})
+			@components.ActionButtonContainer() {
+				<button
+ 					class="action-button violet focusable"
+ 					hx-get={ "/library/scales/" + scale.ID + "/practice" }
+ 					hx-push-url="false"
+ 					hx-target="#practice-scale-dialog-contents"
+ 					hx-swap="innerHTML"
+ 					hx-on::after-request={ components.ShowModal("practice-scale-dialog") }
+				>
+					<span class="-ml-1 text-violet-800 size-5 icon-[iconamoon--player-play-thin]" aria-hidden="true"></span>
+					Practice
+				</button>
+				<button
+ 					class="action-button amber focusable"
+ 					hx-get={ "/library/scales/" + scale.ID + "/edit" }
+ 					hx-push-url="false"
+ 					hx-target="#practice-scale-dialog-contents"
+ 					hx-swap="innerHTML"
+ 					hx-on::after-request={ components.ShowModal("practice-scale-dialog") }
+				>
+					<span class="-ml-1 size-5 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
+					Edit
+				</button>
+			}
+		}
+		@components.NarrowContainer() {
+			@ScaleDisplayPage(scale, false)
+			<dialog id="practice-scale-dialog" class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none clear">
+				<div id="practice-scale-dialog-contents" class="p-0 mx-auto w-huge overflow-x-clip">
+					<span class="p-4 bg-white rounded-xl">
+						Loading Scale...
+					</span>
+				</div>
+			</dialog>
+		}
+	}
+}
+
+templ ScaleDisplayPage(scale db.GetUserScaleRow, oob bool) {
+	<div
+ 		class="grid grid-cols-1 gap-4 p-4 w-full bg-white rounded-xl border border-rose-500 shadow-sm sm:grid-cols-2 shadow-rose-900/20 text-neutral-900"
+ 		id="scale-display-page"
+ 		if oob {
+			hx-swap-oob="true"
+		}
+	>
+		<div class="flex col-span-full justify-center text-center">
+			<h2 class="px-4 text-2xl font-bold border-b-2 border-rose-950 text-rose-950">
+				{ scale.KeyName } { scale.Mode } Scale
+			</h2>
+		</div>
+		<dl class="text-base border-rose-900 divide-y divide-rose-900 border-y">
+			<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+				<dt class="font-medium leading-6 text-rose-950">
+					Key Signature
+				</dt>
+				<dd class="mt-1 leading-6 text-black sm:mt-0">
+					@components.KeySigIcon(components.GetKeySignatureIconName(scale.KeyName, scale.Mode), "mr-1 size-20")
+				</dd>
+			</div>
+			<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+				<dt class="font-medium leading-6 text-rose-950">
+					Tonic
+				</dt>
+				<dd class="mt-1 leading-6 text-black sm:mt-0">
+					{ scale.KeyName }
+				</dd>
+			</div>
+			<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+				<dt class="font-medium leading-6 text-rose-950">
+					Mode
+				</dt>
+				<dd class="mt-1 leading-6 text-black sm:mt-0">
+					{ scale.Mode }
+				</dd>
+			</div>
+			<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+				<dt class="font-medium leading-6 text-rose-950">
+					Working Scale?
+				</dt>
+				<dd class="mt-1 leading-6 text-black sm:mt-0">
+					if scale.Working {
+						Yes
+					} else {
+						No
+					}
+				</dd>
+			</div>
+			<div class="py-2 px-4 sm:flex sm:gap-2 sm:justify-between sm:px-0">
+				<dt class="font-medium leading-6 text-rose-950">
+					Last Practiced
+				</dt>
+				<dd class="mt-1 leading-6 text-black sm:mt-0">
+					if scale.LastPracticed.Valid {
+						<date-from-now epoch={ strconv.FormatInt(scale.LastPracticed.Int64, 10) }></date-from-now>
+					} else {
+						Not Practiced
+					}
+				</dd>
+			</div>
+		</dl>
+		<dl class="text-base">
+			<dt class="text-xl font-medium leading-6 text-rose-950">
+				<span class="underline">
+					Reference
+				</span>
+				<span class="text-sm">(scale book or similar)</span>
+			</dt>
+			<dd class="my-1 leading-6 text-black">
+				if scale.Reference != "" {
+					{ scale.Reference }
+				} else {
+					No Reference
+				}
+			</dd>
+			<dt class="text-xl font-medium leading-6 underline text-rose-950">
+				Practice Notes
+			</dt>
+			<dd class="my-1 leading-6 text-black">
+				if scale.PracticeNotes != "" {
+					{ scale.PracticeNotes }
+				} else {
+					No Practice Notes
+				}
+			</dd>
+		</dl>
+	</div>
+}
+
+templ UpdatedScale(scale db.GetUserScaleRow, csrf string) {
+	@ScaleDisplayPage(scale, true)
+	@PracticeScaleDisplay(scale, csrf)
+}
+
+templ PracticeScaleDisplay(scale db.GetUserScaleRow, csrf string) {
+	<div class="grid gap-2 mx-auto max-w-md md:grid-cols-6 md:mx-0 md:max-w-full" id="practice-scale">
+		<div class="flex relative flex-col gap-2 justify-center items-center py-8 px-4 font-bold text-center bg-white rounded-xl border shadow-lg sm:px-8 md:col-span-2 border-neutral-500">
+			<button
+ 				hx-get={ "/library/scales/" + scale.ID + "/edit" }
+ 				hx-push-url="false"
+ 				hx-target="#practice-scale-dialog-contents"
+ 				hx-swap="innerHTML"
+ 				class="absolute top-0 right-0 pt-2 pr-3 pb-0 pl-2 italic font-medium neutral group focusable"
+			>
+				<span class="flex gap-1 items-center px-1 group-hover:border-b border-neutral-500">
+					Edit
+					<span
+ 						class="-mr-1 icon-[iconamoon--edit-thin]"
+ 						aria-hidden="true"
+					></span>
+				</span>
+			</button>
+			if scale.Working {
+				<span class="-mb-2 -ml-1 text-sm italic">
+					*Working Scale
+				</span>
+			}
+			<span class="text-2xl font-bold text-pretty">
+				{ scale.KeyName } { scale.Mode }
+			</span>
+			@components.KeySigIcon(components.GetKeySignatureIconName(scale.KeyName, scale.Mode), "mr-1 size-20")
+		</div>
+		<div class="flex flex-col gap-1 px-4 pt-4 pb-5 bg-white rounded-xl border shadow-lg md:col-span-4 border-neutral-500">
+			<h4 class="text-lg font-semibold text-left underline">
+				Reference
+			</h4>
+			<p class="mb-2 leading-6 text-black">
+				if scale.Reference != "" {
+					{ scale.Reference }
+				} else {
+					No Reference
+				}
+			</p>
+			<h4 class="text-lg font-semibold text-left underline">Practice Notes</h4>
+			<p class="mb-2 leading-6 text-black">
+				if scale.PracticeNotes != "" {
+					{ scale.PracticeNotes }
+				} else {
+					No Practice Notes
+				}
+			</p>
+		</div>
+		<div class="flex flex-col col-span-full gap-4 justify-center px-4 pt-4 w-full sm:flex-row-reverse sm:pt-8 sm:w-full xs:w-auto xs:px-0">
+			<form
+ 				hx-post={ "/library/scales/" + scale.ID + "/practice" }
+ 				action="#"
+ 				class="flex justify-center items-center mx-auto w-full sm:mx-0 sm:w-auto"
+ 				hx-on::after-request={ components.CloseModal("practice-scale-dialog") }
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<button
+ 					type="submit"
+ 					class="px-6 w-full h-16 text-2xl sm:w-auto xs:w-48 action-button green focusable"
+				>
+					<span
+ 						class="-ml-1 icon-[iconamoon--check-circle-1-thin] size-8"
+ 						aria-hidden="true"
+					></span>
+					Done
+				</button>
+			</form>
+			<div>
+				<button class="w-full h-16 text-2xl sm:w-auto xs:w-48 amber action-button focusable" onClick={ components.CloseModal("practice-scale-dialog") }>
+					<span class="-ml-1 size-8 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+					Close
+				</button>
+			</div>
+		</div>
+	</div>
+}
+
+templ EditScaleDisplay(scale db.GetUserScaleRow, csrf string) {
+	<form
+ 		class="grid gap-2 mx-auto max-w-md md:grid-cols-6 md:mx-0 md:max-w-full"
+ 		id="edit-scale"
+ 		hx-put={ "/library/scales/" + scale.ID }
+ 		hx-push-url="false"
+ 		hx-target="#practice-scale-dialog-contents"
+ 		hx-swap="innerHTML"
+	>
+		<div class="flex relative flex-col gap-2 justify-center items-center py-8 px-4 font-bold text-center bg-white rounded-xl border shadow-lg sm:px-8 md:col-span-2 border-neutral-500">
+			<p class="text-sm italic text-neutral-700">Your working scale will always be chosen for your practice plan.</p>
+			<label class="flex gap-1 items-center -mb-2 text-base italic" for="working">
+				<input
+ 					type="checkbox"
+ 					checked?={ scale.Working }
+ 					name="working"
+ 					id="working"
+ 					class="-ml-1 rounded-xl focus:outline-none accent-neutral-800"
+				/>
+				Working Scale?
+			</label>
+			<span class="text-2xl font-bold text-pretty">
+				{ scale.KeyName } { scale.Mode }
+			</span>
+			@components.KeySigIcon(components.GetKeySignatureIconName(scale.KeyName, scale.Mode), "mr-1 size-20")
+		</div>
+		<div
+ 			class="flex flex-col gap-2 px-4 pt-4 pb-5 bg-white rounded-xl border shadow-lg md:col-span-4 border-neutral-500"
+		>
+			<input
+ 				value={ csrf }
+ 				type="hidden"
+ 				name="gorilla.csrf.Token"
+ 				id="csrf"
+			/>
+			<label for="reference" class="text-lg font-semibold text-left underline">
+				Reference
+			</label>
+			<p class="flex my-1 leading-6 text-black">
+				<input
+ 					value={ scale.Reference }
+ 					class="flex-grow min-w-0 basic-field neutral focusable"
+ 					name="reference"
+ 					type="text"
+ 					placeholder="Reference"
+ 					id="reference"
+				/>
+			</p>
+			<label for="practice-notes" class="text-lg font-semibold text-left underline">Practice Notes</label>
+			<p class="my-1 leading-6 text-black">
+				<textarea
+ 					value={ scale.PracticeNotes }
+ 					class="flex-grow w-full min-w-0 basic-field neutral focusable"
+ 					name="practice-notes"
+ 					placeholder="Practice Notes"
+ 					id="practice-notes"
+				></textarea>
+			</p>
+			<div class="flex flex-col flex-wrap gap-2 justify-start items-center mt-2 w-full xs:flex-row-reverse">
+				<button
+ 					type="submit"
+ 					class="w-full action-button green xs:w-auto focusable"
+				>
+					<span
+ 						class="-ml-1 icon-[iconamoon--arrow-up-5-circle-thin] size-6"
+ 						aria-hidden="true"
+					></span>
+					Save
+				</button>
+				<button
+ 					type="button"
+ 					class="w-full action-button red xs:w-auto focusable"
+ 					hx-get={ "/library/scales/" + scale.ID + "/practice" }
+ 					hx-push-url="false"
+ 					hx-target="#edit-scale"
+ 					hx-swap="outerHTML transition:true"
+				>
+					<span
+ 						class="-ml-1 icon-[iconamoon--sign-times-circle-thin] size-6"
+ 						aria-hidden="true"
+					></span>
+					Cancel
+				</button>
+			</div>
+		</div>
+	</form>
+}

@@ -130,7 +130,7 @@ script ShowInterleaveModal(id string) {
 	globalThis.handleShowModal();
 }
 
-templ InterleaveSpotCardOOB(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool, oob bool) {
+templ InterleaveSpotCardOOB(pieceID, spotID, name, measures, stage string, pieceTitle string, active bool, practiced bool, oob bool) {
 	<li
  		id={ "spot-" + spotID }
  		data-spot-stage={ stage }
@@ -139,14 +139,26 @@ templ InterleaveSpotCardOOB(pieceID, spotID, name, measures, stage string, piece
 			hx-swap-oob="outerHTML"
 		}
 	>
-		@HxLink(getSpotCardClass(practiced, stage), "/library/pieces/"+pieceID+"/spots/"+spotID, "#main-content") {
-			@InterleaveSpotItem(name, pieceTitle, measures, stage, practiced)
+		if practiced || !active {
+			@HxLink(getSpotCardClass(practiced, stage), "/library/pieces/"+pieceID+"/spots/"+spotID, "#main-content") {
+				@InterleaveSpotItem(name, pieceTitle, measures, stage, practiced)
+			}
+		} else {
+			<button
+ 				class={ getSpotCardClass(practiced, stage), "w-full" }
+ 				hx-get={ "/library/plans/" + GetActivePracticePlan(ctx) + "/" + stage + "/" + spotID }
+ 				hx-target={ "#" + INTERLEAVE_SPOT_DIALOG_CONTENTS_ID }
+ 				hx-swap="innerHTML transition:true"
+ 				hx-on::after-request={ ShowModal(INTERLEAVE_SPOT_DIALOG_ID) }
+			>
+				@InterleaveSpotItem(name, pieceTitle, measures, stage, practiced)
+			</button>
 		}
 	</li>
 }
 
-templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool) {
-	@InterleaveSpotCardOOB(pieceID, spotID, name, measures, stage, pieceTitle, practiced, false)
+templ InterleaveSpotCard(pieceID, spotID, name, measures, stage string, pieceTitle string, practiced bool, active bool) {
+	@InterleaveSpotCardOOB(pieceID, spotID, name, measures, stage, pieceTitle, active, practiced, false)
 }
 
 // TODO: make this nice

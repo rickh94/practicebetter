@@ -35,29 +35,29 @@ templ IndexPage() {
 		</p>
 		<div class="grid grid-cols-1 gap-4 mx-auto max-w-4xl md:grid-cols-3">
 			@components.HxLink(
-				actionPanelClasses + "hover:text-violet-700 hover:bg-violet-100 hover:border-violet-500 hover:shadow hover:shadow-violet-900/30",
-				"/practice/random-single",
+				actionPanelClasses + "hover:text-yellow-700 hover:bg-yellow-100 hover:border-yellow-500 hover:shadow hover:shadow-yellow-900/30",
+				"/practice/repeat",
 				"#main-content",
 			) {
-				<h2 class="flex items-center text-2xl font-bold">
-					Go Practice
-					<span class="ml-2 icon-[iconamoon--player-play-thin]" aria-hidden="true"></span>
+				<h2 class="flex items-center text-2xl font-bold text-yellow-700">
+					Five Times
+					<span class="ml-2 text-yellow-500 icon-[iconamoon--star-duotone]" aria-hidden="true"></span>
 				</h2>
 				<div class="text-lg">
-					Try out the essential practice tools that you will use to learn your pieces.
+					Practice your spot five times to earn your stars!
 				</div>
 			}
 			@components.HxLink(
 				actionPanelClasses + "hover:text-indigo-700 hover:bg-indigo-100 hover:border-indigo-500 hover:shadow hover:shadow-indigo-900/30",
-				"/library",
+				"/practice/random",
 				"#main-content",
 			) {
 				<h2 class="flex items-center text-2xl font-bold">
-					Start Learning
-					<span class="ml-2 -mb-1 icon-[custom--music-file]" aria-hidden="true"></span>
+					Random Practice
+					<span class="ml-2 -mb-1 icon-[iconamoon--playlist-shuffle-thin]" aria-hidden="true"></span>
 				</h2>
 				<div class="text-lg">
-					Try out the essential practice tools that you will use to learn your pieces.
+					Randomize your spots to ensure you know them all very well.
 				</div>
 			}
 			@components.HxLink(

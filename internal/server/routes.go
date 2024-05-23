@@ -168,6 +168,7 @@ func (s *Server) planRouter(r chi.Router) {
 		r.Get("/next", s.redirectToNextPlanItem)
 		r.Get("/interleave", s.getInterleaveList)
 		r.Get("/interleave/start", s.startInterleavePracticing)
+		r.Get("/interleave/{spotID}", s.interleavePracticeSpot)
 		r.Post("/interleave/practice", s.saveInterleaveResult)
 		r.Get("/infrequent/start", s.startInfrequentPracticing)
 		r.Post("/infrequent/practice", s.saveInfrequentResult)
@@ -179,20 +180,34 @@ func (s *Server) planRouter(r chi.Router) {
 
 		r.Delete("/spots/{practiceType}/{spotID}", s.deleteSpotFromPracticePlan)
 		r.Delete("/pieces/{practiceType}/{pieceID}", s.deletePieceFromPracticePlan)
+		r.Delete("/scales/{userScaleID}", s.deleteScaleFromPracticePlan)
 		r.Get("/spots/{practiceType}/add", s.getSpotsForPracticePlan)
 		r.Get("/spots/new/add/pieces", s.getNewSpotPiecesForPracticePlan)
 		r.Get("/spots/new/add/pieces/{pieceID}", s.getNewSpotsForPracticePlan)
 		r.Put("/spots/{practiceType}", s.addSpotsToPracticePlan)
+		r.Get("/scales/add", s.getScalesForPracticePlan)
+		r.Post("/scales/add", s.addScaleToPracticePlan)
 
 		r.Get("/pieces/{practiceType}/add", s.getPiecesForPracticePlan)
 		r.Put("/pieces/{practiceType}", s.addPiecesToPracticePlan)
 	})
 }
 
+func (s *Server) scalesRouter(r chi.Router) {
+	r.Get("/", s.scalePicker)
+	r.Get("/{scaleID}", s.singleScale)
+	r.Put("/{scaleID}", s.updateScale)
+	r.Get("/{scaleID}/practice", s.getPracticeScale)
+	r.Post("/{scaleID}/practice", s.practiceScale)
+	r.Get("/{scaleID}/edit", s.editScale)
+	r.Get("/autocreate", s.autocreateScale)
+}
+
 func (s *Server) libraryRouter(r chi.Router) {
 	r.Get("/", s.libraryDashboard)
 
 	r.Route("/pieces", s.pieceRouter)
+	r.Route("/scales", s.scalesRouter)
 
 	r.Get("/upload/audio", s.uploadAudioForm)
 	r.Post("/upload/audio", s.uploadAudio)

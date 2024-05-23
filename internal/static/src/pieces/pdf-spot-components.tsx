@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { cn, type PageImage, type CroppedImageData } from "../common";
 import Cropper, { type CropperSelection } from "cropperjs";
-import * as htmx from "htmx.org";
+import * as htmx from "htmx.org/dist/htmx";
 
 export function SelectMode(props: {
   pageImages: PageImage[];

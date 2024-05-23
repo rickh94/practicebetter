@@ -2,7 +2,7 @@ import { type JSX } from "preact/jsx-runtime";
 import { cn } from "../common";
 import { RandomBoxesIcon, RepeatIcon, ShuffleIcon } from "./icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import * as htmx from "htmx.org";
+import * as htmx from "htmx.org/dist/htmx";
 
 const links = new Map<string, { label: string; icon: JSX.Element }>([
   [
@@ -29,6 +29,7 @@ const links = new Map<string, { label: string; icon: JSX.Element }>([
 
 function processLinks() {
   document.querySelectorAll("a[data-radix-collection-item]").forEach((el) => {
+    console.log("processing nav menu link");
     htmx.process(el);
   });
 }

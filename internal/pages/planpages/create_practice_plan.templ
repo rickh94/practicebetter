@@ -23,6 +23,18 @@ script toggleChecked(id string) {
 	document.getElementById(id).classList.toggle('checked');
 }
 
+script showMoreOptions() {
+	document.getElementById("more-options-content").classList.remove("hidden");
+	document.getElementById("show-more-options-button").classList.add("hidden");
+	document.getElementById("hide-more-options-button").classList.remove("hidden");
+}
+
+script hideMoreOptions() {
+	document.getElementById("more-options-content").classList.add("hidden");
+	document.getElementById("show-more-options-button").classList.remove("hidden");
+	document.getElementById("hide-more-options-button").classList.add("hidden");
+}
+
 type PlanCreationErrors struct {
 	Pieces       string
 	Intensity    string
@@ -70,7 +82,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
  			required
  			id="intensity"
  			name="intensity"
- 			class="flex-grow-0 py-2 pr-8 pl-4 w-max bg-white rounded-xl border-2 shadow-sm transition duration-200 focus:shadow border-neutral-800 shadow-neutral-300 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:border-neutral-800 focus:shadow-neutral-700/20"
+ 			class="flex-grow-0 py-2 pr-8 pl-4 w-max bg-white rounded-xl border shadow-sm transition duration-200 focus:shadow border-neutral-800 shadow-neutral-300 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:border-neutral-800 focus:shadow-neutral-700/20"
 		>
 			<option value="light">
 				Light
@@ -94,6 +106,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 			</p>
 		}
 		<div class="flex flex-col flex-wrap gap-2 w-full xs:flex-row xs:w-auto">
+			@practiceCheckbox("icon-[ph--steps]","Scales & Arppegios", "scale", true)
 			@practiceCheckbox("icon-[iconamoon--bookmark-thin]","Interleave Spots", "practice_interleave", true)
 			@practiceCheckbox("icon-[iconamoon--playlist-shuffle-thin]","Random Spots", "practice_random_single", true)
 			@practiceCheckbox("icon-[custom--random-boxes]","Random Starting Point", "practice_starting_point", false)
@@ -130,6 +143,34 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 				</div>
 			</div>
 		}
+	</section>
+	<section id="more-options" class="grid grid-cols-1 gap-2 mt-4 sm:grid-cols-2 md:col-span-2 lg:grid-cols-3 h-min">
+		<div class="flex col-span-full">
+			<button
+ 				type="button"
+ 				onclick={ showMoreOptions() }
+ 				id="show-more-options-button"
+ 				class="action-button blue focusable"
+			>
+				Show More Options
+				<span class="-mr-1 size-6 icon-[iconamoon--arrow-down-6-circle-thin]" aria-hidden="true"></span>
+			</button>
+			<button
+ 				type="button"
+ 				onclick={ hideMoreOptions() }
+ 				id="hide-more-options-button"
+ 				class="hidden action-button blue focusable"
+			>
+				Hide More Options
+				<span class="-mr-1 size-6 icon-[iconamoon--arrow-up-6-circle-thin]" aria-hidden="true"></span>
+			</button>
+		</div>
+		<div id="more-options-content" class="hidden subgrid">
+			<label class="flex gap-2 items-center px-2 font-medium accent-neutral-800 focusable">
+				<input type="checkbox" name="modal-scales" class="focus:outline-none"/>
+				<span class="text-neutral-800">Include Uncommon Scales</span>
+			</label>
+		</div>
 	</section>
 	<section id="customize" class="flex col-span-full justify-end pt-4 w-full">
 		<label class="flex gap-2 items-center px-2 font-medium accent-neutral-800 focusable">

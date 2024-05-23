@@ -52,6 +52,23 @@ func (q *Queries) CompletePracticePlanPiece(ctx context.Context, arg CompletePra
 	return err
 }
 
+const completePracticePlanScale = `-- name: CompletePracticePlanScale :exec
+UPDATE practice_plan_scales
+SET completed = true
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ? AND practice_plans.user_id = ?) AND user_scale_id = ?
+`
+
+type CompletePracticePlanScaleParams struct {
+	PlanID      string `json:"planId"`
+	UserID      string `json:"userId"`
+	UserScaleID string `json:"userScaleId"`
+}
+
+func (q *Queries) CompletePracticePlanScale(ctx context.Context, arg CompletePracticePlanScaleParams) error {
+	_, err := q.db.ExecContext(ctx, completePracticePlanScale, arg.PlanID, arg.UserID, arg.UserScaleID)
+	return err
+}
+
 const completePracticePlanSpot = `-- name: CompletePracticePlanSpot :exec
 UPDATE practice_plan_spots
 SET completed = true,
@@ -177,6 +194,33 @@ func (q *Queries) CreatePracticePlanPieceWithIdx(ctx context.Context, arg Create
 	return i, err
 }
 
+const createPracticePlanScaleWithIdx = `-- name: CreatePracticePlanScaleWithIdx :one
+INSERT INTO practice_plan_scales (
+    practice_plan_id,
+    user_scale_id,
+    idx
+) VALUES (?, ?, ?)
+RETURNING practice_plan_id, user_scale_id, completed, idx
+`
+
+type CreatePracticePlanScaleWithIdxParams struct {
+	PracticePlanID string `json:"practicePlanId"`
+	UserScaleID    string `json:"userScaleId"`
+	Idx            int64  `json:"idx"`
+}
+
+func (q *Queries) CreatePracticePlanScaleWithIdx(ctx context.Context, arg CreatePracticePlanScaleWithIdxParams) (PracticePlanScale, error) {
+	row := q.db.QueryRowContext(ctx, createPracticePlanScaleWithIdx, arg.PracticePlanID, arg.UserScaleID, arg.Idx)
+	var i PracticePlanScale
+	err := row.Scan(
+		&i.PracticePlanID,
+		&i.UserScaleID,
+		&i.Completed,
+		&i.Idx,
+	)
+	return i, err
+}
+
 const createPracticePlanSpot = `-- name: CreatePracticePlanSpot :one
 INSERT INTO practice_plan_spots (
     practice_plan_id,
@@ -281,6 +325,31 @@ func (q *Queries) DeletePracticePlanPiece(ctx context.Context, arg DeletePractic
 	return err
 }
 
+const deletePracticePlanScale = `-- name: DeletePracticePlanScale :one
+DELETE FROM practice_plan_scales
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+AND user_scale_id = ?3
+RETURNING practice_plan_id, user_scale_id, completed, idx
+`
+
+type DeletePracticePlanScaleParams struct {
+	PlanID      string `json:"planId"`
+	UserID      string `json:"userId"`
+	UserScaleID string `json:"userScaleId"`
+}
+
+func (q *Queries) DeletePracticePlanScale(ctx context.Context, arg DeletePracticePlanScaleParams) (PracticePlanScale, error) {
+	row := q.db.QueryRowContext(ctx, deletePracticePlanScale, arg.PlanID, arg.UserID, arg.UserScaleID)
+	var i PracticePlanScale
+	err := row.Scan(
+		&i.PracticePlanID,
+		&i.UserScaleID,
+		&i.Completed,
+		&i.Idx,
+	)
+	return i, err
+}
+
 const deletePracticePlanSpot = `-- name: DeletePracticePlanSpot :exec
 DELETE FROM practice_plan_spots
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
@@ -345,6 +414,23 @@ func (q *Queries) GetMaxPieceIdx(ctx context.Context, arg GetMaxPieceIdxParams) 
 	return max, err
 }
 
+const getMaxScaleIdx = `-- name: GetMaxScaleIdx :one
+SELECT MAX(idx) FROM practice_plan_scales
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
+`
+
+type GetMaxScaleIdxParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+}
+
+func (q *Queries) GetMaxScaleIdx(ctx context.Context, arg GetMaxScaleIdxParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getMaxScaleIdx, arg.PlanID, arg.UserID)
+	var max interface{}
+	err := row.Scan(&max)
+	return max, err
+}
+
 const getMaxSpotIdx = `-- name: GetMaxSpotIdx :one
 SELECT MAX(idx) FROM practice_plan_spots
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2)
@@ -363,7 +449,7 @@ func (q *Queries) GetMaxSpotIdx(ctx context.Context, arg GetMaxSpotIdxParams) (i
 }
 
 const getNextInfrequentSpot = `-- name: GetNextInfrequentSpot :one
-SELECT spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority,
+SELECT spots.id, spots.piece_id, spots.name, spots.stage, spots.measures, spots.audio_prompt_url, spots.image_prompt_url, spots.notes_prompt, spots.text_prompt, spots.current_tempo, spots.last_practiced, spots.stage_started, spots.skip_days, spots.priority, spots.section_id,
     (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS piece_title
 FROM practice_plan_spots
 INNER JOIN spots ON practice_plan_spots.spot_id = spots.id
@@ -394,6 +480,7 @@ type GetNextInfrequentSpotRow struct {
 	StageStarted   sql.NullInt64  `json:"stageStarted"`
 	SkipDays       int64          `json:"skipDays"`
 	Priority       int64          `json:"priority"`
+	SectionID      sql.NullString `json:"sectionId"`
 	PieceTitle     string         `json:"pieceTitle"`
 }
 
@@ -415,6 +502,7 @@ func (q *Queries) GetNextInfrequentSpot(ctx context.Context, arg GetNextInfreque
 		&i.StageStarted,
 		&i.SkipDays,
 		&i.Priority,
+		&i.SectionID,
 		&i.PieceTitle,
 	)
 	return i, err
@@ -854,6 +942,61 @@ func (q *Queries) GetPracticePlanInterleaveDaysSpots(ctx context.Context, arg Ge
 	return items, nil
 }
 
+const getPracticePlanInterleaveSpot = `-- name: GetPracticePlanInterleaveSpot :one
+SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.evaluation, practice_plan_spots.completed, practice_plan_spots.idx,
+    spots.name AS spot_name,
+    spots.measures AS spot_measures,
+    spots.piece_id AS spot_piece_id,
+    spots.stage AS spot_stage,
+    spots.stage_started AS spot_stage_started,
+    (SELECT pieces.title FROM pieces WHERE pieces.id = spots.piece_id LIMIT 1) AS spot_piece_title
+FROM practice_plan_spots
+LEFT JOIN spots ON practice_plan_spots.spot_id = spots.id
+WHERE practice_plan_spots.practice_type = 'interleave' AND practice_plan_spots.practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2) AND spots.id = ?3
+ORDER BY practice_plan_spots.idx
+`
+
+type GetPracticePlanInterleaveSpotParams struct {
+	PlanID string `json:"planId"`
+	UserID string `json:"userId"`
+	SpotID string `json:"spotId"`
+}
+
+type GetPracticePlanInterleaveSpotRow struct {
+	PracticePlanID   string         `json:"practicePlanId"`
+	SpotID           string         `json:"spotId"`
+	PracticeType     string         `json:"practiceType"`
+	Evaluation       sql.NullString `json:"evaluation"`
+	Completed        bool           `json:"completed"`
+	Idx              int64          `json:"idx"`
+	SpotName         sql.NullString `json:"spotName"`
+	SpotMeasures     sql.NullString `json:"spotMeasures"`
+	SpotPieceID      sql.NullString `json:"spotPieceId"`
+	SpotStage        sql.NullString `json:"spotStage"`
+	SpotStageStarted sql.NullInt64  `json:"spotStageStarted"`
+	SpotPieceTitle   string         `json:"spotPieceTitle"`
+}
+
+func (q *Queries) GetPracticePlanInterleaveSpot(ctx context.Context, arg GetPracticePlanInterleaveSpotParams) (GetPracticePlanInterleaveSpotRow, error) {
+	row := q.db.QueryRowContext(ctx, getPracticePlanInterleaveSpot, arg.PlanID, arg.UserID, arg.SpotID)
+	var i GetPracticePlanInterleaveSpotRow
+	err := row.Scan(
+		&i.PracticePlanID,
+		&i.SpotID,
+		&i.PracticeType,
+		&i.Evaluation,
+		&i.Completed,
+		&i.Idx,
+		&i.SpotName,
+		&i.SpotMeasures,
+		&i.SpotPieceID,
+		&i.SpotStage,
+		&i.SpotStageStarted,
+		&i.SpotPieceTitle,
+	)
+	return i, err
+}
+
 const getPracticePlanInterleaveSpots = `-- name: GetPracticePlanInterleaveSpots :many
 SELECT practice_plan_spots.practice_plan_id, practice_plan_spots.spot_id, practice_plan_spots.practice_type, practice_plan_spots.evaluation, practice_plan_spots.completed, practice_plan_spots.idx,
     spots.name AS spot_name,
@@ -1004,6 +1147,86 @@ func (q *Queries) GetPracticePlanWithPieces(ctx context.Context, arg GetPractice
 	return items, nil
 }
 
+const getPracticePlanWithScales = `-- name: GetPracticePlanWithScales :many
+SELECT
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
+    practice_plan_scales.completed AS scale_completed,
+    user_scales.id AS user_scale_id,
+    user_scales.practice_notes AS scale_practice_notes,
+    user_scales.last_practiced AS scale_last_practiced,
+    user_scales.reference AS scale_reference,
+    scale_keys.name AS scale_key_name,
+    scale_modes.name AS scale_mode
+FROM practice_plans
+INNER JOIN practice_plan_scales ON practice_plans.id = practice_plan_scales.practice_plan_id
+INNER JOIN user_scales ON practice_plan_scales.user_scale_id = user_scales.id
+INNER JOIN scales ON user_scales.scale_id = scales.id
+INNER JOIN scale_keys ON scale_keys.id = scales.key_id
+INNER JOIN scale_modes ON scale_modes.id = scales.mode_id
+WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2 AND user_scales.user_id = ?2
+ORDER BY practice_plan_scales.idx
+`
+
+type GetPracticePlanWithScalesParams struct {
+	PracticePlanID string `json:"practicePlanId"`
+	UserID         string `json:"userId"`
+}
+
+type GetPracticePlanWithScalesRow struct {
+	ID                 string         `json:"id"`
+	UserID             string         `json:"userId"`
+	Intensity          string         `json:"intensity"`
+	Date               int64          `json:"date"`
+	Completed          bool           `json:"completed"`
+	PracticeNotes      sql.NullString `json:"practiceNotes"`
+	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
+	ScaleCompleted     bool           `json:"scaleCompleted"`
+	UserScaleID        string         `json:"userScaleId"`
+	ScalePracticeNotes string         `json:"scalePracticeNotes"`
+	ScaleLastPracticed sql.NullInt64  `json:"scaleLastPracticed"`
+	ScaleReference     string         `json:"scaleReference"`
+	ScaleKeyName       string         `json:"scaleKeyName"`
+	ScaleMode          string         `json:"scaleMode"`
+}
+
+func (q *Queries) GetPracticePlanWithScales(ctx context.Context, arg GetPracticePlanWithScalesParams) ([]GetPracticePlanWithScalesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanWithScales, arg.PracticePlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPracticePlanWithScalesRow
+	for rows.Next() {
+		var i GetPracticePlanWithScalesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Intensity,
+			&i.Date,
+			&i.Completed,
+			&i.PracticeNotes,
+			&i.LastPracticed,
+			&i.ScaleCompleted,
+			&i.UserScaleID,
+			&i.ScalePracticeNotes,
+			&i.ScaleLastPracticed,
+			&i.ScaleReference,
+			&i.ScaleKeyName,
+			&i.ScaleMode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPracticePlanWithSpots = `-- name: GetPracticePlanWithSpots :many
 SELECT
     practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
@@ -1097,6 +1320,8 @@ SELECT
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count,
+    (SELECT COUNT(*) FROM practice_plan_scales WHERE practice_plan_scales.practice_plan_id = practice_plans.id AND practice_plan_scales.completed = true) AS completed_scales_count,
+    (SELECT COUNT(*) FROM practice_plan_scales WHERE practice_plan_scales.practice_plan_id = practice_plans.id) AS scales_count,
     IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_pieces INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id WHERE practice_plan_pieces.practice_plan_id = practice_plans.id), '') AS piece_titles,
     IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_spots INNER JOIN spots ON spots.id = practice_plan_spots.spot_id INNER JOIN pieces ON pieces.id = spots.piece_id WHERE practice_plan_spots.practice_plan_id = practice_plans.id), '') AS spot_piece_titles
 FROM practice_plans
@@ -1121,6 +1346,8 @@ type GetPracticePlanWithTodoRow struct {
 	SpotsCount           int64          `json:"spotsCount"`
 	CompletedPiecesCount int64          `json:"completedPiecesCount"`
 	PiecesCount          int64          `json:"piecesCount"`
+	CompletedScalesCount int64          `json:"completedScalesCount"`
+	ScalesCount          int64          `json:"scalesCount"`
 	PieceTitles          interface{}    `json:"pieceTitles"`
 	SpotPieceTitles      interface{}    `json:"spotPieceTitles"`
 }
@@ -1140,6 +1367,8 @@ func (q *Queries) GetPracticePlanWithTodo(ctx context.Context, arg GetPracticePl
 		&i.SpotsCount,
 		&i.CompletedPiecesCount,
 		&i.PiecesCount,
+		&i.CompletedScalesCount,
+		&i.ScalesCount,
 		&i.PieceTitles,
 		&i.SpotPieceTitles,
 	)
@@ -1193,6 +1422,8 @@ SELECT
     (SELECT COUNT(*) FROM practice_plan_spots WHERE practice_plan_spots.practice_plan_id = practice_plans.id) AS spots_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id AND practice_plan_pieces.completed = true) AS completed_pieces_count,
     (SELECT COUNT(*) FROM practice_plan_pieces WHERE practice_plan_pieces.practice_plan_id = practice_plans.id) AS pieces_count,
+    (SELECT COUNT(*) FROM practice_plan_scales WHERE practice_plan_scales.practice_plan_id = practice_plans.id AND practice_plan_scales.completed = true) AS completed_scales_count,
+    (SELECT COUNT(*) FROM practice_plan_scales WHERE practice_plan_scales.practice_plan_id = practice_plans.id) AS scales_count,
     IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_pieces INNER JOIN pieces ON practice_plan_pieces.piece_id = pieces.id WHERE practice_plan_pieces.practice_plan_id = practice_plans.id), '') AS piece_titles,
     IFNULL((SELECT GROUP_CONCAT(DISTINCT pieces.title||'@') FROM practice_plan_spots INNER JOIN spots ON spots.id = practice_plan_spots.spot_id INNER JOIN pieces ON pieces.id = spots.piece_id WHERE practice_plan_spots.practice_plan_id = practice_plans.id), '') AS spot_piece_titles
 FROM practice_plans
@@ -1219,6 +1450,8 @@ type ListPaginatedPracticePlansRow struct {
 	SpotsCount           int64          `json:"spotsCount"`
 	CompletedPiecesCount int64          `json:"completedPiecesCount"`
 	PiecesCount          int64          `json:"piecesCount"`
+	CompletedScalesCount int64          `json:"completedScalesCount"`
+	ScalesCount          int64          `json:"scalesCount"`
 	PieceTitles          interface{}    `json:"pieceTitles"`
 	SpotPieceTitles      interface{}    `json:"spotPieceTitles"`
 }
@@ -1244,6 +1477,8 @@ func (q *Queries) ListPaginatedPracticePlans(ctx context.Context, arg ListPagina
 			&i.SpotsCount,
 			&i.CompletedPiecesCount,
 			&i.PiecesCount,
+			&i.CompletedScalesCount,
+			&i.ScalesCount,
 			&i.PieceTitles,
 			&i.SpotPieceTitles,
 		); err != nil {

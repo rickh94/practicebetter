@@ -207,7 +207,7 @@ WHERE spots.id = :spot_id AND piece_id IN (SELECT pieces.id FROM pieces WHERE pi
 -- name: PromoteSpotToCompleted :one
 UPDATE spots
 SET
-    stage = 'completed'
+    stage = 'completed',
     stage_started = unixepoch('now'),
     skip_days = 1,
     last_practiced = unixepoch('now')

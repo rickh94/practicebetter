@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 import { cn } from "../common";
-import * as htmx from "htmx.org";
+import * as htmx from "htmx.org/dist/htmx";
 import { type ReactNode } from "preact/compat";
 
 export const topNavClasses =

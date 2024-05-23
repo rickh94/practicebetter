@@ -9,7 +9,7 @@ import { RemindersSummary } from "./ui/prompts";
 import { BackToPiece } from "./ui/links";
 import { PracticeSpotDisplayWrapper } from "./practice/practice-spot-display";
 import "./input.css";
-import "htmx.org";
+import "htmx.org/dist/htmx";
 import * as SimpleWebAuthnBrowser from "@simplewebauthn/browser";
 import type {
   PublicKeyCredentialRequestOptionsJSON,

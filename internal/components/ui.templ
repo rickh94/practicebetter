@@ -354,3 +354,132 @@ templ PracticePlanCard(planInfo PracticePlanCardInfo) {
 		</div>
 	}
 }
+
+func GetKeySignatureIconName(keyName, mode string) string {
+	if mode == "Major (Ionian)" {
+		switch keyName {
+		case "G♯/A♭":
+			return "icon-[key--af-major]"
+		case "A":
+			return "icon-[key--a-major]"
+		case "A♯/B♭":
+			return "icon-[key--bf-major]"
+		case "B":
+			return "icon-[key--b-major]"
+		case "C":
+			return "icon-[key--c-major]"
+		case "C♯/D♭":
+			return "icon-[key--df-major]"
+		case "D":
+			return "icon-[key--d-major]"
+		case "D♯/E♭":
+			return "icon-[key--ef-major]"
+		case "E":
+			return "icon-[key--e-major]"
+		case "F":
+			return "icon-[key--f-major]"
+		case "F♯/G♭":
+			return "icon-[key--gf-major]"
+		case "G":
+			return "icon-[key--g-major]"
+		}
+	} else if mode == "Minor (Aeolian)" {
+		switch keyName {
+		case "G♯/A♭":
+			return "icon-[key--gs-minor]"
+		case "A":
+			return "icon-[key--a-minor]"
+		case "A♯/B♭":
+			return "icon-[key--bf-minor]"
+		case "B":
+			return "icon-[key--b-minor]"
+		case "C":
+			return "icon-[key--c-minor]"
+		case "C♯/D♭":
+			return "icon-[key--cs-minor]"
+		case "D":
+			return "icon-[key--d-minor]"
+		case "D♯/E♭":
+			return "icon-[key--ef-minor]"
+		case "E":
+			return "icon-[key--e-minor]"
+		case "F":
+			return "icon-[key--f-minor]"
+		case "F♯/G♭":
+			return "icon-[key--fs-minor]"
+		case "G":
+			return "icon-[key--g-minor]"
+		}
+	}
+	return ""
+}
+
+templ ScaleCardIcon(name string) {
+	if name == "" {
+		<span class="-mr-2 size-12 icon-[ph--steps-thin]" aria-hidden="true"></span>
+	} else {
+		<span class={ name, "-mr-2 size-12" } aria-hidden="true"></span>
+	}
+}
+
+templ KeySigIcon(name string, class string) {
+	if name != "" {
+		<span class={ name, class } aria-hidden="true"></span>
+	}
+}
+
+type UserScaleInfo struct {
+	UserScaleID   string
+	KeyName       string
+	ModeName      string
+	PracticeNotes string
+	Reference     string
+}
+
+templ ScaleCardOOB(info UserScaleInfo, completed bool, oob bool) {
+	<li
+ 		class="w-full"
+ 		id={ "plan-scale-" + info.UserScaleID }
+ 		if oob {
+			hx-swap-oob="true"
+		}
+	>
+		<button
+ 			class={ getScaleCardClass(completed) }
+ 			hx-get={ "/library/scales/" + info.UserScaleID + "/practice" }
+ 			hx-push-url="false"
+ 			hx-target="#practice-scale-dialog-contents"
+ 			hx-swap="innerHTML"
+ 			hx-on::after-request={ ShowModal("practice-scale-dialog") }
+		>
+			<div class="flex flex-col flex-1 flex-grow gap-1 justify-center items-start h-full">
+				<div class={ templ.KV("text-rose-950", !completed), templ.KV("text-green-950", completed), "text-left justify-start w-full" }>
+					<strong class="text-xl font-bold">{ info.KeyName } { info.ModeName }</strong>
+				</div>
+				if info.Reference != "" {
+					<div class="text-sm truncate">
+						{ info.Reference }
+					</div>
+				}
+			</div>
+			<div class="flex flex-grow-0 items-center text-rose-950">
+				<div class="sr-only">Click to view</div>
+				@ScaleCardIcon(GetKeySignatureIconName(info.KeyName, info.ModeName))
+			</div>
+		</button>
+	</li>
+}
+
+templ ScaleCard(info UserScaleInfo, completed bool) {
+	@ScaleCardOOB(info, completed, false)
+}
+
+const scaleCardClass = "flex py-4 w-full h-full px-6 text-black rounded-xl border shadow-sm transition-all duration-200 shadow-black/20 focusable"
+
+func getScaleCardClass(completed bool) string {
+	if completed {
+		return scaleCardClass + " bg-green-200 border-green-300"
+	} else {
+		return scaleCardClass + " border-rose-300 bg-rose-50 hover:shadow hover:shadow-rose-400"
+	}
+}

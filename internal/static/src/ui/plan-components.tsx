@@ -1,6 +1,6 @@
 import { BackToPlan, Link } from "./links";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import * as htmx from "htmx.org";
+import * as htmx from "htmx.org/dist/htmx";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 
@@ -107,8 +107,6 @@ export function NextPlanItem({
     </>
   );
 }
-
-// TODO: manage the thing so that on the last one it goes on or just doesn't close both modals
 
 export const StartPracticingInterleave = (props: { planid?: string }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);

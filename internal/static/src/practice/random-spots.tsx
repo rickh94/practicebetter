@@ -115,6 +115,7 @@ export function RandomSpots({
       setShowPrepare(true);
       startPracticing();
     }
+    window.scrollTo(0, 500);
   }, [initialspots, setNumSessions, startPracticing]);
 
   return (
@@ -249,7 +250,7 @@ export function GetReadyDialog({
         <button
           type="button"
           onClick={closeDialog}
-          className="action-button violet flex-grow px-4 text-lg"
+          className="action-button violet focusable flex-grow px-4 text-lg"
         >
           Go Practice
           <span

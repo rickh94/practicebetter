@@ -64,6 +64,7 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 					"interleave_days",
 					spot.PieceTitle,
 					spot.Completed,
+					active,
 				)
 			}
 		</ul>
@@ -73,7 +74,7 @@ templ PracticePlanInterleaveDaysSpots(interleaveDaysSpots []PracticePlanSpot, pl
 					Loading Infrequent Spot...
 				</span>
 			</div>
-			<div class="p-0 mx-auto mt-2 w-auto bg-white rounded-xl overflow-x-clip">
+			<div class="p-0 mx-auto mt-2 w-auto rounded-xl overflow-x-clip">
 				<button class="w-full sm:w-auto xs:w-48 amber action-button focusable" onClick={ components.CloseModal(components.INFREQUENT_SPOT_DIALOG_ID) }>
 					<span class="-ml-1 size-5 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 					Close
@@ -123,6 +124,7 @@ templ FinishInfrequentSpots(pieceID, spotID, name, measures, pieceTitle string) 
 			measures,
 			"interleave_days",
 			pieceTitle,
+			true,
 			true,
 			true,
 		)

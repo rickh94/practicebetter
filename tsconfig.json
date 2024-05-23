@@ -28,6 +28,7 @@
   ],
   "exclude": [
     "internal/static/dist",
-    "tmp"
+    "tmp",
+    "keysignatures.cjs"
   ]
 }

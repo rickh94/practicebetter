@@ -64,12 +64,14 @@ templ InterleaveSpotsList(interleaveSpots []PracticePlanSpot, active bool) {
 	</ul>
 	<dialog id={ components.INTERLEAVE_SPOT_DIALOG_ID } class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none clear">
 		<div id={ components.INTERLEAVE_SPOT_DIALOG_CONTENTS_ID } class="p-0 mx-auto w-huge overflow-x-clip">
-			<span class="p-4 bg-white rounded-xl">
-				Loading Interleave Spot...
-			</span>
+			<div class="flex justify-center w-full">
+				<span class="p-4 bg-white rounded-xl">
+					Loading Interleave Spot...
+				</span>
+			</div>
 		</div>
-		<div class="p-0 mx-auto mt-2 w-auto bg-white rounded-xl border border-neutral-500 overflow-x-clip">
-			<button class="w-full sm:w-auto xs:w-48 amber action-button focusable" onClick={ components.CloseModal(components.INTERLEAVE_SPOT_DIALOG_ID) }>
+		<div class="p-0 mx-auto mt-2 w-auto rounded-xl overflow-x-clip">
+			<button class="mx-4 w-full sm:w-auto xs:w-48 amber action-button focusable" onClick={ components.CloseModal(components.INTERLEAVE_SPOT_DIALOG_ID) }>
 				<span class="-ml-1 size-5 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
 				Close
 			</button>
@@ -88,6 +90,7 @@ templ InterleaveListPage(i int, interleaveSpots []PracticePlanSpot, active bool)
 				"interleave",
 				interleaveSpots[j].PieceTitle,
 				interleaveSpots[j].Completed,
+				active,
 			)
 		}
 		<div class="flex justify-between w-full">

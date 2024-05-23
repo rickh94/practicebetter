@@ -29,6 +29,7 @@ export default {
     addDynamicIconSelectors({
       iconSets: {
         custom: "./internal/static/icons.json",
+        key: "./internal/static/keysignatures.json",
       },
     }),
   ],

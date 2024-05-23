@@ -1,8 +1,10 @@
 import { RandomBoxesIcon, RepeatIcon, ShuffleIcon } from "./icons";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import * as htmx from "htmx.org";
+import * as htmx from "htmx.org/dist/htmx";
+import { useCallback, useId } from "preact/hooks";
 
 export function PracticeMenu({ pieceid }: { pieceid: string }) {
+  const id = useId();
   const links = [
     {
       href: `/library/pieces/${pieceid}/practice/repeat`,
@@ -21,11 +23,15 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
     },
   ];
 
-  function processLinks() {
-    document.querySelectorAll("a[data-radix-collection-item]").forEach((el) => {
-      htmx.process(el);
-    });
-  }
+  const processLinks = useCallback(() => {
+    document
+      .querySelectorAll(`#${id} a[data-radix-collection-item]`)
+      .forEach((el) => {
+        if (el) {
+          htmx.process(el);
+        }
+      });
+  }, [id]);
 
   return (
     <DropdownMenu.Root onOpenChange={processLinks}>
@@ -40,6 +46,7 @@ export function PracticeMenu({ pieceid }: { pieceid: string }) {
           side="bottom"
           align="end"
           sideOffset={5}
+          id={id}
           className="dropdown w-64 origin-top-right rounded-lg bg-white shadow-lg duration-200 focus-within:outline-none focus:outline-none"
         >
           {links.map((link) => (

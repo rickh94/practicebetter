@@ -1,0 +1,125 @@
+package ewspages
+
+import "practicebetter/internal/pages"
+import "practicebetter/internal/db"
+import "practicebetter/internal/components"
+import "strconv"
+
+type ScalePickerProps struct {
+	UserScales   map[int64]db.UserScale    `json:"userScales"`
+	SelectedMode db.ScaleMode              `json:"selectedMode"`
+	Scales       []db.ListScalesForModeRow `json:"scales"`
+	Csrf         string
+}
+
+func getScaleLink(props ScalePickerProps, scaleID int64) string {
+	if userScale, ok := props.UserScales[scaleID]; ok {
+		return "/library/scales/" + userScale.ID
+	} else {
+		return "/library/scales/autocreate?id=" + strconv.FormatInt(scaleID, 10)
+	}
+}
+
+templ ScalePickerPage(s pages.ServerUtil, props ScalePickerProps, modes []db.ScaleMode) {
+	<title>Scales | Go Practice</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Scales") , components.MaybePracticePlan())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Scales", Href: "/library/scales", Active: true },
+				})
+		}
+		@components.NarrowContainer() {
+			<div class="grid grid-cols-1 gap-4 w-full rounded-xl">
+				<div class="flex col-span-full justify-center text-center">
+					<h2 class="px-4 text-2xl font-bold border-b-2 border-rose-950 text-rose-950">
+						Choose a scale
+					</h2>
+				</div>
+				<form
+ 					class="flex gap-2 justify-evenly items-center mx-auto mb-4 max-w-xl"
+ 					method="get"
+ 					hx-get={ "/library/scales" }
+ 					hx-push-url="true"
+ 					hx-trigger="change"
+ 					hx-target="#scale-picker"
+ 					hx-swap="outerHTML transition:true"
+				>
+					<label class="-ml-2 text-lg" for="mode">Scale Mode:</label>
+					<select
+ 						name="mode"
+ 						id="mode"
+ 						class="flex-grow-0 py-2 pr-8 pl-4 w-max font-bold bg-white rounded-xl border shadow-sm transition duration-200 focus:shadow border-neutral-800 shadow-neutral-300 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:border-neutral-800 focus:shadow-neutral-700/20"
+					>
+						for _, mode := range modes {
+							<option
+ 								value={ strconv.FormatInt(int64(mode.ID), 10) }
+ 								selected?={ props.SelectedMode.ID == mode.ID }
+							>{ mode.Name }</option>
+						}
+					</select>
+				</form>
+				@ScalePicker(props)
+			</div>
+		}
+	}
+}
+
+templ ScalePicker(props ScalePickerProps) {
+	<ul class="cof" id="scale-picker">
+		for _, scale := range props.Scales {
+			<li>
+				@components.HxLink("text", getScaleLink(props, scale.ID), "#main-content") {
+					<span class="inner-text focusable">{ scale.KeyName }</span>
+				}
+			</li>
+		}
+		<div class="inner-circle"></div>
+	</ul>
+}
+
+templ PlanScalePicker(props ScalePickerProps, planID string, modes []db.ScaleMode, csrf string) {
+	<div class="grid grid-cols-1 gap-4 w-full rounded-xl" id="add-scales-to-plan-inner">
+		<form
+ 			class="flex gap-2 justify-evenly items-center mx-auto mb-4 max-w-xl"
+ 			method="get"
+ 			hx-get={ "/library/plans/" + planID + "/scales/add" }
+ 			hx-push-url="true"
+ 			hx-trigger="change"
+ 			hx-target="#add-scales-to-plan"
+ 			hx-swap="innerHTML transition:true"
+		>
+			<label class="mt-2 -ml-2 text-lg" for="mode">Scale Mode:</label>
+			<select
+ 				name="mode"
+ 				id="mode"
+ 				class="flex-grow-0 py-2 pr-8 pl-4 w-max font-bold bg-white rounded-xl border shadow-sm transition duration-200 focus:shadow border-neutral-800 shadow-neutral-300 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:border-neutral-800 focus:shadow-neutral-700/20"
+			>
+				for _, mode := range modes {
+					<option
+ 						value={ strconv.FormatInt(int64(mode.ID), 10) }
+ 						selected?={ props.SelectedMode.ID == mode.ID }
+					>{ mode.Name }</option>
+				}
+			</select>
+		</form>
+		<ul class="-mt-4 cof" id="plan-scale-picker">
+			for _, scale := range props.Scales {
+				<li>
+					<span
+ 						class="text"
+ 						hx-post={ "/library/plans/" + planID + "/scales/add" }
+ 						hx-target="#scale-list"
+ 						hx-swap="beforeend"
+ 						hx-vals={ "{\"scale\":" + strconv.FormatInt(scale.ID, 10) + "}" }
+ 						hx-headers={ components.HxCsrfHeader(csrf) }
+ 						hx-on::after-request={ components.CloseModal("add-scales-modal") }
+					>
+						<button class="inner-text">{ scale.KeyName }</button>
+					</span>
+				</li>
+			}
+			<div class="inner-circle"></div>
+		</ul>
+	</div>
+}

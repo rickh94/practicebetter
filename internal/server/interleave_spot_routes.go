@@ -107,10 +107,9 @@ func (s *Server) startInterleavePracticing(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if len(interleaveSpots) == 0 {
-		if err := htmx.Trigger(r, "FinishedInterleave", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		if err := librarypages.NoInterleaveSpots().Render(r.Context(), w); err != nil {
 			log.Default().Println(err)
 		}
-		s.DatabaseError(w, r, err, "No interleave spots")
 		return
 	}
 	interleaveList := make([]PlanInterleaveSpotInfo, len(interleaveSpots))
@@ -142,6 +141,81 @@ func (s *Server) startInterleavePracticing(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		log.Default().Println(err)
 		if err := htmx.Trigger(r, "FinishedInterleave", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+			log.Default().Println(err)
+		}
+		s.DatabaseError(w, r, err, "Could not get first spot")
+		return
+	}
+
+	displaySpot := DisplaySpot{
+		ID:             firstSpot.ID,
+		Name:           firstSpot.Name,
+		Stage:          firstSpot.Stage,
+		AudioPromptURL: firstSpot.AudioPromptUrl,
+		ImagePromptURL: firstSpot.ImagePromptUrl,
+		NotesPrompt:    firstSpot.NotesPrompt,
+		TextPrompt:     firstSpot.TextPrompt,
+	}
+
+	if firstSpot.Measures.Valid {
+		displaySpot.Measures = firstSpot.Measures.String
+	}
+
+	if firstSpot.CurrentTempo.Valid {
+		displaySpot.CurrentTempo = &firstSpot.CurrentTempo.Int64
+	}
+
+	spotJSON, err := json.Marshal(displaySpot)
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid Spot",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	token := csrf.Token(r)
+	if err := librarypages.InterleavePracticeSpotDisplay(string(spotJSON), firstSpot.PieceID, firstSpot.PieceTitle, firstSpot.ID, planID, token).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
+}
+
+func (s *Server) interleavePracticeSpot(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+	planID := chi.URLParam(r, "planID")
+	spotID := chi.URLParam(r, "spotID")
+
+	queries := db.New(s.DB)
+
+	interleaveSpot, err := queries.GetPracticePlanInterleaveSpot(r.Context(), db.GetPracticePlanInterleaveSpotParams{
+		PlanID: planID,
+		UserID: user.ID,
+		SpotID: spotID,
+	})
+
+	if err != nil {
+		if err := htmx.Trigger(r, "CloseModal", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+			log.Default().Println(err)
+		}
+		s.DatabaseError(w, r, err, "Could not get interleave spots")
+		return
+	}
+
+	firstSpot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+		SpotID:  interleaveSpot.SpotID,
+		UserID:  user.ID,
+		PieceID: interleaveSpot.SpotPieceID.String,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "CloseModal", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
 			log.Default().Println(err)
 		}
 		s.DatabaseError(w, r, err, "Could not get first spot")
@@ -612,7 +686,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	finishedSpot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+	finishedSpot, err := qtx.GetSpot(r.Context(), db.GetSpotParams{
 		SpotID:  spotID,
 		UserID:  user.ID,
 		PieceID: pieceID,
@@ -644,7 +718,6 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		finishedSpot.StageStarted.Valid &&
 		timeSinceStarted.Hours() > 4*24 &&
 		finishedSpot.SkipDays < 7 {
-		log.Default().Println("excellent")
 		skipDays *= 2
 		err := qtx.UpdateSpotSkipDaysAndPractice(r.Context(), db.UpdateSpotSkipDaysAndPracticeParams{
 			SkipDays: skipDays,
@@ -674,16 +747,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 				UserID:   user.ID,
 			})
 			if err != nil {
-				log.Default().Println(err)
-				if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-					Message:  "Could not update spot",
-					Title:    "Database Error",
-					Variant:  "error",
-					Duration: 3000,
-				}); err != nil {
-					log.Default().Println(err)
-				}
-				http.Error(w, "Database Error", http.StatusInternalServerError)
+				s.DatabaseError(w, r, err, "Could not update spot")
 				return
 			}
 		}
@@ -759,8 +823,8 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := htmx.Trigger(r, "UpdatePlanProgress", UpdatePlanProgressEvent{
-		Completed: int(plan.CompletedSpotsCount + plan.CompletedPiecesCount),
-		Total:     int(plan.SpotsCount + plan.PiecesCount),
+		Completed: int(plan.CompletedSpotsCount + plan.CompletedPiecesCount + plan.CompletedScalesCount),
+		Total:     int(plan.SpotsCount + plan.PiecesCount + plan.ScalesCount),
 	}); err != nil {
 		log.Default().Println(err)
 	}
