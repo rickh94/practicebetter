@@ -3,7 +3,7 @@ package components
 import "practicebetter/internal/db"
 import "practicebetter/internal/ck"
 
-const navClasses = "focusable flex h-14 items-center justify-center gap-x-1.5 rounded-xl border border-neutral-300 bg-white px-6 text-neutral-700 shadow-sm shadow-neutral-900/20 hover:border-neutral-500 hover:bg-neutral-100 hover:shadow hover:shadow-neutral-900/30"
+const navClasses = "focusable flex h-14 items-center justify-center gap-x-1.5 rounded-xl border border-neutral-300 bg-white px-6 text-neutral-700 shadow-sm shadow-neutral-900/20 hover:border-neutral-500 hover:bg-neutral-100 hover:shadow hover:shadow-neutral-900/30 transition duration-200 ease-in"
 
 templ HomeOrInternalNav() {
 	if u, ok := ctx.Value(ck.UserKey).(db.User); ok && u.ID != "" {

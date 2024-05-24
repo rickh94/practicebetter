@@ -38,7 +38,7 @@ export function PracticeToolNav({ activepath }: { activepath: string }) {
   return (
     <DropdownMenu.Root onOpenChange={processLinks}>
       <DropdownMenu.Trigger asChild>
-        <button className="focusable mx-auto flex h-14 items-center justify-center gap-x-1.5 rounded-xl border border-neutral-300 bg-neutral-50 px-6 text-neutral-700 drop-shadow-sm hover:border-neutral-500 hover:bg-neutral-200 hover:drop-shadow-md">
+        <button className="focusable mx-auto flex h-14 items-center justify-center gap-x-1.5 rounded-xl border border-neutral-300 bg-neutral-50 px-6 text-neutral-700 drop-shadow-sm transition duration-200 ease-in hover:border-neutral-500 hover:bg-neutral-200 hover:drop-shadow-md">
           <div className="sr-only">Open Practice Tools Menu</div>
           <span className="icon-[iconamoon--playlist-thin] -ml-2 size-8 text-neutral-800" />
           {links.get(activepath) ? (
