@@ -20,6 +20,7 @@ templ StartLoginPage(csrf string, nextLoc string) {
 				</p>
 			</div>
 			<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+			<input type="hidden" name="name" id="name"/>
 			<input type="hidden" name="next" value={ nextLoc }/>
 			<label for="email" class="hidden">Email</label>
 			<input

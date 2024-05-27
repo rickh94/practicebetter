@@ -83,6 +83,20 @@ func (s *Server) continueLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	honeypot := r.Form.Get("name")
+	if honeypot != "" {
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not login",
+			Title:    "Invalid Input",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Invalid Input", http.StatusBadRequest)
+		return
+	}
+
 	userEmail := r.Form.Get("email")
 	if userEmail == "" {
 		w.WriteHeader(http.StatusBadRequest)
