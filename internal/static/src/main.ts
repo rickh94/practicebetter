@@ -419,6 +419,16 @@ globalThis.startPasskeyAuth = function (
     });
 };
 
+globalThis.getNextLocFromCookie = function (): string | undefined {
+  const value = `; ${document.cookie}`;
+  console.log(value);
+  const parts = value.split(`; nextLoc=`);
+  console.log(parts);
+  if (parts.length === 2) {
+    return parts.pop()?.split(";").shift();
+  }
+};
+
 globalThis.startPasskeyRegistration = function (
   publicKey: PublicKeyCredentialCreationOptionsJSON,
   csrf: string,
@@ -451,6 +461,15 @@ globalThis.startPasskeyRegistration = function (
               passkeyCountEl.innerHTML = (
                 parseInt(passkeyCountEl.innerHTML, 10) + 1
               ).toString();
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const nextLoc: string | undefined =
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+              globalThis.getNextLocFromCookie();
+            if (nextLoc) {
+              setTimeout(() => {
+                window.location.href = nextLoc;
+              }, 1000);
             }
           } else {
             console.log(res);

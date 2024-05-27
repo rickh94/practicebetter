@@ -216,7 +216,17 @@ func (s *Server) completeCodeLogin(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Could not log you in with that information.", http.StatusUnauthorized)
 			return
 		}
-		s.Redirect(w, r, nextLoc)
+		nextLocCookie := http.Cookie{
+			Name:     "nextLoc",
+			Path:     "/",
+			Value:    nextLoc,
+			MaxAge:   60 * 5,
+			HttpOnly: false,
+			Secure:   false,
+			SameSite: http.SameSiteLaxMode,
+		}
+		http.SetCookie(w, &nextLocCookie)
+		s.Redirect(w, r, "/auth/me?recommend=1")
 	} else {
 		log.Default().Println("Login Rejected for incorrect code")
 		err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
@@ -329,7 +339,7 @@ func (s *Server) me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := csrf.Token(r)
-	component := authpages.MePage(user, registrationOptions, token, fmt.Sprintf("%d", credentialCount))
+	component := authpages.MePage(user, registrationOptions, token, fmt.Sprintf("%d", credentialCount), s)
 	s.HxRender(w, r, component, "Account")
 }
 

@@ -208,7 +208,7 @@ func (s *Server) interleavePracticeSpot(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	firstSpot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+	thisSpot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
 		SpotID:  interleaveSpot.SpotID,
 		UserID:  user.ID,
 		PieceID: interleaveSpot.SpotPieceID.String,
@@ -223,21 +223,21 @@ func (s *Server) interleavePracticeSpot(w http.ResponseWriter, r *http.Request) 
 	}
 
 	displaySpot := DisplaySpot{
-		ID:             firstSpot.ID,
-		Name:           firstSpot.Name,
-		Stage:          firstSpot.Stage,
-		AudioPromptURL: firstSpot.AudioPromptUrl,
-		ImagePromptURL: firstSpot.ImagePromptUrl,
-		NotesPrompt:    firstSpot.NotesPrompt,
-		TextPrompt:     firstSpot.TextPrompt,
+		ID:             thisSpot.ID,
+		Name:           thisSpot.Name,
+		Stage:          thisSpot.Stage,
+		AudioPromptURL: thisSpot.AudioPromptUrl,
+		ImagePromptURL: thisSpot.ImagePromptUrl,
+		NotesPrompt:    thisSpot.NotesPrompt,
+		TextPrompt:     thisSpot.TextPrompt,
 	}
 
-	if firstSpot.Measures.Valid {
-		displaySpot.Measures = firstSpot.Measures.String
+	if thisSpot.Measures.Valid {
+		displaySpot.Measures = thisSpot.Measures.String
 	}
 
-	if firstSpot.CurrentTempo.Valid {
-		displaySpot.CurrentTempo = &firstSpot.CurrentTempo.Int64
+	if thisSpot.CurrentTempo.Valid {
+		displaySpot.CurrentTempo = &thisSpot.CurrentTempo.Int64
 	}
 
 	spotJSON, err := json.Marshal(displaySpot)
@@ -256,67 +256,13 @@ func (s *Server) interleavePracticeSpot(w http.ResponseWriter, r *http.Request) 
 	}
 
 	token := csrf.Token(r)
-	if err := librarypages.InterleavePracticeSpotDisplay(string(spotJSON), firstSpot.PieceID, firstSpot.PieceTitle, firstSpot.ID, planID, token).Render(r.Context(), w); err != nil {
+	if err := librarypages.InterleavePracticeSpotDisplay(string(spotJSON), thisSpot.PieceID, thisSpot.PieceTitle, thisSpot.ID, planID, token).Render(r.Context(), w); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Render Error", http.StatusInternalServerError)
 	}
 }
 
-func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value(ck.UserKey).(db.User)
-	planID := chi.URLParam(r, "planID")
-
-	activePlanID, ok := r.Context().Value(ck.ActivePlanKey).(string)
-	if !ok || activePlanID != planID {
-		log.Default().Println("Invalid plan ID")
-		if err := htmx.Trigger(r, "FinishedInterleave", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
-			log.Default().Println(err)
-		}
-		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Cannot practice spot from inactive plan.",
-			Title:    "Bad Request",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, "Invalid plan ID", http.StatusBadRequest)
-		return
-	}
-
-	if err := r.ParseForm(); err != nil {
-		log.Default().Println(err)
-		if err := htmx.Trigger(r, "FinishedInterleave", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
-			log.Default().Println(err)
-		}
-		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Invalid data submitted",
-			Title:    "Bad Request",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	interleaveList, ok := s.SM.Get(r.Context(), "interleaveList").([]PlanInterleaveSpotInfo)
-	if !ok {
-		// TODO: close open dialog as well
-		log.Default().Println("Missing interleave list")
-		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
-			Message:  "Could not get Interleave list",
-			Title:    "Session Error",
-			Variant:  "error",
-			Duration: 3000,
-		}); err != nil {
-			log.Default().Println(err)
-		}
-		http.Error(w, "Session Error", http.StatusInternalServerError)
-		return
-
-	}
+func (s *Server) saveInterleaveInList(w http.ResponseWriter, r *http.Request, spotID string, pieceID string, evaluation string, planID string, userID string, interleaveList []PlanInterleaveSpotInfo) {
 	interleaveListIndex, ok := s.SM.Get(r.Context(), "interleaveListIndex").(int)
 	if !ok {
 		// TODO: close open dialog as well
@@ -335,9 +281,6 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Session Error", http.StatusInternalServerError)
 		return
 	}
-	spotID := r.FormValue("spotID")
-	pieceID := r.FormValue("pieceID")
-	evaluation := r.FormValue("evaluation")
 
 	if interleaveListIndex >= len(interleaveList) {
 		// TODO: close open dialog as well
@@ -393,7 +336,7 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 		if err := qtx.UpdateSpotEvaluation(r.Context(), db.UpdateSpotEvaluationParams{
 			Evaluation: sql.NullString{String: evaluation, Valid: true},
 			PlanID:     planID,
-			UserID:     user.ID,
+			UserID:     userID,
 			SpotID:     spotID,
 		}); err != nil {
 			log.Default().Println(err)
@@ -410,7 +353,7 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
-			UserID:  user.ID,
+			UserID:  userID,
 			PieceID: pieceID,
 		}); err != nil {
 			s.DatabaseError(w, r, err, "Could not update piece practiced")
@@ -419,7 +362,7 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 
 		if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
 			ID:     planID,
-			UserID: user.ID,
+			UserID: userID,
 		}); err != nil {
 			s.DatabaseError(w, r, err, "Could not update plan last practiced")
 			return
@@ -484,7 +427,7 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 
 	nextSpot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
 		SpotID:  interleaveList[interleaveListIndex].SpotID,
-		UserID:  user.ID,
+		UserID:  userID,
 		PieceID: interleaveList[interleaveListIndex].PieceID,
 	})
 	if err != nil {
@@ -546,6 +489,131 @@ func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (s *Server) saveInterleaveSingle(w http.ResponseWriter, r *http.Request, spotID string, pieceID string, evaluation string, planID string, userID string) {
+	tx, err := s.DB.Begin()
+	if err != nil {
+		log.Default().Printf("Database error: %v\n", err)
+		http.Error(w, "Failed to connect to database", http.StatusInternalServerError)
+		return
+	}
+	defer func() {
+		if err := tx.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			log.Default().Println(err)
+		}
+	}()
+	queries := db.New(s.DB)
+
+	qtx := queries.WithTx(tx)
+	if evaluation == "excellent" || evaluation == "fine" || evaluation == "poor" {
+		if err := qtx.UpdateSpotEvaluation(r.Context(), db.UpdateSpotEvaluationParams{
+			Evaluation: sql.NullString{String: evaluation, Valid: true},
+			PlanID:     planID,
+			UserID:     userID,
+			SpotID:     spotID,
+		}); err != nil {
+			log.Default().Println(err)
+			if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+				Message:  "Could not update spot: " + err.Error(),
+				Title:    "Error",
+				Variant:  "error",
+				Duration: 3000,
+			}); err != nil {
+				log.Default().Println(err)
+			}
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := qtx.UpdatePiecePracticed(r.Context(), db.UpdatePiecePracticedParams{
+			UserID:  userID,
+			PieceID: pieceID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not update piece practiced")
+			return
+		}
+
+		if err := qtx.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
+			ID:     planID,
+			UserID: userID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not update plan last practiced")
+			return
+		}
+	} else {
+		log.Default().Println("Missing interleave list")
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not get Interleave list Info",
+			Title:    "Bad Request",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		s.DatabaseError(w, r, err, "Database error")
+		return
+	}
+
+	if err := htmx.Trigger(r, "CloseModal", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		log.Default().Println(err)
+	}
+}
+
+func (s *Server) saveInterleaveResult(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+	planID := chi.URLParam(r, "planID")
+
+	activePlanID, ok := r.Context().Value(ck.ActivePlanKey).(string)
+	if !ok || activePlanID != planID {
+		log.Default().Println("Invalid plan ID")
+		if err := htmx.Trigger(r, "FinishedInterleave", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+			log.Default().Println(err)
+		}
+		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Cannot practice spot from inactive plan.",
+			Title:    "Bad Request",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, "Invalid plan ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "FinishedInterleave", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+			log.Default().Println(err)
+		}
+		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid data submitted",
+			Title:    "Bad Request",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	spotID := r.FormValue("spotID")
+	pieceID := r.FormValue("pieceID")
+	evaluation := r.FormValue("evaluation")
+
+	interleaveList, ok := s.SM.Get(r.Context(), "interleaveList").([]PlanInterleaveSpotInfo)
+	if ok {
+		s.saveInterleaveInList(w, r, spotID, pieceID, evaluation, planID, user.ID, interleaveList)
+	} else {
+		s.saveInterleaveSingle(w, r, spotID, pieceID, evaluation, planID, user.ID)
+	}
+}
+
 // measures are missing and evaluation buttons are weird on narrow screen after swap
 func (s *Server) startInfrequentPracticing(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(ck.UserKey).(db.User)
@@ -600,7 +668,7 @@ func (s *Server) startInfrequentPracticing(w http.ResponseWriter, r *http.Reques
 	}
 
 	token := csrf.Token(r)
-	if err := librarypages.InfrequentPracticeSpotDisplay(string(spotJSON), firstSpot.PieceID, firstSpot.PieceTitle, firstSpot.ID, planID, token).Render(r.Context(), w); err != nil {
+	if err := librarypages.InfrequentPracticeSpotDisplay(string(spotJSON), firstSpot.PieceID, firstSpot.PieceTitle, firstSpot.ID, planID, token, false).Render(r.Context(), w); err != nil {
 		log.Default().Println(err)
 		http.Error(w, "Render Error", http.StatusInternalServerError)
 	}
@@ -617,6 +685,81 @@ type DisplaySpot struct {
 	TextPrompt     string `json:"textPrompt"`
 	CurrentTempo   *int64 `json:"currentTempo"`
 	PieceID        string `json:"pieceID"`
+}
+
+func (s *Server) infrequentPracticeSpot(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+	planID := chi.URLParam(r, "planID")
+	spotID := chi.URLParam(r, "spotID")
+
+	queries := db.New(s.DB)
+
+	interleaveSpot, err := queries.GetPracticePlanInfrequentSpot(r.Context(), db.GetPracticePlanInfrequentSpotParams{
+		PlanID: planID,
+		UserID: user.ID,
+		SpotID: spotID,
+	})
+
+	if err != nil {
+		if err := htmx.Trigger(r, "CloseModal", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+			log.Default().Println(err)
+		}
+		s.DatabaseError(w, r, err, "Could not get interleave spots")
+		return
+	}
+
+	thisSpot, err := queries.GetSpot(r.Context(), db.GetSpotParams{
+		SpotID:  interleaveSpot.SpotID,
+		UserID:  user.ID,
+		PieceID: interleaveSpot.SpotPieceID.String,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "CloseModal", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+			log.Default().Println(err)
+		}
+		s.DatabaseError(w, r, err, "Could not get first spot")
+		return
+	}
+
+	displaySpot := DisplaySpot{
+		ID:             thisSpot.ID,
+		Name:           thisSpot.Name,
+		Stage:          thisSpot.Stage,
+		AudioPromptURL: thisSpot.AudioPromptUrl,
+		ImagePromptURL: thisSpot.ImagePromptUrl,
+		NotesPrompt:    thisSpot.NotesPrompt,
+		TextPrompt:     thisSpot.TextPrompt,
+	}
+
+	if thisSpot.Measures.Valid {
+		displaySpot.Measures = thisSpot.Measures.String
+	}
+
+	if thisSpot.CurrentTempo.Valid {
+		displaySpot.CurrentTempo = &thisSpot.CurrentTempo.Int64
+	}
+
+	spotJSON, err := json.Marshal(displaySpot)
+	if err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Invalid Spot",
+			Title:    "Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	token := csrf.Token(r)
+	if err := librarypages.InfrequentPracticeSpotDisplay(string(spotJSON), thisSpot.PieceID, thisSpot.PieceTitle, thisSpot.ID, planID, token, true).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }
 
 func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
@@ -661,6 +804,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 	spotID := r.FormValue("spotID")
 	pieceID := r.FormValue("pieceID")
 	evaluation := r.FormValue("evaluation")
+	single := r.FormValue("single")
 
 	tx, err := s.DB.Begin()
 	if err != nil {
@@ -827,6 +971,27 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		Total:     int(plan.SpotsCount + plan.PiecesCount + plan.ScalesCount),
 	}); err != nil {
 		log.Default().Println(err)
+	}
+
+	if single == "true" {
+		if err := htmx.Trigger(r, "CloseModal", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+			log.Default().Println(err)
+		}
+		if err := components.InterleaveSpotCardOOB(
+			fSpotInfo.PieceID,
+			fSpotInfo.SpotID,
+			fSpotInfo.Name,
+			fSpotInfo.Measures,
+			"interleave_days",
+			fSpotInfo.PieceTitle,
+			true,
+			true,
+			true,
+		).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+			http.Error(w, "Render Error", http.StatusInternalServerError)
+		}
+		return
 	}
 
 	if !hasNext {

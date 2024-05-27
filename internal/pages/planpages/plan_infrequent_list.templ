@@ -135,3 +135,17 @@ templ FinishInfrequentSpots(pieceID, spotID, name, measures, pieceTitle string) 
 	></div>
 	@components.PlanGoPracticeLink(components.GetActivePracticePlan(ctx), true)
 }
+
+templ FinishOneInfrequentSpot(pieceID, spotID, name, measures, pieceTitle string) {
+	@components.InterleaveSpotCardOOB(
+			pieceID,
+			spotID,
+			name,
+			measures,
+			"interleave_days",
+			pieceTitle,
+			true,
+			true,
+			true,
+		)
+}

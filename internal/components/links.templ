@@ -93,7 +93,7 @@ templ LogoutLink() {
 templ PlanGoPracticeLink(planID string, swap bool) {
 	<a
  		id="plan-go-practice-button"
- 		class="px-4 terxt-lg action-button violet focusable"
+ 		class="px-4 text-lg action-button violet focusable"
  		href={ templ.SafeURL("/library/plans/" + planID + "/next") }
  		hx-get={ "/library/plans/" + planID + "/next" }
  		hx-swap="outerHTML transition:true"

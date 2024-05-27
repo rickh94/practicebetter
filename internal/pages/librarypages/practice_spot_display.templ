@@ -1,6 +1,7 @@
 package librarypages
 
 import "practicebetter/internal/components"
+import "strconv"
 
 templ PracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string) {
 	<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle }></practice-spot-display>
@@ -85,9 +86,7 @@ templ InterleavePracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
 	</div>
 }
 
-// templ InterleaveEvaluationForm(planID string, spotID string, )
-
-templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string) {
+templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle string, spotID string, planID string, csrf string, single bool) {
 	<div>
 		<practice-spot-display class="w-full" spotjson={ spotJSON } pieceid={ pieceid } piecetitle={ pieceTitle } csrf={ csrf }></practice-spot-display>
 		<div class="flex flex-col gap-4 justify-center px-4 pt-4 w-full sm:flex-row-reverse sm:pt-8 xs:px-0">
@@ -98,6 +97,7 @@ templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
  				hx-swap="innerHTML swap:155ms settle:155ms"
  				class={ EVALUATION_FORM_CLASSES }
 			>
+				<input type="hidden" name="single" value={ strconv.FormatBool(single) }/>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
 				<input type="hidden" name="pieceID" value={ pieceid }/>
@@ -120,6 +120,7 @@ templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
  				hx-swap="innerHTML swap:155ms settle:155ms"
  				class={ EVALUATION_FORM_CLASSES }
 			>
+				<input type="hidden" name="single" value={ strconv.FormatBool(single) }/>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
 				<input type="hidden" name="pieceID" value={ pieceid }/>
@@ -142,6 +143,7 @@ templ InfrequentPracticeSpotDisplay(spotJSON string, pieceid string, pieceTitle 
  				hx-swap="innerHTML swap:155ms settle:155ms"
  				class={ EVALUATION_FORM_CLASSES }
 			>
+				<input type="hidden" name="single" value={ strconv.FormatBool(single) }/>
 				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 				<input type="hidden" name="spotID" value={ spotID }/>
 				<input type="hidden" name="pieceID" value={ pieceid }/>

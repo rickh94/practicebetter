@@ -3,13 +3,28 @@ package authpages
 import "github.com/go-webauthn/webauthn/protocol"
 import "practicebetter/internal/db"
 import "practicebetter/internal/components"
+import "practicebetter/internal/pages"
 
 script startRegistration(creationOptions *protocol.CredentialCreation, csrf string) {
 	globalThis.startPasskeyRegistration(creationOptions.publicKey, csrf)
 }
 
+script startRegistrationFromDialog(creationOptions *protocol.CredentialCreation, csrf string) {
+	globalThis.closeModal("recommend-dialog")
+	globalThis.startPasskeyRegistration(creationOptions.publicKey, csrf)
+}
+
 script deletePasskeys() {
 	document.getElementById("passkey-count").innerHTML = "0";
+}
+
+script redirectToNext() {
+    const nextLoc = globalThis.getNextLocFromCookie();
+    if (nextLoc) {
+      window.location.href = nextLoc;
+    } else {
+      window.location.href = "/library";
+    }
 }
 
 // TODO: display reminder if user email is not verified
@@ -156,8 +171,8 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
 
 // TODO: add ability to edit user profile
 
-templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf string, credentialCount string) {
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("User Info") ,components.LogoutLink())) {
+templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf string, credentialCount string, s pages.ServerUtil) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("User Info"), components.LogoutLink())) {
 		@components.TwoColumnContainer() {
 			@UserInfo(user, csrf)
 			<div class="p-4 rounded-xl bg-neutral-700/5">
@@ -214,6 +229,36 @@ templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf st
 					</div>
 				</dl>
 			</div>
+			<dialog id="recommend-dialog" aria-labelledby="recommend-dialog-title" class="bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left flex flex-col gap-2 sm:max-w-xl px-4 py-4">
+				<header class="mt-2 text-center sm:text-left">
+					<h3 id="recommend-dialog-title" class="text-2xl font-semibold leading-6 text-neutral-900">Register a Passkey</h3>
+				</header>
+				<div class="flex flex-col gap-2 mt-2 mb-4 text-lg">
+					<p>For easier login next time, you can save a passkey and use your phone or device to log in instantly.</p>
+					<p>Only do this on your own device, never a public or borrowed device.</p>
+				</div>
+				<div class="flex flex-col-reverse gap-2 w-full sm:grid sm:grid-cols-2">
+					<button
+ 						id="recommend-no"
+ 						type="button"
+ 						onclick={ redirectToNext() }
+ 						class="action-button red focusable"
+					>
+						<span class="-ml-1 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+						No, Thanks
+					</button>
+					<button
+ 						type="button"
+ 						id="recommend-yes"
+ 						onclick={ startRegistrationFromDialog(creationOptions, csrf) }
+ 						class="action-button green focusable"
+					>
+						<span class="-ml-1 size-6 icon-[ph--fingerprint-thin]" aria-hidden="true"></span>
+						Register a Passkey
+					</button>
+				</div>
+			</dialog>
+			<script type="module" src={ s.StaticUrl("dist/me.js") }></script>
 		}
 	}
 }

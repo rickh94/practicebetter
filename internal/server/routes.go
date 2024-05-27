@@ -171,6 +171,7 @@ func (s *Server) planRouter(r chi.Router) {
 		r.Get("/interleave/{spotID}", s.interleavePracticeSpot)
 		r.Post("/interleave/practice", s.saveInterleaveResult)
 		r.Get("/infrequent/start", s.startInfrequentPracticing)
+		r.Get("/interleave_days/{spotID}", s.infrequentPracticeSpot)
 		r.Post("/infrequent/practice", s.saveInfrequentResult)
 
 		r.Post("/resume", s.resumePracticePlan)

@@ -37,6 +37,7 @@ export default defineConfig({
         prompts: "src/prompts.ts",
         "spot-breakdown": "src/spot-breakdown.ts",
         "practice-plan": "src/practice-plan.ts",
+        me: "src/me.ts",
       },
       formats: ["es"],
     },
