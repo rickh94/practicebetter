@@ -269,3 +269,15 @@ func (s *Server) DatabaseError(w http.ResponseWriter, r *http.Request, err error
 	}
 	http.Error(w, "Database Error", http.StatusInternalServerError)
 }
+
+func (s *Server) InvalidInputError(w http.ResponseWriter, r *http.Request, message string) {
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		Message:  message,
+		Title:    "Invalid Input",
+		Variant:  "error",
+		Duration: 3000,
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	http.Error(w, "Invalid Input", http.StatusBadRequest)
+}

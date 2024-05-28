@@ -1,6 +1,7 @@
 package components
 
 import "strconv"
+import "database/sql"
 
 script ShowModal(id string) {
 	document.getElementById(id).showModal();
@@ -219,6 +220,14 @@ func getPieceCardClass(completed bool) string {
 	}
 }
 
+func getReadingCardClass(completed bool) string {
+	if completed {
+		return pieceCardClass + " bg-green-200 border-green-300"
+	} else {
+		return pieceCardClass + " border-neutral-300 bg-neutral-50 hover:shadow hover:shadow-teal-400"
+	}
+}
+
 templ PieceCard(pieceID string, title string, composer string, activeSpots int64, completedSpots int64) {
 	<li>
 		@HxLink(getPieceCardClass(false),
@@ -233,6 +242,32 @@ templ PieceCard(pieceID string, title string, composer string, activeSpots int64
 			<div class="flex flex-grow-0 items-center text-indigo-900">
 				<div class="sr-only">Click to view</div>
 				<span class="-mr-2 size-12 icon-[custom--music-file]" aria-hidden="true"></span>
+			</div>
+		}
+	</li>
+}
+
+templ ReadingCard(itemID string, title string, composer sql.NullString, completed bool, info sql.NullString) {
+	<li>
+		@HxLink(getReadingCardClass(false),
+			"/library/reading/"+itemID,
+			"#main-content",
+		) {
+			<div class="flex flex-col flex-1 flex-grow gap-1">
+				<div class={ templ.KV("text-teal-950", !completed), templ.KV("text-green-950", completed) }>
+					<strong class="text-xl font-bold">{ title }</strong>
+				</div>
+				<div class={ templ.KV("text-teal-800", !completed), templ.KV("text-green-800", completed), "whitespace-nowrap" }>
+					if composer.Valid  && composer.String != "" {
+						{ composer.String }
+					} else {
+						Unknown
+					}
+				</div>
+			</div>
+			<div class="flex flex-grow-0 items-center text-teal-900">
+				<div class="sr-only">Click to view</div>
+				<span class="-mr-2 size-10 icon-[fluent--reading-mode-mobile-20-regular]" aria-hidden="true"></span>
 			</div>
 		}
 	</li>

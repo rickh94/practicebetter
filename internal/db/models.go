@@ -52,6 +52,13 @@ type PracticePlanPiece struct {
 	Idx            int64  `json:"idx"`
 }
 
+type PracticePlanReading struct {
+	PracticePlanID string `json:"practicePlanId"`
+	ReadingID      string `json:"readingId"`
+	Completed      bool   `json:"completed"`
+	Idx            int64  `json:"idx"`
+}
+
 type PracticePlanScale struct {
 	PracticePlanID string `json:"practicePlanId"`
 	UserScaleID    string `json:"userScaleId"`
@@ -66,6 +73,15 @@ type PracticePlanSpot struct {
 	Evaluation     sql.NullString `json:"evaluation"`
 	Completed      bool           `json:"completed"`
 	Idx            int64          `json:"idx"`
+}
+
+type Reading struct {
+	ID        string         `json:"id"`
+	Title     string         `json:"title"`
+	Info      sql.NullString `json:"info"`
+	Completed bool           `json:"completed"`
+	Composer  sql.NullString `json:"composer"`
+	UserID    string         `json:"userId"`
 }
 
 type Scale struct {

@@ -49,6 +49,14 @@ INSERT INTO practice_plan_scales (
 ) VALUES (?, ?, ?)
 RETURNING *;
 
+-- name: CreatePracticePlanReadingWithIdx :one
+INSERT INTO practice_plan_reading (
+    practice_plan_id,
+    reading_id,
+    idx
+) VALUES (?, ?, ?)
+RETURNING *;
+
 -- name: GetPracticePlanWithPieces :many
 SELECT
     practice_plans.*,
@@ -103,6 +111,20 @@ INNER JOIN scale_keys ON scale_keys.id = scales.key_id
 INNER JOIN scale_modes ON scale_modes.id = scales.mode_id
 WHERE practice_plans.id = :practice_plan_id AND practice_plans.user_id = :user_id AND user_scales.user_id = :user_id
 ORDER BY practice_plan_scales.idx;
+
+-- name: GetPracticePlanWithReading :many
+SELECT
+    practice_plans.*,
+    practice_plan_reading.completed AS reading_completed,
+    reading.id AS reading_id,
+    reading.title AS reading_title,
+    reading.composer AS reading_composer,
+    reading.info AS reading_info
+FROM practice_plans
+INNER JOIN practice_plan_reading ON practice_plans.id = practice_plan_reading.practice_plan_id
+INNER JOIN reading ON practice_plan_reading.reading_id = reading.id
+WHERE practice_plans.id = :practice_plan_id AND practice_plans.user_id = :user_id AND reading.user_id = :user_id
+ORDER BY practice_plan_reading.idx;
 
 -- name: GetPracticePlanWithTodo :one
 SELECT

@@ -27,6 +27,13 @@ export function InternalNav({ activepath }: { activepath: string }) {
       icon: <span className="icon-[ph--steps-thin] ml-1 size-6" />,
     } as const,
     {
+      href: "/library/reading",
+      label: "Sight Reading",
+      icon: (
+        <span className="icon-[fluent--reading-mode-mobile-20-regular] ml-1 size-6" />
+      ),
+    } as const,
+    {
       href: "/practice",
       label: "Practice Tools",
       icon: <span className="icon-[iconamoon--playlist-thin] ml-1 size-6" />,

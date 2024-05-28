@@ -194,6 +194,33 @@ func (q *Queries) CreatePracticePlanPieceWithIdx(ctx context.Context, arg Create
 	return i, err
 }
 
+const createPracticePlanReadingWithIdx = `-- name: CreatePracticePlanReadingWithIdx :one
+INSERT INTO practice_plan_reading (
+    practice_plan_id,
+    reading_id,
+    idx
+) VALUES (?, ?, ?)
+RETURNING practice_plan_id, reading_id, completed, idx
+`
+
+type CreatePracticePlanReadingWithIdxParams struct {
+	PracticePlanID string `json:"practicePlanId"`
+	ReadingID      string `json:"readingId"`
+	Idx            int64  `json:"idx"`
+}
+
+func (q *Queries) CreatePracticePlanReadingWithIdx(ctx context.Context, arg CreatePracticePlanReadingWithIdxParams) (PracticePlanReading, error) {
+	row := q.db.QueryRowContext(ctx, createPracticePlanReadingWithIdx, arg.PracticePlanID, arg.ReadingID, arg.Idx)
+	var i PracticePlanReading
+	err := row.Scan(
+		&i.PracticePlanID,
+		&i.ReadingID,
+		&i.Completed,
+		&i.Idx,
+	)
+	return i, err
+}
+
 const createPracticePlanScaleWithIdx = `-- name: CreatePracticePlanScaleWithIdx :one
 INSERT INTO practice_plan_scales (
     practice_plan_id,
@@ -1188,6 +1215,77 @@ func (q *Queries) GetPracticePlanWithPieces(ctx context.Context, arg GetPractice
 			&i.PieceActiveSpots,
 			&i.PieceRandomSpots,
 			&i.PieceCompletedSpots,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPracticePlanWithReading = `-- name: GetPracticePlanWithReading :many
+SELECT
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
+    practice_plan_reading.completed AS reading_completed,
+    reading.id AS reading_id,
+    reading.title AS reading_title,
+    reading.composer AS reading_composer,
+    reading.info AS reading_info
+FROM practice_plans
+INNER JOIN practice_plan_reading ON practice_plans.id = practice_plan_reading.practice_plan_id
+INNER JOIN reading ON practice_plan_reading.reading_id = reading.id
+WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2 AND reading.user_id = ?2
+ORDER BY practice_plan_reading.idx
+`
+
+type GetPracticePlanWithReadingParams struct {
+	PracticePlanID string `json:"practicePlanId"`
+	UserID         string `json:"userId"`
+}
+
+type GetPracticePlanWithReadingRow struct {
+	ID               string         `json:"id"`
+	UserID           string         `json:"userId"`
+	Intensity        string         `json:"intensity"`
+	Date             int64          `json:"date"`
+	Completed        bool           `json:"completed"`
+	PracticeNotes    sql.NullString `json:"practiceNotes"`
+	LastPracticed    sql.NullInt64  `json:"lastPracticed"`
+	ReadingCompleted bool           `json:"readingCompleted"`
+	ReadingID        string         `json:"readingId"`
+	ReadingTitle     string         `json:"readingTitle"`
+	ReadingComposer  sql.NullString `json:"readingComposer"`
+	ReadingInfo      sql.NullString `json:"readingInfo"`
+}
+
+func (q *Queries) GetPracticePlanWithReading(ctx context.Context, arg GetPracticePlanWithReadingParams) ([]GetPracticePlanWithReadingRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanWithReading, arg.PracticePlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPracticePlanWithReadingRow
+	for rows.Next() {
+		var i GetPracticePlanWithReadingRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Intensity,
+			&i.Date,
+			&i.Completed,
+			&i.PracticeNotes,
+			&i.LastPracticed,
+			&i.ReadingCompleted,
+			&i.ReadingID,
+			&i.ReadingTitle,
+			&i.ReadingComposer,
+			&i.ReadingInfo,
 		); err != nil {
 			return nil, err
 		}

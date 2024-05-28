@@ -277,6 +277,10 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if r.FormValue("reading") == "on" {
+		log.Default().Println("Would generate sight reading")
+	}
+
 	maybeNewSpotLists := make([][]string, 0, len(pieceIDs))
 	potentialInfrequentSpots := make([]PotentialInfrequentSpot, 0, len(pieceIDs)*10)
 	extraRepeatSpotIDs := make([]string, 0, len(pieceIDs)*10)

@@ -1,0 +1,117 @@
+package readingpages
+
+import "practicebetter/internal/pages"
+import "practicebetter/internal/components"
+
+// TODO: display field errors
+// TODO: validation for number fields
+// Description and practice notes have been removed for now
+
+templ CreateSightReadingPage(s pages.ServerUtil, csrf string) {
+	<title>New Sight Reading | Go Practice</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("New Sight Reading") , components.MaybePracticePlan())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Reading", Href: "/library/reading", Active: false },
+					{ Label: "New", Href: "/library/reading/create", Active: true },
+				})
+		}
+		@components.TwoColumnContainer() {
+			<form
+ 				hx-post="/library/reading"
+ 				hx-target="#main-content"
+ 				hx-swap="outerHTML transition:true"
+ 				action="/library/reading"
+ 				method="post"
+ 				class="flex flex-col gap-2 p-4 rounded-xl shadow-sm sm:mx-auto sm:max-w-3xl bg-neutral-100 shadow-black/20"
+			>
+				<header id="form-title" class="flex flex-col col-span-full gap-2 items-center w-full">
+					<h3 class="px-4 pb-1 text-2xl font-bold border-b border-black">Create One Item</h3>
+					<p class="text-sm">
+						Enter Information about your sight reading item.
+					</p>
+				</header>
+				@CreateSightReadingFormContents(csrf)
+			</form>
+			<form
+ 				hx-post="/library/reading/bulk"
+ 				hx-target="#main-content"
+ 				hx-swap="outerHTML transition:true"
+ 				action="/library/reading/bulk"
+ 				method="post"
+ 				class="flex flex-col gap-2 p-4 rounded-xl shadow-sm sm:mx-auto sm:max-w-3xl bg-neutral-100 shadow-black/20"
+			>
+				<header id="form-title" class="flex flex-col col-span-full gap-2 items-center w-full">
+					<h3 class="px-4 pb-1 text-2xl font-bold border-b border-black">Bulk Create Items</h3>
+					<p class="text-sm">
+						Enter the titles of your sight reading items, one per line, to create several at once.
+					</p>
+				</header>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<div class="flex flex-col flex-grow w-full sm:px-0">
+					@SightReadingFormLabel("Sight Reading Titles", "bulk")
+					<textarea class="flex-grow w-full basic-field" name="bulk" id="bulk" rows="5"></textarea>
+				</div>
+				<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
+					<button type="submit" class="green action-button focusable">
+						<span class="-ml-1 size-6 icon-[iconamoon--arrow-up-5-circle-thin]" aria-hidden="true"></span>
+						Save
+					</button>
+					@components.HxLink("action-button red focusable", "/library/reading", "#main-content") {
+						<span class="-ml-1 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+						Cancel
+					}
+				</div>
+			</form>
+		}
+	}
+}
+
+templ CreateSightReadingFormContents(csrf string) {
+	<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+	<div class="grid-cols-1 gap-x-0 sm:grid sm:gap-y-4 sm:px-0 md:grid-cols-2 md:gap-x-4">
+		<div class="flex flex-col gap-1">
+			@SightReadingFormLabel("Title (required)", "title")
+			@SightReadingFormInput("title", "Title", "text", "", true)
+		</div>
+		<div class="flex flex-col gap-1">
+			@SightReadingFormLabel("Composer", "composer")
+			@SightReadingFormInput("composer", "Composer", "text", "", false)
+		</div>
+	</div>
+	<div class="grid w-full sm:px-0">
+		@SightReadingFormLabel("Info", "info")
+		<p class="mb-1 text-sm text-neutral-700">Enter any additional information about your sight reading, such as what book or larger work it comes from.</p>
+		<textarea class="w-full basic-field" name="info" id="info" rows="5"></textarea>
+	</div>
+	<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
+		<button type="submit" class="green action-button focusable">
+			<span class="-ml-1 size-6 icon-[iconamoon--arrow-up-5-circle-thin]" aria-hidden="true"></span>
+			Save
+		</button>
+		@components.HxLink("action-button red focusable", "/library/reading", "#main-content") {
+			<span class="-ml-1 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+			Cancel
+		}
+	</div>
+}
+
+templ SightReadingFormLabel(text string, labelFor string) {
+	<label class="text-sm font-medium leading-6 text-neutral-900" for={ labelFor } id={ labelFor + "-label" }>
+		{ text }
+	</label>
+}
+
+templ SightReadingFormInput(name string, placeholder string, fieldType string, defaultValue string, required bool) {
+	<input
+ 		value={ defaultValue }
+ 		autocomplete="off"
+ 		required?={ required }
+ 		type={ fieldType }
+ 		id={ name }
+ 		name={ name }
+ 		placeholder={ placeholder }
+ 		class="w-full basic-field"
+	/>
+}

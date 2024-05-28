@@ -1,0 +1,32 @@
+package readingpages
+
+import "practicebetter/internal/db"
+import "practicebetter/internal/components"
+
+templ ReadingList(items []db.Reading, page int, totalPages int) {
+	<title>Sight Reading | Go Practice</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Sight Reading") , components.MaybePracticePlan())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Reading", Href: "/library/reading", Active: true },
+				})
+			@components.ActionButtonContainer() {
+				@components.HxLink("action-button green focusable", "/library/reading/create", "#main-content") {
+					<span class="-ml-1 size-6 icon-[iconamoon--file-add-thin]" aria-hidden="true"></span>
+					New Item
+				}
+			}
+		}
+		<ul class="grid flex-grow grid-cols-1 auto-rows-min gap-x-2 gap-y-4 px-4 w-full list-none sm:grid-cols-2 sm:mx-auto sm:max-w-6xl">
+			for _, item := range items {
+				@components.ReadingCard(item.ID, item.Title, item.Composer, item.Completed, item.Info)
+			}
+		</ul>
+		@components.Pagination(page, totalPages, "/library/reading", "Previous", "Next", "No Previous Items", "No More Items")
+	}
+}
+
+/*
+
+ */

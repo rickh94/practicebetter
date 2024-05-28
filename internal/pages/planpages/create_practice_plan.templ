@@ -107,6 +107,7 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
 		}
 		<div class="flex flex-col flex-wrap gap-2 w-full xs:flex-row xs:w-auto">
 			@practiceCheckbox("icon-[ph--steps]","Scales & Arppegios", "scale", true)
+			@practiceCheckbox("icon-[fluent--reading-mode-mobile-20-regular]","Sight Reading", "reading", false)
 			@practiceCheckbox("icon-[iconamoon--bookmark-thin]","Interleave Spots", "practice_interleave", true)
 			@practiceCheckbox("icon-[iconamoon--playlist-shuffle-thin]","Random Spots", "practice_random_single", true)
 			@practiceCheckbox("icon-[custom--random-boxes]","Random Starting Point", "practice_starting_point", false)

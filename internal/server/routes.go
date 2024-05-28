@@ -204,11 +204,24 @@ func (s *Server) scalesRouter(r chi.Router) {
 	r.Get("/autocreate", s.autocreateScale)
 }
 
+func (s *Server) readingRouter(r chi.Router) {
+	r.Get("/", s.sightReadingItems)
+	r.Post("/", s.createSightReading)
+	r.Post("/bulk", s.bulkCreateSightReading)
+	r.Get("/create", s.createSightReadingForm)
+	r.Get("/{itemID}", s.singleSightReadingItem)
+	// r.Put("/{itemID}", s.updateScale)
+	// r.Get("/{item}/practice", s.getPracticeScale)
+	// r.Post("/{item}/practice", s.practiceScale)
+	// r.Get("/{item}/edit", s.editScale)
+}
+
 func (s *Server) libraryRouter(r chi.Router) {
 	r.Get("/", s.libraryDashboard)
 
 	r.Route("/pieces", s.pieceRouter)
 	r.Route("/scales", s.scalesRouter)
+	r.Route("/reading", s.readingRouter)
 
 	r.Get("/upload/audio", s.uploadAudioForm)
 	r.Post("/upload/audio", s.uploadAudio)

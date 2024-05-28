@@ -73,8 +73,7 @@ func (s *Server) createPiece(w http.ResponseWriter, r *http.Request) {
 		UserID:          user.ID,
 	})
 	if err != nil {
-		log.Default().Println(err)
-		http.Error(w, "Failed to create piece", http.StatusBadRequest)
+		s.DatabaseError(w, r, err, "Failed to create piece")
 		return
 	}
 

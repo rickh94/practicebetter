@@ -1,0 +1,113 @@
+package readingpages
+
+import "practicebetter/internal/components"
+import "practicebetter/internal/pages"
+import "database/sql"
+
+type SingleReadingItemInfo struct {
+	ID        string
+	Title     string
+	Composer  sql.NullString
+	Completed bool
+	Info      sql.NullString
+}
+
+templ SingleReadingItem(s pages.ServerUtil, item SingleReadingItemInfo, csrf string) {
+	<title>{ item.Title } | Go Practice</title>
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(item.Title) , components.MaybePracticePlan())) {
+		@components.BreadcrumbContainer() {
+			@components.Breadcrumb([]components.BreadcrumbInfo{
+					{ Label: "Library", Href: "/library", Active: false },
+					{ Label: "Reading", Href: "/library/reading", Active: false },
+					{ Label: item.Title, Href: "/library/reading/" + item.ID, Active: true },
+				})
+			@components.ActionButtonContainer() {
+				@components.HxLink("focusable action-button amber", "/library/reading/" + item.ID + "/edit", "#main-content") {
+					<span class="-ml-1 size-6 icon-[custom--music-note-edit]" aria-hidden="true"></span>
+					Edit
+				}
+				<button
+ 					class="action-button violet focusable"
+ 					hx-get={ "/library/reading/" + item.ID + "/practice" }
+ 					hx-push-url="false"
+ 					hx-target="#practice-reading-dialog-contents"
+ 					hx-swap="innerHTML"
+ 					hx-on::after-request={ components.ShowModal("practice-reading-dialog") }
+				>
+					<span class="-ml-1 text-violet-800 size-5 icon-[iconamoon--player-play-thin]" aria-hidden="true"></span>
+					Practice
+				</button>
+				<button
+ 					class="action-button red focusable"
+ 					hx-delete={ "/library/reading/" + item.ID }
+ 					hx-headers={ components.HxCsrfHeader(csrf) }
+ 					hx-confirm="Are you sure you want to delete this piece and all its spots?"
+ 					hx-target="#main-content"
+				>
+					<span class="-ml-1 size-6 icon-[iconamoon--trash-thin]" aria-hidden="true"></span>
+					Delete Item
+				</button>
+			}
+		}
+		@components.NarrowContainer() {
+			<div class="flex flex-col w-full">
+				<div class="p-4 w-full rounded-xl shadow-sm bg-neutral-50 shadow-black/20">
+					<div class="flex flex-col">
+						<h2 class="py-1 text-2xl font-bold text-center">
+							About this item
+						</h2>
+					</div>
+					<dl class="border-t divide-y divide-neutral-700 border-neutral-700">
+						<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+							<dt class="text-sm font-medium leading-6 text-neutral-900">
+								Title
+							</dt>
+							<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
+								{ item.Title }
+							</dd>
+						</div>
+						<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+							<dt class="text-sm font-medium leading-6 text-neutral-900">
+								Completed
+							</dt>
+							<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
+								if item.Completed {
+									Yes
+								} else {
+									No
+								}
+							</dd>
+						</div>
+						if item.Composer.Valid {
+							<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+								<dt class="text-sm font-medium leading-6 text-neutral-900">
+									Composer
+								</dt>
+								<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
+									{ item.Composer.String }
+								</dd>
+							</div>
+						}
+						<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+							<dt class="text-sm font-medium leading-6 text-neutral-900">
+								Info
+							</dt>
+							<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
+								if item.Info.Valid {
+									{ item.Info.String }
+								}
+							</dd>
+						</div>
+					</dl>
+				</div>
+			</div>
+			<dialog id="practice-reading-dialog" class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none clear">
+				<div id="practice-reading-dialog-contents" class="p-0 mx-auto w-huge overflow-x-clip">
+					<span class="p-4 bg-white rounded-xl">
+						Loading Reading...
+					</span>
+				</div>
+			</dialog>
+		}
+	}
+}
