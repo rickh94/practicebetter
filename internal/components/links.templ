@@ -98,6 +98,7 @@ templ PlanGoPracticeLink(planID string, swap bool) {
  		hx-get={ "/library/plans/" + planID + "/next" }
  		hx-swap="outerHTML transition:true"
  		hx-target="#main-content"
+ 		hx-headers={ HxHeader("X-Plan-Page", "true") }
  		hx-push-url="true"
  		if swap {
 			hx-swap-oob="true"

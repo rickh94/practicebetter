@@ -14,7 +14,9 @@ import (
 	"practicebetter/internal/components"
 	"practicebetter/internal/config"
 	"practicebetter/internal/db"
+	"practicebetter/internal/pages/ewspages"
 	"practicebetter/internal/pages/planpages"
+	"practicebetter/internal/pages/readingpages"
 	"slices"
 	"strconv"
 	"time"
@@ -205,6 +207,28 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var maxNewSpots int64
+	var maxInfrequentSpots int
+	var maxInterleaveSpots int
+	var maxSightReading int
+	switch r.FormValue("intensity") {
+	case "light":
+		maxNewSpots = config.LIGHT_MAX_NEW_SPOTS
+		maxInfrequentSpots = config.LIGHT_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = config.LIGHT_MAX_INTERLEAVE_SPOTS
+		maxSightReading = config.LIGHT_SIGHT_READING
+	case "medium":
+		maxNewSpots = config.MEDIUM_MAX_NEW_SPOTS
+		maxInfrequentSpots = config.MEDIUM_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = config.MEDIUM_MAX_INTERLEAVE_SPOTS
+		maxSightReading = config.MEDIUM_SIGHT_READING
+	case "heavy":
+		maxNewSpots = config.HEAVY_MAX_NEW_SPOTS
+		maxInfrequentSpots = config.HEAVY_MAX_INFREQUENT_SPOTS
+		maxInterleaveSpots = config.HEAVY_MAX_INTERLEAVE_SPOTS
+		maxSightReading = config.HEAVY_SIGHT_READING
+	}
+
 	if r.FormValue("scale") == "on" {
 		workingScales, err := qtx.ListWorkingScales(r.Context(), user.ID)
 		if err != nil {
@@ -278,7 +302,26 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.FormValue("reading") == "on" {
-		log.Default().Println("Would generate sight reading")
+		items, err := qtx.ListIncompleteUserReadingItems(r.Context(), user.ID)
+		if err != nil {
+			log.Default().Println(err)
+		}
+		rand.Shuffle(len(items), func(i, j int) {
+			items[i], items[j] = items[j], items[i]
+		})
+		i := 0
+		for i < int(math.Min(float64(len(items)), float64(maxSightReading))) {
+			_, err = qtx.CreatePracticePlanReadingWithIdx(r.Context(), db.CreatePracticePlanReadingWithIdxParams{
+				PracticePlanID: newPlan.ID,
+				ReadingID:      items[i].ID,
+				Idx:            int64(i),
+			})
+			if err != nil {
+				log.Default().Println(err)
+			}
+			i++
+		}
+
 	}
 
 	maybeNewSpotLists := make([][]string, 0, len(pieceIDs))
@@ -318,23 +361,6 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			pieceInfo.CompletedSpotCount > 5 {
 			startingPointPieceIDs = append(startingPointPieceIDs, pieceID)
 		}
-	}
-	var maxNewSpots int64
-	var maxInfrequentSpots int
-	var maxInterleaveSpots int
-	switch r.FormValue("intensity") {
-	case "light":
-		maxNewSpots = config.LIGHT_MAX_NEW_SPOTS
-		maxInfrequentSpots = config.LIGHT_MAX_INFREQUENT_SPOTS
-		maxInterleaveSpots = config.LIGHT_MAX_INTERLEAVE_SPOTS
-	case "medium":
-		maxNewSpots = config.MEDIUM_MAX_NEW_SPOTS
-		maxInfrequentSpots = config.MEDIUM_MAX_INFREQUENT_SPOTS
-		maxInterleaveSpots = config.MEDIUM_MAX_INTERLEAVE_SPOTS
-	case "heavy":
-		maxNewSpots = config.HEAVY_MAX_NEW_SPOTS
-		maxInfrequentSpots = config.HEAVY_MAX_INFREQUENT_SPOTS
-		maxInterleaveSpots = config.HEAVY_MAX_INTERLEAVE_SPOTS
 	}
 
 	// Add Spots
@@ -594,6 +620,15 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
+	planReading, err := queries.GetPracticePlanWithReading(r.Context(), db.GetPracticePlanWithReadingParams{
+		PracticePlanID: planID,
+		UserID:         userID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not get practice plan with scales")
+		return
+	}
+
 	activePracticePlanID, _ := s.GetActivePracticePlanID(r.Context())
 
 	var planData planpages.PracticePlanData
@@ -651,6 +686,23 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 		}
 		planData.Scales = append(planData.Scales, scale)
 	}
+
+	planData.SightReadingItems = make([]components.PlanSightReadingItem, 0, len(planReading))
+	for _, row := range planReading {
+		totalItems++
+		if row.Completed {
+			completedItems++
+		}
+		var item components.PlanSightReadingItem
+		item.Completed = row.ReadingCompleted
+		item.ReadingID = row.ReadingID
+		item.Title = row.ReadingTitle
+		if row.ReadingComposer.Valid {
+			item.Composer = row.ReadingComposer.String
+		}
+		planData.SightReadingItems = append(planData.SightReadingItems, item)
+	}
+	log.Default().Println(planData.SightReadingItems)
 
 	for _, row := range planPieces {
 		if row.PieceID.Valid {
@@ -936,6 +988,85 @@ func (s *Server) redirectToNextPlanItem(w http.ResponseWriter, r *http.Request) 
 	})
 	if err != nil {
 		s.DatabaseError(w, r, err, "Could not get next plan item")
+		return
+	}
+	isPlanPage := r.Header.Get("X-Plan-Page") == "true"
+
+	scales, err := queries.GetPracticePlanWithIncompleteScales(r.Context(), db.GetPracticePlanWithIncompleteScalesParams{
+		PracticePlanID: activePracticePlanID,
+		UserID:         user.ID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not get next plan item")
+		return
+	}
+
+	if len(scales) > 0 && isPlanPage {
+		htmx.Retarget(r, "#practice-scale-dialog-contents")
+		if err := htmx.Trigger(r, "ShowModal", "practice-scale-dialog"); err != nil {
+			log.Default().Println(err)
+		}
+		info := ewspages.ScaleInfo{
+			ID:            scales[0].UserScaleID,
+			KeyName:       scales[0].ScaleKeyName,
+			Mode:          scales[0].ScaleMode,
+			PracticeNotes: scales[0].ScalePracticeNotes,
+			LastPracticed: scales[0].ScaleLastPracticed,
+			Reference:     scales[0].ScaleReference,
+			Working:       scales[0].ScaleWorking,
+		}
+		htmx.PreventPushURL(r)
+		if err := ewspages.PracticeScaleDisplay(info, csrf.Token(r)).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+		}
+		return
+	}
+
+	readingItems, err := queries.GetPracticePlanWithIncompleteReading(r.Context(), db.GetPracticePlanWithIncompleteReadingParams{
+		PracticePlanID: activePracticePlanID,
+		UserID:         user.ID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not get next plan item")
+		return
+	}
+
+	if len(readingItems) > 0 && isPlanPage {
+		htmx.Retarget(r, "#practice-reading-dialog-contents")
+		htmx.Reswap(r, "innerHTML")
+		if err := htmx.Trigger(r, "ShowModal", "practice-reading-dialog"); err != nil {
+			log.Default().Println(err)
+		}
+		info := readingpages.SingleReadingItemInfo{
+			ID:        readingItems[0].ReadingID,
+			Title:     readingItems[0].ReadingTitle,
+			Composer:  readingItems[0].ReadingComposer,
+			Completed: readingItems[0].ReadingCompleted,
+			Info:      readingItems[0].ReadingInfo,
+		}
+		htmx.PreventPushURL(r)
+		if err := readingpages.PracticeReadingDisplay(info, csrf.Token(r)).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+		}
+		return
+	}
+
+	hasInfrequent, err := queries.HasIncompleteInfrequentSpots(r.Context(), db.HasIncompleteInfrequentSpotsParams{
+		PlanID: planID,
+		UserID: user.ID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not get next plan item")
+		return
+	}
+	if hasInfrequent && isPlanPage {
+		htmx.Retarget(r, "#"+components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID)
+		htmx.Reswap(r, "innerHTML")
+		if err := htmx.Trigger(r, "ShowModal", components.INFREQUENT_SPOT_DIALOG_ID); err != nil {
+			log.Default().Println(err)
+		}
+		htmx.PreventPushURL(r)
+		s.startInfrequentPracticing(w, r)
 		return
 	}
 
@@ -1320,6 +1451,16 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	planReading, err := qtx.GetPracticePlanWithReading(r.Context(), db.GetPracticePlanWithReadingParams{
+		PracticePlanID: planID,
+		UserID:         user.ID,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
 	planSpots, err := qtx.GetPracticePlanWithSpots(r.Context(), db.GetPracticePlanWithSpotsParams{
 		ID:     planID,
 		UserID: user.ID,
@@ -1346,6 +1487,18 @@ func (s *Server) duplicatePracticePlan(w http.ResponseWriter, r *http.Request) {
 		_, err := qtx.CreatePracticePlanScaleWithIdx(r.Context(), db.CreatePracticePlanScaleWithIdxParams{
 			PracticePlanID: newPlan.ID,
 			UserScaleID:    scale.UserScaleID,
+			Idx:            int64(i),
+		})
+		if err != nil {
+			log.Default().Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	for i, item := range planReading {
+		_, err := qtx.CreatePracticePlanReadingWithIdx(r.Context(), db.CreatePracticePlanReadingWithIdxParams{
+			PracticePlanID: newPlan.ID,
+			ReadingID:      item.ReadingID,
 			Idx:            int64(i),
 		})
 		if err != nil {

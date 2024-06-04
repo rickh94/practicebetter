@@ -77,6 +77,12 @@ templ StageReadMoreDialog() {
 	</dialog>
 }
 
+//
+//@components.HxLink("focusable action-button teal", "/library/pieces/" + spot.PieceID + "/sections/create?spot=" + spot.ID, "#main-content") {
+//	<span class="-ml-1 size-5 icon-[mdi-light--vector-combine]" aria-hidden="true"></span>
+//Combine
+//}
+
 templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 	<title>{ spot.Name } - { spot.PieceTitle } | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText(spot.Name + " - " + spot.PieceTitle) , components.MaybePracticePlan())) {
@@ -97,10 +103,6 @@ templ SingleSpot(s pages.ServerUtil, spot db.GetSpotRow, csrf string) {
 				@components.HxLink("focusable action-button amber", "/library/pieces/" + spot.PieceID + "/spots/" + spot.ID + "/edit", "#main-content") {
 					<span class="-ml-1 size-5 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
 					Edit
-				}
-				@components.HxLink("focusable action-button teal", "/library/pieces/" + spot.PieceID + "/sections/create?spot=" + spot.ID, "#main-content") {
-					<span class="-ml-1 size-5 icon-[mdi-light--vector-combine]" aria-hidden="true"></span>
-					Combine
 				}
 				<button
  					class="action-button red focusable"

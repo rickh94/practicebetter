@@ -52,6 +52,23 @@ func (q *Queries) CompletePracticePlanPiece(ctx context.Context, arg CompletePra
 	return err
 }
 
+const completePracticePlanReading = `-- name: CompletePracticePlanReading :exec
+UPDATE practice_plan_reading
+SET completed = true
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = ? AND practice_plans.user_id = ?) AND reading_id = ?
+`
+
+type CompletePracticePlanReadingParams struct {
+	PlanID    string `json:"planId"`
+	UserID    string `json:"userId"`
+	ReadingID string `json:"readingId"`
+}
+
+func (q *Queries) CompletePracticePlanReading(ctx context.Context, arg CompletePracticePlanReadingParams) error {
+	_, err := q.db.ExecContext(ctx, completePracticePlanReading, arg.PlanID, arg.UserID, arg.ReadingID)
+	return err
+}
+
 const completePracticePlanScale = `-- name: CompletePracticePlanScale :exec
 UPDATE practice_plan_scales
 SET completed = true
@@ -1149,6 +1166,163 @@ func (q *Queries) GetPracticePlanInterleaveSpots(ctx context.Context, arg GetPra
 	return items, nil
 }
 
+const getPracticePlanWithIncompleteReading = `-- name: GetPracticePlanWithIncompleteReading :many
+SELECT
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
+    practice_plan_reading.completed AS completed,
+    reading.id AS reading_id,
+    reading.title AS reading_title,
+    reading.composer AS reading_composer,
+    reading.info AS reading_info,
+    reading.completed AS reading_completed
+FROM practice_plans
+INNER JOIN practice_plan_reading ON practice_plans.id = practice_plan_reading.practice_plan_id
+INNER JOIN reading ON practice_plan_reading.reading_id = reading.id
+WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2 AND reading.user_id = ?2 AND reading.completed = false AND practice_plan_reading.completed = false
+ORDER BY practice_plan_reading.idx
+`
+
+type GetPracticePlanWithIncompleteReadingParams struct {
+	PracticePlanID string `json:"practicePlanId"`
+	UserID         string `json:"userId"`
+}
+
+type GetPracticePlanWithIncompleteReadingRow struct {
+	ID               string         `json:"id"`
+	UserID           string         `json:"userId"`
+	Intensity        string         `json:"intensity"`
+	Date             int64          `json:"date"`
+	Completed        bool           `json:"completed"`
+	PracticeNotes    sql.NullString `json:"practiceNotes"`
+	LastPracticed    sql.NullInt64  `json:"lastPracticed"`
+	Completed_2      bool           `json:"completed2"`
+	ReadingID        string         `json:"readingId"`
+	ReadingTitle     string         `json:"readingTitle"`
+	ReadingComposer  sql.NullString `json:"readingComposer"`
+	ReadingInfo      sql.NullString `json:"readingInfo"`
+	ReadingCompleted bool           `json:"readingCompleted"`
+}
+
+func (q *Queries) GetPracticePlanWithIncompleteReading(ctx context.Context, arg GetPracticePlanWithIncompleteReadingParams) ([]GetPracticePlanWithIncompleteReadingRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanWithIncompleteReading, arg.PracticePlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPracticePlanWithIncompleteReadingRow
+	for rows.Next() {
+		var i GetPracticePlanWithIncompleteReadingRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Intensity,
+			&i.Date,
+			&i.Completed,
+			&i.PracticeNotes,
+			&i.LastPracticed,
+			&i.Completed_2,
+			&i.ReadingID,
+			&i.ReadingTitle,
+			&i.ReadingComposer,
+			&i.ReadingInfo,
+			&i.ReadingCompleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPracticePlanWithIncompleteScales = `-- name: GetPracticePlanWithIncompleteScales :many
+SELECT
+    practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
+    practice_plan_scales.completed AS scale_completed,
+    user_scales.id AS user_scale_id,
+    user_scales.practice_notes AS scale_practice_notes,
+    user_scales.last_practiced AS scale_last_practiced,
+    user_scales.reference AS scale_reference,
+    user_scales.working AS scale_working,
+    scale_keys.name AS scale_key_name,
+    scale_modes.name AS scale_mode
+FROM practice_plans
+INNER JOIN practice_plan_scales ON practice_plans.id = practice_plan_scales.practice_plan_id
+INNER JOIN user_scales ON practice_plan_scales.user_scale_id = user_scales.id
+INNER JOIN scales ON user_scales.scale_id = scales.id
+INNER JOIN scale_keys ON scale_keys.id = scales.key_id
+INNER JOIN scale_modes ON scale_modes.id = scales.mode_id
+WHERE practice_plans.id = ?1 AND practice_plans.user_id = ?2 AND user_scales.user_id = ?2 AND practice_plan_scales.completed = false
+ORDER BY practice_plan_scales.idx
+`
+
+type GetPracticePlanWithIncompleteScalesParams struct {
+	PracticePlanID string `json:"practicePlanId"`
+	UserID         string `json:"userId"`
+}
+
+type GetPracticePlanWithIncompleteScalesRow struct {
+	ID                 string         `json:"id"`
+	UserID             string         `json:"userId"`
+	Intensity          string         `json:"intensity"`
+	Date               int64          `json:"date"`
+	Completed          bool           `json:"completed"`
+	PracticeNotes      sql.NullString `json:"practiceNotes"`
+	LastPracticed      sql.NullInt64  `json:"lastPracticed"`
+	ScaleCompleted     bool           `json:"scaleCompleted"`
+	UserScaleID        string         `json:"userScaleId"`
+	ScalePracticeNotes string         `json:"scalePracticeNotes"`
+	ScaleLastPracticed sql.NullInt64  `json:"scaleLastPracticed"`
+	ScaleReference     string         `json:"scaleReference"`
+	ScaleWorking       bool           `json:"scaleWorking"`
+	ScaleKeyName       string         `json:"scaleKeyName"`
+	ScaleMode          string         `json:"scaleMode"`
+}
+
+func (q *Queries) GetPracticePlanWithIncompleteScales(ctx context.Context, arg GetPracticePlanWithIncompleteScalesParams) ([]GetPracticePlanWithIncompleteScalesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPracticePlanWithIncompleteScales, arg.PracticePlanID, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPracticePlanWithIncompleteScalesRow
+	for rows.Next() {
+		var i GetPracticePlanWithIncompleteScalesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Intensity,
+			&i.Date,
+			&i.Completed,
+			&i.PracticeNotes,
+			&i.LastPracticed,
+			&i.ScaleCompleted,
+			&i.UserScaleID,
+			&i.ScalePracticeNotes,
+			&i.ScaleLastPracticed,
+			&i.ScaleReference,
+			&i.ScaleWorking,
+			&i.ScaleKeyName,
+			&i.ScaleMode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPracticePlanWithPieces = `-- name: GetPracticePlanWithPieces :many
 SELECT
     practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
@@ -1232,11 +1406,12 @@ func (q *Queries) GetPracticePlanWithPieces(ctx context.Context, arg GetPractice
 const getPracticePlanWithReading = `-- name: GetPracticePlanWithReading :many
 SELECT
     practice_plans.id, practice_plans.user_id, practice_plans.intensity, practice_plans.date, practice_plans.completed, practice_plans.practice_notes, practice_plans.last_practiced,
-    practice_plan_reading.completed AS reading_completed,
+    practice_plan_reading.completed AS completed,
     reading.id AS reading_id,
     reading.title AS reading_title,
     reading.composer AS reading_composer,
-    reading.info AS reading_info
+    reading.info AS reading_info,
+    reading.completed AS reading_completed
 FROM practice_plans
 INNER JOIN practice_plan_reading ON practice_plans.id = practice_plan_reading.practice_plan_id
 INNER JOIN reading ON practice_plan_reading.reading_id = reading.id
@@ -1257,11 +1432,12 @@ type GetPracticePlanWithReadingRow struct {
 	Completed        bool           `json:"completed"`
 	PracticeNotes    sql.NullString `json:"practiceNotes"`
 	LastPracticed    sql.NullInt64  `json:"lastPracticed"`
-	ReadingCompleted bool           `json:"readingCompleted"`
+	Completed_2      bool           `json:"completed2"`
 	ReadingID        string         `json:"readingId"`
 	ReadingTitle     string         `json:"readingTitle"`
 	ReadingComposer  sql.NullString `json:"readingComposer"`
 	ReadingInfo      sql.NullString `json:"readingInfo"`
+	ReadingCompleted bool           `json:"readingCompleted"`
 }
 
 func (q *Queries) GetPracticePlanWithReading(ctx context.Context, arg GetPracticePlanWithReadingParams) ([]GetPracticePlanWithReadingRow, error) {
@@ -1281,11 +1457,12 @@ func (q *Queries) GetPracticePlanWithReading(ctx context.Context, arg GetPractic
 			&i.Completed,
 			&i.PracticeNotes,
 			&i.LastPracticed,
-			&i.ReadingCompleted,
+			&i.Completed_2,
 			&i.ReadingID,
 			&i.ReadingTitle,
 			&i.ReadingComposer,
 			&i.ReadingInfo,
+			&i.ReadingCompleted,
 		); err != nil {
 			return nil, err
 		}
@@ -1308,6 +1485,7 @@ SELECT
     user_scales.practice_notes AS scale_practice_notes,
     user_scales.last_practiced AS scale_last_practiced,
     user_scales.reference AS scale_reference,
+    user_scales.working AS scale_working,
     scale_keys.name AS scale_key_name,
     scale_modes.name AS scale_mode
 FROM practice_plans
@@ -1338,6 +1516,7 @@ type GetPracticePlanWithScalesRow struct {
 	ScalePracticeNotes string         `json:"scalePracticeNotes"`
 	ScaleLastPracticed sql.NullInt64  `json:"scaleLastPracticed"`
 	ScaleReference     string         `json:"scaleReference"`
+	ScaleWorking       bool           `json:"scaleWorking"`
 	ScaleKeyName       string         `json:"scaleKeyName"`
 	ScaleMode          string         `json:"scaleMode"`
 }
@@ -1364,6 +1543,7 @@ func (q *Queries) GetPracticePlanWithScales(ctx context.Context, arg GetPractice
 			&i.ScalePracticeNotes,
 			&i.ScaleLastPracticed,
 			&i.ScaleReference,
+			&i.ScaleWorking,
 			&i.ScaleKeyName,
 			&i.ScaleMode,
 		); err != nil {

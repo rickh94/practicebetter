@@ -50,57 +50,7 @@ templ SingleReadingItem(s pages.ServerUtil, item SingleReadingItemInfo, csrf str
 			}
 		}
 		@components.NarrowContainer() {
-			<div class="flex flex-col w-full">
-				<div class="p-4 w-full rounded-xl shadow-sm bg-neutral-50 shadow-black/20">
-					<div class="flex flex-col">
-						<h2 class="py-1 text-2xl font-bold text-center">
-							About this item
-						</h2>
-					</div>
-					<dl class="border-t divide-y divide-neutral-700 border-neutral-700">
-						<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-							<dt class="text-sm font-medium leading-6 text-neutral-900">
-								Title
-							</dt>
-							<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
-								{ item.Title }
-							</dd>
-						</div>
-						<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-							<dt class="text-sm font-medium leading-6 text-neutral-900">
-								Completed
-							</dt>
-							<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
-								if item.Completed {
-									Yes
-								} else {
-									No
-								}
-							</dd>
-						</div>
-						if item.Composer.Valid {
-							<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-								<dt class="text-sm font-medium leading-6 text-neutral-900">
-									Composer
-								</dt>
-								<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
-									{ item.Composer.String }
-								</dd>
-							</div>
-						}
-						<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-							<dt class="text-sm font-medium leading-6 text-neutral-900">
-								Info
-							</dt>
-							<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-neutral-700">
-								if item.Info.Valid {
-									{ item.Info.String }
-								}
-							</dd>
-						</div>
-					</dl>
-				</div>
-			</div>
+			@ReadingDisplayPage(item, false)
 			<dialog id="practice-reading-dialog" class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none clear">
 				<div id="practice-reading-dialog-contents" class="p-0 mx-auto w-huge overflow-x-clip">
 					<span class="p-4 bg-white rounded-xl">
@@ -110,4 +60,136 @@ templ SingleReadingItem(s pages.ServerUtil, item SingleReadingItemInfo, csrf str
 			</dialog>
 		}
 	}
+}
+
+templ ReadingDisplayPage(item SingleReadingItemInfo, oob bool) {
+	<div
+ 		class="flex flex-col w-full"
+ 		id="reading-display-page"
+ 		if oob {
+			hx-swap-oob="true"
+		}
+	>
+		<div class="p-4 w-full rounded-xl shadow-sm bg-slate-50 shadow-black/20">
+			<div class="flex flex-col">
+				<h2 class="py-1 text-2xl font-bold text-center">
+					About this item
+				</h2>
+			</div>
+			<dl class="border-t divide-y divide-slate-700 border-slate-700">
+				<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+					<dt class="text-sm font-medium leading-6 text-slate-900">
+						Title
+					</dt>
+					<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-slate-700">
+						{ item.Title }
+					</dd>
+				</div>
+				<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+					<dt class="text-sm font-medium leading-6 text-slate-900">
+						Completed
+					</dt>
+					<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-slate-700">
+						if item.Completed {
+							Yes
+						} else {
+							No
+						}
+					</dd>
+				</div>
+				if item.Composer.Valid {
+					<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+						<dt class="text-sm font-medium leading-6 text-slate-900">
+							Composer
+						</dt>
+						<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-slate-700">
+							{ item.Composer.String }
+						</dd>
+					</div>
+				}
+				<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+					<dt class="text-sm font-medium leading-6 text-slate-900">
+						Info
+					</dt>
+					<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-slate-700">
+						if item.Info.Valid {
+							{ item.Info.String }
+						}
+					</dd>
+				</div>
+			</dl>
+		</div>
+	</div>
+}
+
+templ UpdatedReading(item SingleReadingItemInfo, csrf string) {
+	@ReadingDisplayPage(item, true)
+	@PracticeReadingDisplay(item, csrf)
+}
+
+templ PracticeReadingDisplay(item SingleReadingItemInfo, csrf string) {
+	<div class="grid gap-2 mx-auto max-w-md md:grid-cols-6 md:mx-0 md:max-w-full" id="practice-reading">
+		<div class="flex relative flex-col gap-2 justify-center items-center py-8 px-4 text-center bg-white rounded-xl border shadow-lg sm:px-8 md:col-span-2 fon-bold border-neutral-500">
+			<button
+ 				hx-get={ "/library/reading/" + item.ID + "/edit" }
+ 				hx-push-url="false"
+ 				hx-target="#practice-reading-dialog-contents"
+ 				hx-swap="innerHTML"
+ 				class="absolute top-0 right-0 pt-2 pr-3 pb-0 pl-2 italic font-medium neutral group focusable"
+			>
+				<span class="flex gap-1 items-center px-1 group-hover:border-b border-neutral-500">
+					Edit
+					<span class="-mr-1 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
+				</span>
+			</button>
+			<span class="text-2xl font-bold text-pretty">
+				{ item.Title }
+				if item.Composer.Valid {
+					({ item.Composer.String })
+				}
+			</span>
+		</div>
+		<div class="flex flex-col gap-1 px-4 pt-4 pb-5 bg-white rounded-xl border shadow-lg md:col-span-4 border-neutral-500">
+			<div class="flex items-center mb-2 leading-6 text-black">
+				<strong class="block mr-1 font-bold">Completed:</strong>
+				if item.Completed {
+					<span class="flex items-center text-green-600">Yes <span class="ml-1 icon-[iconamoon--check-circle-1-duotone] size-4"></span></span>
+				} else {
+					<span class="flex items-center text-red-600">No <span class="ml-1 icon-[iconamoon--sign-times-circle-duotone] size-4"></span></span>
+				}
+			</div>
+			<h4 class="text-lg font-semibold text-left underline">Information</h4>
+			<p class="mb-2 leading-6 text-black">
+				if item.Info.Valid {
+					{ item.Info.String }
+				}
+			</p>
+		</div>
+		<div class="flex flex-col col-span-full gap-4 justify-center px-4 pt-4 w-full sm:flex-row-reverse sm:pt-8 sm:w-full xs:w-auto xs:px-0">
+			<form
+ 				hx-post={ "/library/reading/" + item.ID + "/practice" }
+ 				hx-swap="none"
+ 				class="flex justify-center items-center mx-auto w-full sm:mx-0 sm:w-auto"
+ 				hx-on::after-request={ components.CloseModal("practice-reading-dialog") }
+			>
+				<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+				<button
+ 					type="submit"
+ 					class="px-6 w-full h-16 text-2xl sm:w-auto xs:w-48 action-button green focusable"
+				>
+					<span class="-ml-1 icon-[iconamoon--check-circle-1-thin] size-8"></span>
+					Done
+				</button>
+			</form>
+			<div>
+				<button
+ 					class="w-full h-16 text-2xl sm:w-auto xs:w-48 action-button amber focusable"
+ 					onclick={ components.CloseModal("practice-reading-dialog") }
+				>
+					<span class="-ml-1 size-8 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+					Close
+				</button>
+			</div>
+		</div>
+	</div>
 }

@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"practicebetter/internal/ck"
+	"practicebetter/internal/components"
 	"practicebetter/internal/config"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/readingpages"
@@ -220,12 +221,12 @@ func (s *Server) sightReadingItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) singleSightReadingItem(w http.ResponseWriter, r *http.Request) {
-	itemID := chi.URLParam(r, "itemID")
+	readingID := chi.URLParam(r, "readingID")
 	user := r.Context().Value(ck.UserKey).(db.User)
 
 	queries := db.New(s.DB)
 	item, err := queries.GetReadingByID(r.Context(), db.GetReadingByIDParams{
-		ReadingID: itemID,
+		ReadingID: readingID,
 		UserID:    user.ID,
 	})
 	if err != nil {
@@ -234,7 +235,7 @@ func (s *Server) singleSightReadingItem(w http.ResponseWriter, r *http.Request) 
 	}
 
 	itemInfo := readingpages.SingleReadingItemInfo{
-		ID:       itemID,
+		ID:       readingID,
 		Title:    item.Title,
 		Info:     item.Info,
 		Composer: item.Composer,
@@ -244,4 +245,94 @@ func (s *Server) singleSightReadingItem(w http.ResponseWriter, r *http.Request) 
 
 	w.WriteHeader(http.StatusCreated)
 	s.HxRender(w, r, readingpages.SingleReadingItem(s, itemInfo, token), item.Title)
+}
+
+func (s *Server) getPracticeReading(w http.ResponseWriter, r *http.Request) {
+	readingID := chi.URLParam(r, "readingID")
+	user := r.Context().Value(ck.UserKey).(db.User)
+
+	queries := db.New(s.DB)
+
+	item, err := queries.GetReadingByID(r.Context(), db.GetReadingByIDParams{
+		ReadingID: readingID,
+		UserID:    user.ID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not load sight reading item")
+		return
+	}
+
+	itemInfo := readingpages.SingleReadingItemInfo{
+		ID:       readingID,
+		Title:    item.Title,
+		Info:     item.Info,
+		Composer: item.Composer,
+	}
+
+	token := csrf.Token(r)
+	if err := readingpages.PracticeReadingDisplay(itemInfo, token).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+	}
+}
+
+func (s *Server) practiceReading(w http.ResponseWriter, r *http.Request) {
+	readingID := chi.URLParam(r, "readingID")
+	user := r.Context().Value(ck.UserKey).(db.User)
+
+	queries := db.New(s.DB)
+
+	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
+	if ok && activePracticePlanID != "" {
+		if err := queries.CompletePracticePlanReading(r.Context(), db.CompletePracticePlanReadingParams{
+			PlanID:    activePracticePlanID,
+			UserID:    user.ID,
+			ReadingID: readingID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not complete practice plan sight reading")
+			return
+		}
+
+		if err := queries.UpdatePlanLastPracticed(r.Context(), db.UpdatePlanLastPracticedParams{
+			ID:     activePracticePlanID,
+			UserID: user.ID,
+		}); err != nil {
+			s.DatabaseError(w, r, err, "Could not update plan last practiced")
+			return
+		}
+	}
+
+	_, err := queries.CompleteReading(r.Context(), db.CompleteReadingParams{
+		UserID: user.ID,
+		ID:     readingID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not complete reading")
+		return
+	}
+
+	if activePracticePlanID != "" {
+		item, err := queries.GetReadingByID(r.Context(), db.GetReadingByIDParams{
+			ReadingID: readingID,
+			UserID:    user.ID,
+		})
+		if err != nil {
+			s.DatabaseError(w, r, err, "Could not load reading")
+			return
+		}
+		itemInfo := components.PlanSightReadingItem{
+			ReadingID: readingID,
+			Title:     item.Title,
+			Completed: true,
+			Composer:  "",
+		}
+		if item.Composer.Valid {
+			itemInfo.Composer = item.Composer.String
+		}
+		if err := components.ReadingCardOOB(itemInfo, true).Render(r.Context(), w); err != nil {
+			log.Default().Println(err)
+		}
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
+
 }

@@ -1,10 +1,10 @@
 package components
 
-const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-black shadow-sm shadow-black/20 transition-all duration-200"
+const baseSpotCardClass = "focusable flex rounded-xl relative border px-4 py-2 text-black shadow shadow-black/20 transition-all duration-200 ease-in bg-gradient-to-tr"
 
 func getSpotCardClass(completed bool, stage string) string {
 	if completed {
-		return baseSpotCardClass + " bg-green-200 border-green-700"
+		return baseSpotCardClass + " from-green-300 to-green-200 border-green-700"
 	} else {
 
 		return baseSpotCardClass + " " + getStageColor(stage) + " border-neutral-800 hover:shadow"
@@ -134,7 +134,7 @@ templ InterleaveSpotCardOOB(pieceID, spotID, name, measures, stage string, piece
 	<li
  		id={ "spot-" + spotID }
  		data-spot-stage={ stage }
- 		class={ "block transition-all duration-200 spot-card overflow-hidden" }
+ 		class={ "block transition-all duration-200 spot-card" }
  		if oob {
 			hx-swap-oob="outerHTML"
 		}

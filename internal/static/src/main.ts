@@ -23,6 +23,7 @@ import type {
   HTMXConfirmEvent,
   HTMXRequestEvent,
   ShowAlertEvent,
+  ShowModalEvent,
 } from "./types";
 import { BreakDialog } from "./ui/plan-components";
 
@@ -357,6 +358,20 @@ function handleCloseModal(event: CloseModalEvent) {
 }
 
 globalThis.addEventListener("CloseModal", handleCloseModal);
+
+function handleShowModalEvent(event: ShowModalEvent) {
+  if (event.detail?.value) {
+    globalThis.handleShowModal();
+    const modal = document.getElementById(event.detail.value);
+    if (!(modal instanceof HTMLDialogElement)) {
+      return;
+    }
+
+    modal.showModal();
+  }
+}
+
+globalThis.addEventListener("ShowModal", handleShowModalEvent);
 
 globalThis.startPasskeyAuth = function (
   publicKey: PublicKeyCredentialRequestOptionsJSON,

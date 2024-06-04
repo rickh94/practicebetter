@@ -112,7 +112,16 @@ func (s *Server) singleScale(w http.ResponseWriter, r *http.Request) {
 		s.DatabaseError(w, r, err, "Failed to load scale")
 		return
 	}
-	s.HxRender(w, r, ewspages.SingleScale(s, scale), scale.KeyName+" "+scale.Mode+" Scale")
+	scaleInfo := ewspages.ScaleInfo{
+		ID:            scaleID,
+		KeyName:       scale.KeyName,
+		Mode:          scale.Mode,
+		PracticeNotes: scale.PracticeNotes,
+		LastPracticed: scale.LastPracticed,
+		Reference:     scale.Reference,
+		Working:       scale.Working,
+	}
+	s.HxRender(w, r, ewspages.SingleScale(s, scaleInfo), scale.KeyName+" "+scale.Mode+" Scale")
 }
 
 func (s *Server) autocreateScale(w http.ResponseWriter, r *http.Request) {
@@ -159,7 +168,16 @@ func (s *Server) autocreateScale(w http.ResponseWriter, r *http.Request) {
 			s.DatabaseError(w, r, err, "Failed to load scale")
 			return
 		}
-		s.HxRender(w, r, ewspages.SingleScale(s, scale), scale.KeyName+" "+scale.Mode+" Scale")
+		scaleInfo := ewspages.ScaleInfo{
+			ID:            scale.ID,
+			KeyName:       scale.KeyName,
+			Mode:          scale.Mode,
+			PracticeNotes: scale.PracticeNotes,
+			LastPracticed: scale.LastPracticed,
+			Reference:     scale.Reference,
+			Working:       scale.Working,
+		}
+		s.HxRender(w, r, ewspages.SingleScale(s, scaleInfo), scale.KeyName+" "+scale.Mode+" Scale")
 	}
 
 }
@@ -179,7 +197,16 @@ func (s *Server) getPracticeScale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := csrf.Token(r)
-	if err := ewspages.PracticeScaleDisplay(scale, token).Render(r.Context(), w); err != nil {
+	scaleInfo := ewspages.ScaleInfo{
+		ID:            scaleID,
+		KeyName:       scale.KeyName,
+		Mode:          scale.Mode,
+		PracticeNotes: scale.PracticeNotes,
+		LastPracticed: scale.LastPracticed,
+		Reference:     scale.Reference,
+		Working:       scale.Working,
+	}
+	if err := ewspages.PracticeScaleDisplay(scaleInfo, token).Render(r.Context(), w); err != nil {
 		log.Default().Println(err)
 	}
 }
@@ -188,7 +215,6 @@ func (s *Server) practiceScale(w http.ResponseWriter, r *http.Request) {
 	scaleID := chi.URLParam(r, "scaleID")
 	user := r.Context().Value(ck.UserKey).(db.User)
 
-	// FIXME: update last practiced
 	queries := db.New(s.DB)
 
 	activePracticePlanID, ok := s.GetActivePracticePlanID(r.Context())
@@ -304,7 +330,16 @@ func (s *Server) updateScale(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token := csrf.Token(r)
-	if err := ewspages.UpdatedScale(scale, token).Render(r.Context(), w); err != nil {
+	scaleInfo := ewspages.ScaleInfo{
+		ID:            scaleID,
+		KeyName:       scale.KeyName,
+		Mode:          scale.Mode,
+		PracticeNotes: scale.PracticeNotes,
+		LastPracticed: scale.LastPracticed,
+		Reference:     scale.Reference,
+		Working:       scale.Working,
+	}
+	if err := ewspages.UpdatedScale(scaleInfo, token).Render(r.Context(), w); err != nil {
 		log.Default().Println(err)
 	}
 }

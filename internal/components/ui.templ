@@ -210,24 +210,6 @@ templ PieceCardHeading(title, composer string, completed bool) {
 	</div>
 }
 
-const pieceCardClass = "flex py-4 px-6 text-black rounded-xl border shadow-sm transition-all duration-200 shadow-black/20 focusable"
-
-func getPieceCardClass(completed bool) string {
-	if completed {
-		return pieceCardClass + " bg-green-200 border-green-300"
-	} else {
-		return pieceCardClass + " border-neutral-300 bg-neutral-50 hover:shadow hover:shadow-indigo-400"
-	}
-}
-
-func getReadingCardClass(completed bool) string {
-	if completed {
-		return pieceCardClass + " bg-green-200 border-green-300"
-	} else {
-		return pieceCardClass + " border-neutral-300 bg-neutral-50 hover:shadow hover:shadow-teal-400"
-	}
-}
-
 templ PieceCard(pieceID string, title string, composer string, activeSpots int64, completedSpots int64) {
 	<li>
 		@HxLink(getPieceCardClass(false),
@@ -273,34 +255,6 @@ templ ReadingCard(itemID string, title string, composer sql.NullString, complete
 	</li>
 }
 
-func getSessionsFromIntensity(intensity string) string {
-	switch intensity {
-	case "light":
-		return "1"
-	case "medium":
-		return "3"
-	case "heavy":
-		return "5"
-	default:
-		return "1"
-	}
-}
-
-func GetPiecePracticeUrl(completed, isActive bool, pieceID, practiceType, intensity string) string {
-	if completed || !isActive {
-		return "/library/pieces/" + pieceID
-	}
-	switch practiceType {
-	case "random_spots":
-		return "/library/pieces/" + pieceID + "/practice/random?resume=true&skipSetup=true&numSessions=" + getSessionsFromIntensity(intensity)
-	case "starting_point":
-		return "/library/pieces/" + pieceID + "/practice/starting-point?resume=true&skipSetup=true&numSessions=" + getSessionsFromIntensity(intensity)
-
-	default:
-		return "/library/pieces/" + pieceID
-	}
-}
-
 templ PracticePlanPieceCard(pieceID string, title string, composer string, activeSpots int64, completed bool, practiceType string, intensity string, isActive bool) {
 	<li>
 		@HxLink(getPieceCardClass(completed), GetPiecePracticeUrl(completed, isActive, pieceID, practiceType, intensity), "#main-content") {
@@ -334,6 +288,53 @@ templ PracticePlanPieceCard(pieceID string, title string, composer string, activ
 	</li>
 }
 
+type PlanSightReadingItem struct {
+	ReadingID string
+	Title     string
+	Completed bool
+	Composer  string
+}
+
+templ ReadingCardOOB(info PlanSightReadingItem, oob bool) {
+	<li
+ 		class="w-full"
+ 		id={ "plan-reading-" + info.ReadingID }
+ 		if oob {
+			hx-swap-oob="true"
+		}
+	>
+		<button
+ 			class={ getReadingCardClass(info.Completed) }
+ 			hx-get={ "/library/reading/" + info.ReadingID + "/practice" }
+ 			hx-push-url="false"
+ 			hx-target="#practice-reading-dialog-contents"
+ 			hx-swap="innerHTML"
+ 			hx-on::after-request={ ShowModal("practice-reading-dialog") }
+		>
+			<div class="flex flex-col flex-1 flex-grow gap-1 justify-center items-start h-full">
+				<div class={ templ.KV("text-teal-950", !info.Completed), templ.KV("text-green-950", info.Completed), "text-left justify-start w-full" }>
+					<strong class="text-xl font-bold">{ info.Title }</strong>
+				</div>
+				if info.Composer != "" {
+					<div class="text-sm truncate">
+						{ info.Composer }
+					</div>
+				}
+			</div>
+			<div class="flex flex-grow-0 items-center text-teal-950">
+				<div class="sr-only">Click to view</div>
+				if info.Completed {
+					<span class="-mr-2 text-green-900 size-10 icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>
+					<span class="sr-only">Completed</span>
+				} else {
+					<div class="sr-only">Click to practice</div>
+					<span class="-mr-2 size-10 icon-[fluent--reading-mode-mobile-20-regular]" aria-hidden="true"></span>
+				}
+			</div>
+		</button>
+	</li>
+}
+
 templ PracticeToolNav(activepath string) {
 	<practice-tool-nav activepath={ activepath }></practice-tool-nav>
 }
@@ -344,16 +345,6 @@ type PracticePlanCardInfo struct {
 	CompletedItems int64
 	TotalItems     int64
 	PieceTitles    []string
-}
-
-const basePlanCardClass = "flex flex-col gap-2 p-4 text-black bg-white rounded-lg shadow-sm focusable hover:shadow border-2 hover:shadow-violet-400  shadow-black/20"
-
-func GetPlanCardClass(ctx context.Context, planID string) string {
-	if planID == GetActivePracticePlan(ctx) {
-		return basePlanCardClass + " border-violet-700"
-	}
-	return basePlanCardClass + " border-transparent"
-
 }
 
 templ PracticePlanCard(planInfo PracticePlanCardInfo) {
@@ -388,65 +379,6 @@ templ PracticePlanCard(planInfo PracticePlanCardInfo) {
 			</ul>
 		</div>
 	}
-}
-
-func GetKeySignatureIconName(keyName, mode string) string {
-	if mode == "Major (Ionian)" {
-		switch keyName {
-		case "G♯/A♭":
-			return "icon-[key--af-major]"
-		case "A":
-			return "icon-[key--a-major]"
-		case "A♯/B♭":
-			return "icon-[key--bf-major]"
-		case "B":
-			return "icon-[key--b-major]"
-		case "C":
-			return "icon-[key--c-major]"
-		case "C♯/D♭":
-			return "icon-[key--df-major]"
-		case "D":
-			return "icon-[key--d-major]"
-		case "D♯/E♭":
-			return "icon-[key--ef-major]"
-		case "E":
-			return "icon-[key--e-major]"
-		case "F":
-			return "icon-[key--f-major]"
-		case "F♯/G♭":
-			return "icon-[key--gf-major]"
-		case "G":
-			return "icon-[key--g-major]"
-		}
-	} else if mode == "Minor (Aeolian)" {
-		switch keyName {
-		case "G♯/A♭":
-			return "icon-[key--gs-minor]"
-		case "A":
-			return "icon-[key--a-minor]"
-		case "A♯/B♭":
-			return "icon-[key--bf-minor]"
-		case "B":
-			return "icon-[key--b-minor]"
-		case "C":
-			return "icon-[key--c-minor]"
-		case "C♯/D♭":
-			return "icon-[key--cs-minor]"
-		case "D":
-			return "icon-[key--d-minor]"
-		case "D♯/E♭":
-			return "icon-[key--ef-minor]"
-		case "E":
-			return "icon-[key--e-minor]"
-		case "F":
-			return "icon-[key--f-minor]"
-		case "F♯/G♭":
-			return "icon-[key--fs-minor]"
-		case "G":
-			return "icon-[key--g-minor]"
-		}
-	}
-	return ""
 }
 
 templ ScaleCardIcon(name string) {
@@ -498,8 +430,13 @@ templ ScaleCardOOB(info UserScaleInfo, completed bool, oob bool) {
 				}
 			</div>
 			<div class="flex flex-grow-0 items-center text-rose-950">
-				<div class="sr-only">Click to view</div>
-				@ScaleCardIcon(GetKeySignatureIconName(info.KeyName, info.ModeName))
+				if completed {
+					<span class="-mr-2 text-green-900 size-10 icon-[iconamoon--check-circle-1-duotone]" aria-hidden="true"></span>
+					<span class="sr-only">Completed</span>
+				} else {
+					<div class="sr-only">Click to view</div>
+					@ScaleCardIcon(GetKeySignatureIconName(info.KeyName, info.ModeName))
+				}
 			</div>
 		</button>
 	</li>
@@ -507,14 +444,4 @@ templ ScaleCardOOB(info UserScaleInfo, completed bool, oob bool) {
 
 templ ScaleCard(info UserScaleInfo, completed bool) {
 	@ScaleCardOOB(info, completed, false)
-}
-
-const scaleCardClass = "flex py-4 w-full h-full px-6 text-black rounded-xl border shadow-sm transition-all duration-200 shadow-black/20 focusable"
-
-func getScaleCardClass(completed bool) string {
-	if completed {
-		return scaleCardClass + " bg-green-200 border-green-300"
-	} else {
-		return scaleCardClass + " border-rose-300 bg-rose-50 hover:shadow hover:shadow-rose-400"
-	}
 }

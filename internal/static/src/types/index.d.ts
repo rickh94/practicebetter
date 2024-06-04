@@ -57,6 +57,12 @@ export interface CloseModalEvent extends Event {
   };
 }
 
+export interface ShowModalEvent extends Event {
+  detail?: {
+    value?: string;
+  };
+}
+
 export interface FocusInputEvent extends Event {
   detail?: {
     id?: string;
@@ -104,6 +110,7 @@ declare global {
     ShowAlert: ShowAlertEvent;
     CloseAlert: CloseAlertEvent;
     CloseModal: CloseModalEvent;
+    ShowModal: ShowModalEvent;
     FinishedInterleave: Event;
     FinishedInfrequent: Event;
     FocusInput: FocusInputEvent;

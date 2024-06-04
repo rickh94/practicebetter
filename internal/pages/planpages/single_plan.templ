@@ -28,6 +28,7 @@ type PracticePlanPiece struct {
 	CompletedSpots int64
 	RandomSpots    int64
 }
+
 type PracticePlanScale struct {
 	Completed bool
 	components.UserScaleInfo
@@ -38,6 +39,7 @@ type PracticePlanData struct {
 	IsActive                     bool
 	Date                         int64
 	Scales                       []PracticePlanScale
+	SightReadingItems            []components.PlanSightReadingItem
 	InterleaveDaysSpots          []PracticePlanSpot
 	InterleaveDaysSpotsCompleted bool
 	ExtraRepeatSpots             []PracticePlanSpot
@@ -130,6 +132,15 @@ func hasInfrequentToPractice(planData PracticePlanData) bool {
 	return len(planData.InterleaveDaysSpots) > 0 && !planData.InterleaveDaysSpotsCompleted
 }
 
+func hasScalesToPractice(planData PracticePlanData) bool {
+	for _, scale := range planData.Scales {
+		if !scale.Completed {
+			return true
+		}
+	}
+	return false
+}
+
 templ PracticePlanActions(planData PracticePlanData, csrf string) {
 	if canResume(planData) {
 		<button
@@ -144,25 +155,7 @@ templ PracticePlanActions(planData PracticePlanData, csrf string) {
 		</button>
 	}
 	if planData.IsActive {
-		if hasInfrequentToPractice(planData) {
-			<button
- 				id="plan-go-practice-button"
- 				type="button"
- 				class="px-4 text-lg action-button violet focusable"
- 				hx-get={ "/library/plans/" + planData.ID + "/infrequent/start" }
- 				hx-target={ "#" + components.INFREQUENT_SPOT_DIALOG_CONTENTS_ID }
- 				hx-swap="innerHTML transition:true"
- 				hx-on::after-request={ startInfrequentPracticing(components.INFREQUENT_SPOT_DIALOG_ID) }
-			>
-				<span
- 					class="-ml-1 icon-[iconamoon--player-play-thin] size-5"
- 					aria-hidden="true"
-				></span>
-				Go Practice
-			</button>
-		} else {
-			@components.PlanGoPracticeLink(planData.ID, false)
-		}
+		@components.PlanGoPracticeLink(planData.ID, false)
 		@components.HxLink("action-button amber focusable","/library/plans/" + planData.ID + "/edit", "#main-content") {
 			<span class="-ml-1 size-6 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
 			Customize
@@ -224,23 +217,49 @@ templ singlePlanContent(planData PracticePlanData, csrf string) {
 				<p class="py-2 text-base">Click the items below start practicing.</p>
 			}
 		</header>
-		if len(planData.Scales) > 0 {
-			<section id="scales" class="flex flex-col gap-2">
-				<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Scales and Arpeggios</h3>
-				<p class="w-full text-sm">Practice these scales and arpeggios today</p>
-				<ul id="scale list" class="flex flex-col gap-2 w-full list-none">
-					for _, scale := range planData.Scales {
-						@components.ScaleCard(scale.UserScaleInfo, scale.Completed)
-					}
-				</ul>
+		if len(planData.Scales) > 0 || len(planData.SightReadingItems) > 0 {
+			<section id="scales-other" class="flex flex-col gap-2">
+				if len(planData.Scales) > 0 {
+					<div class="w-full">
+						<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Scales and Arpeggios</h3>
+						<p class="w-full text-sm">Practice these scales and arpeggios today</p>
+						<ul id="scale-list" class="flex flex-col gap-2 mt-2 w-full list-none">
+							for _, scale := range planData.Scales {
+								@components.ScaleCard(scale.UserScaleInfo, scale.Completed)
+							}
+						</ul>
+					</div>
+				}
+				if len(planData.SightReadingItems) > 0 {
+					<div class="w-full">
+						<h3 class="px-2 pb-1 text-xl font-semibold text-center border-b-2 border-black">Sight Reading</h3>
+						<p class="w-full text-sm">Play through these sight reading items today</p>
+						<ul id="reading-list" class="flex flex-col gap-2 mt-2 w-full list-none">
+							for _, item := range planData.SightReadingItems {
+								@components.ReadingCardOOB(item, false)
+							}
+						</ul>
+					</div>
+				}
 			</section>
-			<dialog id="practice-scale-dialog" class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none clear">
-				<div id="practice-scale-dialog-contents" class="p-0 mx-auto w-huge overflow-x-clip">
-					<span class="p-4 bg-white rounded-xl">
-						Loading Scale...
-					</span>
-				</div>
-			</dialog>
+			if len(planData.Scales) > 0 {
+				<dialog id="practice-scale-dialog" class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none clear">
+					<div id="practice-scale-dialog-contents" class="p-0 mx-auto w-huge overflow-x-clip">
+						<span class="p-4 bg-white rounded-xl">
+							Loading Scale...
+						</span>
+					</div>
+				</dialog>
+			}
+			if len(planData.SightReadingItems) > 0 {
+				<dialog id="practice-reading-dialog" class="flex flex-col gap-2 p-4 text-left bg-transparent focus:outline-none clear">
+					<div id="practice-reading-dialog-contents" class="p-0 mx-auto w-huge overflow-x-clip">
+						<span class="p-4 bg-white rounded-xl">
+							Loading Sight Reading...
+						</span>
+					</div>
+				</dialog>
+			}
 		}
 		if len(planData.InterleaveDaysSpots) > 0 {
 			@PracticePlanInterleaveDaysSpots(planData.InterleaveDaysSpots, planData.ID, csrf, planData.InterleaveDaysSpotsCompleted, planData.IsActive)

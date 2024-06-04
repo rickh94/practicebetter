@@ -550,8 +550,7 @@ export function SaveMode(props: {
                   .then()
                   .catch(console.error);
               } else {
-                res.text().then(console.log).catch(console.log);
-                alert("it broke");
+                res.text().then(alert).catch(console.log);
               }
             })
             .catch(console.error);

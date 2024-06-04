@@ -209,10 +209,10 @@ func (s *Server) readingRouter(r chi.Router) {
 	r.Post("/", s.createSightReading)
 	r.Post("/bulk", s.bulkCreateSightReading)
 	r.Get("/create", s.createSightReadingForm)
-	r.Get("/{itemID}", s.singleSightReadingItem)
+	r.Get("/{readingID}", s.singleSightReadingItem)
 	// r.Put("/{itemID}", s.updateScale)
-	// r.Get("/{item}/practice", s.getPracticeScale)
-	// r.Post("/{item}/practice", s.practiceScale)
+	r.Get("/{readingID}/practice", s.getPracticeReading)
+	r.Post("/{readingID}/practice", s.practiceReading)
 	// r.Get("/{item}/edit", s.editScale)
 }
 

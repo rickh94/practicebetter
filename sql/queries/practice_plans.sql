@@ -101,6 +101,7 @@ SELECT
     user_scales.practice_notes AS scale_practice_notes,
     user_scales.last_practiced AS scale_last_practiced,
     user_scales.reference AS scale_reference,
+    user_scales.working AS scale_working,
     scale_keys.name AS scale_key_name,
     scale_modes.name AS scale_mode
 FROM practice_plans
@@ -112,18 +113,54 @@ INNER JOIN scale_modes ON scale_modes.id = scales.mode_id
 WHERE practice_plans.id = :practice_plan_id AND practice_plans.user_id = :user_id AND user_scales.user_id = :user_id
 ORDER BY practice_plan_scales.idx;
 
+-- name: GetPracticePlanWithIncompleteScales :many
+SELECT
+    practice_plans.*,
+    practice_plan_scales.completed AS scale_completed,
+    user_scales.id AS user_scale_id,
+    user_scales.practice_notes AS scale_practice_notes,
+    user_scales.last_practiced AS scale_last_practiced,
+    user_scales.reference AS scale_reference,
+    user_scales.working AS scale_working,
+    scale_keys.name AS scale_key_name,
+    scale_modes.name AS scale_mode
+FROM practice_plans
+INNER JOIN practice_plan_scales ON practice_plans.id = practice_plan_scales.practice_plan_id
+INNER JOIN user_scales ON practice_plan_scales.user_scale_id = user_scales.id
+INNER JOIN scales ON user_scales.scale_id = scales.id
+INNER JOIN scale_keys ON scale_keys.id = scales.key_id
+INNER JOIN scale_modes ON scale_modes.id = scales.mode_id
+WHERE practice_plans.id = :practice_plan_id AND practice_plans.user_id = :user_id AND user_scales.user_id = :user_id AND practice_plan_scales.completed = false
+ORDER BY practice_plan_scales.idx;
+
 -- name: GetPracticePlanWithReading :many
 SELECT
     practice_plans.*,
-    practice_plan_reading.completed AS reading_completed,
+    practice_plan_reading.completed AS completed,
     reading.id AS reading_id,
     reading.title AS reading_title,
     reading.composer AS reading_composer,
-    reading.info AS reading_info
+    reading.info AS reading_info,
+    reading.completed AS reading_completed
 FROM practice_plans
 INNER JOIN practice_plan_reading ON practice_plans.id = practice_plan_reading.practice_plan_id
 INNER JOIN reading ON practice_plan_reading.reading_id = reading.id
 WHERE practice_plans.id = :practice_plan_id AND practice_plans.user_id = :user_id AND reading.user_id = :user_id
+ORDER BY practice_plan_reading.idx;
+
+-- name: GetPracticePlanWithIncompleteReading :many
+SELECT
+    practice_plans.*,
+    practice_plan_reading.completed AS completed,
+    reading.id AS reading_id,
+    reading.title AS reading_title,
+    reading.composer AS reading_composer,
+    reading.info AS reading_info,
+    reading.completed AS reading_completed
+FROM practice_plans
+INNER JOIN practice_plan_reading ON practice_plans.id = practice_plan_reading.practice_plan_id
+INNER JOIN reading ON practice_plan_reading.reading_id = reading.id
+WHERE practice_plans.id = :practice_plan_id AND practice_plans.user_id = :user_id AND reading.user_id = :user_id AND reading.completed = false AND practice_plan_reading.completed = false
 ORDER BY practice_plan_reading.idx;
 
 -- name: GetPracticePlanWithTodo :one
@@ -408,6 +445,11 @@ WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE pra
 UPDATE practice_plan_scales
 SET completed = true
 WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id) AND user_scale_id = ?;
+
+-- name: CompletePracticePlanReading :exec
+UPDATE practice_plan_reading
+SET completed = true
+WHERE practice_plan_id = (SELECT practice_plans.id FROM practice_plans WHERE practice_plans.id = :plan_id AND practice_plans.user_id = :user_id) AND reading_id = ?;
 
 -- name: CompletePracticePlan :exec
 UPDATE practice_plans

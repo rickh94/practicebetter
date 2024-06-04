@@ -1,4 +1,7 @@
-{ pkgs, ... }: {
+{ pkgs
+, config
+, ...
+}: {
   packages = with pkgs; [
     git
     bun
@@ -37,6 +40,7 @@
       reverse_proxy {
         to :8080
       }
+      tls ${config.env.DEVENV_STATE}/mkcert/pbgo.localhost.pem ${config.env.DEVENV_STATE}/mkcert/pbgo.localhost-key.pem
     '';
   };
 

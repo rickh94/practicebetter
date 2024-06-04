@@ -768,8 +768,8 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 
 	activePlanID, ok := r.Context().Value(ck.ActivePlanKey).(string)
 	if !ok || activePlanID != planID {
-		log.Default().Println("Invalid:plan ID")
-		if err := htmx.Trigger(r, "FinishedInterleave", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		log.Default().Println("Invalid plan ID")
+		if err := htmx.Trigger(r, "CloseModal", components.INFREQUENT_SPOT_DIALOG_ID); err != nil {
 			log.Default().Println(err)
 		}
 		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
@@ -786,7 +786,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 
 	if err := r.ParseForm(); err != nil {
 		log.Default().Println(err)
-		if err := htmx.Trigger(r, "FinishedInfrequent", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		if err := htmx.Trigger(r, "CloseModal", components.INFREQUENT_SPOT_DIALOG_ID); err != nil {
 			log.Default().Println(err)
 		}
 		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
@@ -951,7 +951,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	})
 	if err != nil {
-		if err := htmx.Trigger(r, "FinishedInfrequent", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		if err := htmx.Trigger(r, "CloseModal", components.INFREQUENT_SPOT_DIALOG_ID); err != nil {
 			log.Default().Println(err)
 		}
 		s.DatabaseError(w, r, err, "Could not find spots")
@@ -974,7 +974,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if single == "true" {
-		if err := htmx.Trigger(r, "CloseModal", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		if err := htmx.Trigger(r, "CloseModal", components.INFREQUENT_SPOT_DIALOG_ID); err != nil {
 			log.Default().Println(err)
 		}
 		if err := components.InterleaveSpotCardOOB(
@@ -995,7 +995,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !hasNext {
-		if err := htmx.Trigger(r, "FinishedInfrequent", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		if err := htmx.Trigger(r, "CloseModal", components.INFREQUENT_SPOT_DIALOG_ID); err != nil {
 			log.Default().Println(err)
 		}
 		if err := htmx.TriggerAfterSwap(r, "ShowAlert", ShowAlertEvent{
@@ -1024,7 +1024,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		UserID: user.ID,
 	})
 	if err != nil {
-		if err := htmx.Trigger(r, "FinishedInfrequent", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		if err := htmx.Trigger(r, "CloseModal", components.INFREQUENT_SPOT_DIALOG_ID); err != nil {
 			log.Default().Println(err)
 		}
 		s.DatabaseError(w, r, err, "Could not get next spot")
@@ -1060,7 +1060,7 @@ func (s *Server) saveInfrequentResult(w http.ResponseWriter, r *http.Request) {
 		}); err != nil {
 			log.Default().Println(err)
 		}
-		if err := htmx.TriggerAfterSettle(r, "FinishedInfrequent", components.INTERLEAVE_SPOT_DIALOG_ID); err != nil {
+		if err := htmx.TriggerAfterSettle(r, "CloseModal", components.INFREQUENT_SPOT_DIALOG_ID); err != nil {
 			log.Default().Println(err)
 		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
