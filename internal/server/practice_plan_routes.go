@@ -37,7 +37,7 @@ func (s *Server) createPracticePlanForm(w http.ResponseWriter, r *http.Request) 
 		s.DatabaseError(w, r, err, "Failed to load active pieces")
 		return
 	}
-	s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces, planpages.PlanCreationErrors{}), "Create Practice Plan")
+	s.HxRender(w, r, planpages.CreatePracticePlanPage(s, token, activePieces, planpages.PlanCreationErrors{}, user), "Create Practice Plan")
 }
 
 type PotentialInfrequentSpot struct {
@@ -163,6 +163,7 @@ func (s *Server) createPracticePlan(w http.ResponseWriter, r *http.Request) {
 			planpages.PlanCreationErrors{
 				Pieces: "You need to select at least one piece to practice.",
 			},
+			user,
 		), "Create Practice Plan")
 		return
 	}
@@ -658,7 +659,7 @@ func (s *Server) renderPracticePlanPage(w http.ResponseWriter, r *http.Request, 
 	}
 
 	if planData.IsActive {
-		needsBreak, err := s.needsBreak(r.Context(), planID, userID)
+		needsBreak, err := s.needsBreak(r.Context(), planID)
 		if err != nil {
 			log.Default().Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -1591,18 +1592,19 @@ func (s *Server) takeABreak(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) needsBreak(ctx context.Context, planID string, userID string) (bool, error) {
+func (s *Server) needsBreak(ctx context.Context, planID string) (bool, error) {
+	user := ctx.Value(ck.UserKey).(db.User)
 	// check whether the last break was too long ago
 	lastBreakTime, ok := s.GetLastBreak(ctx, planID)
 	if !ok {
 		s.SetLastBreak(ctx, planID)
 		return false, fmt.Errorf("Could not get last break")
 	}
-	if time.Since(lastBreakTime) > config.TIME_BETWEEN_BREAKS {
+	if time.Since(lastBreakTime) > time.Duration(user.ConfigTimeBetweenBreaks+3)*time.Minute {
 		queries := db.New(s.DB)
 		lastPracticed, err := queries.GetPlanLastPracticed(ctx, db.GetPlanLastPracticedParams{
 			ID:     planID,
-			UserID: userID,
+			UserID: user.ID,
 		})
 		if err != nil {
 			log.Default().Println(err)
@@ -1625,13 +1627,12 @@ func (s *Server) needsBreak(ctx context.Context, planID string, userID string) (
 }
 
 func (s *Server) shouldRecommendBreak(w http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value(ck.UserKey).(db.User)
 	planID, ok := r.Context().Value(ck.ActivePlanKey).(string)
 	if !ok {
 		http.Error(w, "No active plan", http.StatusBadRequest)
 		return
 	}
-	shouldBreak, err := s.needsBreak(r.Context(), planID, user.ID)
+	shouldBreak, err := s.needsBreak(r.Context(), planID)
 	if err != nil {
 		log.Default().Println(err)
 		w.WriteHeader(http.StatusNoContent)

@@ -40,10 +40,10 @@ export function InternalNav({ activepath }: { activepath: string }) {
     } as const,
     {
       href: "/auth/me",
-      label: "Account",
+      label: "Settings",
       icon: (
         <span
-          className="icon-[iconamoon--profile-circle-thin] ml-1 size-6"
+          className="icon-[iconamoon--settings-thin] ml-1 size-6"
           aria-hidden="true"
         />
       ),

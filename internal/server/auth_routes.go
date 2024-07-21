@@ -12,6 +12,7 @@ import (
 	"practicebetter/internal/ck"
 	"practicebetter/internal/db"
 	"practicebetter/internal/pages/authpages"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/csrf"
@@ -538,4 +539,50 @@ func (s *Server) forgetUser(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 	})
 	s.Redirect(w, r, "/auth/login")
+}
+
+func (s *Server) updateSettings(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+	queries := db.New(s.DB)
+
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		s.InvalidInputError(w, r, "Invalid input")
+		return
+	}
+
+	timeBetweenBreaks, err := strconv.Atoi(r.Form.Get("config_time_between_breaks"))
+	if err != nil {
+		s.InvalidInputError(w, r, "Invalid time between breaks")
+		return
+	}
+	practicePlanIntensity := r.Form.Get("config_default_plan_intensity")
+	if practicePlanIntensity != "light" && practicePlanIntensity != "medium" && practicePlanIntensity != "heavy" {
+		s.InvalidInputError(w, r, "Invalid plan intensity")
+		return
+	}
+
+	user, err = queries.UpdateUserSettings(r.Context(), db.UpdateUserSettingsParams{
+		ID:                         user.ID,
+		ConfigTimeBetweenBreaks:    int64(timeBetweenBreaks),
+		ConfigDefaultPlanIntensity: practicePlanIntensity,
+	})
+	if err != nil {
+		log.Default().Println(err)
+		s.DatabaseError(w, r, err, "Could not update settings.")
+		return
+	}
+
+	if err := htmx.TriggerAfterSettle(r, "ShowAlert", ShowAlertEvent{
+		Message:  "Successfully updated settings",
+		Title:    "Settings Updated!",
+		Variant:  "success",
+		Duration: 3000,
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	if err := authpages.UserSettingsForm(user, csrf.Token(r)).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Render Error", http.StatusInternalServerError)
+	}
 }

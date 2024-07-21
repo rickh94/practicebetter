@@ -135,12 +135,14 @@ type SpotsSection struct {
 }
 
 type User struct {
-	ID                        string         `json:"id"`
-	Fullname                  string         `json:"fullname"`
-	Email                     string         `json:"email"`
-	EmailVerified             sql.NullBool   `json:"emailVerified"`
-	ActivePracticePlanID      sql.NullString `json:"activePracticePlanId"`
-	ActivePracticePlanStarted sql.NullInt64  `json:"activePracticePlanStarted"`
+	ID                         string         `json:"id"`
+	Fullname                   string         `json:"fullname"`
+	Email                      string         `json:"email"`
+	EmailVerified              sql.NullBool   `json:"emailVerified"`
+	ActivePracticePlanID       sql.NullString `json:"activePracticePlanId"`
+	ActivePracticePlanStarted  sql.NullInt64  `json:"activePracticePlanStarted"`
+	ConfigDefaultPlanIntensity string         `json:"configDefaultPlanIntensity"`
+	ConfigTimeBetweenBreaks    int64          `json:"configTimeBetweenBreaks"`
 }
 
 type UserScale struct {

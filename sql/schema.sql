@@ -7,6 +7,11 @@ CREATE TABLE users (
     email_verified boolean DEFAULT 0,
     active_practice_plan_id TEXT,
     active_practice_plan_started INTEGER,
+    config_default_plan_intensity TEXT NOT NULL DEFAULT 'medium',
+    config_time_between_breaks INTEGER NOT NULL DEFAULT 30,
+    CHECK (config_default_plan_intensity IN ('light', 'medium', 'heavy')),
+    CHECK (config_time_between_breaks > 5),
+    CHECK (config_time_between_breaks < 100),
     PRIMARY KEY (id),
     CHECK (email_verified IN (0, 1)),
     CONSTRAINT plan FOREIGN KEY (active_practice_plan_id) REFERENCES practice_plans (

@@ -41,7 +41,7 @@ type PlanCreationErrors struct {
 	PracticeType string
 }
 
-templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListActiveUserPiecesRow, errors PlanCreationErrors) {
+templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListActiveUserPiecesRow, errors PlanCreationErrors, user db.User) {
 	<title>Create Practice Plan | Go Practice</title>
 	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Create Practice Plan") , components.MaybePracticePlan())) {
 		@components.BreadcrumbContainer() {
@@ -60,13 +60,13 @@ templ CreatePracticePlanPage(s pages.ServerUtil, csrf string, pieces []db.ListAc
  				hx-target="#main-content"
  				hx-swap="outerHTML transition:true"
 			>
-				@createPracticePlanFormFields(csrf, pieces, errors)
+				@createPracticePlanFormFields(csrf, pieces, errors, user)
 			</form>
 		}
 	}
 }
 
-templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPiecesRow, errors PlanCreationErrors) {
+templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPiecesRow, errors PlanCreationErrors, user db.User) {
 	<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
 	if errors.Intensity != "" {
 		<p class="italic text-red-600">
@@ -84,13 +84,28 @@ templ createPracticePlanFormFields(csrf string, pieces []db.ListActiveUserPieces
  			name="intensity"
  			class="flex-grow-0 py-2 pr-8 pl-4 w-max bg-white rounded-xl border shadow-sm transition duration-200 focus:shadow border-neutral-800 shadow-neutral-300 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:border-neutral-800 focus:shadow-neutral-700/20"
 		>
-			<option value="light">
+			<option
+ 				value="light"
+ 				if user.ConfigDefaultPlanIntensity == "light" {
+					selected
+				}
+			>
 				Light
 			</option>
-			<option value="medium" selected>
+			<option
+ 				value="medium"
+ 				if user.ConfigDefaultPlanIntensity == "medium" {
+					selected
+				}
+			>
 				Medium
 			</option>
-			<option value="heavy">
+			<option
+ 				value="heavy"
+ 				if user.ConfigDefaultPlanIntensity == "heavy" {
+					selected
+				}
+			>
 				Heavy
 			</option>
 		</select>

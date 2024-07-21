@@ -41,6 +41,14 @@ SET fullname = COALESCE(?, fullname),
 WHERE id = ?
 RETURNING *;
 
+-- name: UpdateUserSettings :one
+UPDATE users
+SET
+    config_default_plan_intensity = COALESCE(?, config_default_plan_intensity),
+    config_time_between_breaks = COALESCE(?, config_time_between_breaks)
+WHERE id = ?
+RETURNING *;
+
 -- name: SetEmailVerified :exec
 UPDATE users SET email_verified = 1 WHERE id = ?
 RETURNING *;

@@ -80,7 +80,7 @@ func (q *Queries) CreateCredential(ctx context.Context, arg CreateCredentialPara
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, fullname, email) VALUES (?, ?, ?)
-RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
+RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started, config_default_plan_intensity, config_time_between_breaks
 `
 
 type CreateUserParams struct {
@@ -99,6 +99,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.EmailVerified,
 		&i.ActivePracticePlanID,
 		&i.ActivePracticePlanStarted,
+		&i.ConfigDefaultPlanIntensity,
+		&i.ConfigTimeBetweenBreaks,
 	)
 	return i, err
 }
@@ -122,7 +124,7 @@ func (q *Queries) DeleteUserCredentials(ctx context.Context, userID string) erro
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
+SELECT id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started, config_default_plan_intensity, config_time_between_breaks
 FROM users
 WHERE email = LOWER(?1)
 `
@@ -137,12 +139,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.EmailVerified,
 		&i.ActivePracticePlanID,
 		&i.ActivePracticePlanStarted,
+		&i.ConfigDefaultPlanIntensity,
+		&i.ConfigTimeBetweenBreaks,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
+SELECT id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started, config_default_plan_intensity, config_time_between_breaks
 FROM users
 WHERE id = ?1
 `
@@ -157,6 +161,8 @@ func (q *Queries) GetUserByID(ctx context.Context, userID string) (User, error) 
 		&i.EmailVerified,
 		&i.ActivePracticePlanID,
 		&i.ActivePracticePlanStarted,
+		&i.ConfigDefaultPlanIntensity,
+		&i.ConfigTimeBetweenBreaks,
 	)
 	return i, err
 }
@@ -249,7 +255,7 @@ func (q *Queries) SetActivePracticePlan(ctx context.Context, arg SetActivePracti
 
 const setEmailVerified = `-- name: SetEmailVerified :exec
 UPDATE users SET email_verified = 1 WHERE id = ?
-RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
+RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started, config_default_plan_intensity, config_time_between_breaks
 `
 
 func (q *Queries) SetEmailVerified(ctx context.Context, id string) error {
@@ -263,7 +269,7 @@ SET fullname = COALESCE(?, fullname),
     email = COALESCE(?, email),
     email_verified = COALESCE(?, email_verified)
 WHERE id = ?
-RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started
+RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started, config_default_plan_intensity, config_time_between_breaks
 `
 
 type UpdateUserParams struct {
@@ -288,6 +294,39 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.EmailVerified,
 		&i.ActivePracticePlanID,
 		&i.ActivePracticePlanStarted,
+		&i.ConfigDefaultPlanIntensity,
+		&i.ConfigTimeBetweenBreaks,
+	)
+	return i, err
+}
+
+const updateUserSettings = `-- name: UpdateUserSettings :one
+UPDATE users
+SET
+    config_default_plan_intensity = COALESCE(?, config_default_plan_intensity),
+    config_time_between_breaks = COALESCE(?, config_time_between_breaks)
+WHERE id = ?
+RETURNING id, fullname, email, email_verified, active_practice_plan_id, active_practice_plan_started, config_default_plan_intensity, config_time_between_breaks
+`
+
+type UpdateUserSettingsParams struct {
+	ConfigDefaultPlanIntensity string `json:"configDefaultPlanIntensity"`
+	ConfigTimeBetweenBreaks    int64  `json:"configTimeBetweenBreaks"`
+	ID                         string `json:"id"`
+}
+
+func (q *Queries) UpdateUserSettings(ctx context.Context, arg UpdateUserSettingsParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, updateUserSettings, arg.ConfigDefaultPlanIntensity, arg.ConfigTimeBetweenBreaks, arg.ID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Fullname,
+		&i.Email,
+		&i.EmailVerified,
+		&i.ActivePracticePlanID,
+		&i.ActivePracticePlanStarted,
+		&i.ConfigDefaultPlanIntensity,
+		&i.ConfigTimeBetweenBreaks,
 	)
 	return i, err
 }

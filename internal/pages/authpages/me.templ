@@ -4,6 +4,7 @@ import "github.com/go-webauthn/webauthn/protocol"
 import "practicebetter/internal/db"
 import "practicebetter/internal/components"
 import "practicebetter/internal/pages"
+import "strconv"
 
 script startRegistration(creationOptions *protocol.CredentialCreation, csrf string) {
 	globalThis.startPasskeyRegistration(creationOptions.publicKey, csrf)
@@ -30,7 +31,7 @@ script redirectToNext() {
 // TODO: display reminder if user email is not verified
 
 templ UserInfo(user db.User, csrf string) {
-	<title>Account | Go Practice</title>
+	<title>Settings | Go Practice</title>
 	<div class="flex flex-col p-4 rounded-xl bg-neutral-700/5" id="user-info">
 		<div class="px-4 pb-1 sm:px-0">
 			<h3 class="text-xl font-semibold leading-7 text-neutral-900">
@@ -172,62 +173,14 @@ templ UserForm(user db.User, csrf string, errors map[string]string) {
 // TODO: add ability to edit user profile
 
 templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf string, credentialCount string, s pages.ServerUtil) {
-	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("User Info"), components.LogoutLink())) {
+	@components.SingleColumnLayout(components.TwoButtonBar(components.InternalNav(), components.HeadingText("Settings"), components.LogoutLink())) {
 		@components.TwoColumnContainer() {
-			@UserInfo(user, csrf)
-			<div class="p-4 rounded-xl bg-neutral-700/5">
-				<div class="px-4 pb-1 sm:px-0">
-					<h3 class="text-xl font-semibold leading-7 text-neutral-900">
-						Passkey Information
-					</h3>
-					<p class="max-w-2xl text-sm leading-6 text-neutral-500">
-						Manage your passkeys
-					</p>
-				</div>
-				<dl class="border-t divide-y divide-neutral-700 border-neutral-700">
-					<div class="grid grid-cols-2 gap-4 py-2 px-0">
-						<dt class="text-sm font-medium leading-6 text-neutral-900">
-							Number of Passkeys
-						</dt>
-						<dd class="mt-0 text-sm leading-6 text-neutral-700" id="passkey-count">
-							{ credentialCount }
-						</dd>
-					</div>
-					<div class="py-2 sm:gap-4 sm:px-0">
-						<dt class="sr-only">
-							<span>Register a Passkey</span>
-						</dt>
-						<dd class="mt-1 text-sm leading-6 text-neutral-700">
-							<button
- 								type="button"
- 								onclick={ startRegistration(creationOptions, csrf) }
- 								class="w-full action-button green focusable"
-							>
-								<span class="-ml-1 size-5 icon-[ph--fingerprint-thin]" aria-hidden="true"></span>
-								Register a Passkey
-							</button>
-						</dd>
-					</div>
-					<div class="py-2 sm:gap-4 sm:px-0">
-						<dt class="sr-only">
-							<span>Delete Your Passkeys</span>
-						</dt>
-						<dd class="mt-1 w-full text-sm leading-6 text-neutral-700">
-							<button
- 								type="button"
- 								hx-post="/auth/passkey/delete"
- 								hx-headers={ components.HxCsrfHeader(csrf) }
- 								hx-swap="none"
- 								hx-confirm="Are you sure you want to delete all your passkeys?"
- 								hx-on::after-request={ deletePasskeys() }
- 								class="w-full action-button red focusable"
-							>
-								<span class="-ml-1 size-5 icon-[iconamoon--trash-thin]" aria-hidden="true"></span>
-								Delete All Passkeys
-							</button>
-						</dd>
-					</div>
-				</dl>
+			<div class="flex flex-col gap-2">
+				@UserInfo(user, csrf)
+				@PasskeySetup(credentialCount, creationOptions, csrf)
+			</div>
+			<div class="flex flex-col gap-2">
+				@UserSettingsForm(user, csrf)
 			</div>
 			<dialog id="recommend-dialog" aria-labelledby="recommend-dialog-title" class="bg-gradient-to-t from-neutral-50 to-[#fff9ee] text-left flex flex-col gap-2 sm:max-w-xl px-4 py-4">
 				<header class="mt-2 text-center sm:text-left">
@@ -261,4 +214,143 @@ templ MePage(user db.User, creationOptions *protocol.CredentialCreation, csrf st
 			<script type="module" src={ s.StaticUrl("dist/me.js") }></script>
 		}
 	}
+}
+
+templ PasskeySetup(credentialCount string, creationOptions *protocol.CredentialCreation, csrf string) {
+	<div class="p-4 rounded-xl bg-neutral-700/5">
+		<div class="px-4 pb-1 sm:px-0">
+			<h3 class="text-xl font-semibold leading-7 text-neutral-900">
+				Passkey Setup
+			</h3>
+		</div>
+		<dl class="border-t divide-neutral-700 border-neutral-700">
+			<div class="grid gap-4 py-2 px-0">
+				<p class="text-sm leading-6 text-neutral-900">
+					You have registered { credentialCount } passkeys. If you think one of your devices is compromised, you can delete your passkeys below.
+				</p>
+			</div>
+			<div class="py-2 sm:gap-4 sm:px-0">
+				<dt class="sr-only">
+					<span>Register a Passkey</span>
+				</dt>
+				<dd class="mt-1 text-sm leading-6 text-neutral-700">
+					<button
+ 						type="button"
+ 						onclick={ startRegistration(creationOptions, csrf) }
+ 						class="w-full action-button green focusable"
+					>
+						<span class="-ml-1 size-5 icon-[ph--fingerprint-thin]" aria-hidden="true"></span>
+						New Passkey
+					</button>
+				</dd>
+			</div>
+			<div class="py-2 sm:gap-4 sm:px-0">
+				<dt class="sr-only">
+					<span>Delete Your Passkeys</span>
+				</dt>
+				<dd class="mt-1 w-full text-sm leading-6 text-neutral-700">
+					<button
+ 						type="button"
+ 						hx-post="/auth/passkey/delete"
+ 						hx-headers={ components.HxCsrfHeader(csrf) }
+ 						hx-swap="none"
+ 						hx-confirm="Are you sure you want to delete all your passkeys?"
+ 						hx-on::after-request={ deletePasskeys() }
+ 						class="w-full action-button red focusable"
+					>
+						<span class="-ml-1 size-5 icon-[iconamoon--trash-thin]" aria-hidden="true"></span>
+						Delete All Passkeys
+					</button>
+				</dd>
+			</div>
+		</dl>
+	</div>
+}
+
+templ UserSettingsForm(user db.User, csrf string) {
+	<form
+ 		class="flex flex-col gap-2 p-4 rounded-xl bg-neutral-700/5"
+ 		id="user-settings"
+ 		action="/auth/me/settings"
+ 		method="POST"
+ 		hx-post="/auth/me/settings"
+ 		hx-swap="outerHTML transition:true"
+ 		hx-target="#user-settings"
+	>
+		<div class="px-4 pb-1 sm:px-0">
+			<h3 class="text-xl font-semibold leading-7 text-neutral-900">
+				Settings
+			</h3>
+			<p class="max-w-2xl text-sm leading-6 text-neutral-500">
+				Change the default behaviors to be more to your liking.
+			</p>
+		</div>
+		<input type="hidden" name="gorilla.csrf.Token" value={ csrf }/>
+		<div class="flex flex-col gap-2 items-center text-sm leading-6 sm:flex-row sm:col-span-2 text-neutral-700">
+			<label
+ 				class="flex-grow text-sm font-medium leading-6 text-neutral-900"
+ 				for="config_time_between_breaks"
+			>
+				Time between breaks (minutes)
+			</label>
+			<input
+ 				value={ strconv.FormatInt(user.ConfigTimeBetweenBreaks, 10) }
+ 				type="number"
+ 				id="config_time_between_breaks"
+ 				name="config_time_between_breaks"
+ 				class="ml-2 w-24 basic-field"
+ 				min="6"
+ 				max="99"
+			/>
+		</div>
+		<div class="flex flex-col items-center text-sm leading-6 sm:flex-row sm:col-span-2 text-neutral-700">
+			<label
+ 				class="flex-grow text-sm font-medium leading-6 text-neutral-900"
+ 				for="config_time_between_breaks"
+			>
+				Default Practice Plan Intensity
+			</label>
+			<select
+ 				required
+ 				id="config_default_plan_intensity"
+ 				name="config_default_plan_intensity"
+ 				class="flex-grow-0 py-2 pr-8 pl-4 w-32 bg-white rounded-xl border shadow-sm transition duration-200 focus:shadow border-neutral-800 shadow-neutral-300 text-neutral-800 placeholder-neutral-600 custom-select focusable focus:border-neutral-800 focus:shadow-neutral-700/20"
+			>
+				<option
+ 					value="light"
+ 					if user.ConfigDefaultPlanIntensity == "light" {
+						selected
+					}
+				>
+					Light
+				</option>
+				<option
+ 					value="medium"
+ 					if user.ConfigDefaultPlanIntensity == "medium" {
+						selected
+					}
+				>
+					Medium
+				</option>
+				<option
+ 					value="heavy"
+ 					if user.ConfigDefaultPlanIntensity == "heavy" {
+						selected
+					}
+				>
+					Heavy
+				</option>
+			</select>
+		</div>
+		<div class="flex flex-col gap-2 justify-start mt-2 sm:flex-row-reverse">
+			<button type="submit" class="green action-button focusable">
+				<span class="-ml-1 size-6 icon-[iconamoon--arrow-up-5-circle-thin]" aria-hidden="true"></span>
+				Save
+			</button>
+			<button type="reset" class="red action-button focusable">
+				<span class="-ml-1 size-6 icon-[iconamoon--sign-times-circle-thin]" aria-hidden="true"></span>
+				Cancel
+			</button>
+		</div>
+	</form>
 }

@@ -260,4 +260,5 @@ func (s *Server) authRouter(r chi.Router) {
 	r.With(s.LoginRequired).Get("/me/reset", s.getProfile)
 	r.With(s.LoginRequired).Post("/passkey/register", s.registerPasskey)
 	r.With(s.LoginRequired).Post("/passkey/delete", s.deletePasskeys)
+	r.With(s.LoginRequired).Post("/me/settings", s.updateSettings)
 }
