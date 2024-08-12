@@ -336,3 +336,134 @@ func (s *Server) practiceReading(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (s *Server) editReading(w http.ResponseWriter, r *http.Request) {
+	user := r.Context().Value(ck.UserKey).(db.User)
+	readingID := chi.URLParam(r, "readingID")
+	queries := db.New(s.DB)
+	item, err := queries.GetReadingByID(r.Context(), db.GetReadingByIDParams{
+		ReadingID: readingID,
+		UserID:    user.ID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not load reading")
+		return
+	}
+
+	itemInfo := readingpages.SingleReadingItemInfo{
+		ID:       readingID,
+		Title:    item.Title,
+		Info:     item.Info,
+		Composer: item.Composer,
+	}
+	token := csrf.Token(r)
+	s.HxRender(w, r, readingpages.EditReadingDipslay(itemInfo, token), "Update Reading")
+}
+
+func (s *Server) updateReading(w http.ResponseWriter, r *http.Request) {
+	readingID := chi.URLParam(r, "readingID")
+	user := r.Context().Value(ck.UserKey).(db.User)
+
+	if err := r.ParseForm(); err != nil {
+		log.Default().Println(err)
+		if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+			Message:  "Could not parse form",
+			Title:    "Form Error",
+			Variant:  "error",
+			Duration: 3000,
+		}); err != nil {
+			log.Default().Println(err)
+		}
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	queries := db.New(s.DB)
+
+	params := db.UpdateReadingParams{
+		Info:     sql.NullString{String: "", Valid: false},
+		Composer: sql.NullString{String: "", Valid: false},
+		Title:    r.Form.Get("title"),
+		UserID:   user.ID,
+		ID:       readingID,
+	}
+
+	if info := r.Form.Get("info"); info != "" {
+		params.Info = sql.NullString{String: info, Valid: true}
+	}
+
+	if composer := r.Form.Get("composer"); composer != "" {
+		params.Composer = sql.NullString{String: composer, Valid: true}
+	}
+
+	if _, err := queries.UpdateReading(r.Context(), params); err != nil {
+		s.DatabaseError(w, r, err, "Failed to update reading")
+		return
+	}
+
+	reading, err := queries.GetReadingByID(r.Context(), db.GetReadingByIDParams{
+		ReadingID: readingID,
+		UserID:    user.ID,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Failed to load scale")
+		return
+	}
+	token := csrf.Token(r)
+	itemInfo := readingpages.SingleReadingItemInfo{
+		ID:       readingID,
+		Title:    reading.Title,
+		Info:     reading.Info,
+		Composer: reading.Composer,
+	}
+	// TODO: better response with oob swaps of main component
+	if err := readingpages.UpdatedReading(itemInfo, token).Render(r.Context(), w); err != nil {
+		log.Default().Println(err)
+	}
+}
+
+func (s *Server) deleteReading(w http.ResponseWriter, r *http.Request) {
+	readingID := chi.URLParam(r, "readingID")
+	user := r.Context().Value(ck.UserKey).(db.User)
+	queries := db.New(s.DB)
+	if err := queries.DeleteReadingItem(r.Context(), db.DeleteReadingItemParams{
+		ID:     readingID,
+		UserID: user.ID,
+	}); err != nil {
+		s.DatabaseError(w, r, err, "Could not delete reading")
+		return
+	}
+	pageNum := 1
+	items, err := queries.ListPaginatedUserReadingItems(r.Context(), db.ListPaginatedUserReadingItemsParams{
+		UserID: user.ID,
+		Limit:  config.ItemsPerPage,
+		Offset: 0,
+	})
+	if err != nil {
+		s.DatabaseError(w, r, err, "Could not load sight reading items")
+		return
+	}
+	totalPieces, err := queries.CountUserReadingItems(r.Context(), user.ID)
+	if err != nil {
+		log.Default().Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	totalPages := int(math.Ceil(float64(totalPieces) / float64(config.ItemsPerPage)))
+	if err != nil {
+		log.Default().Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	htmx.PushURL(r, "/library/reading")
+	if err := htmx.Trigger(r, "ShowAlert", ShowAlertEvent{
+		Message:  "Successfully deleted your sight reading item",
+		Title:    "Sight Reading Deleted!",
+		Variant:  "success",
+		Duration: 3000,
+	}); err != nil {
+		log.Default().Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
+	s.HxRender(w, r, readingpages.ReadingList(items, pageNum, totalPages), "Sight Reading")
+
+}

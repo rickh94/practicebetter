@@ -210,10 +210,11 @@ func (s *Server) readingRouter(r chi.Router) {
 	r.Post("/bulk", s.bulkCreateSightReading)
 	r.Get("/create", s.createSightReadingForm)
 	r.Get("/{readingID}", s.singleSightReadingItem)
-	// r.Put("/{itemID}", s.updateScale)
+	r.Put("/{readingID}", s.updateReading)
+	r.Delete("/{readingID}", s.deleteReading)
 	r.Get("/{readingID}/practice", s.getPracticeReading)
 	r.Post("/{readingID}/practice", s.practiceReading)
-	// r.Get("/{item}/edit", s.editScale)
+	r.Get("/{readingID}/edit", s.editReading)
 }
 
 func (s *Server) libraryRouter(r chi.Router) {

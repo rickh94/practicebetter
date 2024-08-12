@@ -22,10 +22,17 @@ templ SingleReadingItem(s pages.ServerUtil, item SingleReadingItemInfo, csrf str
 					{ Label: item.Title, Href: "/library/reading/" + item.ID, Active: true },
 				})
 			@components.ActionButtonContainer() {
-				@components.HxLink("focusable action-button amber", "/library/reading/" + item.ID + "/edit", "#main-content") {
-					<span class="-ml-1 size-6 icon-[custom--music-note-edit]" aria-hidden="true"></span>
+				<button
+ 					class="action-button amber focusable"
+ 					hx-get={ "/library/reading/" + item.ID + "/edit" }
+ 					hx-push-url="false"
+ 					hx-target="#practice-reading-dialog-contents"
+ 					hx-swap="innerHTML"
+ 					hx-on::after-request={ components.ShowModal("practice-reading-dialog") }
+				>
+					<span class="-ml-1 size-5 icon-[iconamoon--edit-thin]" aria-hidden="true"></span>
 					Edit
-				}
+				</button>
 				<button
  					class="action-button violet focusable"
  					hx-get={ "/library/reading/" + item.ID + "/practice" }
@@ -41,7 +48,7 @@ templ SingleReadingItem(s pages.ServerUtil, item SingleReadingItemInfo, csrf str
  					class="action-button red focusable"
  					hx-delete={ "/library/reading/" + item.ID }
  					hx-headers={ components.HxCsrfHeader(csrf) }
- 					hx-confirm="Are you sure you want to delete this piece and all its spots?"
+ 					hx-confirm={ "Are you sure you want to delete \"" + item.Title + "\" from your sight reading items?" }
  					hx-target="#main-content"
 				>
 					<span class="-ml-1 size-6 icon-[iconamoon--trash-thin]" aria-hidden="true"></span>
@@ -87,6 +94,18 @@ templ ReadingDisplayPage(item SingleReadingItemInfo, oob bool) {
 				</div>
 				<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
 					<dt class="text-sm font-medium leading-6 text-slate-900">
+						Composer
+					</dt>
+					<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-slate-700">
+						if item.Composer.Valid {
+							{ item.Composer.String }
+						} else {
+							Unknown
+						}
+					</dd>
+				</div>
+				<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+					<dt class="text-sm font-medium leading-6 text-slate-900">
 						Completed
 					</dt>
 					<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-slate-700">
@@ -97,16 +116,6 @@ templ ReadingDisplayPage(item SingleReadingItemInfo, oob bool) {
 						}
 					</dd>
 				</div>
-				if item.Composer.Valid {
-					<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-						<dt class="text-sm font-medium leading-6 text-slate-900">
-							Composer
-						</dt>
-						<dd class="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0 text-slate-700">
-							{ item.Composer.String }
-						</dd>
-					</div>
-				}
 				<div class="py-4 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
 					<dt class="text-sm font-medium leading-6 text-slate-900">
 						Info
@@ -128,7 +137,10 @@ templ UpdatedReading(item SingleReadingItemInfo, csrf string) {
 }
 
 templ PracticeReadingDisplay(item SingleReadingItemInfo, csrf string) {
-	<div class="grid gap-2 mx-auto max-w-md md:grid-cols-6 md:mx-0 md:max-w-full" id="practice-reading">
+	<div
+ 		class="grid gap-2 mx-auto max-w-md md:grid-cols-6 md:mx-0 md:max-w-full"
+ 		id="practice-reading"
+	>
 		<div class="flex relative flex-col gap-2 justify-center items-center py-8 px-4 text-center bg-white rounded-xl border shadow-lg sm:px-8 md:col-span-2 fon-bold border-neutral-500">
 			<button
  				hx-get={ "/library/reading/" + item.ID + "/edit" }
@@ -192,4 +204,101 @@ templ PracticeReadingDisplay(item SingleReadingItemInfo, csrf string) {
 			</div>
 		</div>
 	</div>
+}
+
+templ EditReadingDipslay(item SingleReadingItemInfo, csrf string) {
+	<form
+ 		class="grid gap-2 mx-auto max-w-md md:grid-cols-6 md:mx-0 md:max-w-full"
+ 		id="edit-scale"
+ 		hx-put={ "/library/reading/" + item.ID }
+ 		hx-push-url="false"
+ 		hx-target="#practice-reading-dialog-contents"
+ 		hx-swap="innerHTML"
+	>
+		<div class="flex relative flex-col gap-2 justify-center items-center py-8 px-4 text-center bg-white rounded-xl border shadow-lg sm:px-8 md:col-span-2 fon-bold border-neutral-500">
+			<span class="text-2xl font-bold text-pretty">
+				{ item.Title }
+				if item.Composer.Valid {
+					({ item.Composer.String })
+				}
+			</span>
+		</div>
+		<div
+ 			class="flex flex-col gap-2 px-4 pt-4 pb-5 bg-white rounded-xl border shadow-lg md:col-span-4 border-neutral-500"
+		>
+			<input
+ 				value={ csrf }
+ 				type="hidden"
+ 				name="gorilla.csrf.Token"
+ 				id="csrf"
+			/>
+			<label for="title" class="text-lg font-semibold text-left underline">
+				Title
+			</label>
+			<p class="flex my-1 leading-6 text-black">
+				<input
+ 					value={ item.Title }
+ 					class="flex-grow min-w-0 basic-field neutral focusable"
+ 					name="title"
+ 					type="text"
+ 					placeholder="Title"
+ 					id="title"
+ 					required
+				/>
+			</p>
+			<label for="composer" class="text-lg font-semibold text-left underline">
+				Composer
+			</label>
+			<p class="flex my-1 leading-6 text-black">
+				<input
+ 					if item.Composer.Valid {
+						value={ item.Composer.String }
+					}
+ 					class="flex-grow min-w-0 basic-field neutral focusable"
+ 					name="composer"
+ 					type="text"
+ 					placeholder="Composer"
+ 					id="composer"
+				/>
+			</p>
+			<label for="info" class="text-lg font-semibold text-left underline">Info</label>
+			<p class="my-1 leading-6 text-black">
+				<textarea
+ 					if item.Info.Valid {
+						value={ item.Info.String }
+					}
+ 					class="flex-grow w-full min-w-0 basic-field neutral focusable"
+ 					name="info"
+ 					placeholder="Practice Notes"
+ 					id="info"
+				></textarea>
+			</p>
+			<div class="flex flex-col flex-wrap gap-2 justify-start items-center mt-2 w-full xs:flex-row-reverse">
+				<button
+ 					type="submit"
+ 					class="w-full action-button green xs:w-auto focusable"
+				>
+					<span
+ 						class="-ml-1 icon-[iconamoon--arrow-up-5-circle-thin] size-6"
+ 						aria-hidden="true"
+					></span>
+					Save
+				</button>
+				<button
+ 					type="button"
+ 					class="w-full action-button red xs:w-auto focusable"
+ 					hx-get={ "/library/reading/" + item.ID + "/practice" }
+ 					hx-push-url="false"
+ 					hx-target="#practice-reading-dialog-contents"
+ 					hx-swap="innerHTML transition:true"
+				>
+					<span
+ 						class="-ml-1 icon-[iconamoon--sign-times-circle-thin] size-6"
+ 						aria-hidden="true"
+					></span>
+					Cancel
+				</button>
+			</div>
+		</div>
+	</form>
 }
